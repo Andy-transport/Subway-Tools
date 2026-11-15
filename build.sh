@@ -29,6 +29,6 @@ python3 -c "import base64; open('build/Payload/Metro.app/Splash.png','wb').write
 
 echo "== 4. package IPA =="
 cd build
-zip -r -y Metro-2.8.0-unsigned.ipa Payload
-ls -l Metro-2.8.0-unsigned.ipa
-unzip -l Metro-2.8.0-unsigned.ipa
+zip -r -y Beijing-Subway-motion-1.0.1-unsigned.ipa Payload
+ls -l Beijing-Subway-motion-1.0.1-unsigned.ipa
+unzip -l Beijing-Subway-motion-1.0.1-unsigned.ipa
