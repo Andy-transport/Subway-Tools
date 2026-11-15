@@ -227,7 +227,18 @@
 		}
 		#searchPill svg { width: 18px; height: 18px; }
 
-		/* top pills use the neutral .glass (Apple-native Liquid Glass); dark-blue text stays readable on it */
+		/* Apple official Liquid Glass for the two top pills (overrides .glass):
+		   .glass is too transparent and saturate(180%) amplifies the red map
+		   behind into a pink tint. Real Liquid Glass is frosted near-opaque
+		   white, strong blur, low saturation boost, crisp specular rim. */
+		#brandChip, #searchPill {
+			background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.55));
+			-webkit-backdrop-filter: blur(28px) saturate(140%);
+			backdrop-filter: blur(28px) saturate(140%);
+			border: 1px solid rgba(255, 255, 255, 0.85);
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.4), inset 0 0 0 0.5px rgba(255, 255, 255, 0.6);
+			color: #003380;
+		}
 
 		#tabBar {
 			position: fixed;
@@ -393,6 +404,11 @@
 		html.dark #tabBar { background: rgba(28, 28, 30, 0.78); border-top-color: rgba(255, 255, 255, 0.12); }
 		html.dark .tab { color: rgba(255, 255, 255, 0.55); }
 		html.dark .tab.active { color: #9cc2ff; }
+		html.dark #brandChip, html.dark #searchPill {
+			background: linear-gradient(180deg, rgba(45, 50, 68, 0.72), rgba(28, 33, 50, 0.6));
+			border-color: rgba(255, 255, 255, 0.28);
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+		}
 		html.dark #brandChip .bj-city, html.dark #brandChip .bj-chev { color: #9cc2ff; }
 		html.dark #searchPill { color: #9cc2ff; }
 		html.dark #stationPanel, html.dark #transferPanel { background: rgba(16, 20, 32, 0.88); }

@@ -52,3 +52,8 @@ GitHub Actions（macOS）跑 `bash build.sh`：先把离线网页拼出来，再
 - 沈阳的启用图换成用户新发的沈阳设计（沈阳 / 配线查询 / SHENYANG SUBWAY · TRACK LAYOUT LOOKUP，红线配线图）；北京的启用图不变（北京 / 配线查询）。
 - 实现：启动图不能只靠 iOS 原生 LaunchScreen（它是静态单图），所以在网页里加了一层全屏启动图遮罩（#splashOverlay），按当前城市显示对应图片，打开时显示约 0.7 秒后淡出，切城市时显示新城市的图约 0.5 秒后淡出。北京图复用 app/splash.b64，沈阳图存为 web/shenyang/splash.b64，两张都内联进页面（BJ_SPLASH / SY_SPLASH）。
 - 其余与 Build 25 相同（首都机场线、应用名 Subway motion、顶栏 Apple 原生液态玻璃、沈阳新图标白底）。
+
+
+## Build 27 (v1.0.2) — 顶栏改回 Apple 官方液态玻璃
+- 上一版的 .glass 底太透，saturate(180%) 还把地图的红色放大，沈阳那个小条看起来发粉，不是 Apple 官方液态玻璃。这次两个顶栏小条不用 .glass，单独做了 Apple 官方液态玻璃：磨砂近不透明白底（0.72/0.55，不再透出地图的红）、模糊加强到 28px、饱和度只提到 140%、无蓝色 tint、亮白边框 + 顶部高光（玻璃边缘反光）。深色模式用深色磨砂玻璃 + 浅蓝字。
+- 其余与 Build 26 相同（沈阳启用图、首都机场线、应用名 Subway motion、沈阳新图标白底）。
