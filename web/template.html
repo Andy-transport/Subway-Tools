@@ -317,7 +317,7 @@
 		   Hide the web controls but keep the space, so the native controls
 		   sit exactly where the web rows were. The suggestion dropdown
 		   (.tr-suggest) stays web and appears below the native card. */
-		.native-app .tr-fields, .native-app .tr-search { visibility: hidden !important; }
+		.native-app .tr-fields, .native-app .tr-search { visibility: hidden !important; border-color: transparent !important; box-shadow: none !important; background: transparent !important; }
 		.native-app .more-theme-seg { visibility: hidden !important; }
 		.native-app .tr-tabs { visibility: hidden !important; }
 		.sy-theme .sp-cancel { color: #8a6d2b; }
@@ -1103,7 +1103,15 @@
 						var self = this;
 						this.showSplash = true;
 						if (this._splashTimer) clearTimeout(this._splashTimer);
-						this._splashTimer = setTimeout(function() { self.showSplash = false; }, ms || 600);
+						this._splashTimer = setTimeout(function() {
+							self.showSplash = false;
+							// Splash gate (user 2026-11-15): tell native the splash
+							// is done so it can reveal the tab bar + top pills,
+							// which sit above the web view and would otherwise
+							// show on top of the splash animation.
+							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.splashDone);
+							if (h) h.postMessage({});
+						}, ms || 600);
 					},
 					showCityMenu() {
 						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu);

@@ -104,6 +104,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     let shanghaiGold = UIColor(red: 212.0 / 255.0, green: 182.0 / 255.0, blue: 134.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
+    // Splash gate (user 2026-11-15): the native tab bar + top pills sit
+    // ABOVE the WKWebView, so they showed on top of the web splash
+    // animation for 2s. Keep them hidden until the web says the splash
+    // is done (or the fallback timer fires).
+    var splashShowing = true
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -127,6 +132,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "timePicker")
         config.userContentController.add(self, name: "openTransitApp")
         config.userContentController.add(self, name: "cityChanged")
+        config.userContentController.add(self, name: "splashDone")
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -178,6 +184,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tabBar)
+        // Splash gate: hidden until the web splash finishes.
+        tabBar.isHidden = true
         // iPad (user 2026-11-15): the tab bar moves to the TOP; iPhone
         // keeps it at the bottom. The top pills move below the bar on
         // iPad so they do not overlap it (see setupNativePills).
@@ -220,6 +228,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         ])
 
         setupNativePills()
+        // Splash fallback: if the web never posts splashDone, reveal the
+        // controls after 4s anyway.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [weak self] in
+            self?.splashFinished()
+        }
         setupSortTabs()
         setupThemeSeg()
         setupTransferControls()
@@ -810,7 +823,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         transferSearchButton.configuration = config
         transferSearchButton.tintColor = searchButtonColor()
-        transferSearchButton.backgroundColor = searchButtonColor()
+        // White-overflow fix (user 2026-11-15, all 3 cities): the button's
+        // own backgroundColor painted a rectangle behind the capsule, and
+        // its square corners peeked out at the pill ends. Clear it and clip
+        // the button to its rounded shape so only the capsule paints.
+        transferSearchButton.backgroundColor = .clear
+        transferSearchButton.clipsToBounds = true
     }
 
     // Line badge: a small pill with the line's colour + name (same
@@ -941,9 +959,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updatePillVisibility() {
-        let show = currentTab == "map"
+        let show = currentTab == "map" && !splashShowing
         cityPill.isHidden = !show
         searchPill.isHidden = !show
+    }
+
+    // Called when the web splash finishes (or the fallback timer fires):
+    // reveal the native controls.
+    func splashFinished() {
+        guard splashShowing else { return }
+        splashShowing = false
+        tabBar.isHidden = false
+        updatePillVisibility()
     }
 
     // MARK: - Departure time picker (build 34)
@@ -1088,6 +1115,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             tabBar.selectedItem = tabBar.items?[idx]
         } else if message.name == "cityMenu" {
             presentCityMenuPopover()
+        } else if message.name == "splashDone" {
+            splashFinished()
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
