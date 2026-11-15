@@ -60,11 +60,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // (Liquid Glass on iOS 26+) overlaid on the web panel's tab row.
     var sortTabs: UISegmentedControl!
     let sortTabKeys = ["rec", "early", "fewest", "cheap"]
-    // Native Apple UI Liquid Glass dark-mode picker (build 44): a
-    // UISegmentedControl (跟随系统/浅色/深色) overlaid on the settings
-    // panel's .more-theme-seg row, same pattern as sortTabs.
-    var themeSeg: UISegmentedControl!
+    // Native Apple UI Liquid Glass dark-mode picker (build 44, 3 glass
+    // buttons since build 52): 3 separate glass buttons
+    // (跟随系统/浅色/深色) overlaid on the settings panel's
+    // .more-theme-seg row, same pattern as sortTabs.
+    var themeButtons: [UIButton] = []
     let themeSegKeys = ["system", "light", "dark"]
+    // Web view's origin in the main view (build 52): on iPad the web
+    // view starts below the independent top tab bar, so web
+    // getBoundingClientRect coordinates must be shifted by this offset
+    // to land in main-view space. On iPhone the web view is full-screen
+    // so the offset is (0, 0) and nothing changes.
+    var webOffset: CGPoint { webView.frame.origin }
     // Native Liquid Glass transfer input area (build 37): a glass card
     // holding the two station text fields + swap button, and a glass
     // 搜索 button, overlaid on the web panel's .tr-fields / .tr-search
@@ -184,6 +191,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                   : tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
         ])
 
+        // iPad top bar is INDEPENDENT (build 52, user 2026-11-15
+        // "帮顶栏独立，不要遮挡iPad显示内容"): the web view starts
+        // BELOW the top tab bar, so no web content (e.g. the timetable
+        // panel's search field) is ever covered by the bar. iPhone keeps
+        // the full-screen web view (the bar floats at the bottom there).
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            isPad ? webView.topAnchor.constraint(equalTo: tabBar.bottomAnchor, constant: 8)
+                  : webView.topAnchor.constraint(equalTo: view.topAnchor),
+        ])
+
         // Swipe left/right on the tab bar to switch tabs (keeps the web
         // tab bar's swipe feature, now on the native bar).
         let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleTabSwipe(_:)))
@@ -221,7 +242,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             self?.splashFinished()
         }
         setupSortTabs()
-        setupThemeSeg()
+        setupThemeButtons()
         setupTransferControls()
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
         loadMap()
@@ -462,7 +483,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let h = (dict["height"] as? Double) ?? 0
         let tab = dict["tab"] as? String ?? ""
         if w > 0 && h > 0 && currentTab == "transfer" {
-            sortTabs.frame = CGRect(x: x, y: y, width: w, height: h)
+            sortTabs.frame = CGRect(x: x + webOffset.x, y: y + webOffset.y, width: w, height: h)
             sortTabs.isHidden = false
             if let idx = sortTabKeys.firstIndex(of: tab) {
                 sortTabs.selectedSegmentIndex = idx
@@ -472,47 +493,83 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
     }
 
-    // MARK: - Native Apple UI dark-mode picker (build 44)
+    // MARK: - Native Apple UI dark-mode picker (build 44, 3 glass buttons since build 52)
 
-    // The 深色模式 picker (跟随系统/浅色/深色) is a native
-    // UISegmentedControl (Liquid Glass on iOS 26+), overlaid on the
-    // settings panel's .more-theme-seg row — same pattern as sortTabs.
-    // The web hides its own row in the native app and reports the frame.
-    func setupThemeSeg() {
-        themeSeg = UISegmentedControl(items: ["跟随系统", "浅色", "深色"])
-        themeSeg.selectedSegmentIndex = 0
-        themeSeg.translatesAutoresizingMaskIntoConstraints = true
-        themeSeg.isHidden = true
-        themeSeg.addTarget(self, action: #selector(themeSegChanged(_:)), for: .valueChanged)
-        let attrs: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 14, weight: .semibold)]
-        themeSeg.setTitleTextAttributes(attrs, for: .normal)
-        themeSeg.setTitleTextAttributes(attrs, for: .selected)
-        view.addSubview(themeSeg)
+    // The 深色模式 picker (跟随系统/浅色/深色) is 3 separate native
+    // Liquid Glass buttons (user 2026-11-15 "改成3个液态玻璃按钮
+    // 不要滑动效果了") — NOT a UISegmentedControl, so there is no
+    // sliding selection pill; each button is independent and the
+    // selected one shows a static accent tint. They overlay the
+    // settings panel's .more-theme-seg row (same pattern as sortTabs);
+    // the web hides its own row in the native app and reports the frame.
+    func setupThemeButtons() {
+        let titles = ["跟随系统", "浅色", "深色"]
+        for (i, title) in titles.enumerated() {
+            let btn = UIButton(type: .system)
+            var cfg = UIButton.Configuration.glass()
+            cfg.title = title
+            cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+                var a = attrs
+                a.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+                return a
+            }
+            btn.configuration = cfg
+            btn.tag = i
+            btn.translatesAutoresizingMaskIntoConstraints = true
+            btn.isHidden = true
+            btn.addTarget(self, action: #selector(themeButtonTapped(_:)), for: .touchUpInside)
+            view.addSubview(btn)
+            themeButtons.append(btn)
+        }
+        updateThemeButtons(selected: 0)
     }
 
-    @objc func themeSegChanged(_ sender: UISegmentedControl) {
-        let idx = sender.selectedSegmentIndex
+    @objc func themeButtonTapped(_ sender: UIButton) {
+        let idx = sender.tag
         guard idx >= 0 && idx < themeSegKeys.count else { return }
         let key = themeSegKeys[idx]
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTheme('\(key)')", completionHandler: nil)
+        updateThemeButtons(selected: idx)
     }
 
-    // Place the native dark-mode picker over the web row's reported
-    // frame. A zero-size rect (settings panel not shown) hides it.
-    func placeThemeSeg(frame dict: [String: Any]) {
-        let x = (dict["x"] as? Double) ?? 0
-        let y = (dict["y"] as? Double) ?? 0
+    // Static highlight for the selected glass button (no sliding):
+    // selected = accent-tinted glass with an accent title; unselected =
+    // plain glass with the default label colour.
+    func updateThemeButtons(selected idx: Int) {
+        for (i, btn) in themeButtons.enumerated() {
+            var cfg = btn.configuration ?? UIButton.Configuration.glass()
+            if i == idx {
+                cfg.baseForegroundColor = accentColor()
+                cfg.baseBackgroundColor = accentColor().withAlphaComponent(0.15)
+            } else {
+                cfg.baseForegroundColor = .label
+                cfg.baseBackgroundColor = nil
+            }
+            btn.configuration = cfg
+        }
+    }
+
+    // Place the 3 native glass buttons over the web row's reported
+    // frame (each 1/3 of the width, 8pt gaps). A zero-size rect
+    // (settings panel not shown) hides them.
+    func placeThemeButtons(frame dict: [String: Any]) {
+        let x = ((dict["x"] as? Double) ?? 0) + webOffset.x
+        let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
         let w = (dict["width"] as? Double) ?? 0
         let h = (dict["height"] as? Double) ?? 0
         let theme = dict["theme"] as? String ?? ""
         if w > 0 && h > 0 && currentTab == "more" {
-            themeSeg.frame = CGRect(x: x, y: y, width: w, height: h)
-            themeSeg.isHidden = false
+            let gap: CGFloat = 8
+            let bw = (CGFloat(w) - gap * 2) / 3
+            for (i, btn) in themeButtons.enumerated() {
+                btn.frame = CGRect(x: CGFloat(x) + CGFloat(i) * (bw + gap), y: CGFloat(y), width: bw, height: CGFloat(h))
+                btn.isHidden = false
+            }
             if let idx = themeSegKeys.firstIndex(of: theme) {
-                themeSeg.selectedSegmentIndex = idx
+                updateThemeButtons(selected: idx)
             }
         } else {
-            themeSeg.isHidden = true
+            for btn in themeButtons { btn.isHidden = true }
         }
     }
 
@@ -733,7 +790,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let sw = (s["width"] as? Double) ?? 0
         let sh = (s["height"] as? Double) ?? 0
         if fw > 0 && fh > 0 && currentTab == "transfer" {
-            transferCard.frame = CGRect(x: fx, y: fy, width: fw, height: fh)
+            transferCard.frame = CGRect(x: fx + webOffset.x, y: fy + webOffset.y, width: fw, height: fh)
             transferCard.isHidden = false
             if let q = dict["fromQuery"] as? String, !fromField.isFirstResponder, fromField.text != q {
                 fromField.text = q
@@ -748,7 +805,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             transferCard.isHidden = true
         }
         if sw > 0 && sh > 0 && currentTab == "transfer" {
-            transferSearchButton.frame = CGRect(x: sx, y: sy, width: sw, height: sh)
+            transferSearchButton.frame = CGRect(x: sx + webOffset.x, y: sy + webOffset.y, width: sw, height: sh)
             transferSearchButton.isHidden = false
             transferSearchButton.layer.cornerRadius = sh / 2
             // Refresh the button colour here too (build 43): the colour
@@ -769,7 +826,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         // Dark-mode picker only lives on the settings tab.
         if currentTab != "more" {
-            themeSeg.isHidden = true
+            for btn in themeButtons { btn.isHidden = true }
         }
     }
 
@@ -1124,7 +1181,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             placeTransfer(frame: dict)
         } else if message.name == "themeFrame",
                   let dict = message.body as? [String: Any] {
-            placeThemeSeg(frame: dict)
+            placeThemeButtons(frame: dict)
         } else if message.name == "stationPicked",
                   let dict = message.body as? [String: Any] {
             // The user tapped a web suggestion row: mirror the picked
