@@ -155,10 +155,12 @@ ykt_b64 = (BASE / "yikatong-icon.b64").read_text(encoding="utf-8").strip()
 sjt_b64 = (BASE / "shengjingtong-icon.b64").read_text(encoding="utf-8").strip()
 mddh_b64 = (BASE / "metrodaduhui-icon.b64").read_text(encoding="utf-8").strip()
 hbct_b64 = (BASE / "harbinchengshitong-icon.b64").read_text(encoding="utf-8").strip()
+dljt_b64 = (BASE / "dalianjiaotong-icon.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__YKT_ICON__\*/', lambda _: ykt_b64, html, "yikatong icon")
 html = sub_once(r'/\*__SJT_ICON__\*/', lambda _: sjt_b64, html, "shengjingtong icon")
 html = sub_once(r'/\*__MDDH_ICON__\*/', lambda _: mddh_b64, html, "metrodaduhui icon")
 html = sub_once(r'/\*__HBCT_ICON__\*/', lambda _: hbct_b64, html, "harbin city pass icon")
+html = sub_once(r'/\*__DLJT_ICON__\*/', lambda _: dljt_b64, html, "dalian traffic icon")
 
 # O. inline the Shanghai Metro data (22 operating lines, 413 stations).
 # Same pattern as Shenyang (step K): precomputed stations/routes from
@@ -200,21 +202,45 @@ html = sub_once(r'/\*__HB_MAP__\*/""', lambda _: _json.dumps(hb_map), html, "hb 
 html = sub_once(r'/\*__HB_LOGO__\*/', lambda _: hb_logo_b64, html, "hb logo")
 html = sub_once(r'/\*__HB_SPLASH__\*/', lambda _: hb_splash_b64, html, "hb splash")
 
+# R. inline the Dalian Metro data (6 operating lines, 100 stations).
+# Same pattern as Shenyang/Shanghai/Harbin (steps K/O/Q): precomputed
+# stations/routes from the user's Rail Map Painter map (see dalian/NOTES-dl.md);
+# the map is the user's JPG wrapped in an SVG so svg-pan-zoom can pan/zoom it;
+# the logo is the official Dalian Metro mark (Wikimedia, blue circle-D-Z);
+# the splash is the user's 大连/配线查询 image (dalian/splash.b64, from
+# splash-user.jpg). Line 3 branch is a separate "3B" line (not a loop).
+dl_stations = (BASE / "dalian" / "stations.json").read_text(encoding="utf-8")
+dl_routes = (BASE / "dalian" / "routes.json").read_text(encoding="utf-8")
+dl_map = (BASE / "dalian" / "map.svg").read_text(encoding="utf-8")
+dl_logo_b64 = (BASE / "dalian" / "logo.b64").read_text(encoding="utf-8").strip()
+dl_splash_b64 = (BASE / "dalian" / "splash.b64").read_text(encoding="utf-8").strip()
+assert "</script" not in dl_stations, "dl stations json must not contain </script"
+assert "</script" not in dl_routes, "dl routes json must not contain </script"
+assert "</script" not in dl_map, "dl map svg must not contain </script"
+html = sub_once(r'/\*__DL_STATIONS__\*/\[\]', lambda _: dl_stations, html, "dl stations json")
+html = sub_once(r'/\*__DL_ROUTES__\*/null', lambda _: dl_routes, html, "dl routes json")
+html = sub_once(r'/\*__DL_MAP__\*/""', lambda _: _json.dumps(dl_map), html, "dl map svg")
+html = sub_once(r'/\*__DL_LOGO__\*/', lambda _: dl_logo_b64, html, "dl logo")
+html = sub_once(r'/\*__DL_SPLASH__\*/', lambda _: dl_splash_b64, html, "dl splash")
+
 # P. inline the first/last-train timetable data (web/timetable/*.json,
 # Sun-Thu standard timetable) + the user's calendar-clock tab icon.
 bj_tt = (BASE / "timetable" / "bj.json").read_text(encoding="utf-8")
 sy_tt = (BASE / "timetable" / "sy.json").read_text(encoding="utf-8")
 sh_tt = (BASE / "timetable" / "sh.json").read_text(encoding="utf-8")
 hb_tt = (BASE / "timetable" / "hb.json").read_text(encoding="utf-8")
+dl_tt = (BASE / "timetable" / "dl.json").read_text(encoding="utf-8")
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
 assert "</script" not in sh_tt, "sh timetable json must not contain </script"
 assert "</script" not in hb_tt, "hb timetable json must not contain </script"
+assert "</script" not in dl_tt, "dl timetable json must not contain </script"
 html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
 html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
 html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
 html = sub_once(r'/\*__HB_TIMETABLE__\*/\{\}', lambda _: hb_tt, html, "hb timetable json")
+html = sub_once(r'/\*__DL_TIMETABLE__\*/\{\}', lambda _: dl_tt, html, "dl timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 out = OUT / "index.html"

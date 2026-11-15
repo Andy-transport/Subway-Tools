@@ -23,6 +23,10 @@
 			window.HB_ROUTES = /*__HB_ROUTES__*/null;
 			window.HB_MAP = /*__HB_MAP__*/"";
 			window.HB_LOGO = "data:image/png;base64,/*__HB_LOGO__*/";
+			window.DL_STATIONS = /*__DL_STATIONS__*/[];
+			window.DL_ROUTES = /*__DL_ROUTES__*/null;
+			window.DL_MAP = /*__DL_MAP__*/"";
+			window.DL_LOGO = "data:image/png;base64,/*__DL_LOGO__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.WALK_ICON = "data:image/png;base64,/*__WALK_ICON__*/";
 			window.FARE_ICON = "data:image/png;base64,/*__FARE_ICON__*/";
@@ -30,14 +34,17 @@
 			window.SJT_ICON = "data:image/png;base64,/*__SJT_ICON__*/";
 			window.MDDH_ICON = "data:image/png;base64,/*__MDDH_ICON__*/";
 			window.HBCT_ICON = "data:image/png;base64,/*__HBCT_ICON__*/";
+			window.DLJT_ICON = "data:image/png;base64,/*__DLJT_ICON__*/";
 			window.BJ_SPLASH = "data:image/png;base64,/*__BJ_SPLASH__*/";
 			window.SY_SPLASH = "data:image/png;base64,/*__SY_SPLASH__*/";
 			window.SH_SPLASH = "data:image/png;base64,/*__SH_SPLASH__*/";
 			window.HB_SPLASH = "data:image/png;base64,/*__HB_SPLASH__*/";
+			window.DL_SPLASH = "data:image/png;base64,/*__DL_SPLASH__*/";
 			window.BJ_TIMETABLE = /*__BJ_TIMETABLE__*/{};
 			window.SY_TIMETABLE = /*__SY_TIMETABLE__*/{};
 			window.SH_TIMETABLE = /*__SH_TIMETABLE__*/{};
 			window.HB_TIMETABLE = /*__HB_TIMETABLE__*/{};
+			window.DL_TIMETABLE = /*__DL_TIMETABLE__*/{};
 			window.TT_ICON = "data:image/png;base64,/*__TT_ICON__*/";
 		</script>
 	</head>
@@ -313,6 +320,17 @@
 		.hb-theme .tr-swap { color: #8a0020; border-color: rgba(192,0,48,0.35); }
 		.hb-theme .tr-tabs button { color: #8a0020; }
 		.hb-theme .tr-tabs button.on { background: #c00030; color: #fff; }
+		/* Dalian theme: Dalian Metro brand blue #0D579A (sampled from the
+		   official logo). Darker #0a4273 for text accents. Beijing keeps blue,
+		   Shenyang keeps gold, Shanghai keeps red, Harbin keeps red. */
+		.dl-theme #brandChip, .dl-theme #searchPill { color: #0a4273; }
+		.dl-theme .tr-search { background: linear-gradient(180deg, rgba(13, 87, 154, 0.9), rgba(10, 66, 115, 0.9)) !important; }
+		.dl-theme .tr-pref button.on { background: #0d579a; }
+		.dl-theme .sp-row .sp-line { background: #0d579a; }
+		.dl-theme .tr-city { color: #0a4273 !important; }
+		.dl-theme .tr-swap { color: #0a4273; border-color: rgba(13,87,154,0.35); }
+		.dl-theme .tr-tabs button { color: #0a4273; }
+		.dl-theme .tr-tabs button.on { background: #0d579a; color: #fff; }
 
 		/* Native app (build 33): the route-sort tabs are a native
 		   UISegmentedControl (Apple Liquid Glass) overlaid on this row.
@@ -619,7 +637,7 @@
 
 
 	<body>
-		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'native-app': nativeApp }">
+		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'native-app': nativeApp }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="sideMenuDiv">
 				<div class="sideMenuCard" v-for="sMenu in sideMenu" :onclick="sMenu.onclick">
@@ -728,7 +746,7 @@
 							<div class="tt-time" v-else>暂无数据</div>
 						</div>
 					</div>
-					<div class="tt-note">周日–周四标准时刻表；周五、周六末班车可能延后。<span v-if="city==='sy'">沈阳为冬季时刻表（2026-11-01 至 2027-03-31），2027-04-01 起执行夏季时刻表。3号线甘官以东车站往李达方向末班为半程车，终点站甘官。</span><span v-if="city==='hb'">哈尔滨时刻表为估算值（首末班 05:30–22:30，按站间约 2 分钟推算），请以车站公布为准。</span></div>
+					<div class="tt-note">周日–周四标准时刻表；周五、周六末班车可能延后。<span v-if="city==='sy'">沈阳为冬季时刻表（2026-11-01 至 2027-03-31），2027-04-01 起执行夏季时刻表。3号线甘官以东车站往李达方向末班为半程车，终点站甘官。</span><span v-if="city==='hb'">哈尔滨时刻表为估算值（首末班 05:30–22:30，按站间约 2 分钟推算），请以车站公布为准。</span><span v-if="city==='dl'">大连5号线时刻表为估算值（按站间距离推算），请以车站公布为准；3号线大连站往金石滩末班 19:30，往保税区末班 21:30。</span></div>
 				</div>
 			</div>
 
@@ -996,7 +1014,7 @@
 						ttLine: null,
 						showMore: false,
 						query: '',
-						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
+						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
 					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
 						stations: (window.METRO_STATIONS || []),
 						bjLogo: (window.BJ_LOGO || ''),
@@ -1028,6 +1046,13 @@
 						syTimetable: (window.SY_TIMETABLE || {}),
 						shTimetable: (window.SH_TIMETABLE || {}),
 						hbTimetable: (window.HB_TIMETABLE || {}),
+						dlStations: (window.DL_STATIONS || []),
+						dlRoutes: (window.DL_ROUTES || null),
+						dlLogo: (window.DL_LOGO || ''),
+						dlMap: (window.DL_MAP || ''),
+						dljtIcon: (window.DLJT_ICON || ''),
+						dlSplash: (window.DL_SPLASH || ''),
+						dlTimetable: (window.DL_TIMETABLE || {}),
 						ttIcon: (window.TT_ICON || ''),
 						showSplash: true,
 						showTransfer: false,
@@ -1143,6 +1168,7 @@
 						if (c === 'sy' && (!this.syStations.length || !this.syMap)) return;
 						if (c === 'sh' && (!this.shStations.length || !this.shMap)) return;
 						if (c === 'hb' && (!this.hbStations.length || !this.hbMap)) return;
+						if (c === 'dl' && (!this.dlStations.length || !this.dlMap)) return;
 						this.city = c;
 						if (c === 'sy') {
 							this.stations = this.syStations;
@@ -1156,6 +1182,10 @@
 							this.stations = this.hbStations;
 							this.routes = this.hbRoutes;
 							this.curr = { svgUrl: "", svgDom: this.hbMap, pdfUrl: "", success: true, json: null, verName: "HB", verInfo: "{ 哈尔滨地铁线网图 , 2026-08 , 3条线 73站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+						} else if (c === 'dl') {
+							this.stations = this.dlStations;
+							this.routes = this.dlRoutes;
+							this.curr = { svgUrl: "", svgDom: this.dlMap, pdfUrl: "", success: true, json: null, verName: "DL", verInfo: "{ 大连地铁线网图 , 2026-11 , 6条线 100站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else {
 							this.stations = (window.METRO_STATIONS || []);
 							this.routes = (window.METRO_ROUTES || null);
@@ -1422,6 +1452,17 @@
 							var HB = { '1': 43.94, '2': 41.64, '3': 51.08 };
 							return HB[lineKey] || 45.82;
 						}
+						if (this.city === 'dl') {
+							// Dalian px/km, solved from the real line lengths
+							// (L1 28.34km, L2 37.3km, L3 49.15km, L3B 14.3km,
+							// L5 24.48km, L12 40.35km, L13 42.9km) over the map
+							// pixel path. The schematic compresses the long
+							// intercity lines (L12/L13/L3B ~9) vs the urban
+							// lines (L1/L2/L5 ~24-27), so a per-line scale is
+							// required; a single scale would be far off.
+							var DL = { '1': 24.36, '2': 27.37, '3': 13.77, '3B': 9.22, '5': 23.40, '12': 8.31, '13': 9.30 };
+							return DL[lineKey] || 16.53;
+						}
 						if (this.city !== 'sh') return 44;
 						var SH_SUB = {
 							'1': 8.60, '2': 11.92, '3': 8.86, '5': 19.23, '5B': 19.23,
@@ -1508,6 +1549,30 @@
 							else fHb = 6 + Math.ceil((kmHb - 28) / 10);
 							return fHb;
 						}
+						// Dalian: distance-based fare (verified, bendibao /
+						// Dalian metro fare standard): 0-6km Y2, 6-12 Y3,
+						// 12-18 Y4, 18-26 Y5, 26-34 Y6, 34-44 Y7, 44-54 Y8,
+						// 54km+ +Y1 per 15km. Distance comes from the map
+						// (segKm with the Dalian per-line px/km scale).
+						// Cross-checked: 普兰店振兴街-九里 Y7, 普兰店振兴街-大连站 Y10.
+						if (this.city === 'dl') {
+							var kmDl = 0;
+							for (var di = 0; di < r.segments.length; di++) {
+								var dd = self.segKm(r.segments[di]);
+								if (dd == null || dd < 0) return null;
+								kmDl += dd;
+							}
+							var fDl;
+							if (kmDl <= 6) fDl = 2;
+							else if (kmDl <= 12) fDl = 3;
+							else if (kmDl <= 18) fDl = 4;
+							else if (kmDl <= 26) fDl = 5;
+							else if (kmDl <= 34) fDl = 6;
+							else if (kmDl <= 44) fDl = 7;
+							else if (kmDl <= 54) fDl = 8;
+							else fDl = 8 + Math.ceil((kmDl - 54) / 15);
+							return fDl;
+						}
 						var total = 0, legKm = 0;
 						function closeLeg() { if (legKm > 0) { total += (self.city === 'sh' ? fareForKmSh(legKm) : fareForKm(legKm)); legKm = 0; } }
 						for (var i = 0; i < r.segments.length; i++) {
@@ -1545,12 +1610,12 @@
 					// top-up / QR code. Native shell opens its App Store page
 					// (tap 打开 there if installed); plain browser opens the
 					// same App Store link. App Store ids verified via the
-					// iTunes Search API 2026-11-15: Yikatong 1071038870,
+					// iTunes Search API 2026-11-15: Yikatong 1071038870, Dalian 交通e出行 1383655806,
 					// Shengjing Tong 1441271928, Metro大都会 1202750238.
 					openTransitApp() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openTransitApp;
 						if (h) { h.postMessage({}); return; }
-						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : '1071038870'));
+						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : (this.city === 'dl' ? '1383655806' : '1071038870')));
 						window.open('https://apps.apple.com/cn/app/id' + id, '_blank');
 					},
 					showTimePicker() {
@@ -1793,11 +1858,11 @@
 					doPdf() { this.closeMore(); pdfDownload(); }
 				},
 				computed: {
-					cityName() { return this.city === 'sy' ? '沈阳' : (this.city === 'sh' ? '上海' : '北京'); },
-					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : this.bjLogo)); },
-					transitLabel() { return this.city === 'sy' ? '打开盛京通' : (this.city === 'sh' ? '打开Metro大都会' : (this.city === 'hb' ? '打开哈尔滨城市通' : '打开一卡通')); },
-					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : this.yktIcon)); },
-					splashImg() { return this.city === 'sy' ? this.sySplash : (this.city === 'sh' ? this.shSplash : (this.city === 'hb' ? this.hbSplash : this.bjSplash)); },
+					cityName() { return this.city === 'sy' ? '沈阳' : (this.city === 'sh' ? '上海' : (this.city === 'hb' ? '哈尔滨' : (this.city === 'dl' ? '大连' : '北京'))); },
+					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : this.bjLogo))); },
+					transitLabel() { return this.city === 'sy' ? '打开盛京通' : (this.city === 'sh' ? '打开Metro大都会' : (this.city === 'hb' ? '打开哈尔滨城市通' : (this.city === 'dl' ? '打开大连交通e出行' : '打开一卡通'))); },
+					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : this.yktIcon))); },
+					splashImg() { return this.city === 'sy' ? this.sySplash : (this.city === 'sh' ? this.shSplash : (this.city === 'hb' ? this.hbSplash : (this.city === 'dl' ? this.dlSplash : this.bjSplash))); },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						if (!q) return this.stations;
@@ -1809,6 +1874,7 @@
 						if (this.city === 'sy') return this.syTimetable;
 						if (this.city === 'sh') return this.shTimetable;
 						if (this.city === 'hb') return this.hbTimetable;
+						if (this.city === 'dl') return this.dlTimetable;
 						return this.bjTimetable;
 					},
 					// All lines for the current city, in routes order, plus the
@@ -1933,7 +1999,7 @@
 					// city's splash. The swap happens behind the launch splash.
 					try {
 						var _savedCity = window.localStorage.getItem('metro-city');
-						if ((_savedCity === 'bj' || _savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb') && _savedCity !== this.city) {
+						if ((_savedCity === 'bj' || _savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb' || _savedCity === 'dl') && _savedCity !== this.city) {
 							this.switchCity(_savedCity);
 						}
 					} catch (e) {}

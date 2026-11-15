@@ -113,6 +113,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // Line 1 on the user's 2026.08 map; user: 主题色也是红色).
     let harbinRed = UIColor(red: 192.0 / 255.0, green: 0, blue: 48.0 / 255.0, alpha: 1)
     let harbinRedDark = UIColor(red: 138.0 / 255.0, green: 0, blue: 32.0 / 255.0, alpha: 1)
+    // Dalian Metro brand blue #0D579A (sampled from the official Dalian
+    // Metro logo); darker #0a4273 for text/borders.
+    let dalianBlue = UIColor(red: 13.0 / 255.0, green: 87.0 / 255.0, blue: 154.0 / 255.0, alpha: 1)
+    let dalianBlueDark = UIColor(red: 10.0 / 255.0, green: 66.0 / 255.0, blue: 115.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -132,7 +136,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = .white
@@ -265,6 +269,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "sy": splashName = "SplashSY"
         case "sh": splashName = "SplashSH"
         case "hb": splashName = "SplashHB"
+        case "dl": splashName = "SplashDL"
         default: splashName = "Splash"
         }
         splashImageView = UIImageView(image: UIImage(named: splashName))
@@ -324,6 +329,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sy" { return shenyangGold }
         if currentCity == "sh" { return shanghaiRed }
         if currentCity == "hb" { return harbinRed }
+        if currentCity == "dl" { return dalianBlue }
         return subwayBlue
     }
 
@@ -333,6 +339,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sy" { return shenyangGoldDark }
         if currentCity == "sh" { return shanghaiRedDark }
         if currentCity == "hb" { return harbinRedDark }
+        if currentCity == "dl" { return dalianBlueDark }
         return subwayBlue
     }
 
@@ -345,6 +352,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sy" { return shenyangGold }
         if currentCity == "sh" { return shanghaiRed }
         if currentCity == "hb" { return harbinRed }
+        if currentCity == "dl" { return dalianBlue }
         return accentColor()
     }
 
@@ -354,6 +362,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "sy": name = "ShenyangLogo"
         case "sh": name = "ShanghaiLogo"
         case "hb": name = "HarbinLogo"
+        case "dl": name = "DalianLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -370,6 +379,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "sy": name = "沈阳"
         case "sh": name = "上海"
         case "hb": name = "哈尔滨"
+        case "dl": name = "大连"
         default: name = "北京"
         }
         if #available(iOS 26.0, *) {
@@ -428,7 +438,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let hb = UIAction(title: "哈尔滨", state: currentCity == "hb" ? .on : .off) { [weak self] _ in
             self?.pickCity("hb")
         }
-        return UIMenu(title: "", children: [bj, sy, sh, hb])
+        let dl = UIAction(title: "大连", state: currentCity == "dl" ? .on : .off) { [weak self] _ in
+            self?.pickCity("dl")
+        }
+        return UIMenu(title: "", children: [bj, sy, sh, hb, dl])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -447,6 +460,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         })
         sheet.addAction(UIAlertAction(title: currentCity == "hb" ? "✓ 哈尔滨" : "哈尔滨", style: .default) { [weak self] _ in
             self?.pickCity("hb")
+        })
+        sheet.addAction(UIAlertAction(title: currentCity == "dl" ? "✓ 大连" : "大连", style: .default) { [weak self] _ in
+            self?.pickCity("dl")
         })
         sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
         sheet.modalPresentationStyle = .popover
@@ -1164,7 +1180,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // open the current city's transit-card app on the App Store (tap 打开
     // there if it is installed). App Store ids verified via the iTunes
     // Search API 2026-11-15: Beijing Yikatong 1071038870, Shenyang
-    // Shengjing Tong 1441271928, Shanghai Metro大都会 1202750238. There
+    // Shengjing Tong 1441271928, Shanghai Metro大都会 1202750238, Dalian
+    // 交通e出行 1383655806. There
     // is no confirmed URL scheme for any of these apps, so the App Store
     // page (not a guessed scheme) is the link.
     func openTransitApp() {
@@ -1173,6 +1190,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "sy": id = "1441271928"
         case "sh": id = "1202750238"
         case "hb": id = "1448467024"
+        case "dl": id = "1383655806"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
