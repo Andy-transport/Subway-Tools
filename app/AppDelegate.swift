@@ -32,6 +32,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // sampled from the user's gold image: #D4B686 (champagne gold).
     let subwayBlue = UIColor(red: 0, green: 51.0 / 255.0, blue: 128.0 / 255.0, alpha: 1)
     let shenyangGold = UIColor(red: 212.0 / 255.0, green: 182.0 / 255.0, blue: 134.0 / 255.0, alpha: 1)
+    let shenyangGoldDark = UIColor(red: 138.0 / 255.0, green: 109.0 / 255.0, blue: 43.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
 
@@ -52,7 +53,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // tab bar; this bar is the only one the user sees.
         tabBar = UITabBar()
         tabBar.delegate = self
-        tabBar.tintColor = subwayBlue
+        tabBar.tintColor = accentColor()
         let items = [
             UITabBarItem(title: "换乘", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0),
             UITabBarItem(title: "配线图", image: UIImage(systemName: "map"), tag: 1),
@@ -84,8 +85,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         backButton.backgroundColor = UIColor(white: 1, alpha: 0.92)
         backButton.layer.cornerRadius = 18
         backButton.layer.borderWidth = 1
-        backButton.layer.borderColor = UIColor(red: 0, green: 0.2, blue: 0.5, alpha: 1).cgColor
-        backButton.setTitleColor(UIColor(red: 0, green: 0.2, blue: 0.5, alpha: 1), for: .normal)
+        backButton.layer.borderColor = accentDark().cgColor
+        backButton.setTitleColor(accentDark(), for: .normal)
         backButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 14, bottom: 6, right: 14)
         backButton.addTarget(self, action: #selector(goBack), for: .touchUpInside)
         backButton.translatesAutoresizingMaskIntoConstraints = false
@@ -139,6 +140,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     func accentColor() -> UIColor {
         return currentCity == "sy" ? shenyangGold : subwayBlue
+    }
+
+    // Darker accent for text/borders on light backgrounds (legibility):
+    // subway blue in Beijing, deep gold #8a6d2b in Shenyang.
+    func accentDark() -> UIColor {
+        return currentCity == "sy" ? shenyangGoldDark : subwayBlue
     }
 
     func cityLogoImage() -> UIImage? {
@@ -230,6 +237,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func pickCity(_ city: String) {
         guard city != currentCity else { return }
         currentCity = city
+        tabBar.tintColor = accentColor()
+        backButton.layer.borderColor = accentDark().cgColor
+        backButton.setTitleColor(accentDark(), for: .normal)
         updateCityPill()
         updateSearchPill()
         webView.evaluateJavaScript("window.metroApp && window.metroApp.switchCity('\(city)')", completionHandler: nil)

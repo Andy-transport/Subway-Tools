@@ -81,3 +81,33 @@ GitHub Actions（macOS）跑 `bash build.sh`：先把离线网页拼出来，再
   28km 以上每 10km 加 ¥1，最高 ¥7 封顶。例：东大营街→沈阳南站 20 站约 28km → ¥6。
 - 沈阳搜索点站：无坐标无法定位到图上，改为切到配线图并提示该站所属线路。
 - 沈阳主题色改为金色 #D4B686（搜索按钮、偏好选中态等）；北京全部保持蓝色不变。
+
+## Build 31 (v1.0.2)
+- Line 14 data fix: 金台路 added (6/14 interchange), 红庙 removed from Line 14
+  (reserved station, not operating; stays on Line 6), 潘家园西 removed from Line 14
+  (it is a Line 17 station). Line 14 now 34 stations; routes 27 lines / 512 edges.
+- Fare recalibration: Beijing SVG distance scale 55 -> 44 units/km (calibrated on
+  real line lengths; validated on 6 real routes). 苹果园->国贸 ¥6, 苹果园->环球度假区
+  ¥8, 石佛营->田村 ¥6, 西直门->宋家庄 ¥5, 天安门东->王府井 ¥3, 管庄->2号航站楼 ¥30,
+  东四十条->3号航站楼 ¥28, 草桥->大兴机场 ¥35.
+- Multi-route results: after searching, up to 6 candidate routes with sort tabs
+  推荐 / 早到达 / 少换乘 / 省票价; each card shows depart->arrive, minutes, fare,
+  transfers, km, segment chain with line badges, and 早/少/省 badges. Tap a card
+  to see its detail. All options depart "now" (no real timetables).
+- Line picker: 出发/到达 suggestions now show one row per line (e.g. 东四十条 as
+  2号线 and as 3号线) with the official line badge (color + name). Picking a row
+  fixes the start/end line; findRoute respects fromLine/toLine. Typing a station
+  or picking from the search tab stays "auto".
+- Shenyang gold theme (complete): all web blue accents -> gold in Shenyang mode
+  (transfer header, swap button, sort tabs, search button, more/settings rows,
+  tab labels); native tab bar selected tint and back button now switch with the
+  city (blue Beijing / gold Shenyang). Beijing unchanged.
+- Shenyang coordinates: all 144 stations now have (x, y) in JPG pixel space
+  (1206x1320) via OCR + manual fixes, so search tap-to-locate pans the map.
+- Landscape Dynamic Island safe area: #stationPanel and #transferPanel now use
+  env(safe-area-inset-left/right) horizontal padding, so content clears the
+  Dynamic Island in landscape. Portrait unchanged (env is 0).
+- Shenyang SVG (NOT switched): the Wikimedia SVG the user sent is the 2025
+  version — Line 3 has only 14 circles (missing the 13-station east extension
+  to 方家栏）. Kept the JPG map (complete, has coordinates). File saved as
+  web/shenyang/map-svg-source.svg for reference.

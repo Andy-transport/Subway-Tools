@@ -236,6 +236,49 @@
 		.sy-theme .tr-search { background: linear-gradient(180deg, rgba(212, 182, 134, 0.9), rgba(180, 148, 90, 0.9)); }
 		.sy-theme .tr-pref button.on { background: #b08d57; }
 		.sy-theme .sp-row .sp-line { background: #d4b686; }
+		/* Multi-route options: 4 tabs + route cards */
+		.tr-tabs { display: flex; gap: 4px; margin: 12px 16px 0; background: rgba(0,0,0,0.06); border-radius: 999px; padding: 4px; }
+		.tr-tabs button { flex: 1; border: none; background: transparent; color: #333; font-size: 15px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
+		.tr-tabs button.on { background: #fff; color: #111; box-shadow: 0 1px 4px rgba(0,0,0,0.18); }
+		.ropt { display: flex; gap: 10px; padding: 14px 12px; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; }
+		.ropt.sel { background: rgba(0,51,128,0.05); }
+		.ropt-num { font-size: 26px; color: #bbb; font-weight: 300; width: 26px; flex: none; padding-top: 4px; }
+		.ropt-main { flex: 1; min-width: 0; }
+		.ropt-time { font-size: 21px; font-weight: 700; color: #111; }
+		.ropt-time span { font-size: 14px; font-weight: 500; color: #555; margin-left: 6px; }
+		.ropt-meta { font-size: 14px; color: #333; margin-top: 3px; }
+		.ropt-chain { display: flex; align-items: center; gap: 5px; margin-top: 7px; flex-wrap: wrap; font-size: 13px; color: #555; }
+		.ropt-line { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 5px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; }
+		.ropt-arrow { color: #bbb; font-size: 11px; }
+		.ropt-badges { display: flex; gap: 5px; flex: none; padding-top: 6px; }
+		.ropt-badge { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+		.ropt-badge.early { background: #fde8e8; color: #d33; }
+		.ropt-badge.few { background: #e3f2fd; color: #1976d2; }
+		.ropt-badge.cheap { background: #fff3cd; color: #8a6d00; }
+		.tr-sug-lines { display: flex; gap: 4px; flex: none; }
+		.tr-sug-line { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; }
+		.tr-line-pick { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; flex: none; cursor: pointer; }
+		html.dark .tr-tabs { background: rgba(255,255,255,0.08); }
+		html.dark .tr-tabs button { color: #ccc; }
+		html.dark .tr-tabs button.on { background: rgba(255,255,255,0.16); color: #fff; }
+		html.dark .ropt-time { color: #f0f2f8; }
+		html.dark .ropt-meta { color: #ccc; }
+		html.dark .ropt-chain { color: #aaa; }
+		html.dark .ropt.sel { background: rgba(255,255,255,0.06); }
+		/* Shenyang gold theme: every blue accent -> gold (Beijing stays blue) */
+		.sy-theme .tr-city { color: #8a6d2b; }
+		.sy-theme .tr-swap { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
+		.sy-theme .tr-tabs button { color: #8a6d2b; }
+		.sy-theme .tr-tabs button.on { background: #b08d57; color: #fff; }
+		.sy-theme .sp-cancel { color: #8a6d2b; }
+		.sy-theme .more-row { color: #8a6d2b; }
+		.sy-theme .more-theme-seg button { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
+		.sy-theme .more-theme-seg button.on { background: #b08d57; border-color: #b08d57; color: #fff; }
+		.sy-theme .sp-pick { color: #8a6d2b; }
+		.sy-theme .tab.active { color: #8a6d2b; }
+		.sy-theme #verInfoDiv { color: #8a6d2b; }
+		.sy-theme .ropt.sel { background: rgba(212,182,134,0.12); }
+		.sy-theme .ropt-badge.few { background: #fdf3d7; color: #8a6d2b; }
 		#brandChip, #searchPill {
 			background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.55));
 			-webkit-backdrop-filter: blur(28px) saturate(140%);
@@ -289,6 +332,8 @@
 			flex-direction: column;
 			padding-top: max(10px, env(safe-area-inset-top));
 			padding-bottom: calc(57px + env(safe-area-inset-bottom));
+			padding-left: env(safe-area-inset-left);
+			padding-right: env(safe-area-inset-right);
 		}
 		.sp-head { display: flex; gap: 8px; align-items: center; padding: 8px 12px 4px; }
 		.sp-search {
@@ -356,6 +401,8 @@
 			flex-direction: column;
 			padding-top: max(10px, env(safe-area-inset-top));
 			padding-bottom: calc(57px + env(safe-area-inset-bottom));
+			padding-left: env(safe-area-inset-left);
+			padding-right: env(safe-area-inset-right);
 			overflow-y: auto;
 			-webkit-overflow-scrolling: touch;
 		}
@@ -527,12 +574,14 @@
 						<span class="tr-dot from"></span>
 						<span class="tr-label" @click="openPick('from')">出发</span>
 						<input class="tr-input" type="text" v-model="fromQuery" @focus="suggestFor = 'from'" @input="onQueryInput('from')" @blur="hideSuggest" placeholder="选择出发站" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<span class="tr-line-pick" v-if="fromLine" :style="{ background: '#' + fromLine.color, color: fromLine.text }" @click="clearLine('from')">{{ fromLine.name }}</span>
 						<button class="tr-clear" v-if="fromQuery" @click="clearStation('from')">✕</button>
 					</div>
 					<div class="tr-field">
 						<span class="tr-dot to"></span>
 						<span class="tr-label" @click="openPick('to')">到达</span>
 						<input class="tr-input" type="text" v-model="toQuery" @focus="suggestFor = 'to'" @input="onQueryInput('to')" @blur="hideSuggest" placeholder="选择到达站" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<span class="tr-line-pick" v-if="toLine" :style="{ background: '#' + toLine.color, color: toLine.text }" @click="clearLine('to')">{{ toLine.name }}</span>
 						<button class="tr-clear" v-if="toQuery" @click="clearStation('to')">✕</button>
 					</div>
 					<button class="tr-swap" @click="swapStations" aria-label="交换出发和到达">
@@ -540,23 +589,36 @@
 					</button>
 				</div>
 				<div class="tr-suggest glass" v-if="suggestFor">
-					<div class="tr-sug-row" v-for="st in suggestList" :key="st.n" @click="pickSuggest(st)">
-						<span class="tr-sug-name">{{ st.n }}</span>
-						<span class="tr-sug-py">{{ st.py }}</span>
+					<div class="tr-sug-row" v-for="opt in suggestList" :key="opt.st.n + '|' + opt.line.key" @click="pickSuggest(opt)">
+						<span class="tr-sug-name">{{ opt.st.n }}</span>
+						<span class="tr-sug-lines"><span class="tr-sug-line" :style="{ background: '#' + opt.line.color, color: opt.line.text }">{{ opt.line.name }}</span></span>
+						<span class="tr-sug-py">{{ opt.st.py }}</span>
 					</div>
 					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? fromQuery : toQuery) ? '没有找到相关车站' : '输入站名、拼音或首字母' }}</div>
 				</div>
-				<div class="tr-pref">
-					<button :class="{ on: routePref === 'time' }" @click="setPref('time')">用时最少</button>
-					<button :class="{ on: routePref === 'fewest' }" @click="setPref('fewest')">换乘最少</button>
+				<div class="tr-tabs" v-if="routeList.length">
+					<button :class="{ on: routeTab === 'rec' }" @click="setRouteTab('rec')">推荐</button>
+					<button :class="{ on: routeTab === 'early' }" @click="setRouteTab('early')">早到达</button>
+					<button :class="{ on: routeTab === 'fewest' }" @click="setRouteTab('fewest')">少换乘</button>
+					<button :class="{ on: routeTab === 'cheap' }" @click="setRouteTab('cheap')">省票价</button>
 				</div>
 				<button class="tr-search" @click="doSearch">搜索</button>
-				<div class="tr-summary" v-if="routeResult">共 {{ routeResult.stops }} 站 · 换乘 {{ routeResult.transfers }} 次 · 约 {{ routeResult.minutes }} 分钟 · 预计 {{ routeResult.arrive }} 到达</div>
+				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
+				<div class="tr-routes" v-if="routeList.length">
+					<div class="ropt" v-for="(r, idx) in sortedRoutes" :key="idx" :class="{ sel: routeResult === r }" @click="pickRoute(r)">
+						<div class="ropt-num">{{ idx + 1 }}</div>
+						<div class="ropt-main">
+							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ r.minutes }} 分钟</span></div>
+							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>换乘 {{ r.transfers }} 次 · 约 {{ r.km }} 公里</div>
+							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line" :style="{ background: '#' + seg.color, color: seg.text }">{{ seg.name }}</span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ {{ seg.to }}</span></template></div>
+						</div>
+						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">早</span><span class="ropt-badge few" v-if="r.isFewest">少</span><span class="ropt-badge cheap" v-if="r.isCheap">省</span></div>
+					</div>
+				</div>
 				<div class="tr-fare" :class="{ warn: fareWarn() }" v-if="routeResult">
 					<img :src="fareIcon" alt="">
 					<span>{{ fareText() }}</span>
 				</div>
-				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
 				<div class="tr-list" v-if="routeResult">
 					<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
 						<div class="tr-virtual" v-if="virtualInfo(i)">
@@ -764,7 +826,10 @@
 						pickFor: null,
 						routeResult: null,
 						routeError: '',
-						routePref: 'time',
+						routeList: [],
+						routeTab: 'rec',
+						fromLine: null,
+						toLine: null,
 						theme: 'system',
 						lastTab: 'map',
 
@@ -870,11 +935,27 @@
 						this.setTab(this.lastTab && this.lastTab !== 'more' ? this.lastTab : 'map');
 					},
 					clearQuery() { this.query = ''; },
+					stationLines(name) {
+						var out = [];
+						var R = this.routes;
+						if (!R || !R.lines) return out;
+						for (var k in R.lines) {
+							var L = R.lines[k];
+							if (L.stations && L.stations.indexOf(name) >= 0) {
+								var hex = L.color;
+								var r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
+								var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+								out.push({ key: k, name: L.name, color: hex, text: lum > 0.6 ? '#1a1a1a' : '#ffffff' });
+							}
+						}
+						return out;
+					},
 					goStation(st) {
 						if (this.pickFor) {
-							if (this.pickFor === 'from') { this.fromStation = st; this.fromQuery = st.n; }
-							else { this.toStation = st; this.toQuery = st.n; }
+							if (this.pickFor === 'from') { this.fromStation = st; this.fromQuery = st.n; this.fromLine = null; }
+							else { this.toStation = st; this.toQuery = st.n; this.toLine = null; }
 							this.routeResult = null;
+							this.routeList = [];
 							this.routeError = '';
 							this.pickFor = null;
 							this.query = '';
@@ -902,14 +983,28 @@
 						var q = this.fromQuery;
 						this.fromQuery = this.toQuery;
 						this.toQuery = q;
+						var ln = this.fromLine;
+						this.fromLine = this.toLine;
+						this.toLine = ln;
 						this.routeResult = null;
+						this.routeList = [];
 						this.routeError = '';
 					},
-					pickSuggest(st) {
-						if (this.suggestFor === 'from') { this.fromStation = st; this.fromQuery = st.n; }
-						else { this.toStation = st; this.toQuery = st.n; }
+					clearLine(which) {
+						if (which === 'from') this.fromLine = null;
+						else this.toLine = null;
+						this.routeResult = null;
+						this.routeList = [];
+						this.routeError = '';
+					},
+					pickSuggest(opt) {
+						var st = opt.st || opt;
+						var ln = opt.line || null;
+						if (this.suggestFor === 'from') { this.fromStation = st; this.fromQuery = st.n; this.fromLine = ln; }
+						else { this.toStation = st; this.toQuery = st.n; this.toLine = ln; }
 						this.suggestFor = null;
 						this.routeResult = null;
+						this.routeList = [];
 						this.routeError = '';
 						if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
 					},
@@ -918,20 +1013,22 @@
 						setTimeout(function() { self.suggestFor = null; }, 200);
 					},
 					clearStation(which) {
-						if (which === 'from') { this.fromStation = null; this.fromQuery = ''; }
-						else { this.toStation = null; this.toQuery = ''; }
+						if (which === 'from') { this.fromStation = null; this.fromQuery = ''; this.fromLine = null; }
+						else { this.toStation = null; this.toQuery = ''; this.toLine = null; }
 						this.routeResult = null;
+						this.routeList = [];
 						this.routeError = '';
 					},
 					onQueryInput(which) {
 						if (which === 'from') {
-							if (!this.fromQuery || (this.fromStation && this.fromQuery !== this.fromStation.n)) this.fromStation = null;
+							if (!this.fromQuery || (this.fromStation && this.fromQuery !== this.fromStation.n)) { this.fromStation = null; this.fromLine = null; }
 							if (this.fromQuery) this.suggestFor = 'from';
 						} else {
-							if (!this.toQuery || (this.toStation && this.toQuery !== this.toStation.n)) this.toStation = null;
+							if (!this.toQuery || (this.toStation && this.toQuery !== this.toStation.n)) { this.toStation = null; this.toLine = null; }
 							if (this.toQuery) this.suggestFor = 'to';
 						}
 						this.routeResult = null;
+						this.routeList = [];
 						this.routeError = '';
 					},
 					resolveStation(q) {
@@ -979,8 +1076,8 @@
 						if (amt == null) return cont;
 						return '预计 ¥' + amt + ' · ' + cont;
 					},
-					fareAmount() {
-						var r = this.routeResult;
+					routeFare(r) {
+						r = r || this.routeResult;
 						if (!r || !r.segments || !r.segments.length) return null;
 						var R = this.routes;
 						if (!R || !R.lines) return null;
@@ -1028,12 +1125,12 @@
 							return Math.min(fSy, 7);
 						}
 						var total = 0, legSvg = 0;
-						function closeLeg() { if (legSvg > 0) { total += fareForKm(legSvg / 55); legSvg = 0; } }
+						function closeLeg() { if (legSvg > 0) { total += fareForKm(legSvg / 44); legSvg = 0; } }
 						for (var i = 0; i < r.segments.length; i++) {
 							var seg = r.segments[i];
 							if (seg.line === 'AP') { closeLeg(); total += 25; continue; }
 							if (seg.line === 'DAX') { closeLeg(); total += (seg.to === '大兴机场' || seg.from === '大兴机场') ? 35 : 25; continue; }
-							if (i > 0 && this.virtualInfo(i)) closeLeg();
+							if (i > 0 && this.virtualInfoFor(r, i)) closeLeg();
 							var dd = segSvg(seg);
 							if (dd < 0) return null;
 							legSvg += dd;
@@ -1041,9 +1138,11 @@
 						closeLeg();
 						return total;
 					},
-					virtualInfo(i) {
-						if (!i || !this.routeResult || !this.routeResult.segments) return '';
-						var segs = this.routeResult.segments;
+					fareAmount() { return this.routeFare(this.routeResult); },
+					virtualInfo(i) { return this.virtualInfoFor(this.routeResult, i); },
+					virtualInfoFor(r, i) {
+						if (!i || !r || !r.segments) return '';
+						var segs = r.segments;
 						if (i >= segs.length) return '';
 						var st = segs[i].from;
 						var info = this.transfers && this.transfers[st];
@@ -1052,14 +1151,12 @@
 						if (info.lines.indexOf(prev) < 0 || info.lines.indexOf(cur) < 0) return '';
 						return '虚拟换乘 · 出站步行' + info.dist;
 					},
-					setPref(p) {
-						if (this.routePref === p) return;
-						this.routePref = p;
-						if (this.fromStation && this.toStation) this.doSearch();
-					},
+					setRouteTab(t) { this.routeTab = t; },
+					pickRoute(r) { this.routeResult = r; },
 					doSearch() {
 						this.routeError = '';
 						this.routeResult = null;
+						this.routeList = [];
 						this.suggestFor = null;
 						var fs = this.resolveStation(this.fromQuery);
 						if (fs) { this.fromStation = fs; this.fromQuery = fs.n; }
@@ -1067,16 +1164,14 @@
 						if (ts) { this.toStation = ts; this.toQuery = ts.n; }
 						if (!this.fromStation || !this.toStation) { this.routeError = '请先选择出发站和到达站'; return; }
 						if (this.fromStation.n === this.toStation.n) { this.routeError = '出发和到达是同一站'; return; }
-						var r = this.findRoute(this.fromStation.n, this.toStation.n);
-						if (!r) {
+						var list = this.findRoutes(this.fromStation.n, this.toStation.n);
+						if (!list || !list.length) {
 							if (this.fromStation.n === '潞阳' || this.toStation.n === '潞阳') this.routeError = '暂无换乘方案：潞阳所在的 22 号线未画进这版配线图';
 							else this.routeError = '暂无换乘方案';
 							return;
 						}
-						var arr = new Date(Date.now() + r.minutes * 60000);
-						var hh = arr.getHours(), mm = arr.getMinutes();
-						r.arrive = (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
-						this.routeResult = r;
+						this.routeList = list;
+						this.routeResult = list[0];
 					},
 					goSegment(seg) {
 						var st = null;
@@ -1087,20 +1182,25 @@
 						this.setTab('map');
 						locateStation(st);
 					},
-					findRoute(fromName, toName) {
+					findRoute(fromName, toName, mode, banned, fromLine, toLine) {
 						var R = this.routes;
 						if (!R || !R.edges || !R.lines) return null;
+						mode = mode || 'time';
+						banned = banned || [];
+						var isBanned = {};
+						for (var bi = 0; bi < banned.length; bi++) isBanned[banned[bi]] = true;
 						var adj = {};
 						R.edges.forEach(function(e) {
 							(adj[e[0]] = adj[e[0]] || []).push([e[1], e[2]]);
 							(adj[e[1]] = adj[e[1]] || []).push([e[0], e[2]]);
 						});
-						// Dijkstra over (station, line). Two modes (this.routePref):
-						// 'time' (用时最少): cost = minutes = stops*2 + transfers*5.
-						// 'fewest' (换乘最少): cost = transfers*1000 + stops (fewest transfers first).
-						var mode = this.routePref === 'fewest' ? 'fewest' : 'time';
+						// Dijkstra over (station, line). Modes:
+						// 'time': cost = stops*2 + transfers*5. 'fewest': cost = transfers*1000 + stops.
+						// 'shortest': cost = stops (fewest stops ~ shortest distance / cheapest fare).
 						function costOf(stops, transfers) {
-							return mode === 'fewest' ? transfers * 1000 + stops : stops * 2 + transfers * 5;
+							if (mode === 'fewest') return transfers * 1000 + stops;
+							if (mode === 'shortest') return stops;
+							return stops * 2 + transfers * 5;
 						}
 						var queue = [[0, 0, 0, fromName, null, [[fromName, null]]]];
 						var best = {};
@@ -1112,6 +1212,7 @@
 							if (best[key] !== undefined && best[key] <= cost) continue;
 							best[key] = cost;
 							if (st === toName) {
+								if (toLine && ln !== toLine) continue;
 								var segs = [];
 								for (var i = 1; i < path.length; i++) {
 									var s = path[i][0], l = path[i][1];
@@ -1129,6 +1230,8 @@
 								return { stops: stops, transfers: nTransfers, segments: segs, minutes: stops * 2 + nTransfers * 5 };
 							}
 							(adj[st] || []).forEach(function(nb) {
+								if (isBanned[nb[0]]) return;
+								if (ln === null && fromLine && nb[1] !== fromLine) return;
 								var isTransfer = ln !== null && nb[1] !== ln;
 								var nStops = stops + 1;
 								var nTransfers = transfers + (isTransfer ? 1 : 0);
@@ -1136,6 +1239,82 @@
 							});
 						}
 						return null;
+					},
+					findRoutes(fromName, toName) {
+						var self = this;
+						var list = [];
+						var seen = {};
+						function keyOf(r) { return r.segments.map(function(sg) { return sg.line + ':' + sg.from + '-' + sg.to; }).join('|'); }
+						function add(r) {
+							if (!r) return;
+							var k = keyOf(r);
+							if (seen[k]) return;
+							seen[k] = 1;
+							list.push(r);
+						}
+						var fl = this.fromLine ? this.fromLine.key : null;
+						var tl = this.toLine ? this.toLine.key : null;
+						add(this.findRoute(fromName, toName, 'time', null, fl, tl));
+						add(this.findRoute(fromName, toName, 'fewest', null, fl, tl));
+						add(this.findRoute(fromName, toName, 'shortest', null, fl, tl));
+						var tried = {};
+						var ri = 0;
+						while (list.length < 6 && ri < list.length) {
+							var base = list[ri++];
+							var trs = [];
+							for (var i = 1; i < base.segments.length; i++) trs.push(base.segments[i].from);
+							for (var j = 0; j < trs.length && list.length < 6; j++) {
+								if (tried[trs[j]]) continue;
+								tried[trs[j]] = 1;
+								add(this.findRoute(fromName, toName, 'time', [trs[j]], fl, tl));
+							}
+						}
+						var now = new Date();
+						function fmt(d) { var h = d.getHours(), m = d.getMinutes(); return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; }
+						var minMin = Infinity, minTr = Infinity, minFare = Infinity;
+						list.forEach(function(r) {
+							r.depart = fmt(now);
+							var arr = new Date(now.getTime() + r.minutes * 60000);
+							r.arrive = fmt(arr);
+							r.fare = self.routeFare(r);
+							r.km = self.routeKm(r);
+							if (r.minutes < minMin) minMin = r.minutes;
+							if (r.transfers < minTr) minTr = r.transfers;
+							if (r.fare != null && r.fare < minFare) minFare = r.fare;
+						});
+						list.forEach(function(r) {
+							r.isEarly = r.minutes === minMin;
+							r.isFewest = r.transfers === minTr;
+							r.isCheap = r.fare != null && r.fare === minFare;
+						});
+						return list.slice(0, 6);
+					},
+					routeKm(r) {
+						if (!r || !r.segments || !r.segments.length) return null;
+						if (this.city === 'sy') return Math.round(r.stops * 1.4 * 10) / 10;
+						var R = this.routes;
+						if (!R || !R.lines) return null;
+						var self = this;
+						function pos(name) {
+							for (var i = 0; i < self.stations.length; i++) { if (self.stations[i].n === name) return self.stations[i]; }
+							return null;
+						}
+						var tot = 0;
+						for (var i = 0; i < r.segments.length; i++) {
+							var seg = r.segments[i];
+							var line = R.lines[seg.line];
+							if (!line || !line.stations) return null;
+							var a = line.stations.indexOf(seg.from), b = line.stations.indexOf(seg.to);
+							if (a < 0 || b < 0) return null;
+							var lo = Math.min(a, b), hi = Math.max(a, b);
+							for (var j = lo; j < hi; j++) {
+								var p1 = pos(line.stations[j]), p2 = pos(line.stations[j + 1]);
+								if (!p1 || !p2) return null;
+								if ((p1.x === 0 && p1.y === 0) || (p2.x === 0 && p2.y === 0)) return null;
+								tot += Math.hypot(p2.x - p1.x, p2.y - p1.y);
+							}
+						}
+						return Math.round(tot / 44 * 10) / 10;
 					},
 					doReset() { this.closeMore(); if (panzoom) resetView(); },
 					doRepo() { this.closeMore(); openRepo(); },
@@ -1159,9 +1338,22 @@
 						var out = [];
 						for (var i = 0; i < this.stations.length && out.length < 8; i++) {
 							var st = this.stations[i];
-							if (st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1) out.push(st);
+							if (st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1) {
+								var lns = this.stationLines(st.n);
+								for (var j = 0; j < lns.length && out.length < 8; j++) out.push({ st: st, line: lns[j] });
+								if (!lns.length) out.push({ st: st, line: null });
+							}
 						}
 						return out;
+					},
+					sortedRoutes() {
+						var list = this.routeList.slice();
+						var tab = this.routeTab;
+						if (tab === 'early') list.sort(function(a, b) { return a.minutes - b.minutes || a.transfers - b.transfers; });
+						else if (tab === 'fewest') list.sort(function(a, b) { return a.transfers - b.transfers || a.minutes - b.minutes; });
+						else if (tab === 'cheap') list.sort(function(a, b) { return (a.fare == null ? 9999 : a.fare) - (b.fare == null ? 9999 : b.fare) || a.minutes - b.minutes; });
+						else list.sort(function(a, b) { return a.minutes - b.minutes || a.transfers - b.transfers; });
+						return list;
 					}
 				},
 				updated: function() {
