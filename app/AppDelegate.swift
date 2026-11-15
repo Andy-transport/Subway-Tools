@@ -3,9 +3,11 @@ import WebKit
 
 // 北京市轨道交通线路配置图 (SierraQin/metro, CC0 1.0)
 // Shell: a full-screen WKWebView loading the bundled offline page,
-// plus a native UITabBar (iOS 27 SDK) at the bottom. The web page's own
-// tab bar is hidden; the native bar drives the web UI via JavaScript,
-// and the web page reports its current tab back so the two stay in sync.
+// plus a native UITabBar at the bottom and two native Liquid Glass
+// pills at the top (city picker + station search). The web page's own
+// tab bar and top pills are hidden; the native controls drive the web
+// UI via JavaScript, and the web page reports its current tab back so
+// the two stay in sync. Built with iOS SDK 26.5 (Xcode 26.6).
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
@@ -22,10 +24,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var webView: WKWebView!
     var backButton: UIButton!
     var tabBar: UITabBar!
+    var cityPill: UIButton!
+    var searchPill: UIButton!
     // Web tab keys, in the same order as the native tab bar items.
     let tabKeys = ["transfer", "map", "stations", "more"]
-    // Beijing Subway blue, used for the selected tab.
+    // Beijing Subway blue (Beijing theme, unchanged); Shenyang gold,
+    // sampled from the user's gold image: #D4B686 (champagne gold).
     let subwayBlue = UIColor(red: 0, green: 51.0 / 255.0, blue: 128.0 / 255.0, alpha: 1)
+    let shenyangGold = UIColor(red: 212.0 / 255.0, green: 182.0 / 255.0, blue: 134.0 / 255.0, alpha: 1)
+    var currentCity = "bj"
+    var currentTab = "map"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,7 +48,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         webView.allowsBackForwardNavigationGestures = true
         view.addSubview(webView)
 
-        // Native tab bar (UITabBar, iOS 27 SDK). The web page hides its own
+        // Native tab bar (UITabBar). The web page hides its own
         // tab bar; this bar is the only one the user sees.
         tabBar = UITabBar()
         tabBar.delegate = self
@@ -88,6 +96,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
         ])
 
+        setupNativePills()
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
         loadMap()
     }
@@ -102,6 +111,140 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if webView.canGoBack { webView.goBack() }
     }
 
+    // MARK: - Native Liquid Glass top pills
+
+    // The two top pills are native UIButtons with Apple's true Liquid
+    // Glass (UIButton.Configuration.glass(), iOS 26+; a frosted blur
+    // fallback on older iOS). CSS backdrop-filter can only approximate
+    // Liquid Glass, which is why the web pills kept being rejected.
+    // Beijing keeps its blue theme; Shenyang uses gold.
+    func setupNativePills() {
+        cityPill = UIButton(type: .system)
+        searchPill = UIButton(type: .system)
+        for pill in [cityPill!, searchPill!] {
+            pill.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(pill)
+        }
+        NSLayoutConstraint.activate([
+            cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+            cityPill.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            searchPill.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            searchPill.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+        ])
+        searchPill.addTarget(self, action: #selector(openStationSearch), for: .touchUpInside)
+        updateCityPill()
+        updateSearchPill()
+        updatePillVisibility()
+    }
+
+    func accentColor() -> UIColor {
+        return currentCity == "sy" ? shenyangGold : subwayBlue
+    }
+
+    func cityLogoImage() -> UIImage? {
+        let name = currentCity == "sy" ? "ShenyangLogo" : "BeijingLogo"
+        guard let img = UIImage(named: name) else { return nil }
+        let size = CGSize(width: 26, height: 26)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { _ in
+            img.draw(in: CGRect(origin: .zero, size: size))
+        }
+    }
+
+    func updateCityPill() {
+        let name = currentCity == "sy" ? "沈阳" : "北京"
+        if #available(iOS 26.0, *) {
+            var config = UIButton.Configuration.glass()
+            config.title = name + "  ▾"
+            config.image = cityLogoImage()
+            config.imagePadding = 6
+            config.baseForegroundColor = accentColor()
+            config.cornerStyle = .capsule
+            config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 6, bottom: 6, trailing: 12)
+            cityPill.configuration = config
+        } else {
+            cityPill.setTitle(name + "  ▾", for: .normal)
+            cityPill.setImage(cityLogoImage(), for: .normal)
+            cityPill.setTitleColor(accentColor(), for: .normal)
+            cityPill.backgroundColor = UIColor(white: 1, alpha: 0.72)
+            cityPill.layer.cornerRadius = 18
+            cityPill.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 12)
+        }
+        // UIMenu anchored to this pill (top-left): tapping the pill pops
+        // the city menu up right under it, not in the middle of the screen.
+        cityPill.menu = cityMenu()
+        cityPill.showsMenuAsPrimaryAction = true
+    }
+
+    func updateSearchPill() {
+        if #available(iOS 26.0, *) {
+            var config = UIButton.Configuration.glass()
+            config.title = "搜车站"
+            config.image = UIImage(systemName: "magnifyingglass")
+            config.imagePadding = 6
+            config.baseForegroundColor = accentColor()
+            config.cornerStyle = .capsule
+            config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 14)
+            searchPill.configuration = config
+        } else {
+            searchPill.setTitle("搜车站", for: .normal)
+            searchPill.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
+            searchPill.setTitleColor(accentColor(), for: .normal)
+            searchPill.backgroundColor = UIColor(white: 1, alpha: 0.72)
+            searchPill.layer.cornerRadius = 18
+            searchPill.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 14)
+        }
+    }
+
+    func cityMenu() -> UIMenu {
+        let bj = UIAction(title: "北京", state: currentCity == "bj" ? .on : .off) { [weak self] _ in
+            self?.pickCity("bj")
+        }
+        let sy = UIAction(title: "沈阳", state: currentCity == "sy" ? .on : .off) { [weak self] _ in
+            self?.pickCity("sy")
+        }
+        return UIMenu(title: "", children: [bj, sy])
+    }
+
+    // The transfer panel's city row (web) also asks for the city menu:
+    // show it as a native action sheet in a popover anchored to the
+    // city pill (top-left), never in the middle of the screen.
+    func presentCityMenuPopover() {
+        let sheet = UIAlertController(title: "切换城市", message: nil, preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: currentCity == "bj" ? "✓ 北京" : "北京", style: .default) { [weak self] _ in
+            self?.pickCity("bj")
+        })
+        sheet.addAction(UIAlertAction(title: currentCity == "sy" ? "✓ 沈阳" : "沈阳", style: .default) { [weak self] _ in
+            self?.pickCity("sy")
+        })
+        sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
+        sheet.modalPresentationStyle = .popover
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = view
+            pop.sourceRect = cityPill.frame
+            pop.permittedArrowDirections = .up
+        }
+        present(sheet, animated: true)
+    }
+
+    func pickCity(_ city: String) {
+        guard city != currentCity else { return }
+        currentCity = city
+        updateCityPill()
+        updateSearchPill()
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.switchCity('\(city)')", completionHandler: nil)
+    }
+
+    @objc func openStationSearch() {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.openStations()", completionHandler: nil)
+    }
+
+    func updatePillVisibility() {
+        let show = currentTab == "map"
+        cityPill.isHidden = !show
+        searchPill.isHidden = !show
+    }
+
     // MARK: - Native tab bar -> web page
 
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
@@ -111,6 +254,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func setWebTab(index: Int) {
         guard index >= 0 && index < tabKeys.count else { return }
         let key = tabKeys[index]
+        currentTab = key
+        updatePillVisibility()
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
     }
 
@@ -137,45 +282,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if message.name == "tabChanged",
            let tab = message.body as? String,
            let idx = tabKeys.firstIndex(of: tab) {
+            currentTab = tab
+            updatePillVisibility()
             tabBar.selectedItem = tabBar.items?[idx]
-            return
+        } else if message.name == "cityMenu" {
+            presentCityMenuPopover()
         }
-        if message.name == "cityMenu" {
-            var current = "bj"
-            if let body = message.body as? [String: Any], let c = body["city"] as? String {
-                current = c
-            } else if let c = message.body as? String {
-                current = c
-            }
-            showCityMenu(current: current)
-        }
-    }
-
-    // MARK: - Native city menu
-
-    // Tapping the city pill asks the native side to show an Apple-native
-    // action sheet (UIAlertController, .actionSheet, SDK 26.5) to pick the
-    // city. The web page falls back to a plain toggle when the native
-    // handler is absent (e.g. the offline page opened in a browser).
-    func showCityMenu(current: String) {
-        let sheet = UIAlertController(title: "切换城市", message: nil, preferredStyle: .actionSheet)
-        let bj = UIAlertAction(title: current == "bj" ? "✓ 北京" : "北京", style: .default) { [weak self] _ in
-            self?.webView.evaluateJavaScript("window.metroApp && window.metroApp.switchCity('bj')", completionHandler: nil)
-        }
-        let sy = UIAlertAction(title: current == "sy" ? "✓ 沈阳" : "沈阳", style: .default) { [weak self] _ in
-            self?.webView.evaluateJavaScript("window.metroApp && window.metroApp.switchCity('sy')", completionHandler: nil)
-        }
-        sheet.addAction(bj)
-        sheet.addAction(sy)
-        sheet.addAction(UIAlertAction(title: "取消", style: .cancel, handler: nil))
-        // iPad popover anchor (the app is iPhone-only, but this keeps the
-        // sheet from crashing if it is ever presented on iPad).
-        if let pop = sheet.popoverPresentationController {
-            pop.sourceView = view
-            pop.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
-            pop.permittedArrowDirections = []
-        }
-        present(sheet, animated: true, completion: nil)
     }
 
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {

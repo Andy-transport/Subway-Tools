@@ -68,3 +68,16 @@ GitHub Actions（macOS）跑 `bash build.sh`：先把离线网页拼出来，再
 ## Build 29 (v1.0.2) — 点城市小条弹出 Apple 原生二级菜单
 - 之前点城市小条（北京/沈阳）是直接来回切换，没有菜单。现在点它会弹出 Apple 原生的底部菜单（UIAlertController action sheet，SDK 26.5 编译）：标题“切换城市”，列出“北京”“沈阳”（当前城市前面有 ✓），下面是“取消”。选一个就切过去并短暂显示该城市的启用图。实现是原生端：网页把当前城市发给原生（webkit.messageHandlers.cityMenu），原生弹出菜单，选中后调回网页的 switchCity。离线网页在浏览器里打开时没有原生端，会自动退回原来的直接切换。
 - 其余与 Build 28 相同（预计票价、机场线不连续计费、顶栏 Apple 官方液态玻璃、沈阳启用图、首都机场线、应用名 Subway motion、沈阳新图标白底）。
+
+## Build 30 (v1.0.2) — 原生液态玻璃顶栏 + 左上角城市菜单 + 沈阳票价/金色主题
+- 两个顶栏 pill 改为原生 UIButton + 真正的 Apple Liquid Glass
+  (UIButton.Configuration.glass(), iOS 26+；低版本用磨砂 fallback)，
+  网页里的 #brandChip / #searchPill 在原生 app 里隐藏（nativeApp 检测）。
+  北京保持蓝色 #003380，沈阳用用户指定的金色 #D4B686（香槟金）。
+- 点城市 pill 弹出原生 UIMenu，锚定在左上角 pill 下方，不再居中；
+  换乘页的城市行也调出原生菜单（UIAlertController popover，锚定 pill）。
+- 沈阳预估票价：沈阳站无坐标，改用站数估算里程（每站约 1.4 km），
+  按沈阳票价表计价：0-6km ¥2、6-10 ¥3、10-14 ¥4、14-21 ¥5、21-28 ¥6、
+  28km 以上每 10km 加 ¥1，最高 ¥7 封顶。例：东大营街→沈阳南站 20 站约 28km → ¥6。
+- 沈阳搜索点站：无坐标无法定位到图上，改为切到配线图并提示该站所属线路。
+- 沈阳主题色改为金色 #D4B686（搜索按钮、偏好选中态等）；北京全部保持蓝色不变。

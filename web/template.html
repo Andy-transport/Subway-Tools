@@ -231,6 +231,11 @@
 		   .glass is too transparent and saturate(180%) amplifies the red map
 		   behind into a pink tint. Real Liquid Glass is frosted near-opaque
 		   white, strong blur, low saturation boost, crisp specular rim. */
+		/* Shenyang theme: gold #D4B686 (user's gold). Beijing keeps blue. */
+		.sy-theme #brandChip, .sy-theme #searchPill { color: #8a6d2b; }
+		.sy-theme .tr-search { background: linear-gradient(180deg, rgba(212, 182, 134, 0.9), rgba(180, 148, 90, 0.9)); }
+		.sy-theme .tr-pref button.on { background: #b08d57; }
+		.sy-theme .sp-row .sp-line { background: #d4b686; }
 		#brandChip, #searchPill {
 			background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.55));
 			-webkit-backdrop-filter: blur(28px) saturate(140%);
@@ -441,7 +446,7 @@
 
 
 	<body>
-		<div id="app">
+		<div id="app" :class="{ 'sy-theme': city === 'sy' }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="sideMenuDiv">
 				<div class="sideMenuCard" v-for="sMenu in sideMenu" :onclick="sMenu.onclick">
@@ -458,13 +463,13 @@
 			<div id="verInfoDiv" onclick="verInfoEvt()">{{curr.verInfo}}</div>
 
 			<div class="center" id="crosshair" v-if="showCrosshair"></div>
-			<div id="brandChip" class="glass" v-if="tab==='map'" @click="showCityMenu">
+			<div id="brandChip" class="glass" v-if="tab==='map' && !nativeApp" @click="showCityMenu">
 				<img v-if="cityLogo" :src="cityLogo" :alt="cityName + '地铁'">
 				<span class="bj-city">{{ cityName }}</span>
 				<svg class="bj-chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
 			</div>
 
-			<div id="searchPill" class="glass" v-if="tab==='map'" @click="openStations">
+			<div id="searchPill" class="glass" v-if="tab==='map' && !nativeApp" @click="openStations">
 				<svg viewBox="0 0 24 24" width="25" height="25"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z" fill="currentColor"/></svg>
 				<span>搜车站</span>
 			</div>
@@ -736,6 +741,7 @@
 						showMore: false,
 						query: '',
 						city: 'bj',
+					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
 						stations: (window.METRO_STATIONS || []),
 						bjLogo: (window.BJ_LOGO || ''),
 						routes: (window.METRO_ROUTES || null),
@@ -786,6 +792,7 @@
 					}
 				},
 				methods: {
+					openStations() { this.setTab('stations'); },
 					setTab(t) {
 						if (t === 'stations') {
 							this.tab = 'stations';
@@ -876,6 +883,12 @@
 						}
 						this.setTab('map');
 						this.query = '';
+						if (!st.x || !st.y) {
+							var lines = [];
+							for (var lk in this.routes.lines) { if (this.routes.lines[lk].stations.indexOf(st.n) >= 0) lines.push(this.routes.lines[lk].name); }
+							this.routeError = st.n + ' \u00b7 ' + lines.join(' / ') + '\uff08\u914d\u7ebf\u56fe\u6682\u65e0\u8be5\u7ad9\u5750\u6807\uff0c\u65e0\u6cd5\u5b9a\u4f4d\uff09';
+							return;
+						}
 						locateStation(st);
 					},
 					openPick(which) {
@@ -998,6 +1011,21 @@
 								tot += Math.hypot(p2.x - p1.x, p2.y - p1.y);
 							}
 							return tot;
+						}
+						// Shenyang: no station coordinates, so estimate distance from
+						// stops (avg ~1.4 km/stop) and use the Shenyang fare table:
+						// 0-6km Y2, 6-10 Y3, 10-14 Y4, 14-21 Y5, 21-28 Y6,
+						// 28km+ +Y1 per 10km, capped at Y7.
+						if (this.city === 'sy') {
+							var kmSy = r.stops * 1.4;
+							var fSy;
+							if (kmSy <= 6) fSy = 2;
+							else if (kmSy <= 10) fSy = 3;
+							else if (kmSy <= 14) fSy = 4;
+							else if (kmSy <= 21) fSy = 5;
+							else if (kmSy <= 28) fSy = 6;
+							else fSy = 6 + Math.ceil((kmSy - 28) / 10);
+							return Math.min(fSy, 7);
 						}
 						var total = 0, legSvg = 0;
 						function closeLeg() { if (legSvg > 0) { total += fareForKm(legSvg / 55); legSvg = 0; } }
