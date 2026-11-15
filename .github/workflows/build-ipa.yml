@@ -13,6 +13,6 @@ jobs:
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Beijing-Subway-motion-1.0.1-unsigned
-          path: build/Beijing-Subway-motion-1.0.1-unsigned.ipa
+          name: Beijing-Subway-motion-1.0.2-unsigned
+          path: build/Beijing-Subway-motion-1.0.2-unsigned.ipa
           if-no-files-found: error
