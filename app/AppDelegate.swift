@@ -891,31 +891,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updateTransferSearchStyle() {
-        // Filled (solid) city colour (build 44): the glass configuration
-        // never showed the colour — UIButton.Configuration.glass() ignored
-        // baseBackgroundColor (and tintColor) on iOS 27.2, so the button
-        // stayed the default blue in Shenyang/Shanghai through builds 42
-        // and 43 ("按钮还是没改"). A filled button renders the exact city
-        // colour: Shenyang red / Shanghai gold / Beijing blue. Still a
-        // native Apple UIButton (capsule, bold white title).
-        var config = UIButton.Configuration.filled()
-        config.title = "搜索"
-        config.baseForegroundColor = .white
-        config.baseBackgroundColor = searchButtonColor()
-        config.cornerStyle = .capsule
-        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
-            var out = incoming
-            out.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-            return out
-        }
-        transferSearchButton.configuration = config
-        transferSearchButton.tintColor = searchButtonColor()
-        // White-overflow fix (user 2026-11-15, all 3 cities): the button's
-        // own backgroundColor painted a rectangle behind the capsule, and
-        // its square corners peeked out at the pill ends. Clear it and clip
-        // the button to its rounded shape so only the capsule paints.
-        transferSearchButton.backgroundColor = .clear
+        // Solid city colour (build 44, repainted build 55): the glass
+        // configuration never showed the colour — UIButton.Configuration
+        // .glass() ignored baseBackgroundColor (and tintColor) on
+        // iOS 27.2, so the button stayed the default blue in
+        // Shenyang/Shanghai through builds 42 and 43 ("按钮还是没改").
+        // Build 44 used a filled() configuration, but its own capsule
+        // background view can peek out past the button's rounded layer
+        // (the white crescents the user still sees in build 51,
+        // "还是溢出"). So paint the capsule with the button's own layer
+        // instead: backgroundColor = city colour, cornerRadius = half
+        // the height (set in placeTransfer), masksToBounds — the blue
+        // itself IS the capsule, so nothing can overflow it.
+        transferSearchButton.configuration = nil
+        transferSearchButton.setTitle("搜索", for: .normal)
+        transferSearchButton.setTitleColor(.white, for: .normal)
+        transferSearchButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+        transferSearchButton.backgroundColor = searchButtonColor()
+        transferSearchButton.tintColor = .white
         transferSearchButton.clipsToBounds = true
+        transferSearchButton.layer.masksToBounds = true
     }
 
     // Line badge: a small pill with the line's colour + name (same
