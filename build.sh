@@ -46,6 +46,11 @@ cp web/offline/vue.global.prod.js web/offline/hammer.min.js web/offline/svg-pan-
 cp web/offline/MTR2.8.0.pdf build/Payload/Metro.app/web/MTR2.8.0.pdf
 python3 app/decode_icons.py build/Payload/Metro.app
 python3 -c "import base64; open('build/Payload/Metro.app/Splash.png','wb').write(base64.b64decode(open('app/splash.b64').read()))"
+# Native launch splash (build 53): the Shenyang + Shanghai per-city splash
+# images, so the native splash view can show the right city's splash from
+# launch (same images as the web per-city splash, inlined from these .b64).
+python3 -c "import base64; open('build/Payload/Metro.app/SplashSY.jpg','wb').write(base64.b64decode(open('web/shenyang/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashSH.jpg','wb').write(base64.b64decode(open('web/shanghai/splash.b64').read()))"
 cp app/BeijingLogo.png app/ShenyangLogo.png app/ShanghaiLogo.png build/Payload/Metro.app/
 python3 -c "import base64; [open('build/Payload/Metro.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 

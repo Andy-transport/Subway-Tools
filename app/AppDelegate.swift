@@ -116,6 +116,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // animation for 2s. Keep them hidden until the web says the splash
     // is done (or the fallback timer fires).
     var splashShowing = true
+    // Native launch splash view (build 53): shows the current city's
+    // splash image from launch, covering the white gap before the web
+    // page loads and its own splash appears. Hidden in splashFinished().
+    var splashImageView: UIImageView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -244,6 +248,30 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         setupSortTabs()
         setupThemeButtons()
         setupTransferControls()
+        // Native launch splash (build 53, user 2026-11-15 "点进去为什么
+        // 第一时刻没有开屏动画是白屏"): the web splash only appears after
+        // the 6.7 MB page loads, so the first moment was a white screen
+        // (blank LaunchScreen + blank web view). Show the current city's
+        // splash image natively from launch — same image as the web
+        // per-city splash — and hide it when the web posts splashDone.
+        // currentCity was restored from UserDefaults above, so the image
+        // matches the city the user last used.
+        let splashName: String
+        switch currentCity {
+        case "sy": splashName = "SplashSY"
+        case "sh": splashName = "SplashSH"
+        default: splashName = "Splash"
+        }
+        splashImageView = UIImageView(image: UIImage(named: splashName))
+        splashImageView.contentMode = .scaleAspectFill
+        splashImageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(splashImageView)
+        NSLayoutConstraint.activate([
+            splashImageView.topAnchor.constraint(equalTo: view.topAnchor),
+            splashImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            splashImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            splashImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
         loadMap()
     }
@@ -1015,6 +1043,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         splashShowing = false
         tabBar.isHidden = false
         updatePillVisibility()
+        // Fade the native launch splash out (same 0.4s as the web splash)
+        // to reveal the map underneath.
+        if let splash = splashImageView {
+            UIView.animate(withDuration: 0.4, animations: {
+                splash.alpha = 0
+            }, completion: { _ in
+                splash.removeFromSuperview()
+            })
+            splashImageView = nil
+        }
     }
 
     // MARK: - Departure time picker (build 34)
