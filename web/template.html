@@ -38,6 +38,13 @@
 			width: 100%;
 		}
 
+		/* Smooth zoom/pan (build 32): put the pan/zoom viewport on its own
+		   compositor layer so pinch/drag transforms composite on the GPU
+		   instead of re-rasterizing the whole map on every frame. */
+		.svg-pan-zoom_viewport {
+			will-change: transform;
+		}
+
 		div {
 			font-family: sans-serif;
 		}
@@ -752,33 +759,51 @@
 						inst.zoomIn();
 					});
 
+					// Smooth pinch/pan (build 32): hammer fires many events per
+					// second, and each zoomAtPoint/panBy forces a full re-render
+					// of the 4.5MB SVG. Coalesce to at most one transform per
+					// animation frame, always using the latest target, so the
+					// map follows the fingers without dropping frames.
+					var _metroRaf = null;
+					var _metroZoomTarget = null;
+					var _metroPanDelta = null;
+					function _metroApplyTransform() {
+						_metroRaf = null;
+						if (_metroZoomTarget) {
+							inst.zoomAtPoint(_metroZoomTarget.z, { x: _metroZoomTarget.x, y: _metroZoomTarget.y });
+							_metroZoomTarget = null;
+						}
+						if (_metroPanDelta) {
+							inst.panBy(_metroPanDelta);
+							_metroPanDelta = null;
+						}
+					}
+					function _metroScheduleTransform() {
+						if (!_metroRaf) _metroRaf = requestAnimationFrame(_metroApplyTransform);
+					}
+
 					this.hammer.on("panstart panmove", function(evt) {
 						if (evt.type === "panstart") {
 							evt_X = 0;
 							evt_Y = 0;
 						}
 
-						inst.panBy({
-							x: evt.deltaX - evt_X,
-							y: evt.deltaY - evt_Y
-						});
+						var _dx = evt.deltaX - evt_X;
+						var _dy = evt.deltaY - evt_Y;
 						evt_X = evt.deltaX;
 						evt_Y = evt.deltaY;
+						if (!_metroPanDelta) _metroPanDelta = { x: 0, y: 0 };
+						_metroPanDelta.x += _dx;
+						_metroPanDelta.y += _dy;
+						_metroScheduleTransform();
 					});
 
 					this.hammer.on("pinchstart pinchmove", function(evt) {
 						if (evt.type === "pinchstart") {
 							evt_Z = inst.getZoom();
-							inst.zoomAtPoint(evt_Z * evt.scale, {
-								x: evt.center.x,
-								y: evt.center.y
-							});
 						}
-
-						inst.zoomAtPoint(evt_Z * evt.scale, {
-							x: evt.center.x,
-							y: evt.center.y
-						});
+						_metroZoomTarget = { z: evt_Z * evt.scale, x: evt.center.x, y: evt.center.y };
+						_metroScheduleTransform();
 					});
 
 					options.svgElement.addEventListener("touchmove", function(evt) {
