@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 
-class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegate, WKScriptMessageHandler {
+class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegate, WKScriptMessageHandler, UITextFieldDelegate {
     var webView: WKWebView!
     var backButton: UIButton!
     var tabBar: UITabBar!
@@ -30,26 +30,61 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // (Liquid Glass on iOS 26+) overlaid on the web panel's tab row.
     var sortTabs: UISegmentedControl!
     let sortTabKeys = ["rec", "early", "fewest", "cheap"]
+    // Native Liquid Glass transfer input area (build 37): a glass card
+    // holding the two station text fields + swap button, and a glass
+    // 搜索 button, overlaid on the web panel's .tr-fields / .tr-search
+    // rows (frame-positioned from the web, like sortTabs). The web
+    // suggestion dropdown stays web and appears below the card.
+    var transferCard: UIView!
+    var transferEffectView: UIVisualEffectView!
+    var transferTintView: UIView!
+    var transferSwapButton: UIButton!
+    var transferSearchButton: UIButton!
+    var fromField: UITextField!
+    var toField: UITextField!
+    var fromBadge: UIButton!
+    var toBadge: UIButton!
+    var fromClear: UIButton!
+    var toClear: UIButton!
+    // Line info currently shown in each field's badge, as
+    // {name, color, text} (hex strings from the web); nil = no badge.
+    var fromLineInfo: [String: Any]?
+    var toLineInfo: [String: Any]?
     // Web tab keys, in the same order as the native tab bar items.
     let tabKeys = ["transfer", "map", "stations", "more"]
     // Beijing Subway blue (Beijing theme, unchanged); Shenyang gold,
-    // sampled from the user's gold image: #D4B686 (champagne gold).
+    // sampled from the user's gold image: #D4B686 (champagne gold);
+    // Shanghai brand red #E60012 (user has not chosen a Shanghai color
+    // yet - red is Shanghai Metro's brand color, matching the red logo).
     let subwayBlue = UIColor(red: 0, green: 51.0 / 255.0, blue: 128.0 / 255.0, alpha: 1)
     let shenyangGold = UIColor(red: 212.0 / 255.0, green: 182.0 / 255.0, blue: 134.0 / 255.0, alpha: 1)
     let shenyangGoldDark = UIColor(red: 138.0 / 255.0, green: 109.0 / 255.0, blue: 43.0 / 255.0, alpha: 1)
+    let shanghaiRed = UIColor(red: 230.0 / 255.0, green: 0, blue: 18.0 / 255.0, alpha: 1)
+    let shanghaiRedDark = UIColor(red: 168.0 / 255.0, green: 0, blue: 12.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Restore the last-used city (build 37): relaunch opens on
+        // the city the user last switched to (written by pickCity
+        // and by the web's cityChanged post; default Beijing).
+        // Must run before any accentColor()/pill setup below.
+        if let saved = UserDefaults.standard.string(forKey: "metro-city"),
+           ["bj", "sy", "sh"].contains(saved) {
+            currentCity = saved
+        }
         view.backgroundColor = .white
 
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "tabChanged")
         config.userContentController.add(self, name: "cityMenu")
         config.userContentController.add(self, name: "tabsFrame")
+        config.userContentController.add(self, name: "transferFrame")
+        config.userContentController.add(self, name: "stationPicked")
         config.userContentController.add(self, name: "timePicker")
         config.userContentController.add(self, name: "openTransitApp")
+        config.userContentController.add(self, name: "cityChanged")
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -106,6 +141,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
         setupNativePills()
         setupSortTabs()
+        setupTransferControls()
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
         loadMap()
     }
@@ -147,17 +183,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func accentColor() -> UIColor {
-        return currentCity == "sy" ? shenyangGold : subwayBlue
+        if currentCity == "sy" { return shenyangGold }
+        if currentCity == "sh" { return shanghaiRed }
+        return subwayBlue
     }
 
     // Darker accent for text/borders on light backgrounds (legibility):
     // subway blue in Beijing, deep gold #8a6d2b in Shenyang.
     func accentDark() -> UIColor {
-        return currentCity == "sy" ? shenyangGoldDark : subwayBlue
+        if currentCity == "sy" { return shenyangGoldDark }
+        if currentCity == "sh" { return shanghaiRedDark }
+        return subwayBlue
     }
 
     func cityLogoImage() -> UIImage? {
-        let name = currentCity == "sy" ? "ShenyangLogo" : "BeijingLogo"
+        let name: String
+        switch currentCity {
+        case "sy": name = "ShenyangLogo"
+        case "sh": name = "ShanghaiLogo"
+        default: name = "BeijingLogo"
+        }
         guard let img = UIImage(named: name) else { return nil }
         let size = CGSize(width: 26, height: 26)
         let renderer = UIGraphicsImageRenderer(size: size)
@@ -167,7 +212,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updateCityPill() {
-        let name = currentCity == "sy" ? "沈阳" : "北京"
+        let name: String
+        switch currentCity {
+        case "sy": name = "沈阳"
+        case "sh": name = "上海"
+        default: name = "北京"
+        }
         if #available(iOS 26.0, *) {
             var config = UIButton.Configuration.glass()
             config.title = name + "  ▾"
@@ -218,7 +268,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let sy = UIAction(title: "沈阳", state: currentCity == "sy" ? .on : .off) { [weak self] _ in
             self?.pickCity("sy")
         }
-        return UIMenu(title: "", children: [bj, sy])
+        let sh = UIAction(title: "上海", state: currentCity == "sh" ? .on : .off) { [weak self] _ in
+            self?.pickCity("sh")
+        }
+        return UIMenu(title: "", children: [bj, sy, sh])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -232,6 +285,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         sheet.addAction(UIAlertAction(title: currentCity == "sy" ? "✓ 沈阳" : "沈阳", style: .default) { [weak self] _ in
             self?.pickCity("sy")
         })
+        sheet.addAction(UIAlertAction(title: currentCity == "sh" ? "✓ 上海" : "上海", style: .default) { [weak self] _ in
+            self?.pickCity("sh")
+        })
         sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
@@ -242,14 +298,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         present(sheet, animated: true)
     }
 
-    func pickCity(_ city: String) {
-        guard city != currentCity else { return }
-        currentCity = city
+    // Shared city-UI refresh (build 37): tab-bar tint, back-button
+    // color, pills and transfer controls for the current city. Used
+    // by pickCity() (native-initiated) and the cityChanged handler
+    // (web-initiated, incl. the startup restore).
+    func refreshCityUI() {
         tabBar.tintColor = accentColor()
         backButton.layer.borderColor = accentDark().cgColor
         backButton.setTitleColor(accentDark(), for: .normal)
         updateCityPill()
         updateSearchPill()
+        clearTransferFields()
+        updateTransferTint()
+    }
+
+    func pickCity(_ city: String) {
+        guard city != currentCity else { return }
+        currentCity = city
+        UserDefaults.standard.set(city, forKey: "metro-city")
+        refreshCityUI()
         webView.evaluateJavaScript("window.metroApp && window.metroApp.switchCity('\(city)')", completionHandler: nil)
     }
 
@@ -306,6 +373,419 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             sortTabs.isHidden = true
         }
+    }
+
+    // MARK: - Native Liquid Glass transfer input area (build 37)
+
+    // The from/to fields card and the 搜索 button are native Liquid
+    // Glass controls overlaid on the web panel's .tr-fields / .tr-search
+    // rows (the web hides its own rows in the native app and reports
+    // their frames, like the sort tabs). The suggestion dropdown stays
+    // web: it renders below the hidden fields card, i.e. directly
+    // below this native card. The faint tint follows the city
+    // accent (Beijing blue / Shenyang gold / Shanghai red). The card
+    // is a UIVisualEffectView with
+    // UIGlassEffect on iOS 26+ (frosted systemMaterial below) plus a
+    // faint accent tint overlay; the search button uses
+    // UIButton.Configuration.glass() like the top pills.
+    func setupTransferControls() {
+        // Card container (frame-positioned from the web .tr-fields rect).
+        transferCard = UIView()
+        transferCard.layer.cornerRadius = 20
+        transferCard.clipsToBounds = true
+        transferCard.isHidden = true
+        view.addSubview(transferCard)
+
+        transferEffectView = makeGlassEffectView()
+        transferEffectView.translatesAutoresizingMaskIntoConstraints = false
+        transferCard.addSubview(transferEffectView)
+        NSLayoutConstraint.activate([
+            transferEffectView.leadingAnchor.constraint(equalTo: transferCard.leadingAnchor),
+            transferEffectView.trailingAnchor.constraint(equalTo: transferCard.trailingAnchor),
+            transferEffectView.topAnchor.constraint(equalTo: transferCard.topAnchor),
+            transferEffectView.bottomAnchor.constraint(equalTo: transferCard.bottomAnchor),
+        ])
+
+        let content = transferEffectView.contentView
+        transferTintView = UIView()
+        transferTintView.backgroundColor = accentColor().withAlphaComponent(0.10)
+        transferTintView.isUserInteractionEnabled = false
+        transferTintView.translatesAutoresizingMaskIntoConstraints = false
+        content.addSubview(transferTintView)
+        NSLayoutConstraint.activate([
+            transferTintView.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            transferTintView.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            transferTintView.topAnchor.constraint(equalTo: content.topAnchor),
+            transferTintView.bottomAnchor.constraint(equalTo: content.bottomAnchor),
+        ])
+
+        // Two rows: dot + label + text field + line badge + clear.
+        fromField = makeTransferField(tag: 0, placeholder: "选择出发站")
+        toField = makeTransferField(tag: 1, placeholder: "选择到达站")
+        fromBadge = makeTransferBadge(tag: 0)
+        toBadge = makeTransferBadge(tag: 1)
+        fromClear = makeTransferClear(tag: 0)
+        toClear = makeTransferClear(tag: 1)
+        let fromRow = makeTransferRow(dotColor: UIColor(red: 34.0 / 255.0, green: 160.0 / 255.0, blue: 107.0 / 255.0, alpha: 1),
+                                      labelTitle: "出发", labelTag: 0,
+                                      field: fromField, badge: fromBadge, clear: fromClear)
+        let toRow = makeTransferRow(dotColor: UIColor(red: 229.0 / 255.0, green: 72.0 / 255.0, blue: 77.0 / 255.0, alpha: 1),
+                                    labelTitle: "到达", labelTag: 1,
+                                    field: toField, badge: toBadge, clear: toClear)
+        for row in [fromRow, toRow] {
+            row.translatesAutoresizingMaskIntoConstraints = false
+            content.addSubview(row)
+        }
+        let divider = UIView()
+        divider.backgroundColor = UIColor(white: 0, alpha: 0.06)
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        content.addSubview(divider)
+        NSLayoutConstraint.activate([
+            fromRow.topAnchor.constraint(equalTo: content.topAnchor, constant: 6),
+            fromRow.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
+            fromRow.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -56),
+            fromRow.bottomAnchor.constraint(equalTo: divider.topAnchor),
+            divider.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 6),
+            divider.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -56),
+            divider.heightAnchor.constraint(equalToConstant: 1),
+            divider.bottomAnchor.constraint(equalTo: toRow.topAnchor),
+            toRow.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
+            toRow.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -56),
+            toRow.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -6),
+            fromRow.heightAnchor.constraint(equalTo: toRow.heightAnchor),
+        ])
+
+        // Swap button: a frosted white circle at the right, vertically
+        // centred (mirrors the web .tr-swap; it sits on the glass card).
+        transferSwapButton = UIButton(type: .system)
+        transferSwapButton.setImage(UIImage(systemName: "arrow.up.arrow.down"), for: .normal)
+        transferSwapButton.tintColor = accentDark()
+        transferSwapButton.backgroundColor = UIColor(white: 1, alpha: 0.85)
+        transferSwapButton.layer.cornerRadius = 18
+        transferSwapButton.layer.borderWidth = 1
+        transferSwapButton.layer.borderColor = accentDark().cgColor
+        transferSwapButton.addTarget(self, action: #selector(transferSwapTapped), for: .touchUpInside)
+        transferSwapButton.translatesAutoresizingMaskIntoConstraints = false
+        content.addSubview(transferSwapButton)
+        NSLayoutConstraint.activate([
+            transferSwapButton.widthAnchor.constraint(equalToConstant: 36),
+            transferSwapButton.heightAnchor.constraint(equalToConstant: 36),
+            transferSwapButton.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -12),
+            transferSwapButton.centerYAnchor.constraint(equalTo: content.centerYAnchor),
+        ])
+
+        // 搜索 button (frame-positioned from the web .tr-search rect).
+        transferSearchButton = UIButton(type: .system)
+        transferSearchButton.isHidden = true
+        transferSearchButton.addTarget(self, action: #selector(transferSearchTapped), for: .touchUpInside)
+        view.addSubview(transferSearchButton)
+        updateTransferSearchStyle()
+    }
+
+    func makeGlassEffectView() -> UIVisualEffectView {
+        if #available(iOS 26.0, *) {
+            return UIVisualEffectView(effect: UIGlassEffect(style: .regular))
+        }
+        return UIVisualEffectView(effect: UIBlurEffect(style: .systemMaterial))
+    }
+
+    func makeTransferRow(dotColor: UIColor, labelTitle: String, labelTag: Int, field: UITextField, badge: UIButton, clear: UIButton) -> UIStackView {
+        let dot = UIView()
+        dot.backgroundColor = dotColor
+        dot.layer.cornerRadius = 5
+        dot.translatesAutoresizingMaskIntoConstraints = false
+        dot.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        dot.heightAnchor.constraint(equalToConstant: 10).isActive = true
+        // Tapping 出发/到达 opens the station picker for that side
+        // (web openPick), exactly like the web label.
+        let label = UIButton(type: .system)
+        label.setTitle(labelTitle, for: .normal)
+        label.titleLabel?.font = .systemFont(ofSize: 15)
+        label.setTitleColor(.systemGray, for: .normal)
+        label.tag = labelTag
+        label.addTarget(self, action: #selector(transferLabelTapped(_:)), for: .touchUpInside)
+        let row = UIStackView(arrangedSubviews: [dot, label, field, badge, clear])
+        row.axis = .horizontal
+        row.spacing = 10
+        row.alignment = .center
+        row.distribution = .fill
+        return row
+    }
+
+    func makeTransferField(tag: Int, placeholder: String) -> UITextField {
+        let f = UITextField()
+        f.tag = tag
+        f.delegate = self
+        f.font = .systemFont(ofSize: 17, weight: .semibold)
+        f.textColor = .label
+        f.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor(red: 170.0 / 255.0, green: 170.0 / 255.0, blue: 170.0 / 255.0, alpha: 1), .font: UIFont.systemFont(ofSize: 17)])
+        f.borderStyle = .none
+        f.backgroundColor = .clear
+        f.autocorrectionType = .no
+        f.autocapitalizationType = .none
+        f.spellCheckingType = .no
+        f.returnKeyType = .search
+        f.inputAccessoryView = makeKeyboardToolbar()
+        f.addTarget(self, action: #selector(transferFieldChanged(_:)), for: .editingChanged)
+        return f
+    }
+
+    func makeTransferBadge(tag: Int) -> UIButton {
+        let b = UIButton(type: .system)
+        b.tag = tag
+        b.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
+        b.layer.cornerRadius = 6
+        b.contentEdgeInsets = UIEdgeInsets(top: 0, left: 6, bottom: 0, right: 6)
+        b.isHidden = true
+        b.addTarget(self, action: #selector(transferBadgeTapped(_:)), for: .touchUpInside)
+        b.heightAnchor.constraint(equalToConstant: 26).isActive = true
+        return b
+    }
+
+    func makeTransferClear(tag: Int) -> UIButton {
+        let b = UIButton(type: .system)
+        b.tag = tag
+        b.setTitle("✕", for: .normal)
+        b.titleLabel?.font = .systemFont(ofSize: 12)
+        b.setTitleColor(UIColor(white: 0.4, alpha: 1), for: .normal)
+        b.backgroundColor = UIColor(white: 0, alpha: 0.08)
+        b.layer.cornerRadius = 11
+        b.isHidden = true
+        b.addTarget(self, action: #selector(transferClearTapped(_:)), for: .touchUpInside)
+        b.widthAnchor.constraint(equalToConstant: 22).isActive = true
+        b.heightAnchor.constraint(equalToConstant: 22).isActive = true
+        return b
+    }
+
+    func makeKeyboardToolbar() -> UIToolbar {
+        let tb = UIToolbar()
+        tb.sizeToFit()
+        let done = UIBarButtonItem(title: "完成", style: .done, target: self, action: #selector(dismissTransferKeyboard))
+        tb.items = [UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil), done]
+        return tb
+    }
+
+    @objc func dismissTransferKeyboard() {
+        view.endEditing(true)
+    }
+
+    // Place the native transfer card + search button over the web rows'
+    // reported frames, and sync the native fields with the web state.
+    // The web rects are in CSS pixels; the full-screen web view maps
+    // them 1:1 to points. A zero-size rect (panel hidden, or not on
+    // the transfer tab) hides the controls. Field text is only copied
+    // from the web while the user is NOT typing in that field, so the
+    // caret never jumps.
+    func placeTransfer(frame dict: [String: Any]) {
+        guard let f = dict["fields"] as? [String: Any],
+              let s = dict["search"] as? [String: Any] else {
+            transferCard.isHidden = true
+            transferSearchButton.isHidden = true
+            return
+        }
+        let fx = (f["x"] as? Double) ?? 0
+        let fy = (f["y"] as? Double) ?? 0
+        let fw = (f["width"] as? Double) ?? 0
+        let fh = (f["height"] as? Double) ?? 0
+        let sx = (s["x"] as? Double) ?? 0
+        let sy = (s["y"] as? Double) ?? 0
+        let sw = (s["width"] as? Double) ?? 0
+        let sh = (s["height"] as? Double) ?? 0
+        if fw > 0 && fh > 0 && currentTab == "transfer" {
+            transferCard.frame = CGRect(x: fx, y: fy, width: fw, height: fh)
+            transferCard.isHidden = false
+            if let q = dict["fromQuery"] as? String, !fromField.isFirstResponder, fromField.text != q {
+                fromField.text = q
+            }
+            if let q = dict["toQuery"] as? String, !toField.isFirstResponder, toField.text != q {
+                toField.text = q
+            }
+            applyBadge(which: "from", line: dict["fromLine"] as? [String: Any])
+            applyBadge(which: "to", line: dict["toLine"] as? [String: Any])
+            updateClearButtons()
+        } else {
+            transferCard.isHidden = true
+        }
+        if sw > 0 && sh > 0 && currentTab == "transfer" {
+            transferSearchButton.frame = CGRect(x: sx, y: sy, width: sw, height: sh)
+            transferSearchButton.isHidden = false
+            transferSearchButton.layer.cornerRadius = sh / 2
+        } else {
+            transferSearchButton.isHidden = true
+        }
+    }
+
+    func updateTransferVisibility() {
+        if currentTab != "transfer" {
+            transferCard.isHidden = true
+            transferSearchButton.isHidden = true
+            view.endEditing(true)
+        }
+    }
+
+    func clearTransferFields() {
+        fromField.text = ""
+        toField.text = ""
+        fromLineInfo = nil
+        toLineInfo = nil
+        applyBadge(which: "from", line: nil)
+        applyBadge(which: "to", line: nil)
+        updateClearButtons()
+    }
+
+    func updateTransferTint() {
+        transferTintView.backgroundColor = accentColor().withAlphaComponent(0.10)
+        transferSwapButton.layer.borderColor = accentDark().cgColor
+        transferSwapButton.tintColor = accentDark()
+        updateTransferSearchStyle()
+    }
+
+    func updateTransferSearchStyle() {
+        if #available(iOS 26.0, *) {
+            var config = UIButton.Configuration.glass()
+            config.title = "搜索"
+            config.baseForegroundColor = .white
+            config.baseBackgroundColor = accentColor().withAlphaComponent(0.6)
+            config.cornerStyle = .capsule
+            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+                var out = incoming
+                out.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+                return out
+            }
+            transferSearchButton.configuration = config
+        } else {
+            transferSearchButton.setTitle("搜索", for: .normal)
+            transferSearchButton.setTitleColor(.white, for: .normal)
+            transferSearchButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
+            transferSearchButton.backgroundColor = accentColor()
+        }
+    }
+
+    // Line badge: a small pill with the line's colour + name (same
+    // style as the web .tr-line-pick). line is {name, color, text}
+    // with hex strings; nil hides the badge.
+    func applyBadge(which: String, line: [String: Any]?) {
+        let badge = which == "from" ? fromBadge : toBadge
+        if which == "from" { fromLineInfo = line } else { toLineInfo = line }
+        guard let line = line,
+              let name = line["name"] as? String,
+              let colorHex = line["color"] as? String,
+              let bg = colorFromHex(colorHex) else {
+            badge.isHidden = true
+            return
+        }
+        let fg: UIColor
+        if let textHex = line["text"] as? String, let c = colorFromHex(textHex) {
+            fg = c
+        } else {
+            fg = .white
+        }
+        badge.setTitle(name, for: .normal)
+        badge.backgroundColor = bg
+        badge.setTitleColor(fg, for: .normal)
+        badge.isHidden = false
+    }
+
+    func updateClearButtons() {
+        fromClear.isHidden = (fromField.text ?? "").isEmpty
+        toClear.isHidden = (toField.text ?? "").isEmpty
+    }
+
+    func colorFromHex(_ hex: String) -> UIColor? {
+        var h = hex.trimmingCharacters(in: .whitespaces)
+        if h.hasPrefix("#") { h = String(h.dropFirst()) }
+        if h.count == 3 {
+            var out = ""
+            for ch in h { out.append(ch); out.append(ch) }
+            h = out
+        }
+        guard h.count == 6, let v = UInt32(h, radix: 16) else { return nil }
+        return UIColor(red: CGFloat((v >> 16) & 0xff) / 255.0,
+                       green: CGFloat((v >> 8) & 0xff) / 255.0,
+                       blue: CGFloat(v & 0xff) / 255.0,
+                       alpha: 1)
+    }
+
+    func jsString(_ s: String) -> String {
+        var out = "'"
+        for ch in s {
+            switch ch {
+            case "\\": out += "\\\\"
+            case "'": out += "\\'"
+            case "\"": out += "\\\""
+            case "\n": out += "\\n"
+            case "\r": out += "\\r"
+            default: out.append(ch)
+            }
+        }
+        out += "'"
+        return out
+    }
+
+    // MARK: - Transfer input actions + text field delegate
+
+    @objc func transferFieldChanged(_ sender: UITextField) {
+        let which = sender.tag == 0 ? "from" : "to"
+        let text = sender.text ?? ""
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setNativeQuery('\(which)', \(jsString(text)))", completionHandler: nil)
+        updateClearButtons()
+    }
+
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        let which = textField.tag == 0 ? "from" : "to"
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setNativeFocus('\(which)')", completionHandler: nil)
+    }
+
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setNativeBlur()", completionHandler: nil)
+    }
+
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        transferSearchTapped()
+        return true
+    }
+
+    @objc func transferLabelTapped(_ sender: UIButton) {
+        let which = sender.tag == 0 ? "from" : "to"
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.openPick('\(which)')", completionHandler: nil)
+    }
+
+    @objc func transferSwapTapped() {
+        let ft = fromField.text ?? ""
+        fromField.text = toField.text
+        toField.text = ft
+        let fl = fromLineInfo
+        fromLineInfo = toLineInfo
+        toLineInfo = fl
+        applyBadge(which: "from", line: fromLineInfo)
+        applyBadge(which: "to", line: toLineInfo)
+        updateClearButtons()
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.swapStations()", completionHandler: nil)
+    }
+
+    @objc func transferClearTapped(_ sender: UIButton) {
+        let which = sender.tag == 0 ? "from" : "to"
+        if which == "from" {
+            fromField.text = ""
+            applyBadge(which: "from", line: nil)
+        } else {
+            toField.text = ""
+            applyBadge(which: "to", line: nil)
+        }
+        updateClearButtons()
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.clearStation('\(which)')", completionHandler: nil)
+    }
+
+    @objc func transferBadgeTapped(_ sender: UIButton) {
+        let which = sender.tag == 0 ? "from" : "to"
+        applyBadge(which: which, line: nil)
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.clearLine('\(which)')", completionHandler: nil)
+    }
+
+    @objc func transferSearchTapped() {
+        view.endEditing(true)
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.doSearch()", completionHandler: nil)
     }
 
     func updatePillVisibility() {
@@ -393,14 +873,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // MARK: - Transit app link (build 35)
 
-    // The transfer panel's 打开一卡通 / 打开盛京通 row: open the current
-    // city's transit-card app on the App Store (tap 打开 there if it is
-    // installed). App Store ids verified via the iTunes Search API
-    // 2026-11-15: Beijing Yikatong 1071038870, Shenyang Shengjing Tong
-    // 1441271928. There is no confirmed URL scheme for either app, so
-    // the App Store page (not a guessed scheme) is the link.
+    // The transfer panel's 打开一卡通 / 打开盛京通 / 打开Metro大都会 row:
+    // open the current city's transit-card app on the App Store (tap 打开
+    // there if it is installed). App Store ids verified via the iTunes
+    // Search API 2026-11-15: Beijing Yikatong 1071038870, Shenyang
+    // Shengjing Tong 1441271928, Shanghai Metro大都会 1202750238. There
+    // is no confirmed URL scheme for any of these apps, so the App Store
+    // page (not a guessed scheme) is the link.
     func openTransitApp() {
-        let id = currentCity == "sy" ? "1441271928" : "1071038870"
+        let id: String
+        switch currentCity {
+        case "sy": id = "1441271928"
+        case "sh": id = "1202750238"
+        default: id = "1071038870"
+        }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
     }
@@ -416,6 +902,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let key = tabKeys[index]
         currentTab = key
         updatePillVisibility()
+        updateTransferVisibility()
         if key != "transfer" { sortTabs.isHidden = true }
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
     }
@@ -445,12 +932,45 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
            let idx = tabKeys.firstIndex(of: tab) {
             currentTab = tab
             updatePillVisibility()
+            updateTransferVisibility()
             tabBar.selectedItem = tabBar.items?[idx]
         } else if message.name == "cityMenu" {
             presentCityMenuPopover()
+        } else if message.name == "cityChanged",
+                  let dict = message.body as? [String: Any],
+                  let city = dict["city"] as? String,
+                  ["bj", "sy", "sh"].contains(city) {
+            // The web switched cities (user switch or the startup
+            // restore). Mirror it natively; the web already switched,
+            // so do NOT call switchCity here (that would loop).
+            UserDefaults.standard.set(city, forKey: "metro-city")
+            if city != currentCity {
+                currentCity = city
+                refreshCityUI()
+            }
         } else if message.name == "tabsFrame",
                   let dict = message.body as? [String: Any] {
             placeSortTabs(frame: dict)
+        } else if message.name == "transferFrame",
+                  let dict = message.body as? [String: Any] {
+            placeTransfer(frame: dict)
+        } else if message.name == "stationPicked",
+                  let dict = message.body as? [String: Any] {
+            // The user tapped a web suggestion row: mirror the picked
+            // station + line into the native field and dismiss the
+            // keyboard (the web already set its own state).
+            let which = dict["which"] as? String ?? "from"
+            let name = dict["name"] as? String ?? ""
+            let line = dict["line"] as? [String: Any]
+            if which == "from" {
+                fromField.text = name
+                applyBadge(which: "from", line: line)
+            } else {
+                toField.text = name
+                applyBadge(which: "to", line: line)
+            }
+            updateClearButtons()
+            view.endEditing(true)
         } else if message.name == "timePicker",
                   let dict = message.body as? [String: Any] {
             let current = dict["departTime"] as? String

@@ -15,11 +15,19 @@
 			window.SY_ROUTES = /*__SY_ROUTES__*/null;
 			window.SY_MAP = /*__SY_MAP__*/"";
 			window.SY_LOGO = "data:image/png;base64,/*__SY_LOGO__*/";
+			window.SH_STATIONS = /*__SH_STATIONS__*/[];
+			window.SH_ROUTES = /*__SH_ROUTES__*/null;
+			window.SH_MAP = /*__SH_MAP__*/"";
+			window.SH_LOGO = "data:image/png;base64,/*__SH_LOGO__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.WALK_ICON = "data:image/png;base64,/*__WALK_ICON__*/";
 			window.FARE_ICON = "data:image/png;base64,/*__FARE_ICON__*/";
+			window.YKT_ICON = "data:image/png;base64,/*__YKT_ICON__*/";
+			window.SJT_ICON = "data:image/png;base64,/*__SJT_ICON__*/";
+			window.MDDH_ICON = "data:image/png;base64,/*__MDDH_ICON__*/";
 			window.BJ_SPLASH = "data:image/png;base64,/*__BJ_SPLASH__*/";
 			window.SY_SPLASH = "data:image/png;base64,/*__SY_SPLASH__*/";
+			window.SH_SPLASH = "data:image/png;base64,/*__SH_SPLASH__*/";
 		</script>
 	</head>
 
@@ -240,9 +248,16 @@
 		   white, strong blur, low saturation boost, crisp specular rim. */
 		/* Shenyang theme: gold #D4B686 (user's gold). Beijing keeps blue. */
 		.sy-theme #brandChip, .sy-theme #searchPill { color: #8a6d2b; }
-		.sy-theme .tr-search { background: linear-gradient(180deg, rgba(212, 182, 134, 0.9), rgba(180, 148, 90, 0.9)); }
+		.sy-theme .tr-search { background: linear-gradient(180deg, rgba(212, 182, 134, 0.9), rgba(180, 148, 90, 0.9)) !important; }
 		.sy-theme .tr-pref button.on { background: #b08d57; }
 		.sy-theme .sp-row .sp-line { background: #d4b686; }
+		/* Shanghai theme: brand red #E60012 (user has not chosen a color
+		   yet - red is Shanghai Metro's brand color, matching the red
+		   logo). Beijing keeps blue, Shenyang keeps gold. */
+		.sh-theme #brandChip, .sh-theme #searchPill { color: #a8000c; }
+		.sh-theme .tr-search { background: linear-gradient(180deg, rgba(230, 0, 18, 0.9), rgba(168, 0, 12, 0.9)) !important; }
+		.sh-theme .tr-pref button.on { background: #e60012; }
+		.sh-theme .sp-row .sp-line { background: #e60012; }
 		/* Multi-route options: 4 tabs + route cards */
 		.tr-tabs { display: flex; gap: 4px; margin: 12px 16px 0; background: rgba(0,0,0,0.06); border-radius: 999px; padding: 4px; }
 		.tr-tabs button { flex: 1; border: none; background: transparent; color: #333; font-size: 15px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
@@ -273,16 +288,33 @@
 		html.dark .ropt-chain { color: #aaa; }
 		html.dark .ropt.sel { background: rgba(255,255,255,0.06); }
 		/* Shenyang gold theme: every blue accent -> gold (Beijing stays blue) */
-		.sy-theme .tr-city { color: #8a6d2b; }
+		.sy-theme .tr-city { color: #8a6d2b !important; }
 		.sy-theme .tr-swap { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
 		.sy-theme .tr-tabs button { color: #8a6d2b; }
 		.sy-theme .tr-tabs button.on { background: #b08d57; color: #fff; }
+		/* Shanghai red theme: every blue accent -> red (Beijing stays blue) */
+		.sh-theme .tr-city { color: #a8000c !important; }
+		.sh-theme .tr-swap { color: #a8000c; border-color: rgba(230,0,18,0.35); }
+		.sh-theme .tr-tabs button { color: #a8000c; }
+		.sh-theme .tr-tabs button.on { background: #e60012; color: #fff; }
 
 		/* Native app (build 33): the route-sort tabs are a native
 		   UISegmentedControl (Apple Liquid Glass) overlaid on this row.
 		   Hide the web buttons but keep the space, so the native control
 		   sits exactly where the web tabs were. */
 		.native-app .tr-tabs { visibility: hidden !important; }
+		/* Native app (build 37): the web tab row never renders there,
+		   so this invisible placeholder reserves its space and gives
+		   the native sort control something to measure. Same margins
+		   as .tr-tabs; height matches the tab row (15px buttons with
+		   8px padding + 4px container padding = 42px). */
+		.tr-tabs-slot { margin: 12px 16px 0; height: 42px; visibility: hidden; }
+		/* Native app (build 37): the from/to fields card and the search
+		   button are native Liquid Glass controls overlaid on these rows.
+		   Hide the web controls but keep the space, so the native controls
+		   sit exactly where the web rows were. The suggestion dropdown
+		   (.tr-suggest) stays web and appears below the native card. */
+		.native-app .tr-fields, .native-app .tr-search { visibility: hidden !important; }
 		.sy-theme .sp-cancel { color: #8a6d2b; }
 		.sy-theme .more-row { color: #8a6d2b; }
 		.sy-theme .more-theme-seg button { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
@@ -292,6 +324,15 @@
 		.sy-theme #verInfoDiv { color: #8a6d2b; }
 		.sy-theme .ropt.sel { background: rgba(212,182,134,0.12); }
 		.sy-theme .ropt-badge.few { background: #fdf3d7; color: #8a6d2b; }
+		.sh-theme .sp-cancel { color: #a8000c; }
+		.sh-theme .more-row { color: #a8000c; }
+		.sh-theme .more-theme-seg button { color: #a8000c; border-color: rgba(230,0,18,0.35); }
+		.sh-theme .more-theme-seg button.on { background: #e60012; border-color: #e60012; color: #fff; }
+		.sh-theme .sp-pick { color: #a8000c; }
+		.sh-theme .tab.active { color: #a8000c; }
+		.sh-theme #verInfoDiv { color: #a8000c; }
+		.sh-theme .ropt.sel { background: rgba(230,0,18,0.08); }
+		.sh-theme .ropt-badge.few { background: #fde8ea; color: #a8000c; }
 		#brandChip, #searchPill {
 			background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.55));
 			-webkit-backdrop-filter: blur(28px) saturate(140%);
@@ -458,10 +499,21 @@
 		.tr-hint { padding: 12px 10px 4px; font-size: 12px; color: #999; text-align: center; }
 		.tr-virtual { display: flex; align-items: center; gap: 6px; padding: 10px 10px 0; font-size: 13px; color: #b26a00; font-weight: 600; }
 		.tr-fare { display: flex; align-items: center; gap: 6px; padding: 8px 20px 0; font-size: 13px; color: #555; font-weight: 600; }
-		.tr-transit { text-align: center; margin: 12px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
-		.sy-theme .tr-transit { color: #8a6d2b; }
+		.tr-transit { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 12px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
+		.tr-transit img { width: 28px; height: 28px; border-radius: 7px; flex: none; display: block; }
+		.sy-theme .tr-transit { color: #8a6d2b !important; }
+		.sh-theme .tr-transit { color: #a8000c !important; }
 		html.dark .tr-transit { color: #7db3ff; }
 		html.dark .sy-theme .tr-transit { color: #d4b686; }
+		html.dark .sh-theme .tr-transit { color: #ff8a95; }
+		/* iPad (build 37): on wide screens keep the transfer/search
+		   panels to a centered readable column; the map tab stays
+		   full-bleed. Applies to any viewport >= 700px wide (iPad
+		   portrait/landscape, iPhone landscape). */
+		@media (min-width: 700px) {
+			#transferPanel, #stationPanel { align-items: center; }
+			#transferPanel > *, #stationPanel > * { width: 100%; max-width: 640px; }
+		}
 		.tr-fare.warn { color: #b26a00; }
 		.tr-fare img { width: 18px; height: 18px; flex: none; }
 		.tr-virtual img { width: 18px; height: 18px; flex: none; }
@@ -510,7 +562,7 @@
 
 
 	<body>
-		<div id="app" :class="{ 'sy-theme': city === 'sy', 'native-app': nativeApp }">
+		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'native-app': nativeApp }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="sideMenuDiv">
 				<div class="sideMenuCard" v-for="sMenu in sideMenu" :onclick="sMenu.onclick">
@@ -613,14 +665,15 @@
 					</div>
 					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? fromQuery : toQuery) ? '没有找到相关车站' : '输入站名、拼音或首字母' }}</div>
 				</div>
-				<div class="tr-tabs" v-if="routeList.length">
+				<div class="tr-tabs" v-if="routeList.length && !nativeApp">
 					<button :class="{ on: routeTab === 'rec' }" @click="setRouteTab('rec')">推荐</button>
 					<button :class="{ on: routeTab === 'early' }" @click="setRouteTab('early')">耗时最短</button>
 					<button :class="{ on: routeTab === 'fewest' }" @click="setRouteTab('fewest')">路径最短</button>
 					<button :class="{ on: routeTab === 'cheap' }" @click="setRouteTab('cheap')">节省票价</button>
 				</div>
+				<div class="tr-tabs-slot" v-if="routeList.length && nativeApp"></div>
 				<button class="tr-search" @click="doSearch">搜索</button>
-				<div class="tr-transit" @click="openTransitApp">{{ city === 'sy' ? '打开盛京通' : '打开一卡通' }} ›</div>
+				<div class="tr-transit" @click="openTransitApp"><img v-if="transitIcon" :src="transitIcon" :alt="transitLabel"><span>{{ transitLabel }} ›</span></div>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
 				<div class="tr-routes" v-if="routeList.length">
 					<div class="ropt" v-for="(r, idx) in sortedRoutes" :key="idx" :class="{ sel: routeResult === r }" @click="pickRoute(r)">
@@ -847,11 +900,19 @@
 						syRoutes: (window.SY_ROUTES || null),
 						syLogo: (window.SY_LOGO || ''),
 						syMap: (window.SY_MAP || ''),
+						shStations: (window.SH_STATIONS || []),
+						shRoutes: (window.SH_ROUTES || null),
+						shLogo: (window.SH_LOGO || ''),
+						shMap: (window.SH_MAP || ''),
 						transfers: (window.METRO_TRANSFERS || {}),
 						walkIcon: (window.WALK_ICON || ''),
 						fareIcon: (window.FARE_ICON || ''),
+						yktIcon: (window.YKT_ICON || ''),
+						sjtIcon: (window.SJT_ICON || ''),
+						mddhIcon: (window.MDDH_ICON || ''),
 						bjSplash: (window.BJ_SPLASH || ''),
 						sySplash: (window.SY_SPLASH || ''),
+						shSplash: (window.SH_SPLASH || ''),
 						showSplash: true,
 						showTransfer: false,
 						fromStation: null,
@@ -942,11 +1003,16 @@
 					switchCity(c) {
 						if (c === this.city) return;
 						if (c === 'sy' && (!this.syStations.length || !this.syMap)) return;
+						if (c === 'sh' && (!this.shStations.length || !this.shMap)) return;
 						this.city = c;
 						if (c === 'sy') {
 							this.stations = this.syStations;
 							this.routes = this.syRoutes;
 							this.curr = { svgUrl: "", svgDom: this.syMap, pdfUrl: "", success: true, json: null, verName: "SY", verInfo: "{ 沈阳地铁线网图 , 2026-06 , 6条线 144站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+						} else if (c === 'sh') {
+							this.stations = this.shStations;
+							this.routes = this.shRoutes;
+							this.curr = { svgUrl: "", svgDom: this.shMap, pdfUrl: "", success: true, json: null, verName: "SH", verInfo: "{ 上海地铁线网图 , 2026-11 , 22条线 413站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else {
 							this.stations = (window.METRO_STATIONS || []);
 							this.routes = (window.METRO_ROUTES || null);
@@ -961,7 +1027,12 @@
 						this.query = '';
 						window._metroNeedFit = true;
 						this.setTab('map');
-						this.flashSplash(500);
+						// Persist the city (build 37): relaunch opens on this
+						// city and shows that city's splash. No splash flash
+						// here — switching cities must not show the launch page.
+						try { window.localStorage.setItem('metro-city', c); } catch (e) {}
+						var _ch = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityChanged);
+						if (_ch) { _ch.postMessage({ city: c }); }
 					},
 					openStations() { this.setTab('stations'); },
 					closeStations() {
@@ -1039,13 +1110,18 @@
 					pickSuggest(opt) {
 						var st = opt.st || opt;
 						var ln = opt.line || null;
-						if (this.suggestFor === 'from') { this.fromStation = st; this.fromQuery = st.n; this.fromLine = ln; }
+						var which = this.suggestFor === 'from' ? 'from' : 'to';
+						if (which === 'from') { this.fromStation = st; this.fromQuery = st.n; this.fromLine = ln; }
 						else { this.toStation = st; this.toQuery = st.n; this.toLine = ln; }
 						this.suggestFor = null;
 						this.routeResult = null;
 						this.routeList = [];
 						this.routeError = '';
 						if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+						// Native shell (build 37): update the native field +
+						// line badge and dismiss the keyboard.
+						var hp = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.stationPicked;
+						if (hp) hp.postMessage({ which: which, name: st.n, line: ln ? { name: ln.name, color: ln.color, text: ln.text } : null });
 					},
 					hideSuggest() {
 						var self = this;
@@ -1115,11 +1191,28 @@
 						if (amt == null) return cont;
 						return '预计 ¥' + amt + ' · ' + cont;
 					},
-					routeFare(r) {
-						r = r || this.routeResult;
-						if (!r || !r.segments || !r.segments.length) return null;
+					// Segment distance in km (build 37). Beijing: SVG units / 44
+					// (calibrated build 31). Shanghai: two-zone px/km model
+					// (build 37) because the JPG map is NOT to scale and the
+					// distortion is NOT radial: the centre draws at ~38 px/km
+					// but the tails at 7-19 px/km, and it varies by direction
+					// (Line 16 SE tail 7.1, Line 1 N tail ~9, Line 2 E tail
+					// ~8.5). So each interval is scaled by its midpoint:
+					// inside 260px of 人民广场 (652,421) use 38 px/km;
+					// outside, use the line's suburban scale, solved from its
+					// real length minus the central part (see README for the
+					// validation: 9/16 spot fares correct; central trips and
+					// the Y15 network max are right, the E tail still reads
+					// low and the W tails high). Loop lines (Beijing 2/10,
+					// Shanghai 4): a segment crossing the closure edge takes
+					// the short way around, not the whole loop.
+					segKm(seg) {
 						var R = this.routes;
 						if (!R || !R.lines) return null;
+						var line = R.lines[seg.line];
+						if (!line || !line.stations) return null;
+						var a = line.stations.indexOf(seg.from), b = line.stations.indexOf(seg.to);
+						if (a < 0 || b < 0) return null;
 						var self = this;
 						function pos(name) {
 							for (var i = 0; i < self.stations.length; i++) {
@@ -1127,6 +1220,76 @@
 							}
 							return null;
 						}
+						function pxTot(pairs) {
+							var t = 0;
+							for (var k = 0; k < pairs.length; k++) {
+								var q1 = pos(pairs[k][0]), q2 = pos(pairs[k][1]);
+								if (!q1 || !q2) return null;
+								if ((q1.x === 0 && q1.y === 0) || (q2.x === 0 && q2.y === 0)) return -1;
+								t += Math.hypot(q2.x - q1.x, q2.y - q1.y);
+							}
+							return t;
+						}
+						var lo = Math.min(a, b), hi = Math.max(a, b), pairs = [];
+						for (var i = lo; i < hi; i++) pairs.push([line.stations[i], line.stations[i + 1]]);
+						if (this.isLoopLine(seg.line)) {
+							var n = line.stations.length, rev = [], j = hi;
+							while (j !== lo) { rev.push([line.stations[j], line.stations[(j + 1) % n]]); j = (j + 1) % n; }
+							var pf = pxTot(pairs), pr = pxTot(rev);
+							if (pf == null || pr == null) return null;
+							if (pf < 0 || pr < 0) return -1;
+							if (pr < pf) pairs = rev;
+						}
+						var totKm = 0;
+						for (var m = 0; m < pairs.length; m++) {
+							var p1 = pos(pairs[m][0]), p2 = pos(pairs[m][1]);
+							if (!p1 || !p2) return null;
+							if ((p1.x === 0 && p1.y === 0) || (p2.x === 0 && p2.y === 0)) return -1;
+							var px = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+							totKm += px / this.shScaleFor(seg.line, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+						}
+						return totKm;
+					},
+					// Shanghai px/km scale for one interval, by its midpoint.
+					// Central zone: within 260px of 人民广场 (652,421) -> 38.
+					// Outside: the line's suburban scale (solved from its real
+					// length; Line 4 is entirely inside the zone, so it has
+					// no suburban entry and falls back to 38). Non-Shanghai
+					// cities keep the Beijing 44 units/km scale.
+					shScaleFor(lineKey, mx, my) {
+						if (this.city !== 'sh') return 44;
+						var SH_SUB = {
+							'1': 8.60, '2': 11.92, '3': 8.86, '5': 19.23, '5B': 19.23,
+							'6': 16.56, '7': 12.33, '8': 13.21, '9': 10.19, '10': 18.67, '10B': 18.67,
+							'11': 13.58, '11B': 13.58, '12': 14.50, '13': 17.54, '14': 8.23,
+							'15': 15.15, '16': 7.11, '17': 10.32, '18': 14.29, 'PJ': 26.50
+						};
+						var dx = mx - 652, dy = my - 421;
+						if (dx * dx + dy * dy < 260 * 260) return 38;
+						return SH_SUB[lineKey] || 38;
+					},
+					// A line is a loop when its first and last stations are joined
+					// by an edge (Beijing 2/10 carry a loop flag; Shanghai 4 does
+					// not, so detect it from the edges instead).
+					isLoopLine(key) {
+						var R = this.routes;
+						if (!R || !R.edges || !R.lines) return false;
+						var line = R.lines[key];
+						if (!line || !line.stations || line.stations.length < 3) return false;
+						var first = line.stations[0], last = line.stations[line.stations.length - 1];
+						for (var i = 0; i < R.edges.length; i++) {
+							var e = R.edges[i];
+							if (e[2] !== key) continue;
+							if ((e[0] === first && e[1] === last) || (e[0] === last && e[1] === first)) return true;
+						}
+						return false;
+					},
+					routeFare(r) {
+						r = r || this.routeResult;
+						if (!r || !r.segments || !r.segments.length) return null;
+						var R = this.routes;
+						if (!R || !R.lines) return null;
+						var self = this;
 						function fareForKm(km) {
 							if (km <= 6) return 3;
 							if (km <= 12) return 4;
@@ -1134,19 +1297,13 @@
 							if (km <= 32) return 6;
 							return 6 + Math.ceil((km - 32) / 20);
 						}
-						function segSvg(seg) {
-							var line = R.lines[seg.line];
-							if (!line || !line.stations) return 0;
-							var a = line.stations.indexOf(seg.from), b = line.stations.indexOf(seg.to);
-							if (a < 0 || b < 0) return 0;
-							var lo = Math.min(a, b), hi = Math.max(a, b), tot = 0;
-							for (var i = lo; i < hi; i++) {
-								var p1 = pos(line.stations[i]), p2 = pos(line.stations[i + 1]);
-								if (!p1 || !p2) return 0;
-								if ((p1.x === 0 && p1.y === 0) || (p2.x === 0 && p2.y === 0)) return -1;
-								tot += Math.hypot(p2.x - p1.x, p2.y - p1.y);
-							}
-							return tot;
+						function fareForKmSh(km) {
+							var f;
+							if (km <= 6) f = 3;
+							else if (km <= 16) f = 4;
+							else if (km <= 26) f = 5;
+							else f = 5 + Math.ceil((km - 26) / 10);
+							return Math.min(f, 15); // network max: 西岑↔滴水湖 Y15
 						}
 						// Shenyang: no station coordinates, so estimate distance from
 						// stops (avg ~1.4 km/stop) and use the Shenyang fare table:
@@ -1163,16 +1320,16 @@
 							else fSy = 6 + Math.ceil((kmSy - 28) / 10);
 							return Math.min(fSy, 7);
 						}
-						var total = 0, legSvg = 0;
-						function closeLeg() { if (legSvg > 0) { total += fareForKm(legSvg / 44); legSvg = 0; } }
+						var total = 0, legKm = 0;
+						function closeLeg() { if (legKm > 0) { total += (self.city === 'sh' ? fareForKmSh(legKm) : fareForKm(legKm)); legKm = 0; } }
 						for (var i = 0; i < r.segments.length; i++) {
 							var seg = r.segments[i];
 							if (seg.line === 'AP') { closeLeg(); total += 25; continue; }
 							if (seg.line === 'DAX') { closeLeg(); total += (seg.to === '大兴机场' || seg.from === '大兴机场') ? 35 : 25; continue; }
 							if (i > 0 && this.virtualInfoFor(r, i)) closeLeg();
-							var dd = segSvg(seg);
-							if (dd < 0) return null;
-							legSvg += dd;
+							var dd = self.segKm(seg);
+							if (dd == null || dd < 0) return null;
+							legKm += dd;
 						}
 						closeLeg();
 						return total;
@@ -1194,17 +1351,18 @@
 					// Departure time (build 34): null = depart now; otherwise
 					// 'HH:MM'. Tapping the top-right 现在出发 label asks the
 					// native shell for its Apple wheel time picker.
-					// Transit app link (build 35): open the city's transit-card
-					// app (Beijing Yikatong / Shenyang Shengjing Tong) for
+					// Transit app link (build 35, Shanghai added build 37):
+					// open the city's transit-card app (Beijing Yikatong /
+					// Shenyang Shengjing Tong / Shanghai Metro大都会) for
 					// top-up / QR code. Native shell opens its App Store page
 					// (tap 打开 there if installed); plain browser opens the
 					// same App Store link. App Store ids verified via the
 					// iTunes Search API 2026-11-15: Yikatong 1071038870,
-					// Shengjing Tong 1441271928.
+					// Shengjing Tong 1441271928, Metro大都会 1202750238.
 					openTransitApp() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openTransitApp;
 						if (h) { h.postMessage({}); return; }
-						var id = this.city === 'sy' ? '1441271928' : '1071038870';
+						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : '1071038870');
 						window.open('https://apps.apple.com/cn/app/id' + id, '_blank');
 					},
 					showTimePicker() {
@@ -1215,6 +1373,20 @@
 						this.departTime = t;
 						if (this.fromStation && this.toStation) this.doSearch();
 					},
+					// Native shell (build 37): the from/to text fields and
+					// the search button are native Liquid Glass controls.
+					// The native side drives these methods; the web keeps
+					// the suggestion dropdown + routing. setNativeQuery
+					// reuses onQueryInput so typing in a native field
+					// behaves exactly like typing in the web input (clears
+					// a stale picked station/line, shows suggestions).
+					setNativeQuery(which, text) {
+						if (which === 'from') this.fromQuery = text || '';
+						else this.toQuery = text || '';
+						this.onQueryInput(which);
+					},
+					setNativeFocus(which) { this.suggestFor = which; },
+					setNativeBlur() { this.hideSuggest(); },
 					// Base departure moment: today at departTime, or right now.
 					departBase() {
 						if (!this.departTime) return new Date();
@@ -1230,10 +1402,40 @@
 					reportTabsFrame() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.tabsFrame;
 						if (!h) return;
-						var el = document.querySelector('.tr-tabs');
+						// Native app (build 37): the web tab row never renders
+						// there — measure the invisible .tr-tabs-slot instead
+						// (falls back to .tr-tabs for a plain browser).
+						var el = document.querySelector('.tr-tabs-slot') || document.querySelector('.tr-tabs');
 						if (!el) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, tab: this.routeTab }); return; }
 						var r = el.getBoundingClientRect();
+						// The panel scrolls: once the slot has scrolled fully
+						// above the viewport, hide the native control.
+						if (r.bottom < 0) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, tab: this.routeTab }); return; }
 						h.postMessage({ x: r.left, y: r.top, width: r.width, height: r.height, tab: this.routeTab });
+					},
+					// Native app (build 37): report the from/to fields card
+					// and the search button frames so the native shell can
+					// place its Liquid Glass card + search button exactly
+					// over the web rows. Also carries the current queries +
+					// line picks so the native fields stay in sync (e.g.
+					// after a suggestion pick or a city switch). Posts
+					// {fields:{x,y,width,height}, search:{x,y,width,height},
+					// fromQuery, toQuery, fromLine, toLine}; a zero-size
+					// rect hides the native controls (panel not shown).
+					reportTransferFrame() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.transferFrame;
+						if (!h) return;
+						var f = document.querySelector('.tr-fields');
+						var s = document.querySelector('.tr-search');
+						var fr = f ? f.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
+						var sr = s ? s.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
+						h.postMessage({
+							fields: { x: fr.left, y: fr.top, width: fr.width, height: fr.height },
+							search: { x: sr.left, y: sr.top, width: sr.width, height: sr.height },
+							fromQuery: this.fromQuery, toQuery: this.toQuery,
+							fromLine: this.fromLine ? { name: this.fromLine.name, color: this.fromLine.color, text: this.fromLine.text } : null,
+							toLine: this.toLine ? { name: this.toLine.name, color: this.toLine.color, text: this.toLine.text } : null
+						});
 					},
 					pickRoute(r) { this.routeResult = r; },
 					doSearch() {
@@ -1376,38 +1578,24 @@
 					routeKm(r) {
 						if (!r || !r.segments || !r.segments.length) return null;
 						if (this.city === 'sy') return Math.round(r.stops * 1.4 * 10) / 10;
-						var R = this.routes;
-						if (!R || !R.lines) return null;
-						var self = this;
-						function pos(name) {
-							for (var i = 0; i < self.stations.length; i++) { if (self.stations[i].n === name) return self.stations[i]; }
-							return null;
-						}
 						var tot = 0;
 						for (var i = 0; i < r.segments.length; i++) {
-							var seg = r.segments[i];
-							var line = R.lines[seg.line];
-							if (!line || !line.stations) return null;
-							var a = line.stations.indexOf(seg.from), b = line.stations.indexOf(seg.to);
-							if (a < 0 || b < 0) return null;
-							var lo = Math.min(a, b), hi = Math.max(a, b);
-							for (var j = lo; j < hi; j++) {
-								var p1 = pos(line.stations[j]), p2 = pos(line.stations[j + 1]);
-								if (!p1 || !p2) return null;
-								if ((p1.x === 0 && p1.y === 0) || (p2.x === 0 && p2.y === 0)) return null;
-								tot += Math.hypot(p2.x - p1.x, p2.y - p1.y);
-							}
+							var k = this.segKm(r.segments[i]);
+							if (k == null || k < 0) return null;
+							tot += k;
 						}
-						return Math.round(tot / 44 * 10) / 10;
+						return Math.round(tot * 10) / 10;
 					},
 					doReset() { this.closeMore(); if (panzoom) resetView(); },
 					doRepo() { this.closeMore(); openRepo(); },
 					doPdf() { this.closeMore(); pdfDownload(); }
 				},
 				computed: {
-					cityName() { return this.city === 'sy' ? '沈阳' : '北京'; },
-					cityLogo() { return this.city === 'sy' ? this.syLogo : this.bjLogo; },
-					splashImg() { return this.city === 'sy' ? this.sySplash : this.bjSplash; },
+					cityName() { return this.city === 'sy' ? '沈阳' : (this.city === 'sh' ? '上海' : '北京'); },
+					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : this.bjLogo); },
+					transitLabel() { return this.city === 'sy' ? '打开盛京通' : (this.city === 'sh' ? '打开Metro大都会' : '打开一卡通'); },
+					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : this.yktIcon); },
+					splashImg() { return this.city === 'sy' ? this.sySplash : (this.city === 'sh' ? this.shSplash : this.bjSplash); },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						if (!q) return this.stations;
@@ -1449,9 +1637,9 @@
 					}
 					if (this.nativeApp) {
 						var self = this;
-						window.requestAnimationFrame(function() { self.reportTabsFrame(); });
+						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); });
 						clearTimeout(window._metroTabsTimer);
-						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); }, 300);
+						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); }, 300);
 					}
 				},
 				mounted: function() {
@@ -1460,7 +1648,38 @@
 					// web tab row visible under the native segmented control.
 					this.nativeApp = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu);
 					var self = this;
+					// Re-report the overlay frames while the transfer panel
+					// scrolls (build 37): the panel is overflow-y:auto and
+					// updated() does not fire on scroll, so the native sort
+					// tabs / transfer card would go stale and overlap the
+					// wrong rows. Throttled with requestAnimationFrame.
+					var _panel = document.getElementById('transferPanel');
+					if (_panel) {
+						var _scrollTicking = false;
+						_panel.addEventListener('scroll', function() {
+							if (!self.nativeApp || _scrollTicking) return;
+							_scrollTicking = true;
+							window.requestAnimationFrame(function() {
+								_scrollTicking = false;
+								self.reportTabsFrame();
+								self.reportTransferFrame();
+							});
+						}, { passive: true });
+					}
 					this.applyTheme();
+					// Restore the last-used city (build 37): relaunch opens
+					// on the city the user last switched to, and shows that
+					// city's splash. The swap happens behind the launch splash.
+					try {
+						var _savedCity = window.localStorage.getItem('metro-city');
+						if ((_savedCity === 'bj' || _savedCity === 'sy' || _savedCity === 'sh') && _savedCity !== this.city) {
+							this.switchCity(_savedCity);
+						}
+					} catch (e) {}
+					// Tell native the current city even when nothing switched
+					// (keeps pills/tint in sync if the stores ever diverge).
+					var _ch0 = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityChanged);
+					if (_ch0) { _ch0.postMessage({ city: this.city }); }
 					this.flashSplash(700);
 					if (window.matchMedia) {
 						window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() { self.applyTheme(); });

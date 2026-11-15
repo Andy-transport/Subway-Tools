@@ -48,10 +48,10 @@ cp web/offline/vue.global.prod.js web/offline/hammer.min.js web/offline/svg-pan-
 cp web/offline/MTR2.8.0.pdf build/Payload/Metro.app/web/MTR2.8.0.pdf
 python3 app/decode_icons.py build/Payload/Metro.app
 python3 -c "import base64; open('build/Payload/Metro.app/Splash.png','wb').write(base64.b64decode(open('app/splash.b64').read()))"
-cp app/BeijingLogo.png app/ShenyangLogo.png build/Payload/Metro.app/
+cp app/BeijingLogo.png app/ShenyangLogo.png app/ShanghaiLogo.png build/Payload/Metro.app/
 
 echo "== 4. package IPA =="
 cd build
-zip -r -y Beijing-Subway-motion-1.0.2-unsigned.ipa Payload
-ls -l Beijing-Subway-motion-1.0.2-unsigned.ipa
-unzip -l Beijing-Subway-motion-1.0.2-unsigned.ipa
+zip -r -y Convenient-transportation-1.0.3-unsigned.ipa Payload
+ls -l Convenient-transportation-1.0.3-unsigned.ipa
+unzip -l Convenient-transportation-1.0.3-unsigned.ipa

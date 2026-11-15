@@ -148,6 +148,36 @@ sy_splash_b64 = (BASE / "shenyang" / "splash.b64").read_text(encoding="utf-8").s
 html = sub_once(r'/\*__BJ_SPLASH__\*/', lambda _: bj_splash_b64, html, "bj splash")
 html = sub_once(r'/\*__SY_SPLASH__\*/', lambda _: sy_splash_b64, html, "sy splash")
 
+# N. inline the transit-app icons (App Store artwork, 120x120 PNG,
+# rounded corners, transparent background; see web/*-icon.b64).
+# Beijing Yikatong / Shenyang Shengjing Tong / Shanghai Metro大都会.
+ykt_b64 = (BASE / "yikatong-icon.b64").read_text(encoding="utf-8").strip()
+sjt_b64 = (BASE / "shengjingtong-icon.b64").read_text(encoding="utf-8").strip()
+mddh_b64 = (BASE / "metrodaduhui-icon.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__YKT_ICON__\*/', lambda _: ykt_b64, html, "yikatong icon")
+html = sub_once(r'/\*__SJT_ICON__\*/', lambda _: sjt_b64, html, "shengjingtong icon")
+html = sub_once(r'/\*__MDDH_ICON__\*/', lambda _: mddh_b64, html, "metrodaduhui icon")
+
+# O. inline the Shanghai Metro data (22 operating lines, 413 stations).
+# Same pattern as Shenyang (step K): precomputed stations/routes from
+# the Shanghai dataset (see shanghai/NOTES.md); the map is the user's
+# JPG wrapped in an SVG so svg-pan-zoom can pan/zoom it; the logo is
+# cropped from the map's top-left corner; the splash is the user's
+# 上海/配线查询 image (shanghai/splash.b64).
+sh_stations = (BASE / "shanghai" / "stations.json").read_text(encoding="utf-8")
+sh_routes = (BASE / "shanghai" / "routes.json").read_text(encoding="utf-8")
+sh_map = (BASE / "shanghai" / "map.svg").read_text(encoding="utf-8")
+sh_logo_b64 = (BASE / "shanghai" / "logo.b64").read_text(encoding="utf-8").strip()
+sh_splash_b64 = (BASE / "shanghai" / "splash.b64").read_text(encoding="utf-8").strip()
+assert "</script" not in sh_stations, "sh stations json must not contain </script"
+assert "</script" not in sh_routes, "sh routes json must not contain </script"
+assert "</script" not in sh_map, "sh map svg must not contain </script"
+html = sub_once(r'/\*__SH_STATIONS__\*/\[\]', lambda _: sh_stations, html, "sh stations json")
+html = sub_once(r'/\*__SH_ROUTES__\*/null', lambda _: sh_routes, html, "sh routes json")
+html = sub_once(r'/\*__SH_MAP__\*/""', lambda _: _json.dumps(sh_map), html, "sh map svg")
+html = sub_once(r'/\*__SH_LOGO__\*/', lambda _: sh_logo_b64, html, "sh logo")
+html = sub_once(r'/\*__SH_SPLASH__\*/', lambda _: sh_splash_b64, html, "sh splash")
+
 out = OUT / "index.html"
 out.write_text(html, encoding="utf-8")
 
