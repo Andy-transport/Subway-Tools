@@ -219,7 +219,7 @@
 			transform: translateX(-50%);
 			bottom: max(12px, env(safe-area-inset-bottom));
 			z-index: 99930;
-			touch-action: pan-y;
+			touch-action: none;
 			width: min(420px, calc(100vw - 32px));
 			height: 64px;
 			display: flex;
@@ -242,7 +242,7 @@
 		.tab {
 			position: relative;
 			z-index: 1;
-			touch-action: manipulation;
+			touch-action: none;
 			flex: 1;
 			display: flex;
 			flex-direction: column;
@@ -875,22 +875,47 @@
 			});
 			const vm = App.mount("#app");
 			// Swipe left/right on the tab bar to switch tabs; the pill slides with it.
+			// Claim the gesture on touchmove (a diagonal swipe used to be stolen by the
+			// browser and end as touchcancel), and swallow the synthetic click that
+			// follows a swipe, or it would switch the tab straight back.
 			(function() {
 				var bar = document.getElementById('tabBar');
 				if (!bar) return;
-				var startX = null;
-				bar.addEventListener('touchstart', function(e) { startX = e.changedTouches[0].clientX; }, { passive: true });
+				var startX = null, startY = null, swiping = false, suppressClick = false;
+				bar.addEventListener('touchstart', function(e) {
+					var t = e.changedTouches[0];
+					startX = t.clientX; startY = t.clientY; swiping = false;
+				}, { passive: true });
+				bar.addEventListener('touchmove', function(e) {
+					if (startX == null) return;
+					var t = e.changedTouches[0];
+					var dx = t.clientX - startX, dy = t.clientY - startY;
+					if (!swiping && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) {
+						swiping = true; suppressClick = true;
+					}
+					if (swiping) e.preventDefault();
+				}, { passive: false });
 				bar.addEventListener('touchend', function(e) {
 					if (startX == null) return;
 					var dx = e.changedTouches[0].clientX - startX;
-					startX = null;
-					if (Math.abs(dx) < 40) return;
-					e.preventDefault();
-					var order = ['transfer', 'map', 'stations', 'more'];
-					var i = order.indexOf(vm.tab);
-					if (dx < 0 && i < 3) vm.setTab(order[i + 1]);
-					if (dx > 0 && i > 0) vm.setTab(order[i - 1]);
+					startX = null; startY = null;
+					if (swiping && Math.abs(dx) >= 40) {
+						var order = ['transfer', 'map', 'stations', 'more'];
+						var i = order.indexOf(vm.tab);
+						if (dx < 0 && i < 3) vm.setTab(order[i + 1]);
+						if (dx > 0 && i > 0) vm.setTab(order[i - 1]);
+						setTimeout(function() { suppressClick = false; }, 350);
+					} else {
+						suppressClick = false;
+					}
+					swiping = false;
 				}, { passive: false });
+				bar.addEventListener('touchcancel', function() {
+					startX = null; startY = null; swiping = false;
+				}, { passive: true });
+				bar.addEventListener('click', function(e) {
+					if (suppressClick) { e.preventDefault(); e.stopPropagation(); }
+				}, true);
 			})();
 
 			var panzoom;
