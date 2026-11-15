@@ -129,6 +129,15 @@ html = sub_once(r'/\*__SY_ROUTES__\*/null', lambda _: sy_routes, html, "sy route
 html = sub_once(r'/\*__SY_MAP__\*/""', lambda _: _json.dumps(sy_map), html, "sy map svg")
 html = sub_once(r'/\*__SY_LOGO__\*/', lambda _: sy_logo_b64, html, "sy logo")
 
+# L. inline the virtual-transfer data + walking icon (Beijing).
+# transfers.json is hand-maintained (Wikipedia 转乘站); the icon is the
+# user's walking pictogram with its white background made transparent.
+transfers = (BASE / "transfers.json").read_text(encoding="utf-8")
+walk_b64 = (BASE / "walk-icon.b64").read_text(encoding="utf-8").strip()
+assert "</script" not in transfers, "transfers json must not contain </script"
+html = sub_once(r'/\*__METRO_TRANSFERS__\*/\{\}', lambda _: transfers, html, "transfers json")
+html = sub_once(r'/\*__WALK_ICON__\*/', lambda _: walk_b64, html, "walk icon")
+
 out = OUT / "index.html"
 out.write_text(html, encoding="utf-8")
 
