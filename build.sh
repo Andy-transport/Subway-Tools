@@ -6,13 +6,14 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "== 0. select Xcode (iOS SDK 27.1) =="
+echo "== 0. select Xcode (iOS SDK 27.2) =="
 echo "Installed Xcode versions:"
 ls -d /Applications/Xcode*.app 2>/dev/null || echo "(none found)"
-# Pin to Xcode 27.1 (iOS SDK 27.1, required for iPhone Duo targets).
-# Fall back to Xcode 27.0. Do NOT pick 27.2 beta or any other 27.x.
+# Pin to Xcode 27.2 (iOS SDK 27.2, user asked for 27.2; currently beta
+# 27B5028f on the xcode-27 runner, fine for a sideloaded unsigned IPA).
+# Fall back to Xcode 27.1, then 27.0.
 XCODE_SEL=""
-for v in 27.1 27.0; do
+for v in 27.2 27.1 27.0; do
   CAND=$(ls -d /Applications/Xcode_${v}*.app 2>/dev/null | head -n 1)
   if [ -n "$CAND" ]; then XCODE_SEL="$CAND"; break; fi
 done
