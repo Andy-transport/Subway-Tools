@@ -137,6 +137,8 @@ walk_b64 = (BASE / "walk-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in transfers, "transfers json must not contain </script"
 html = sub_once(r'/\*__METRO_TRANSFERS__\*/\{\}', lambda _: transfers, html, "transfers json")
 html = sub_once(r'/\*__WALK_ICON__\*/', lambda _: walk_b64, html, "walk icon")
+fare_b64 = (BASE / "wallet-icon.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__FARE_ICON__\*/', lambda _: fare_b64, html, "fare icon")
 
 out = OUT / "index.html"
 out.write_text(html, encoding="utf-8")

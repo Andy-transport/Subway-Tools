@@ -17,6 +17,7 @@
 			window.SY_LOGO = "data:image/png;base64,/*__SY_LOGO__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.WALK_ICON = "data:image/png;base64,/*__WALK_ICON__*/";
+			window.FARE_ICON = "data:image/png;base64,/*__FARE_ICON__*/";
 		</script>
 	</head>
 
@@ -381,6 +382,9 @@
 		.tr-seg-n { flex: none; font-size: 13px; color: #888; }
 		.tr-hint { padding: 12px 10px 4px; font-size: 12px; color: #999; text-align: center; }
 		.tr-virtual { display: flex; align-items: center; gap: 6px; padding: 10px 10px 0; font-size: 13px; color: #b26a00; font-weight: 600; }
+		.tr-fare { display: flex; align-items: center; gap: 6px; padding: 8px 20px 0; font-size: 13px; color: #555; font-weight: 600; }
+		.tr-fare.warn { color: #b26a00; }
+		.tr-fare img { width: 18px; height: 18px; flex: none; }
 		.tr-virtual img { width: 18px; height: 18px; flex: none; }
 		.sp-pick { padding: 4px 20px 0; font-size: 13px; color: #003380; font-weight: 600; }
 
@@ -527,6 +531,10 @@
 				</div>
 				<button class="tr-search" @click="doSearch">搜索</button>
 				<div class="tr-summary" v-if="routeResult">共 {{ routeResult.stops }} 站 · 换乘 {{ routeResult.transfers }} 次 · 约 {{ routeResult.minutes }} 分钟 · 预计 {{ routeResult.arrive }} 到达</div>
+				<div class="tr-fare" :class="{ warn: hasVirtual() }" v-if="routeResult">
+					<img :src="fareIcon" alt="">
+					<span>{{ hasVirtual() ? '票价不连续计费（虚拟换乘需出站）' : '票价连续计费' }}</span>
+				</div>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
 				<div class="tr-list" v-if="routeResult">
 					<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
@@ -721,6 +729,7 @@
 						syMap: (window.SY_MAP || ''),
 						transfers: (window.METRO_TRANSFERS || {}),
 						walkIcon: (window.WALK_ICON || ''),
+						fareIcon: (window.FARE_ICON || ''),
 						showTransfer: false,
 						fromStation: null,
 						toStation: null,
@@ -900,6 +909,13 @@
 					setTheme(t) {
 						this.theme = t;
 						this.applyTheme();
+					},
+					hasVirtual() {
+						if (!this.routeResult || !this.routeResult.segments) return false;
+						for (var i = 1; i < this.routeResult.segments.length; i++) {
+							if (this.virtualInfo(i)) return true;
+						}
+						return false;
 					},
 					virtualInfo(i) {
 						if (!i || !this.routeResult || !this.routeResult.segments) return '';
