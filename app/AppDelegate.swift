@@ -26,6 +26,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var tabBar: UITabBar!
     var cityPill: UIButton!
     var searchPill: UIButton!
+    // Native Liquid Glass route-sort tabs (build 33): a UISegmentedControl
+    // (Liquid Glass on iOS 26+) overlaid on the web panel's tab row.
+    var sortTabs: UISegmentedControl!
+    let sortTabKeys = ["rec", "early", "fewest", "cheap"]
     // Web tab keys, in the same order as the native tab bar items.
     let tabKeys = ["transfer", "map", "stations", "more"]
     // Beijing Subway blue (Beijing theme, unchanged); Shenyang gold,
@@ -43,6 +47,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "tabChanged")
         config.userContentController.add(self, name: "cityMenu")
+        config.userContentController.add(self, name: "tabsFrame")
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -98,6 +103,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         ])
 
         setupNativePills()
+        setupSortTabs()
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
         loadMap()
     }
@@ -249,6 +255,57 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         webView.evaluateJavaScript("window.metroApp && window.metroApp.openStations()", completionHandler: nil)
     }
 
+    // MARK: - Native Liquid Glass route-sort tabs
+
+    // The four route-sort tabs (推荐/耗时最短/路径最短/节省票价) are a
+    // native UISegmentedControl, which renders with Apple's Liquid Glass
+    // on iOS 26+. The web page hides its own tab row in the native app
+    // (visibility:hidden, space kept) and reports the row's frame, so
+    // this control sits exactly where the web tabs were. Position is
+    // frame-based (not Auto Layout) because the web panel moves it.
+    func setupSortTabs() {
+        sortTabs = UISegmentedControl(items: ["推荐", "耗时最短", "路径最短", "节省票价"])
+        sortTabs.selectedSegmentIndex = 0
+        sortTabs.translatesAutoresizingMaskIntoConstraints = true
+        sortTabs.isHidden = true
+        sortTabs.addTarget(self, action: #selector(sortTabChanged(_:)), for: .valueChanged)
+        let attrs: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 15, weight: .semibold)]
+        sortTabs.setTitleTextAttributes(attrs, for: .normal)
+        sortTabs.setTitleTextAttributes(attrs, for: .selected)
+        view.addSubview(sortTabs)
+    }
+
+    @objc func sortTabChanged(_ sender: UISegmentedControl) {
+        let idx = sender.selectedSegmentIndex
+        guard idx >= 0 && idx < sortTabKeys.count else { return }
+        let key = sortTabKeys[idx]
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setRouteTab('\(key)')", completionHandler: nil)
+    }
+
+    // Place the native sort tabs over the web tab row's reported frame.
+    // The web rect is in CSS pixels; the full-screen web view maps them
+    // 1:1 to points. A zero-size rect (no routes, or the transfer panel
+    // is hidden) hides the control.
+    func placeSortTabs(frame dict: [String: Any]) {
+        guard let x = dict["x"] as? Double,
+              let y = dict["y"] as? Double,
+              let w = dict["width"] as? Double,
+              let h = dict["height"] as? Double else {
+            sortTabs.isHidden = true
+            return
+        }
+        if w > 0 && h > 0 && currentTab == "transfer" {
+            sortTabs.frame = CGRect(x: x, y: y, width: w, height: h)
+            sortTabs.isHidden = false
+            if let tab = dict["tab"] as? String,
+               let idx = sortTabKeys.firstIndex(of: tab) {
+                sortTabs.selectedSegmentIndex = idx
+            }
+        } else {
+            sortTabs.isHidden = true
+        }
+    }
+
     func updatePillVisibility() {
         let show = currentTab == "map"
         cityPill.isHidden = !show
@@ -266,6 +323,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let key = tabKeys[index]
         currentTab = key
         updatePillVisibility()
+        if key != "transfer" { sortTabs.isHidden = true }
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
     }
 
@@ -297,6 +355,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             tabBar.selectedItem = tabBar.items?[idx]
         } else if message.name == "cityMenu" {
             presentCityMenuPopover()
+        } else if message.name == "tabsFrame",
+                  let dict = message.body as? [String: Any] {
+            placeSortTabs(frame: dict)
         }
     }
 

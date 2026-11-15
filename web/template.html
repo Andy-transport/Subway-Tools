@@ -277,6 +277,12 @@
 		.sy-theme .tr-swap { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
 		.sy-theme .tr-tabs button { color: #8a6d2b; }
 		.sy-theme .tr-tabs button.on { background: #b08d57; color: #fff; }
+
+		/* Native app (build 33): the route-sort tabs are a native
+		   UISegmentedControl (Apple Liquid Glass) overlaid on this row.
+		   Hide the web buttons but keep the space, so the native control
+		   sits exactly where the web tabs were. */
+		.native-app .tr-tabs { visibility: hidden; }
 		.sy-theme .sp-cancel { color: #8a6d2b; }
 		.sy-theme .more-row { color: #8a6d2b; }
 		.sy-theme .more-theme-seg button { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
@@ -500,7 +506,7 @@
 
 
 	<body>
-		<div id="app" :class="{ 'sy-theme': city === 'sy' }">
+		<div id="app" :class="{ 'sy-theme': city === 'sy', 'native-app': nativeApp }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="sideMenuDiv">
 				<div class="sideMenuCard" v-for="sMenu in sideMenu" :onclick="sMenu.onclick">
@@ -605,9 +611,9 @@
 				</div>
 				<div class="tr-tabs" v-if="routeList.length">
 					<button :class="{ on: routeTab === 'rec' }" @click="setRouteTab('rec')">推荐</button>
-					<button :class="{ on: routeTab === 'early' }" @click="setRouteTab('early')">早到达</button>
-					<button :class="{ on: routeTab === 'fewest' }" @click="setRouteTab('fewest')">少换乘</button>
-					<button :class="{ on: routeTab === 'cheap' }" @click="setRouteTab('cheap')">省票价</button>
+					<button :class="{ on: routeTab === 'early' }" @click="setRouteTab('early')">耗时最短</button>
+					<button :class="{ on: routeTab === 'fewest' }" @click="setRouteTab('fewest')">路径最短</button>
+					<button :class="{ on: routeTab === 'cheap' }" @click="setRouteTab('cheap')">节省票价</button>
 				</div>
 				<button class="tr-search" @click="doSearch">搜索</button>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
@@ -619,7 +625,7 @@
 							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>换乘 {{ r.transfers }} 次 · 约 {{ r.km }} 公里</div>
 							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line" :style="{ background: '#' + seg.color, color: seg.text }">{{ seg.name }}</span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ {{ seg.to }}</span></template></div>
 						</div>
-						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">早</span><span class="ropt-badge few" v-if="r.isFewest">少</span><span class="ropt-badge cheap" v-if="r.isCheap">省</span></div>
+						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">早</span><span class="ropt-badge few" v-if="r.isShortest">短</span><span class="ropt-badge cheap" v-if="r.isCheap">省</span></div>
 					</div>
 				</div>
 				<div class="tr-fare" :class="{ warn: fareWarn() }" v-if="routeResult">
@@ -1177,6 +1183,18 @@
 						return '虚拟换乘 · 出站步行' + info.dist;
 					},
 					setRouteTab(t) { this.routeTab = t; },
+					// Native app (build 33): report the sort-tab row's frame
+					// to the native shell so it can place its Liquid Glass
+					// UISegmentedControl exactly over the web tab row.
+					// Posts {x,y,width,height,tab}; width 0 hides the control.
+					reportTabsFrame() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.tabsFrame;
+						if (!h) return;
+						var el = document.querySelector('.tr-tabs');
+						if (!el) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, tab: this.routeTab }); return; }
+						var r = el.getBoundingClientRect();
+						h.postMessage({ x: r.left, y: r.top, width: r.width, height: r.height, tab: this.routeTab });
+					},
 					pickRoute(r) { this.routeResult = r; },
 					doSearch() {
 						this.routeError = '';
@@ -1296,7 +1314,7 @@
 						}
 						var now = new Date();
 						function fmt(d) { var h = d.getHours(), m = d.getMinutes(); return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; }
-						var minMin = Infinity, minTr = Infinity, minFare = Infinity;
+						var minMin = Infinity, minTr = Infinity, minFare = Infinity, minStops = Infinity;
 						list.forEach(function(r) {
 							r.depart = fmt(now);
 							var arr = new Date(now.getTime() + r.minutes * 60000);
@@ -1305,11 +1323,12 @@
 							r.km = self.routeKm(r);
 							if (r.minutes < minMin) minMin = r.minutes;
 							if (r.transfers < minTr) minTr = r.transfers;
+							if (r.stops < minStops) minStops = r.stops;
 							if (r.fare != null && r.fare < minFare) minFare = r.fare;
 						});
 						list.forEach(function(r) {
 							r.isEarly = r.minutes === minMin;
-							r.isFewest = r.transfers === minTr;
+							r.isShortest = r.stops === minStops;
 							r.isCheap = r.fare != null && r.fare === minFare;
 						});
 						return list.slice(0, 6);
@@ -1375,7 +1394,7 @@
 						var list = this.routeList.slice();
 						var tab = this.routeTab;
 						if (tab === 'early') list.sort(function(a, b) { return a.minutes - b.minutes || a.transfers - b.transfers; });
-						else if (tab === 'fewest') list.sort(function(a, b) { return a.transfers - b.transfers || a.minutes - b.minutes; });
+						else if (tab === 'fewest') list.sort(function(a, b) { return a.stops - b.stops || a.transfers - b.transfers; });
 						else if (tab === 'cheap') list.sort(function(a, b) { return (a.fare == null ? 9999 : a.fare) - (b.fare == null ? 9999 : b.fare) || a.minutes - b.minutes; });
 						else list.sort(function(a, b) { return a.minutes - b.minutes || a.transfers - b.transfers; });
 						return list;
@@ -1388,6 +1407,7 @@
 						setPanZoom();
 						svgZoomTo(coord.curr);
 					}
+					if (this.nativeApp) this.reportTabsFrame();
 				},
 				mounted: function() {
 					var self = this;
@@ -1613,6 +1633,7 @@
 				if (_metroResizeTimer) clearTimeout(_metroResizeTimer);
 				_metroResizeTimer = setTimeout(function () {
 					if (panzoom) panzoom.resize();
+					if (window.metroApp && window.metroApp.reportTabsFrame) window.metroApp.reportTabsFrame();
 				}, 120);
 			});
 
