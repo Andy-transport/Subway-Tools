@@ -112,6 +112,23 @@ routes = (BASE / "routes.json").read_text(encoding="utf-8")
 assert "</script" not in routes, "routes json must not contain </script"
 html = sub_once(r'/\*__METRO_ROUTES__\*/null', lambda _: routes, html, "routes json")
 
+# K. inline the Shenyang Metro data (6 operating lines, no Line 6).
+# stations/routes are precomputed from Wikipedia line tables (see
+# shenyang/NOTES.md); the map is the user's JPG wrapped in an SVG so
+# svg-pan-zoom can pan/zoom it like the Beijing vector map.
+import json as _json
+sy_stations = (BASE / "shenyang" / "stations.json").read_text(encoding="utf-8")
+sy_routes = (BASE / "shenyang" / "routes.json").read_text(encoding="utf-8")
+sy_map = (BASE / "shenyang" / "map.svg").read_text(encoding="utf-8")
+sy_logo_b64 = (BASE / "shenyang" / "logo.b64").read_text(encoding="utf-8").strip()
+assert "</script" not in sy_stations, "sy stations json must not contain </script"
+assert "</script" not in sy_routes, "sy routes json must not contain </script"
+assert "</script" not in sy_map, "sy map svg must not contain </script"
+html = sub_once(r'/\*__SY_STATIONS__\*/\[\]', lambda _: sy_stations, html, "sy stations json")
+html = sub_once(r'/\*__SY_ROUTES__\*/null', lambda _: sy_routes, html, "sy routes json")
+html = sub_once(r'/\*__SY_MAP__\*/""', lambda _: _json.dumps(sy_map), html, "sy map svg")
+html = sub_once(r'/\*__SY_LOGO__\*/', lambda _: sy_logo_b64, html, "sy logo")
+
 out = OUT / "index.html"
 out.write_text(html, encoding="utf-8")
 

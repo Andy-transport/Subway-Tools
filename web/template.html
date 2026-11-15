@@ -11,6 +11,10 @@
 			window.METRO_STATIONS = /*__METRO_STATIONS__*/[];
 			window.BJ_LOGO = "data:image/png;base64,/*__BJ_LOGO__*/";
 			window.METRO_ROUTES = /*__METRO_ROUTES__*/null;
+			window.SY_STATIONS = /*__SY_STATIONS__*/[];
+			window.SY_ROUTES = /*__SY_ROUTES__*/null;
+			window.SY_MAP = /*__SY_MAP__*/"";
+			window.SY_LOGO = "data:image/png;base64,/*__SY_LOGO__*/";
 		</script>
 	</head>
 
@@ -420,9 +424,9 @@
 			<div id="verInfoDiv" onclick="verInfoEvt()">{{curr.verInfo}}</div>
 
 			<div class="center" id="crosshair" v-if="showCrosshair"></div>
-			<div id="brandChip" class="glass" v-if="tab==='map'">
-				<img v-if="bjLogo" :src="bjLogo" alt="北京地铁">
-				<span class="bj-city">北京</span>
+			<div id="brandChip" class="glass" v-if="tab==='map'" @click="toggleCity">
+				<img v-if="cityLogo" :src="cityLogo" :alt="cityName + '地铁'">
+				<span class="bj-city">{{ cityName }}</span>
 				<svg class="bj-chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
 			</div>
 
@@ -472,9 +476,9 @@
 
 			<div id="transferPanel" v-show="showTransfer">
 				<div class="tr-head">
-					<div class="tr-city">
-						<img v-if="bjLogo" :src="bjLogo" alt="北京地铁">
-						<span>北京</span>
+					<div class="tr-city" @click="toggleCity">
+						<img v-if="cityLogo" :src="cityLogo" :alt="cityName + '地铁'">
+						<span>{{ cityName }}</span>
 						<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
 					</div>
 					<div class="tr-time">现在出发</div>
@@ -687,9 +691,14 @@
 						showStations: false,
 						showMore: false,
 						query: '',
+						city: 'bj',
 						stations: (window.METRO_STATIONS || []),
 						bjLogo: (window.BJ_LOGO || ''),
 						routes: (window.METRO_ROUTES || null),
+						syStations: (window.SY_STATIONS || []),
+						syRoutes: (window.SY_ROUTES || null),
+						syLogo: (window.SY_LOGO || ''),
+						syMap: (window.SY_MAP || ''),
 						showTransfer: false,
 						fromStation: null,
 						toStation: null,
@@ -758,6 +767,28 @@
 						if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.tabChanged) {
 							window.webkit.messageHandlers.tabChanged.postMessage(this.tab);
 						}
+					},
+					toggleCity() { this.switchCity(this.city === 'bj' ? 'sy' : 'bj'); },
+					switchCity(c) {
+						if (c === this.city) return;
+						if (c === 'sy' && (!this.syStations.length || !this.syMap)) return;
+						this.city = c;
+						if (c === 'sy') {
+							this.stations = this.syStations;
+							this.routes = this.syRoutes;
+							this.curr = { svgUrl: "", svgDom: this.syMap, pdfUrl: "", success: true, json: null, verName: "SY", verInfo: "{ 沈阳地铁线网图 , 2026-06 , 6条线 144站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+						} else {
+							this.stations = (window.METRO_STATIONS || []);
+							this.routes = (window.METRO_ROUTES || null);
+							this.curr = env.prod;
+						}
+						this.fromStation = null; this.toStation = null;
+						this.fromQuery = ''; this.toQuery = '';
+						this.routeResult = null; this.routeError = '';
+						this.suggestFor = null; this.pickFor = null;
+						this.query = '';
+						window._metroNeedFit = true;
+						this.setTab('map');
 					},
 					openStations() { this.setTab('stations'); },
 					closeStations() {
@@ -933,6 +964,8 @@
 					doPdf() { this.closeMore(); pdfDownload(); }
 				},
 				computed: {
+					cityName() { return this.city === 'sy' ? '沈阳' : '北京'; },
+					cityLogo() { return this.city === 'sy' ? this.syLogo : this.bjLogo; },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						if (!q) return this.stations;
@@ -1165,6 +1198,9 @@
 						resetView();
 					}
 					window._metroViewInit = true;
+				} else if (window._metroNeedFit) {
+					window._metroNeedFit = false;
+					resetView();
 				} else {
 					svgZoomTo(coord.curr);
 				}
@@ -1208,6 +1244,7 @@
 			// crosshair briefly. Syncs coord.curr so later Vue updates restore it.
 			function locateStation(st) {
 				if (!panzoom) return;
+				if (!st || !st.x || !st.y) return;
 				var ele = document.getElementById("svg8");
 				if (!ele) return;
 				var z = Math.min(55, Math.max(panzoom.getZoom(), coord.default[2] * 3));
@@ -1251,6 +1288,7 @@
 
 
 			function pdfDownload() {
+				if (!vm.curr.pdfUrl) return;
 				window.open(vm.curr.pdfUrl);
 			};
 
