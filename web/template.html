@@ -282,7 +282,7 @@
 		   UISegmentedControl (Apple Liquid Glass) overlaid on this row.
 		   Hide the web buttons but keep the space, so the native control
 		   sits exactly where the web tabs were. */
-		.native-app .tr-tabs { visibility: hidden; }
+		.native-app .tr-tabs { visibility: hidden !important; }
 		.sy-theme .sp-cancel { color: #8a6d2b; }
 		.sy-theme .more-row { color: #8a6d2b; }
 		.sy-theme .more-theme-seg button { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
@@ -423,7 +423,7 @@
 		.tr-city { display: flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 700; color: #003380; }
 		.tr-city img { width: 26px; height: 26px; border-radius: 50%; display: block; }
 		.tr-city svg { width: 14px; height: 14px; opacity: 0.7; }
-		.tr-time { font-size: 14px; color: #888; }
+		.tr-time { font-size: 14px; color: #888; cursor: pointer; }
 		.tr-fields { position: relative; margin: 10px 16px 0; border-radius: 20px; padding: 6px 56px 6px 6px; }
 		.tr-field { display: flex; align-items: center; gap: 10px; padding: 13px 10px; }
 		.tr-field + .tr-field { border-top: 1px solid rgba(0, 0, 0, 0.06); }
@@ -458,6 +458,10 @@
 		.tr-hint { padding: 12px 10px 4px; font-size: 12px; color: #999; text-align: center; }
 		.tr-virtual { display: flex; align-items: center; gap: 6px; padding: 10px 10px 0; font-size: 13px; color: #b26a00; font-weight: 600; }
 		.tr-fare { display: flex; align-items: center; gap: 6px; padding: 8px 20px 0; font-size: 13px; color: #555; font-weight: 600; }
+		.tr-transit { text-align: center; margin: 12px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
+		.sy-theme .tr-transit { color: #8a6d2b; }
+		html.dark .tr-transit { color: #7db3ff; }
+		html.dark .sy-theme .tr-transit { color: #d4b686; }
 		.tr-fare.warn { color: #b26a00; }
 		.tr-fare img { width: 18px; height: 18px; flex: none; }
 		.tr-virtual img { width: 18px; height: 18px; flex: none; }
@@ -580,7 +584,7 @@
 						<span>{{ cityName }}</span>
 						<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
 					</div>
-					<div class="tr-time">现在出发</div>
+					<div class="tr-time" @click="showTimePicker">{{ departTime ? departTime + ' 出发' : '现在出发' }} ▾</div>
 				</div>
 				<div class="tr-fields glass">
 					<div class="tr-field">
@@ -616,6 +620,7 @@
 					<button :class="{ on: routeTab === 'cheap' }" @click="setRouteTab('cheap')">节省票价</button>
 				</div>
 				<button class="tr-search" @click="doSearch">搜索</button>
+				<div class="tr-transit" @click="openTransitApp">{{ city === 'sy' ? '打开盛京通' : '打开一卡通' }} ›</div>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
 				<div class="tr-routes" v-if="routeList.length">
 					<div class="ropt" v-for="(r, idx) in sortedRoutes" :key="idx" :class="{ sel: routeResult === r }" @click="pickRoute(r)">
@@ -859,6 +864,7 @@
 						routeError: '',
 						routeList: [],
 						routeTab: 'rec',
+						departTime: null,
 						fromLine: null,
 						toLine: null,
 						theme: 'system',
@@ -948,7 +954,9 @@
 						}
 						this.fromStation = null; this.toStation = null;
 						this.fromQuery = ''; this.toQuery = '';
-						this.routeResult = null; this.routeError = '';
+						this.fromLine = null; this.toLine = null;
+						this.routeList = []; this.routeResult = null; this.routeError = '';
+						this.departTime = null; this.routeTab = 'rec';
 						this.suggestFor = null; this.pickFor = null;
 						this.query = '';
 						window._metroNeedFit = true;
@@ -1183,6 +1191,38 @@
 						return '虚拟换乘 · 出站步行' + info.dist;
 					},
 					setRouteTab(t) { this.routeTab = t; },
+					// Departure time (build 34): null = depart now; otherwise
+					// 'HH:MM'. Tapping the top-right 现在出发 label asks the
+					// native shell for its Apple wheel time picker.
+					// Transit app link (build 35): open the city's transit-card
+					// app (Beijing Yikatong / Shenyang Shengjing Tong) for
+					// top-up / QR code. Native shell opens its App Store page
+					// (tap 打开 there if installed); plain browser opens the
+					// same App Store link. App Store ids verified via the
+					// iTunes Search API 2026-11-15: Yikatong 1071038870,
+					// Shengjing Tong 1441271928.
+					openTransitApp() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openTransitApp;
+						if (h) { h.postMessage({}); return; }
+						var id = this.city === 'sy' ? '1441271928' : '1071038870';
+						window.open('https://apps.apple.com/cn/app/id' + id, '_blank');
+					},
+					showTimePicker() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.timePicker;
+						if (h) { h.postMessage({ departTime: this.departTime }); return; }
+					},
+					setDepartTime(t) {
+						this.departTime = t;
+						if (this.fromStation && this.toStation) this.doSearch();
+					},
+					// Base departure moment: today at departTime, or right now.
+					departBase() {
+						if (!this.departTime) return new Date();
+						var p = this.departTime.split(':');
+						var d = new Date();
+						d.setHours(parseInt(p[0], 10), parseInt(p[1], 10), 0, 0);
+						return d;
+					},
 					// Native app (build 33): report the sort-tab row's frame
 					// to the native shell so it can place its Liquid Glass
 					// UISegmentedControl exactly over the web tab row.
@@ -1312,7 +1352,7 @@
 								add(this.findRoute(fromName, toName, 'time', [trs[j]], fl, tl));
 							}
 						}
-						var now = new Date();
+						var now = self.departBase();
 						function fmt(d) { var h = d.getHours(), m = d.getMinutes(); return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; }
 						var minMin = Infinity, minTr = Infinity, minFare = Infinity, minStops = Infinity;
 						list.forEach(function(r) {
@@ -1407,9 +1447,18 @@
 						setPanZoom();
 						svgZoomTo(coord.curr);
 					}
-					if (this.nativeApp) this.reportTabsFrame();
+					if (this.nativeApp) {
+						var self = this;
+						window.requestAnimationFrame(function() { self.reportTabsFrame(); });
+						clearTimeout(window._metroTabsTimer);
+						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); }, 300);
+					}
 				},
 				mounted: function() {
+					// Re-check native shell (build 36): the data() check can run
+					// before the native handlers are injected, which left the
+					// web tab row visible under the native segmented control.
+					this.nativeApp = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu);
 					var self = this;
 					this.applyTheme();
 					this.flashSplash(700);

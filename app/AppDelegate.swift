@@ -48,6 +48,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "tabChanged")
         config.userContentController.add(self, name: "cityMenu")
         config.userContentController.add(self, name: "tabsFrame")
+        config.userContentController.add(self, name: "timePicker")
+        config.userContentController.add(self, name: "openTransitApp")
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -312,6 +314,97 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         searchPill.isHidden = !show
     }
 
+    // MARK: - Departure time picker (build 34)
+
+    // The top-right 现在出发 label (web) asks the native shell for a
+    // time picker: a sheet with Apple's UIDatePicker in wheel style
+    // (preferredDatePickerStyle .wheels, SDK 26.5), plus 现在出发
+    // (back to "now") and 确定. The chosen time is sent back to the
+    // web page, which recomputes every route's depart/arrive times
+    // from it (durations are unchanged estimates).
+    func presentTimePicker(current: String?) {
+        let vc = UIViewController()
+        vc.view.backgroundColor = .systemBackground
+        let picker = UIDatePicker()
+        picker.datePickerMode = .time
+        if #available(iOS 13.4, *) { picker.preferredDatePickerStyle = .wheels }
+        picker.locale = Locale(identifier: "zh_CN")
+        if let t = current {
+            let fmt = DateFormatter()
+            fmt.dateFormat = "HH:mm"
+            if let d = fmt.date(from: t) { picker.date = d }
+        }
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(picker)
+
+        let nowButton = UIButton(type: .system)
+        nowButton.setTitle("现在出发", for: .normal)
+        nowButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
+        nowButton.setTitleColor(accentDark(), for: .normal)
+        nowButton.addTarget(self, action: #selector(timePickerNow), for: .touchUpInside)
+        nowButton.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(nowButton)
+
+        let doneButton = UIButton(type: .system)
+        doneButton.setTitle("确定", for: .normal)
+        doneButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
+        doneButton.setTitleColor(accentDark(), for: .normal)
+        doneButton.addTarget(self, action: #selector(timePickerDone(_:)), for: .touchUpInside)
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(doneButton)
+        // The picker is found by tag when 确定 is tapped.
+        picker.tag = 7701
+
+        NSLayoutConstraint.activate([
+            nowButton.leadingAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            nowButton.topAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            doneButton.trailingAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            doneButton.topAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            picker.leadingAnchor.constraint(equalTo: vc.view.leadingAnchor),
+            picker.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor),
+            picker.topAnchor.constraint(equalTo: nowButton.bottomAnchor, constant: 8),
+            picker.bottomAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
+        ])
+
+        if let sheet = vc.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
+        }
+        present(vc, animated: true)
+    }
+
+    @objc func timePickerNow() {
+        dismiss(animated: true)
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setDepartTime(null)", completionHandler: nil)
+    }
+
+    @objc func timePickerDone(_ sender: UIButton) {
+        guard let vc = presentedViewController,
+              let picker = vc.view.viewWithTag(7701) as? UIDatePicker else {
+            dismiss(animated: true)
+            return
+        }
+        let fmt = DateFormatter()
+        fmt.dateFormat = "HH:mm"
+        let t = fmt.string(from: picker.date)
+        dismiss(animated: true)
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setDepartTime('\(t)')", completionHandler: nil)
+    }
+
+    // MARK: - Transit app link (build 35)
+
+    // The transfer panel's 打开一卡通 / 打开盛京通 row: open the current
+    // city's transit-card app on the App Store (tap 打开 there if it is
+    // installed). App Store ids verified via the iTunes Search API
+    // 2026-11-15: Beijing Yikatong 1071038870, Shenyang Shengjing Tong
+    // 1441271928. There is no confirmed URL scheme for either app, so
+    // the App Store page (not a guessed scheme) is the link.
+    func openTransitApp() {
+        let id = currentCity == "sy" ? "1441271928" : "1071038870"
+        guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
+
     // MARK: - Native tab bar -> web page
 
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
@@ -358,6 +451,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "tabsFrame",
                   let dict = message.body as? [String: Any] {
             placeSortTabs(frame: dict)
+        } else if message.name == "timePicker",
+                  let dict = message.body as? [String: Any] {
+            let current = dict["departTime"] as? String
+            presentTimePicker(current: current)
+        } else if message.name == "openTransitApp" {
+            openTransitApp()
         }
     }
 
