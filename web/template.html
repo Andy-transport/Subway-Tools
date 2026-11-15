@@ -2,11 +2,15 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<title>北京市轨道交通线路配置图</title>
+		<title>Beijing subway motion</title>
 		<link rel="icon" href="https://metro-1252278458.cos.ap-beijing.myqcloud.com/img/sq4u_128.ico">
 		<script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
 		<script src="https://unpkg.com/hammerjs@2.0.8/hammer.min.js"></script>
 		<script src="https://unpkg.com/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.js"></script>
+		<script>
+			window.METRO_STATIONS = /*__METRO_STATIONS__*/[];
+			window.BJ_LOGO = "data:image/png;base64,/*__BJ_LOGO__*/";
+		</script>
 	</head>
 
 
@@ -163,6 +167,152 @@
 			opacity: 0.75;
 			white-space: nowrap;
 		}
+
+
+		/* --- Beijing subway motion: liquid glass UI --- */
+		#sideMenuDiv { display: none; }
+		#verInfoDiv { display: none; }
+
+		.glass {
+			background: rgba(255, 255, 255, 0.55);
+			-webkit-backdrop-filter: blur(22px) saturate(180%);
+			backdrop-filter: blur(22px) saturate(180%);
+			border: 1px solid rgba(255, 255, 255, 0.65);
+			box-shadow: 0 8px 28px rgba(0, 30, 80, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+		}
+
+		#brandChip {
+			position: fixed;
+			top: max(10px, env(safe-area-inset-top));
+			left: max(12px, env(safe-area-inset-left));
+			z-index: 99920;
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			padding: 5px 12px 5px 5px;
+			border-radius: 999px;
+		}
+		#brandChip img { width: 26px; height: 26px; border-radius: 50%; display: block; }
+		#brandChip .bj-city { font-size: 15px; font-weight: 700; color: #003380; }
+		#brandChip .bj-chev { width: 14px; height: 14px; color: #003380; opacity: 0.7; }
+
+		#searchPill {
+			position: fixed;
+			top: max(10px, env(safe-area-inset-top));
+			right: max(12px, env(safe-area-inset-right));
+			z-index: 99920;
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			padding: 9px 14px;
+			border-radius: 999px;
+			color: #003380;
+			font-size: 14px;
+			font-weight: 600;
+		}
+		#searchPill svg { width: 18px; height: 18px; }
+
+		#tabBar {
+			position: fixed;
+			left: 50%;
+			transform: translateX(-50%);
+			bottom: max(12px, env(safe-area-inset-bottom));
+			z-index: 99920;
+			width: min(420px, calc(100vw - 32px));
+			height: 64px;
+			display: flex;
+			padding: 6px;
+			border-radius: 999px;
+		}
+		#tabIndicator {
+			position: absolute;
+			top: 6px;
+			left: 6px;
+			width: calc((100% - 12px) / 3);
+			height: calc(100% - 12px);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.75);
+			border: 1px solid rgba(255, 255, 255, 0.85);
+			box-shadow: 0 2px 10px rgba(0, 30, 80, 0.14);
+			transition: transform 0.28s ease;
+		}
+		.tab {
+			position: relative;
+			z-index: 1;
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 2px;
+			color: rgba(0, 51, 128, 0.55);
+			font-size: 11px;
+			font-weight: 600;
+		}
+		.tab.active { color: #003380; }
+		.tab svg { width: 22px; height: 22px; }
+		.tab img { width: 24px; height: 24px; border-radius: 50%; display: block; }
+
+		#stationPanel {
+			position: fixed;
+			inset: 0;
+			z-index: 99925;
+			background: rgba(255, 255, 255, 0.82);
+			-webkit-backdrop-filter: blur(24px) saturate(180%);
+			backdrop-filter: blur(24px) saturate(180%);
+			display: flex;
+			flex-direction: column;
+			padding-top: max(10px, env(safe-area-inset-top));
+			padding-bottom: calc(88px + env(safe-area-inset-bottom));
+		}
+		.sp-head { display: flex; gap: 8px; align-items: center; padding: 8px 12px 4px; }
+		.sp-search {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 10px 14px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.75);
+			border: 1px solid rgba(0, 51, 128, 0.15);
+			box-shadow: 0 2px 10px rgba(0, 30, 80, 0.08);
+		}
+		.sp-search svg { width: 18px; height: 18px; color: #888; flex: none; }
+		.sp-search input {
+			flex: 1;
+			min-width: 0;
+			border: none;
+			outline: none;
+			background: transparent;
+			font-size: 16px;
+			color: #111;
+			user-select: text;
+			-webkit-user-select: text;
+		}
+		.sp-clear { border: none; background: rgba(0,0,0,0.08); color: #666; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; line-height: 1; padding: 0; flex: none; }
+		.sp-cancel { border: none; background: transparent; color: #003380; font-size: 16px; padding: 8px 4px; flex: none; }
+		.sp-count { padding: 6px 20px 2px; font-size: 12px; color: #888; }
+		.sp-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 12px 12px; }
+		.sp-row { padding: 12px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
+		.sp-name { font-size: 17px; color: #111; }
+		.sp-py { font-size: 13px; color: #888; text-transform: capitalize; margin-top: 2px; }
+		.sp-empty { padding: 32px 8px; text-align: center; color: #888; font-size: 15px; }
+
+		#sheetBackdrop { position: fixed; inset: 0; z-index: 99923; background: rgba(0, 0, 0, 0.15); }
+		#moreSheet {
+			position: fixed;
+			left: 50%;
+			transform: translateX(-50%);
+			bottom: calc(88px + env(safe-area-inset-bottom));
+			z-index: 99924;
+			width: min(420px, calc(100vw - 32px));
+			border-radius: 24px;
+			padding: 8px;
+		}
+		.more-row { display: flex; align-items: center; gap: 12px; padding: 14px 12px; font-size: 16px; font-weight: 600; color: #003380; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+		.more-row:last-of-type { border-bottom: none; }
+		.more-row svg { width: 20px; height: 20px; }
+		.more-ver { padding: 10px 12px 6px; font-size: 11px; color: rgba(0, 51, 128, 0.6); text-align: center; }
 	</style>
 
 
@@ -183,6 +333,69 @@
 			<div id="verInfoDiv" onclick="verInfoEvt()">{{curr.verInfo}}</div>
 
 			<div class="center" id="crosshair" v-if="showCrosshair"></div>
+			<div id="brandChip" class="glass" v-if="tab==='map'">
+				<img v-if="bjLogo" :src="bjLogo" alt="北京地铁">
+				<span class="bj-city">北京</span>
+				<svg class="bj-chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+			</div>
+
+			<div id="searchPill" class="glass" v-if="tab==='map'" @click="openStations">
+				<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z" fill="currentColor"/></svg>
+				<span>搜车站</span>
+			</div>
+
+			<div id="tabBar" class="glass">
+				<div id="tabIndicator" :style="{ transform: 'translateX(' + (tabIndex * 100) + '%)' }"></div>
+				<div class="tab" :class="{ active: tab==='map' }" @click="setTab('map')">
+					<svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" fill="currentColor"/></svg>
+					<span>线路图</span>
+				</div>
+				<div class="tab" :class="{ active: tab==='stations' }" @click="setTab('stations')">
+					<img v-if="bjLogo" :src="bjLogo" alt="车站">
+					<svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="currentColor">M</text></svg>
+					<span>车站</span>
+				</div>
+				<div class="tab" :class="{ active: tab==='more' }" @click="setTab('more')">
+					<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>
+					<span>更多</span>
+				</div>
+			</div>
+
+			<div id="stationPanel" v-if="showStations">
+				<div class="sp-head">
+					<div class="sp-search">
+						<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z" fill="currentColor"/></svg>
+						<input ref="searchInput" v-model="query" type="search" placeholder="车站、拼音或首字母" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<button class="sp-clear" v-if="query" @click="clearQuery">✕</button>
+					</div>
+					<button class="sp-cancel" @click="closeStations">取消</button>
+				</div>
+				<div class="sp-count">{{ query ? ('找到 ' + filteredStations.length + ' 个') : ('共 ' + stations.length + ' 个车站') }}</div>
+				<div class="sp-list">
+					<div class="sp-row" v-for="st in filteredStations" :key="st.n" @click="goStation(st)">
+						<div class="sp-name">{{ st.n }}</div>
+						<div class="sp-py">{{ st.py }}</div>
+					</div>
+					<div class="sp-empty" v-if="filteredStations.length === 0">没有找到相关车站</div>
+				</div>
+			</div>
+
+			<div id="sheetBackdrop" v-if="showMore" @click="closeMore"></div>
+			<div id="moreSheet" class="glass" v-if="showMore">
+				<div class="more-row" @click="doReset">
+					<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" fill="currentColor"/></svg>
+					<span>重置缩放</span>
+				</div>
+				<div class="more-row" @click="doRepo">
+					<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"/></svg>
+					<span>项目主页</span>
+				</div>
+				<div class="more-row" @click="doPdf">
+					<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+					<span>下载PDF</span>
+				</div>
+				<div class="more-ver">{{ curr.verInfo }}</div>
+			</div>
 
 			<span id="svgDiv" v-html="curr.svgDom"></span>
 
@@ -322,6 +535,12 @@
 						curr: env.empty,
 
 						showCrosshair: false,
+						tab: 'map',
+						showStations: false,
+						showMore: false,
+						query: '',
+						stations: (window.METRO_STATIONS || []),
+						bjLogo: (window.BJ_LOGO || ''),
 
 						sideMenu: [{
 								text: "重置缩放",
@@ -347,11 +566,60 @@
 					}
 				},
 				methods: {
-
+					setTab(t) {
+						if (t === 'stations') {
+							this.tab = 'stations';
+							this.showStations = true;
+							this.showMore = false;
+							var self = this;
+							this.$nextTick(function() {
+								if (self.$refs.searchInput) self.$refs.searchInput.focus();
+							});
+						} else if (t === 'more') {
+							this.tab = 'more';
+							this.showMore = true;
+							this.showStations = false;
+						} else {
+							this.tab = 'map';
+							this.showStations = false;
+							this.showMore = false;
+						}
+					},
+					openStations() { this.setTab('stations'); },
+					closeStations() { this.setTab('map'); },
+					closeMore() {
+						this.showMore = false;
+						if (this.tab === 'more') this.tab = 'map';
+					},
+					clearQuery() { this.query = ''; },
+					goStation(st) {
+						this.setTab('map');
+						this.query = '';
+						locateStation(st);
+					},
+					doReset() { this.closeMore(); if (panzoom) resetView(); },
+					doRepo() { this.closeMore(); openRepo(); },
+					doPdf() { this.closeMore(); pdfDownload(); }
+				},
+				computed: {
+					tabIndex() {
+						return this.tab === 'stations' ? 1 : (this.tab === 'more' ? 2 : 0);
+					},
+					filteredStations() {
+						var q = this.query.trim().toLowerCase();
+						if (!q) return this.stations;
+						return this.stations.filter(function(st) {
+							return st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1;
+						}).slice(0, 200);
+					}
 				},
 				updated: function() {
-					setPanZoom();
-					svgZoomTo(coord.curr);
+					var el = document.getElementById('svg8');
+					if (el && window._metroSvgEl !== el) {
+						window._metroSvgEl = el;
+						setPanZoom();
+						svgZoomTo(coord.curr);
+					}
 				}
 			});
 			const vm = App.mount("#app");
@@ -529,6 +797,28 @@
 				coord.curr[2] = panzoom.getZoom();
 				coord.curr[0] = (panzoom.getPan().x - ele.clientWidth / 2) / rzoom;
 				coord.curr[1] = (panzoom.getPan().y - ele.clientHeight / 2) / rzoom;
+			};
+
+
+			// Center the map on a station (from station search): zoom in to a
+			// readable level, pan the station to screen center, show the
+			// crosshair briefly. Syncs coord.curr so later Vue updates restore it.
+			function locateStation(st) {
+				if (!panzoom) return;
+				var ele = document.getElementById("svg8");
+				if (!ele) return;
+				var z = Math.min(55, Math.max(panzoom.getZoom(), coord.default[2] * 3));
+				panzoom.zoom(z);
+				var rzoom = panzoom.getSizes().realZoom;
+				panzoom.pan({
+					x: -st.x * rzoom + ele.clientWidth / 2,
+					y: -st.y * rzoom + ele.clientHeight / 2
+				});
+				coord.curr = [-st.x, -st.y, z];
+				vm.showCrosshair = true;
+				setTimeout(function() {
+					vm.showCrosshair = false;
+				}, 1600);
 			};
 
 

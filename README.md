@@ -1,10 +1,10 @@
-# 地铁配线图 Metro (iOS)
+# Beijing subway motion（地铁配线图 iOS 应用）
 
-北京市轨道交通线路配置图，做成 iPhone 应用。中文名：地铁交路；英文名：Subway motion。
+北京市轨道交通线路配置图，做成 iPhone 应用。中文名：地铁交路；英文名：Beijing subway motion。
 
 - 地图来源：[SierraQin/metro](https://github.com/SierraQin/metro)（CC0 1.0 协议），正式版 2.8.0（2026-07-14）
 - 应用：一个 WKWebView 壳，里面是完全离线的地图网页——地图 SVG、PDF 和 JS 库都打在包里，不用联网、不用 VPN
-- 功能：整张配线图，捏合缩放、拖动；右侧菜单：重置缩放、项目主页、下载 PDF
+- 功能：整张配线图，捏合缩放、拖动；液态玻璃底栏（线路图 / 车站 / 更多）；车站搜索（中文、拼音、首字母，点车站定位到图上，420 个车站，来自地图 SVG 本身）；横屏全覆盖显示，竖屏也能用
 
 ## 打包
 
