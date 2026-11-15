@@ -175,11 +175,11 @@
 		#verInfoDiv { display: none; }
 
 		.glass {
-			background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(232, 242, 255, 0.52));
-			-webkit-backdrop-filter: blur(22px) saturate(180%);
-			backdrop-filter: blur(22px) saturate(180%);
-			border: 1px solid rgba(255, 255, 255, 0.8);
-			box-shadow: 0 12px 32px rgba(0, 40, 100, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 0 0 1px rgba(0, 51, 128, 0.06);
+			background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(215, 235, 255, 0.32));
+			-webkit-backdrop-filter: blur(28px) saturate(180%);
+			backdrop-filter: blur(28px) saturate(180%);
+			border: 1px solid rgba(255, 255, 255, 0.65);
+			box-shadow: 0 12px 32px rgba(0, 40, 100, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.35), inset 0 0 0 1px rgba(0, 51, 128, 0.05);
 		}
 
 		#brandChip {
@@ -234,9 +234,9 @@
 			height: calc(100% - 12px);
 			border-radius: 999px;
 			pointer-events: none;
-			background: rgba(255, 255, 255, 0.9);
-			border: 1px solid rgba(255, 255, 255, 0.9);
-			box-shadow: 0 3px 12px rgba(0, 30, 80, 0.2), inset 0 1px 0 rgba(255, 255, 255, 1);
+			background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(228, 240, 255, 0.6));
+			border: 1px solid rgba(255, 255, 255, 0.85);
+			box-shadow: 0 3px 12px rgba(0, 30, 80, 0.22), inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(255, 255, 255, 0.5);
 			transition: transform 0.28s ease;
 		}
 		.tab {
@@ -352,9 +352,18 @@
 		.tr-label { font-size: 15px; color: #888; flex: none; }
 		.tr-value { font-size: 17px; font-weight: 600; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 		.tr-value.empty { color: #aaa; font-weight: 400; }
+		.tr-input { flex: 1; min-width: 0; border: none; background: transparent; outline: none; font-size: 17px; font-weight: 600; color: #111; padding: 0; -webkit-appearance: none; }
+		.tr-input::placeholder { color: #aaa; font-weight: 400; }
+		.tr-clear { flex: none; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(0, 0, 0, 0.08); color: #666; font-size: 12px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center; }
+		.tr-suggest { margin: 8px 16px 0; border-radius: 16px; max-height: 264px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+		.tr-sug-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; }
+		.tr-sug-row + .tr-sug-row { border-top: 1px solid rgba(0, 0, 0, 0.06); }
+		.tr-sug-name { font-size: 16px; font-weight: 600; color: #111; }
+		.tr-sug-py { font-size: 13px; color: #888; }
+		.tr-sug-hint { padding: 12px 16px; font-size: 14px; color: #888; }
 		.tr-swap { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(0, 51, 128, 0.15); background: rgba(255, 255, 255, 0.8); color: #003380; display: flex; align-items: center; justify-content: center; padding: 0; }
 		.tr-swap svg { width: 20px; height: 20px; }
-		.tr-search { margin: 14px 16px 0; border: none; border-radius: 999px; background: #ffd100; color: #1a1a1a; font-size: 17px; font-weight: 700; padding: 14px 0; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15); }
+		.tr-search { margin: 14px 16px 0; border: none; border-radius: 999px; background: #003380; color: #fff; font-size: 17px; font-weight: 700; padding: 14px 0; box-shadow: 0 4px 14px rgba(0, 51, 128, 0.35); }
 		.tr-summary { padding: 16px 20px 4px; font-size: 14px; color: #555; }
 		.tr-error { padding: 16px 20px 4px; font-size: 15px; color: #c0392b; }
 		.tr-list { padding: 6px 16px 12px; }
@@ -367,7 +376,7 @@
 
 		/* --- dark mode (html.dark, set by JS from system setting or the 更多 toggle) --- */
 		html.dark, html.dark body { background: #0c0f16; }
-		html.dark .glass { background: linear-gradient(180deg, rgba(38, 44, 62, 0.78), rgba(22, 27, 42, 0.6)); border-color: rgba(255, 255, 255, 0.22); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
+		html.dark .glass { background: linear-gradient(180deg, rgba(38, 44, 62, 0.6), rgba(22, 27, 42, 0.42)); border-color: rgba(255, 255, 255, 0.22); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
 		html.dark #tabIndicator { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.2); box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15); }
 		html.dark .tab { color: rgba(255, 255, 255, 0.55); }
 		html.dark .tab.active { color: #9cc2ff; }
@@ -392,6 +401,12 @@
 		html.dark .tr-summary { color: #bbb; }
 		html.dark .tr-swap { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: #9cc2ff; }
 		html.dark .tr-seg-txt { color: #f0f2f8; }
+		html.dark .tr-input { color: #f0f2f8; }
+		html.dark .tr-input::placeholder { color: #888; }
+		html.dark .tr-clear { background: rgba(255, 255, 255, 0.15); color: #ccc; }
+		html.dark .tr-sug-row + .tr-sug-row { border-top-color: rgba(255, 255, 255, 0.08); }
+		html.dark .tr-sug-name { color: #f0f2f8; }
+		html.dark .tr-sug-py, html.dark .tr-sug-hint { color: #999; }
 		html.dark .sp-pick { color: #9cc2ff; }
 	</style>
 
@@ -475,19 +490,28 @@
 					<div class="tr-time">现在出发</div>
 				</div>
 				<div class="tr-fields glass">
-					<div class="tr-field" @click="openPick('from')">
+					<div class="tr-field">
 						<span class="tr-dot from"></span>
-						<span class="tr-label">出发</span>
-						<span class="tr-value" :class="{ empty: !fromStation }">{{ fromStation ? fromStation.n : '选择出发站' }}</span>
+						<span class="tr-label" @click="openPick('from')">出发</span>
+						<input class="tr-input" type="text" v-model="fromQuery" @focus="suggestFor = 'from'" @input="onQueryInput('from')" @blur="hideSuggest" placeholder="选择出发站" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<button class="tr-clear" v-if="fromQuery" @click="clearStation('from')">✕</button>
 					</div>
-					<div class="tr-field" @click="openPick('to')">
+					<div class="tr-field">
 						<span class="tr-dot to"></span>
-						<span class="tr-label">到达</span>
-						<span class="tr-value" :class="{ empty: !toStation }">{{ toStation ? toStation.n : '选择到达站' }}</span>
+						<span class="tr-label" @click="openPick('to')">到达</span>
+						<input class="tr-input" type="text" v-model="toQuery" @focus="suggestFor = 'to'" @input="onQueryInput('to')" @blur="hideSuggest" placeholder="选择到达站" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<button class="tr-clear" v-if="toQuery" @click="clearStation('to')">✕</button>
 					</div>
 					<button class="tr-swap" @click="swapStations" aria-label="交换出发和到达">
 						<svg viewBox="0 0 24 24"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 					</button>
+				</div>
+				<div class="tr-suggest glass" v-if="suggestFor">
+					<div class="tr-sug-row" v-for="st in suggestList" :key="st.n" @click="pickSuggest(st)">
+						<span class="tr-sug-name">{{ st.n }}</span>
+						<span class="tr-sug-py">{{ st.py }}</span>
+					</div>
+					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? fromQuery : toQuery) ? '没有找到相关车站' : '输入站名、拼音或首字母' }}</div>
 				</div>
 				<button class="tr-search" @click="doSearch">搜索</button>
 				<div class="tr-summary" v-if="routeResult">共 {{ routeResult.stops }} 站 · 换乘 {{ routeResult.transfers }} 次</div>
@@ -675,6 +699,9 @@
 						showTransfer: false,
 						fromStation: null,
 						toStation: null,
+						fromQuery: '',
+						toQuery: '',
+						suggestFor: null,
 						pickFor: null,
 						routeResult: null,
 						routeError: '',
@@ -709,6 +736,7 @@
 						if (t === 'stations') {
 							this.tab = 'stations';
 							this.showStations = true;
+							this.showTransfer = false;
 							this.showMore = false;
 							var self = this;
 							this.$nextTick(function() {
@@ -745,8 +773,8 @@
 					clearQuery() { this.query = ''; },
 					goStation(st) {
 						if (this.pickFor) {
-							if (this.pickFor === 'from') this.fromStation = st;
-							else this.toStation = st;
+							if (this.pickFor === 'from') { this.fromStation = st; this.fromQuery = st.n; }
+							else { this.toStation = st; this.toQuery = st.n; }
 							this.routeResult = null;
 							this.routeError = '';
 							this.pickFor = null;
@@ -766,8 +794,52 @@
 						var t = this.fromStation;
 						this.fromStation = this.toStation;
 						this.toStation = t;
+						var q = this.fromQuery;
+						this.fromQuery = this.toQuery;
+						this.toQuery = q;
 						this.routeResult = null;
 						this.routeError = '';
+					},
+					pickSuggest(st) {
+						if (this.suggestFor === 'from') { this.fromStation = st; this.fromQuery = st.n; }
+						else { this.toStation = st; this.toQuery = st.n; }
+						this.suggestFor = null;
+						this.routeResult = null;
+						this.routeError = '';
+						if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+					},
+					hideSuggest() {
+						var self = this;
+						setTimeout(function() { self.suggestFor = null; }, 200);
+					},
+					clearStation(which) {
+						if (which === 'from') { this.fromStation = null; this.fromQuery = ''; }
+						else { this.toStation = null; this.toQuery = ''; }
+						this.routeResult = null;
+						this.routeError = '';
+					},
+					onQueryInput(which) {
+						if (which === 'from') {
+							if (!this.fromQuery || (this.fromStation && this.fromQuery !== this.fromStation.n)) this.fromStation = null;
+							if (this.fromQuery) this.suggestFor = 'from';
+						} else {
+							if (!this.toQuery || (this.toStation && this.toQuery !== this.toStation.n)) this.toStation = null;
+							if (this.toQuery) this.suggestFor = 'to';
+						}
+						this.routeResult = null;
+						this.routeError = '';
+					},
+					resolveStation(q) {
+						if (!q) return null;
+						q = q.trim().toLowerCase();
+						if (!q) return null;
+						var matches = [];
+						for (var i = 0; i < this.stations.length; i++) {
+							var st = this.stations[i];
+							if (st.n.toLowerCase() === q) return st;
+							if (st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1) matches.push(st);
+						}
+						return matches.length === 1 ? matches[0] : null;
 					},
 					applyTheme() {
 						var dark = this.theme === 'dark' || (this.theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -780,6 +852,11 @@
 					doSearch() {
 						this.routeError = '';
 						this.routeResult = null;
+						this.suggestFor = null;
+						var fs = this.resolveStation(this.fromQuery);
+						if (fs) { this.fromStation = fs; this.fromQuery = fs.n; }
+						var ts = this.resolveStation(this.toQuery);
+						if (ts) { this.toStation = ts; this.toQuery = ts.n; }
 						if (!this.fromStation || !this.toStation) { this.routeError = '请先选择出发站和到达站'; return; }
 						if (this.fromStation.n === this.toStation.n) { this.routeError = '出发和到达是同一站'; return; }
 						var r = this.findRoute(this.fromStation.n, this.toStation.n);
@@ -855,6 +932,17 @@
 						return this.stations.filter(function(st) {
 							return st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1;
 						}).slice(0, 200);
+					},
+					suggestList() {
+						var q = this.suggestFor === 'from' ? this.fromQuery : (this.suggestFor === 'to' ? this.toQuery : '');
+						q = (q || '').trim().toLowerCase();
+						if (!q) return [];
+						var out = [];
+						for (var i = 0; i < this.stations.length && out.length < 8; i++) {
+							var st = this.stations[i];
+							if (st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1) out.push(st);
+						}
+						return out;
 					}
 				},
 				updated: function() {
