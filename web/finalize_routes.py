@@ -10,8 +10,12 @@ edges: [[a,b,line], ...]}. Run on the dev machine; Actions inlines routes.json.
 Notes:
 - 潞阳 is labelled in the diagram but Line 22 is not drawn in it, so 潞阳 has
   no line and no routes (searchable + locatable only).
-- 金融街 / 3号航站楼 / 2号航站楼 / 堤上村 / 香河园 are not labelled in the
-  SVG, so they are absent from stations.json and from routing.
+- 金融街 / 堤上村 / 香河园 are not labelled in the SVG, so they are
+  absent from stations.json and from routing. 3号航站楼 / 2号航站楼 ARE
+  labelled (font-size 3.52778) but were missed by gen_stations.py because
+  its is_cjk() rejects names starting with a digit; they were added by
+  hand with the same transform-aware nearest-marker snap
+  (3号航站楼 (2786,1684), 2号航站楼 (2693,1546)).
 - T1 branches at 荣京东街: main line to 屈庄, spur to 荣昌东街 (YZ interchange).
 """
 import json, math, heapq
@@ -27,6 +31,7 @@ NAMES = {
     '14': '14号线', '15': '15号线', '16': '16号线', '17': '17号线',
     '19': '19号线', 'S1': 'S1线', 'XJ': '西郊线', 'YZ': '亦庄线',
     'T1': '亦庄T1线', 'CP': '昌平线', 'FS': '房山线', 'DAX': '大兴机场线',
+    'AP': '首都机场线',
 }
 COLORS = {
     '1': 'BE3631', '2': '0F6192', '3': 'C8102E', '4': '008994', '5': 'A5237A',
@@ -35,10 +40,19 @@ COLORS = {
     '14': 'D4A7A1', '15': '6B3777', '16': '7C9E21', '17': '00A9A9',
     '19': 'D6ABC1', 'S1': 'B0561F', 'XJ': 'E20621', 'YZ': 'E20072',
     'T1': 'E6081B', 'CP': 'DD83B0', 'FS': 'E15C28', 'DAX': '004E9B',
+    'AP': 'A09AB8',
 }
 LOOPS = {'2', '10'}
 # T1 spur: 荣昌东街 branches off 荣京东街 (not on the main chain)
 T1_SPUR = ('荣京东街', '荣昌东街')
+# AP note: trains run 北新桥-东直门-三元桥-3号航站楼-2号航站楼-三元桥-
+# 东直门-北新桥, so 2号航站楼 DOES connect back to 三元桥 directly (the
+# return leg does not stop at 3号航站楼). That edge is deliberately NOT in
+# the graph: Dijkstra treats edges as undirected, so it would let outbound
+# routes shortcut 三元桥 -> 2号航站楼 past 3号航站楼 (管庄->2号航站楼 would
+# show 14站 instead of the correct 15站). AP is therefore a plain linear
+# line; inbound T2 -> city costs +1 stop (via 3号航站楼) instead of the
+# direct return leg.
 
 LINES = {
 '1': ['福寿岭','苹果园','古城','八角游乐园','八宝山','玉泉路','五棵松','万寿路','军事博物馆','木樨地','南礼士路','复兴门','西单','天安门西','天安门东','王府井','东单','建国门','永安里','国贸','大望路','四惠','四惠东','高碑店','传媒大学','双桥','管庄','八里桥','通州北苑','果园','九棵树','梨园','临河里','土桥','花庄','环球度假区'],
@@ -67,6 +81,7 @@ LINES = {
 'CP': ['昌平西山口','十三陵景区','昌平','昌平东关','北邵洼','南邵','沙河高教园','沙河','巩华城','朱辛庄','生命科学园','西二旗','清河站','朱房北','清河小营桥','学知园','六道口','学院桥','西土城','蓟门桥'],
 'FS': ['燕山','房山城关','饶乐府','马各庄','大石河东','星城','阎村','紫草坞','阎村东','苏庄','良乡南关','良乡大学城西','良乡大学城','良乡大学城北','广阳城','篱笆房','长阳','稻田','大葆台','郭公庄','白盆窑','花乡东桥','首经贸','东管头南'],
 'DAX': ['草桥','大兴新城','大兴机场'],
+'AP': ['北新桥','东直门','三元桥','3号航站楼','2号航站楼'],
 }
 
 def main():
@@ -166,7 +181,8 @@ def main():
     for (a, b) in [('苹果园','国贸'), ('天安门东','奥林匹克公园'), ('苹果园','北京南站'),
                    ('西直门','宋家庄'), ('巴沟','国贸'), ('天通苑北','西单'),
                    ('草桥','大兴机场'), ('石厂','国贸'), ('俸伯','西单'), ('昌平西山口','国贸'),
-                   ('定海园','屈庄'), ('荣昌东街','次渠'), ('昌平西山口','大兴机场')]:
+                   ('定海园','屈庄'), ('荣昌东街','次渠'), ('昌平西山口','大兴机场'),
+                   ('管庄','2号航站楼'), ('2号航站楼','北新桥'), ('东直门','3号航站楼')]:
         r = route_segs(a, b)
         if r:
             stops, segs = r
