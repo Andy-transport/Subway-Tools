@@ -665,8 +665,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // style as the web .tr-line-pick). line is {name, color, text}
     // with hex strings; nil hides the badge.
     func applyBadge(which: String, line: [String: Any]?) {
-        let badge = which == "from" ? fromBadge : toBadge
         if which == "from" { fromLineInfo = line } else { toLineInfo = line }
+        guard let badge = which == "from" ? fromBadge : toBadge else { return }
         guard let line = line,
               let name = line["name"] as? String,
               let colorHex = line["color"] as? String,
