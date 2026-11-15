@@ -248,7 +248,7 @@
 		   white, strong blur, low saturation boost, crisp specular rim. */
 		/* Shenyang theme: gold #D4B686 (user's gold). Beijing keeps blue. */
 		.sy-theme #brandChip, .sy-theme #searchPill { color: #8a6d2b; }
-		.sy-theme .tr-search { background: linear-gradient(180deg, rgba(212, 182, 134, 0.9), rgba(180, 148, 90, 0.9)) !important; }
+		.sy-theme .tr-search { background: linear-gradient(180deg, rgba(199, 33, 45, 0.9), rgba(160, 25, 35, 0.9)) !important; }
 		.sy-theme .tr-pref button.on { background: #b08d57; }
 		.sy-theme .sp-row .sp-line { background: #d4b686; }
 		/* Shanghai theme: brand red #E60012 (user has not chosen a color
@@ -302,7 +302,6 @@
 		   UISegmentedControl (Apple Liquid Glass) overlaid on this row.
 		   Hide the web buttons but keep the space, so the native control
 		   sits exactly where the web tabs were. */
-		.native-app .tr-tabs { visibility: hidden !important; }
 		/* Native app (build 37): the web tab row never renders there,
 		   so this invisible placeholder reserves its space and gives
 		   the native sort control something to measure. Same margins
@@ -665,13 +664,12 @@
 					</div>
 					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? fromQuery : toQuery) ? '没有找到相关车站' : '输入站名、拼音或首字母' }}</div>
 				</div>
-				<div class="tr-tabs" v-if="routeList.length && !nativeApp">
+				<div class="tr-tabs" v-if="routeList.length">
 					<button :class="{ on: routeTab === 'rec' }" @click="setRouteTab('rec')">推荐</button>
 					<button :class="{ on: routeTab === 'early' }" @click="setRouteTab('early')">耗时最短</button>
 					<button :class="{ on: routeTab === 'fewest' }" @click="setRouteTab('fewest')">路径最短</button>
 					<button :class="{ on: routeTab === 'cheap' }" @click="setRouteTab('cheap')">节省票价</button>
 				</div>
-				<div class="tr-tabs-slot" v-if="routeList.length && nativeApp"></div>
 				<button class="tr-search" @click="doSearch">搜索</button>
 				<div class="tr-transit" @click="openTransitApp"><img v-if="transitIcon" :src="transitIcon" :alt="transitLabel"><span>{{ transitLabel }} ›</span></div>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>

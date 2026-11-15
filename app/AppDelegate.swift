@@ -59,6 +59,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     let subwayBlue = UIColor(red: 0, green: 51.0 / 255.0, blue: 128.0 / 255.0, alpha: 1)
     let shenyangGold = UIColor(red: 212.0 / 255.0, green: 182.0 / 255.0, blue: 134.0 / 255.0, alpha: 1)
     let shenyangGoldDark = UIColor(red: 138.0 / 255.0, green: 109.0 / 255.0, blue: 43.0 / 255.0, alpha: 1)
+    // Shenyang search button red (user asked for red, not gold, on the
+    // 搜索 button; logo red 199,33,45). Only the search button uses it.
+    let shenyangRed = UIColor(red: 199.0 / 255.0, green: 33.0 / 255.0, blue: 45.0 / 255.0, alpha: 1)
     let shanghaiRed = UIColor(red: 230.0 / 255.0, green: 0, blue: 18.0 / 255.0, alpha: 1)
     let shanghaiRedDark = UIColor(red: 168.0 / 255.0, green: 0, blue: 12.0 / 255.0, alpha: 1)
     var currentCity = "bj"
@@ -194,6 +197,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sy" { return shenyangGoldDark }
         if currentCity == "sh" { return shanghaiRedDark }
         return subwayBlue
+    }
+
+    // Search button colour: red in Shenyang (user asked for red on the
+    // 搜索 button), city accent elsewhere (Beijing blue, Shanghai red).
+    func searchButtonColor() -> UIColor {
+        if currentCity == "sy" { return shenyangRed }
+        return accentColor()
     }
 
     func cityLogoImage() -> UIImage? {
@@ -356,23 +366,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // 1:1 to points. A zero-size rect (no routes, or the transfer panel
     // is hidden) hides the control.
     func placeSortTabs(frame dict: [String: Any]) {
-        guard let x = dict["x"] as? Double,
-              let y = dict["y"] as? Double,
-              let w = dict["width"] as? Double,
-              let h = dict["height"] as? Double else {
-            sortTabs.isHidden = true
-            return
-        }
-        if w > 0 && h > 0 && currentTab == "transfer" {
-            sortTabs.frame = CGRect(x: x, y: y, width: w, height: h)
-            sortTabs.isHidden = false
-            if let tab = dict["tab"] as? String,
-               let idx = sortTabKeys.firstIndex(of: tab) {
-                sortTabs.selectedSegmentIndex = idx
-            }
-        } else {
-            sortTabs.isHidden = true
-        }
+        // Sort tabs are the web tabs again (user asked why the native
+        // control replaced them). Keep the native control hidden so only
+        // the web tab row shows; the frame messages are ignored.
+        sortTabs.isHidden = true
     }
 
     // MARK: - Native Liquid Glass transfer input area (build 37)
@@ -645,7 +642,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             var config = UIButton.Configuration.glass()
             config.title = "搜索"
             config.baseForegroundColor = .white
-            config.baseBackgroundColor = accentColor().withAlphaComponent(0.6)
+            config.baseBackgroundColor = searchButtonColor().withAlphaComponent(0.6)
             config.cornerStyle = .capsule
             config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
                 var out = incoming
@@ -657,7 +654,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             transferSearchButton.setTitle("搜索", for: .normal)
             transferSearchButton.setTitleColor(.white, for: .normal)
             transferSearchButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
-            transferSearchButton.backgroundColor = accentColor()
+            transferSearchButton.backgroundColor = searchButtonColor()
         }
     }
 
