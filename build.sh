@@ -6,14 +6,18 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "== 0. select Xcode (iOS SDK 27.2) =="
+echo "== 0. select Xcode (iOS SDK 26.5) =="
 echo "Installed Xcode versions:"
 ls -d /Applications/Xcode*.app 2>/dev/null || echo "(none found)"
-# Pin to Xcode 27.2 (iOS SDK 27.2, user asked for 27.2; currently beta
-# 27B5028f on the xcode-27 runner, fine for a sideloaded unsigned IPA).
-# Fall back to Xcode 27.1, then 27.0.
+# REVERTED from SDK 27.x: builds with Xcode 27.1 (build 38) and 27.2
+# beta (build 39) crash on launch on the user's iPhone 16 Pro — the
+# user confirmed the crash started right after the SDK switch, and
+# build 38 launched fine at first then started crashing on relaunch.
+# Go back to Xcode 26.6 / iOS SDK 26.5 (build 37, known working).
+# The iPhone Duo fold/unfold adaptation is a web resize listener and
+# does NOT need SDK 27, so it keeps working on SDK 26.5.
 XCODE_SEL=""
-for v in 27.2 27.1 27.0; do
+for v in 26.6 26.5 26.0; do
   CAND=$(ls -d /Applications/Xcode_${v}*.app 2>/dev/null | head -n 1)
   if [ -n "$CAND" ]; then XCODE_SEL="$CAND"; break; fi
 done
@@ -21,7 +25,7 @@ if [ -n "$XCODE_SEL" ]; then
   echo "Selecting Xcode: $XCODE_SEL"
   sudo xcode-select -s "$XCODE_SEL" || echo "xcode-select failed; continuing with default Xcode"
 else
-  echo "No Xcode 27.x found; using default Xcode"
+  echo "No Xcode 26.x found; using default Xcode"
 fi
 echo "Xcode version:"; xcodebuild -version
 echo "iOS SDK version:"; xcrun -sdk iphoneos --show-sdk-version
