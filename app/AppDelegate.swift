@@ -192,7 +192,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             isPad ? tabBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
-                  : tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
+                  : tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4),
         ])
 
         // iPad top bar is INDEPENDENT (build 52, user 2026-11-15
