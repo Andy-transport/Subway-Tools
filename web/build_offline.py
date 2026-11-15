@@ -107,6 +107,11 @@ assert "</script" not in stations, "stations json must not contain </script"
 html = sub_once(r'/\*__METRO_STATIONS__\*/\[\]', lambda _: stations, html, "stations json")
 html = sub_once(r'/\*__BJ_LOGO__\*/', lambda _: logo_b64, html, "bj logo")
 
+# J. inline the route graph (routes.json, built by finalize_routes.py).
+routes = (BASE / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in routes, "routes json must not contain </script"
+html = sub_once(r'/\*__METRO_ROUTES__\*/null', lambda _: routes, html, "routes json")
+
 out = OUT / "index.html"
 out.write_text(html, encoding="utf-8")
 

@@ -10,6 +10,7 @@
 		<script>
 			window.METRO_STATIONS = /*__METRO_STATIONS__*/[];
 			window.BJ_LOGO = "data:image/png;base64,/*__BJ_LOGO__*/";
+			window.METRO_ROUTES = /*__METRO_ROUTES__*/null;
 		</script>
 	</head>
 
@@ -115,7 +116,7 @@
 			padding: 0;
 			overflow: hidden;
 			background: #fff;
-			color-scheme: light;
+			color-scheme: light dark;
 		}
 
 		#sideMenuDiv {
@@ -229,7 +230,7 @@
 			position: absolute;
 			top: 6px;
 			left: 6px;
-			width: calc((100% - 12px) / 3);
+			width: calc((100% - 12px) / 4);
 			height: calc(100% - 12px);
 			border-radius: 999px;
 			pointer-events: none;
@@ -316,6 +317,82 @@
 		.more-row:last-of-type { border-bottom: none; }
 		.more-row svg { width: 20px; height: 20px; }
 		.more-ver { padding: 10px 12px 6px; font-size: 11px; color: rgba(0, 51, 128, 0.6); text-align: center; }
+		.more-theme { padding: 10px 12px 4px; }
+		.more-theme-label { font-size: 13px; color: rgba(0, 51, 128, 0.7); font-weight: 600; margin-bottom: 8px; }
+		.more-theme-seg { display: flex; gap: 6px; }
+		.more-theme-seg button { flex: 1; border: 1px solid rgba(0, 51, 128, 0.2); background: rgba(255, 255, 255, 0.6); color: #003380; font-size: 14px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
+		.more-theme-seg button.on { background: #003380; border-color: #003380; color: #fff; }
+
+		/* --- transfer (换乘) page --- */
+		#transferPanel {
+			position: fixed;
+			inset: 0;
+			z-index: 99925;
+			background: rgba(255, 255, 255, 0.82);
+			-webkit-backdrop-filter: blur(24px) saturate(180%);
+			backdrop-filter: blur(24px) saturate(180%);
+			display: flex;
+			flex-direction: column;
+			padding-top: max(10px, env(safe-area-inset-top));
+			padding-bottom: calc(88px + env(safe-area-inset-bottom));
+			overflow-y: auto;
+			-webkit-overflow-scrolling: touch;
+		}
+		.tr-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 4px; }
+		.tr-city { display: flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 700; color: #003380; }
+		.tr-city img { width: 26px; height: 26px; border-radius: 50%; display: block; }
+		.tr-city svg { width: 14px; height: 14px; opacity: 0.7; }
+		.tr-time { font-size: 14px; color: #888; }
+		.tr-fields { position: relative; margin: 10px 16px 0; border-radius: 20px; padding: 6px 56px 6px 6px; }
+		.tr-field { display: flex; align-items: center; gap: 10px; padding: 13px 10px; }
+		.tr-field + .tr-field { border-top: 1px solid rgba(0, 0, 0, 0.06); }
+		.tr-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+		.tr-dot.from { background: #22a06b; }
+		.tr-dot.to { background: #e5484d; }
+		.tr-label { font-size: 15px; color: #888; flex: none; }
+		.tr-value { font-size: 17px; font-weight: 600; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.tr-value.empty { color: #aaa; font-weight: 400; }
+		.tr-swap { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(0, 51, 128, 0.15); background: rgba(255, 255, 255, 0.8); color: #003380; display: flex; align-items: center; justify-content: center; padding: 0; }
+		.tr-swap svg { width: 20px; height: 20px; }
+		.tr-search { margin: 14px 16px 0; border: none; border-radius: 999px; background: #ffd100; color: #1a1a1a; font-size: 17px; font-weight: 700; padding: 14px 0; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15); }
+		.tr-summary { padding: 16px 20px 4px; font-size: 14px; color: #555; }
+		.tr-error { padding: 16px 20px 4px; font-size: 15px; color: #c0392b; }
+		.tr-list { padding: 6px 16px 12px; }
+		.tr-seg { display: flex; align-items: center; gap: 10px; padding: 13px 10px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
+		.tr-chip { flex: none; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; color: #fff; }
+		.tr-seg-txt { flex: 1; font-size: 16px; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.tr-seg-n { flex: none; font-size: 13px; color: #888; }
+		.tr-hint { padding: 12px 10px 4px; font-size: 12px; color: #999; text-align: center; }
+		.sp-pick { padding: 4px 20px 0; font-size: 13px; color: #003380; font-weight: 600; }
+
+		/* --- dark mode (html.dark, set by JS from system setting or the 更多 toggle) --- */
+		html.dark, html.dark body { background: #0c0f16; }
+		html.dark .glass { background: linear-gradient(180deg, rgba(38, 44, 62, 0.78), rgba(22, 27, 42, 0.6)); border-color: rgba(255, 255, 255, 0.22); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
+		html.dark #tabIndicator { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.2); box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15); }
+		html.dark .tab { color: rgba(255, 255, 255, 0.55); }
+		html.dark .tab.active { color: #9cc2ff; }
+		html.dark #brandChip .bj-city, html.dark #brandChip .bj-chev { color: #9cc2ff; }
+		html.dark #searchPill { color: #9cc2ff; }
+		html.dark #stationPanel, html.dark #transferPanel { background: rgba(16, 20, 32, 0.88); }
+		html.dark .sp-search { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+		html.dark .sp-search input { color: #f0f2f8; }
+		html.dark .sp-search svg { color: #aaa; }
+		html.dark .sp-name, html.dark .tr-value { color: #f0f2f8; }
+		html.dark .tr-value.empty { color: #888; }
+		html.dark .tr-label, html.dark .tr-time { color: #999; }
+		html.dark .sp-row, html.dark .tr-field + .tr-field, html.dark .tr-seg { border-bottom-color: rgba(255, 255, 255, 0.08); }
+		html.dark .sp-cancel { color: #9cc2ff; }
+		html.dark .sp-count, html.dark .sp-py, html.dark .tr-seg-n, html.dark .tr-hint { color: #999; }
+		html.dark .more-row { color: #cfe0ff; border-bottom-color: rgba(255, 255, 255, 0.08); }
+		html.dark .more-ver { color: rgba(255, 255, 255, 0.55); }
+		html.dark .more-theme-label { color: rgba(255, 255, 255, 0.7); }
+		html.dark .more-theme-seg button { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.08); color: #cfe0ff; }
+		html.dark .more-theme-seg button.on { background: #9cc2ff; border-color: #9cc2ff; color: #10203f; }
+		html.dark .tr-city { color: #9cc2ff; }
+		html.dark .tr-summary { color: #bbb; }
+		html.dark .tr-swap { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: #9cc2ff; }
+		html.dark .tr-seg-txt { color: #f0f2f8; }
+		html.dark .sp-pick { color: #9cc2ff; }
 	</style>
 
 
@@ -349,6 +426,10 @@
 
 			<div id="tabBar" class="glass">
 				<div id="tabIndicator" :style="{ transform: 'translateX(' + (tabIndex * 100) + '%)' }"></div>
+				<div class="tab" :class="{ active: tab==='transfer' }" @click="setTab('transfer')">
+					<svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99zM21 9l-3.99-4v3H10v2h7.01z" fill="currentColor"/></svg>
+					<span>换乘</span>
+				</div>
 				<div class="tab" :class="{ active: tab==='map' }" @click="setTab('map')">
 					<svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" fill="currentColor"/></svg>
 					<span>线路图</span>
@@ -373,6 +454,7 @@
 					</div>
 					<button class="sp-cancel" @click="closeStations">取消</button>
 				</div>
+				<div class="sp-pick" v-if="pickFor">{{ pickFor === 'from' ? '选择出发站' : '选择到达站' }}</div>
 				<div class="sp-count">{{ query ? ('找到 ' + filteredStations.length + ' 个') : ('共 ' + stations.length + ' 个车站') }}</div>
 				<div class="sp-list">
 					<div class="sp-row" v-for="st in filteredStations" :key="st.n" @click="goStation(st)">
@@ -380,6 +462,43 @@
 						<div class="sp-py">{{ st.py }}</div>
 					</div>
 					<div class="sp-empty" v-if="filteredStations.length === 0">没有找到相关车站</div>
+				</div>
+			</div>
+
+			<div id="transferPanel" v-if="showTransfer">
+				<div class="tr-head">
+					<div class="tr-city">
+						<img v-if="bjLogo" :src="bjLogo" alt="北京地铁">
+						<span>北京</span>
+						<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+					</div>
+					<div class="tr-time">现在出发</div>
+				</div>
+				<div class="tr-fields glass">
+					<div class="tr-field" @click="openPick('from')">
+						<span class="tr-dot from"></span>
+						<span class="tr-label">出发</span>
+						<span class="tr-value" :class="{ empty: !fromStation }">{{ fromStation ? fromStation.n : '选择出发站' }}</span>
+					</div>
+					<div class="tr-field" @click="openPick('to')">
+						<span class="tr-dot to"></span>
+						<span class="tr-label">到达</span>
+						<span class="tr-value" :class="{ empty: !toStation }">{{ toStation ? toStation.n : '选择到达站' }}</span>
+					</div>
+					<button class="tr-swap" @click="swapStations" aria-label="交换出发和到达">
+						<svg viewBox="0 0 24 24"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</button>
+				</div>
+				<button class="tr-search" @click="doSearch">搜索</button>
+				<div class="tr-summary" v-if="routeResult">共 {{ routeResult.stops }} 站 · 换乘 {{ routeResult.transfers }} 次</div>
+				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
+				<div class="tr-list" v-if="routeResult">
+					<div class="tr-seg" v-for="seg in routeResult.segments" :key="seg.line + seg.from" @click="goSegment(seg)">
+						<span class="tr-chip" :style="{ background: '#' + seg.color, color: seg.text }">{{ seg.name }}</span>
+						<span class="tr-seg-txt">{{ seg.from }} → {{ seg.to }}</span>
+						<span class="tr-seg-n">{{ seg.stops }} 站</span>
+					</div>
+					<div class="tr-hint">点一段可在图上查看</div>
 				</div>
 			</div>
 
@@ -396,6 +515,14 @@
 				<div class="more-row" @click="doPdf">
 					<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
 					<span>下载PDF</span>
+				</div>
+				<div class="more-theme">
+					<div class="more-theme-label">深色模式</div>
+					<div class="more-theme-seg">
+						<button :class="{ on: theme==='system' }" @click="setTheme('system')">跟随系统</button>
+						<button :class="{ on: theme==='light' }" @click="setTheme('light')">浅色</button>
+						<button :class="{ on: theme==='dark' }" @click="setTheme('dark')">深色</button>
+					</div>
 				</div>
 				<div class="more-ver">{{ curr.verInfo }}</div>
 			</div>
@@ -544,6 +671,15 @@
 						query: '',
 						stations: (window.METRO_STATIONS || []),
 						bjLogo: (window.BJ_LOGO || ''),
+						routes: (window.METRO_ROUTES || null),
+						showTransfer: false,
+						fromStation: null,
+						toStation: null,
+						pickFor: null,
+						routeResult: null,
+						routeError: '',
+						theme: 'system',
+						lastTab: 'map',
 
 						sideMenu: [{
 								text: "重置缩放",
@@ -579,26 +715,130 @@
 								if (self.$refs.searchInput) self.$refs.searchInput.focus();
 							});
 						} else if (t === 'more') {
+							if (this.tab !== 'more') this.lastTab = this.tab;
 							this.tab = 'more';
 							this.showMore = true;
 							this.showStations = false;
+							this.showTransfer = false;
+						} else if (t === 'transfer') {
+							this.tab = 'transfer';
+							this.showTransfer = true;
+							this.showStations = false;
+							this.showMore = false;
 						} else {
 							this.tab = 'map';
 							this.showStations = false;
 							this.showMore = false;
+							this.showTransfer = false;
 						}
 					},
 					openStations() { this.setTab('stations'); },
-					closeStations() { this.setTab('map'); },
+					closeStations() {
+						this.query = '';
+						if (this.pickFor) { this.pickFor = null; this.setTab('transfer'); }
+						else this.setTab('map');
+					},
 					closeMore() {
 						this.showMore = false;
-						if (this.tab === 'more') this.tab = 'map';
+						this.setTab(this.lastTab && this.lastTab !== 'more' ? this.lastTab : 'map');
 					},
 					clearQuery() { this.query = ''; },
 					goStation(st) {
+						if (this.pickFor) {
+							if (this.pickFor === 'from') this.fromStation = st;
+							else this.toStation = st;
+							this.routeResult = null;
+							this.routeError = '';
+							this.pickFor = null;
+							this.query = '';
+							this.setTab('transfer');
+							return;
+						}
 						this.setTab('map');
 						this.query = '';
 						locateStation(st);
+					},
+					openPick(which) {
+						this.pickFor = which;
+						this.setTab('stations');
+					},
+					swapStations() {
+						var t = this.fromStation;
+						this.fromStation = this.toStation;
+						this.toStation = t;
+						this.routeResult = null;
+						this.routeError = '';
+					},
+					applyTheme() {
+						var dark = this.theme === 'dark' || (this.theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+						document.documentElement.classList.toggle('dark', dark);
+					},
+					setTheme(t) {
+						this.theme = t;
+						this.applyTheme();
+					},
+					doSearch() {
+						this.routeError = '';
+						this.routeResult = null;
+						if (!this.fromStation || !this.toStation) { this.routeError = '请先选择出发站和到达站'; return; }
+						if (this.fromStation.n === this.toStation.n) { this.routeError = '出发和到达是同一站'; return; }
+						var r = this.findRoute(this.fromStation.n, this.toStation.n);
+						if (!r) {
+							if (this.fromStation.n === '潞阳' || this.toStation.n === '潞阳') this.routeError = '暂无换乘方案：潞阳所在的 22 号线未画进这版配线图';
+							else this.routeError = '暂无换乘方案';
+							return;
+						}
+						this.routeResult = r;
+					},
+					goSegment(seg) {
+						var st = null;
+						for (var i = 0; i < this.stations.length; i++) {
+							if (this.stations[i].n === seg.from) { st = this.stations[i]; break; }
+						}
+						if (!st) return;
+						this.setTab('map');
+						locateStation(st);
+					},
+					findRoute(fromName, toName) {
+						var R = this.routes;
+						if (!R || !R.edges || !R.lines) return null;
+						var adj = {};
+						R.edges.forEach(function(e) {
+							(adj[e[0]] = adj[e[0]] || []).push([e[1], e[2]]);
+							(adj[e[1]] = adj[e[1]] || []).push([e[0], e[2]]);
+						});
+						// Dijkstra over (station, line): cost = stops + 4 per transfer
+						var queue = [[0, 0, fromName, null, [[fromName, null]]]];
+						var best = {};
+						while (queue.length) {
+							queue.sort(function(a, b) { return a[0] - b[0]; });
+							var cur = queue.shift();
+							var cost = cur[0], stops = cur[1], st = cur[2], ln = cur[3], path = cur[4];
+							var key = st + '|' + ln;
+							if (best[key] !== undefined && best[key] <= cost) continue;
+							best[key] = cost;
+							if (st === toName) {
+								var segs = [];
+								for (var i = 1; i < path.length; i++) {
+									var s = path[i][0], l = path[i][1];
+									if (segs.length && segs[segs.length - 1].line === l) {
+										segs[segs.length - 1].to = s;
+										segs[segs.length - 1].stops++;
+									} else {
+										var hex = R.lines[l].color;
+										var r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
+										var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+										segs.push({ line: l, name: R.lines[l].name, color: hex, text: lum > 0.6 ? '#1a1a1a' : '#ffffff', from: path[i - 1][0], to: s, stops: 1 });
+									}
+								}
+								return { stops: stops, transfers: segs.length - 1, segments: segs };
+							}
+							(adj[st] || []).forEach(function(nb) {
+								var nc = cost + 1 + (ln !== null && nb[1] !== ln ? 4 : 0);
+								queue.push([nc, stops + 1, nb[0], nb[1], path.concat([[nb[0], nb[1]]])]);
+							});
+						}
+						return null;
 					},
 					doReset() { this.closeMore(); if (panzoom) resetView(); },
 					doRepo() { this.closeMore(); openRepo(); },
@@ -606,7 +846,8 @@
 				},
 				computed: {
 					tabIndex() {
-						return this.tab === 'stations' ? 1 : (this.tab === 'more' ? 2 : 0);
+						var order = { transfer: 0, map: 1, stations: 2, more: 3 };
+						return order[this.tab] !== undefined ? order[this.tab] : 1;
 					},
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
@@ -623,6 +864,13 @@
 						setPanZoom();
 						svgZoomTo(coord.curr);
 					}
+				},
+				mounted: function() {
+					var self = this;
+					this.applyTheme();
+					if (window.matchMedia) {
+						window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() { self.applyTheme(); });
+					}
 				}
 			});
 			const vm = App.mount("#app");
@@ -638,9 +886,9 @@
 					startX = null;
 					if (Math.abs(dx) < 40) return;
 					e.preventDefault();
-					var order = ['map', 'stations', 'more'];
+					var order = ['transfer', 'map', 'stations', 'more'];
 					var i = order.indexOf(vm.tab);
-					if (dx < 0 && i < 2) vm.setTab(order[i + 1]);
+					if (dx < 0 && i < 3) vm.setTab(order[i + 1]);
 					if (dx > 0 && i > 0) vm.setTab(order[i - 1]);
 				}, { passive: false });
 			})();
