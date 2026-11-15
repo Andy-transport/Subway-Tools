@@ -514,6 +514,8 @@
 		@media (min-width: 700px) {
 			#transferPanel, #stationPanel { align-items: center; }
 			#transferPanel > *, #stationPanel > * { width: 100%; max-width: 640px; }
+			/* iPad top tab bar (build 45): the native tab bar sits at the top on iPad and would cover the panels search field. In the native app, push both panels down below it. */
+			.native-app #transferPanel, .native-app #stationPanel { padding-top: calc(max(10px, env(safe-area-inset-top)) + 60px); }
 		}
 		.tr-fare.warn { color: #b26a00; }
 		.tr-fare img { width: 18px; height: 18px; flex: none; }
