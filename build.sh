@@ -6,6 +6,17 @@
 set -e
 cd "$(dirname "$0")"
 
+echo "== 0. select Xcode (iOS SDK 27.3) =="
+XCODE_273=$(ls -d /Applications/Xcode_27.3*.app 2>/dev/null | head -n 1)
+if [ -n "$XCODE_273" ]; then
+  echo "Selecting Xcode: $XCODE_273"
+  sudo xcode-select -s "$XCODE_273" || echo "xcode-select failed; continuing with default Xcode"
+else
+  echo "Xcode 27.3 not found; using default Xcode"
+fi
+echo "Xcode version:"; xcodebuild -version
+echo "iOS SDK version:"; xcrun -sdk iphoneos --show-sdk-version
+
 echo "== 1. offline web page =="
 cd web
 python3 build_offline.py
