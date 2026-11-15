@@ -401,10 +401,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // 1:1 to points. A zero-size rect (no routes, or the transfer panel
     // is hidden) hides the control.
     func placeSortTabs(frame dict: [String: Any]) {
-        // Sort tabs are the web tabs again (user asked why the native
-        // control replaced them). Keep the native control hidden so only
-        // the web tab row shows; the frame messages are ignored.
-        sortTabs.isHidden = true
+        // Native Apple UI sort tabs (user 2026-11-15: "这个要Apple UI
+        // SDK27.2"): the UISegmentedControl (Liquid Glass on iOS 26+)
+        // overlays the web tab row's frame; the web hides its own row
+        // in the native app. A zero-size rect (no routes, or the panel
+        // is hidden) hides the control.
+        let x = (dict["x"] as? Double) ?? 0
+        let y = (dict["y"] as? Double) ?? 0
+        let w = (dict["width"] as? Double) ?? 0
+        let h = (dict["height"] as? Double) ?? 0
+        let tab = dict["tab"] as? String ?? ""
+        if w > 0 && h > 0 && currentTab == "transfer" {
+            sortTabs.frame = CGRect(x: x, y: y, width: w, height: h)
+            sortTabs.isHidden = false
+            if let idx = sortTabKeys.firstIndex(of: tab) {
+                sortTabs.selectedSegmentIndex = idx
+            }
+        } else {
+            sortTabs.isHidden = true
+        }
     }
 
     // MARK: - Native Liquid Glass transfer input area (build 37)
@@ -642,6 +657,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             transferSearchButton.frame = CGRect(x: sx, y: sy, width: sw, height: sh)
             transferSearchButton.isHidden = false
             transferSearchButton.layer.cornerRadius = sh / 2
+            // Refresh the button colour here too (build 43): the colour
+            // is set from currentCity, and placeTransfer runs every time
+            // the web reports the frame (city switch, scroll, layout),
+            // so the red/gold is always re-applied when the button shows.
+            updateTransferSearchStyle()
         } else {
             transferSearchButton.isHidden = true
         }
@@ -677,7 +697,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             var config = UIButton.Configuration.glass()
             config.title = "搜索"
             config.baseForegroundColor = .white
-            config.baseBackgroundColor = searchButtonColor().withAlphaComponent(0.6)
+            // Full-strength city colour (build 43): the 0.6-alpha tint
+            // never showed — the button stayed the default blue in
+            // Shenyang/Shanghai. Use the colour at full opacity and set
+            // the tint as well so the red (sy) / gold (sh) actually
+            // renders on the glass.
+            config.baseBackgroundColor = searchButtonColor()
             config.cornerStyle = .capsule
             config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
                 var out = incoming
@@ -685,6 +710,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 return out
             }
             transferSearchButton.configuration = config
+            transferSearchButton.tintColor = searchButtonColor()
         } else {
             transferSearchButton.setTitle("搜索", for: .normal)
             transferSearchButton.setTitleColor(.white, for: .normal)
