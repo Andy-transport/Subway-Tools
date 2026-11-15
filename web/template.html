@@ -18,6 +18,8 @@
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.WALK_ICON = "data:image/png;base64,/*__WALK_ICON__*/";
 			window.FARE_ICON = "data:image/png;base64,/*__FARE_ICON__*/";
+			window.BJ_SPLASH = "data:image/png;base64,/*__BJ_SPLASH__*/";
+			window.SY_SPLASH = "data:image/png;base64,/*__SY_SPLASH__*/";
 		</script>
 	</head>
 
@@ -188,6 +190,11 @@
 			border: 1px solid rgba(255, 255, 255, 0.7);
 			box-shadow: 0 12px 32px rgba(0, 40, 100, 0.22), inset 0 1px 1px rgba(255, 255, 255, 1), inset 0 -2px 8px rgba(0, 60, 140, 0.1), inset 0 0 0 1px rgba(0, 51, 128, 0.06);
 		}
+
+		/* per-city launch (splash) overlay: full-screen image, fades out */
+		#splashOverlay { position: fixed; inset: 0; z-index: 99999; background: #fff; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
+		#splashOverlay.hidden { opacity: 0; pointer-events: none; }
+		#splashOverlay img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
 		#brandChip {
 			position: fixed;
@@ -419,6 +426,7 @@
 
 	<body>
 		<div id="app">
+			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="sideMenuDiv">
 				<div class="sideMenuCard" v-for="sMenu in sideMenu" :onclick="sMenu.onclick">
 					<div class="sideMenuImg" :style="{'background-image':'url('+sMenu.icon+')'}"></div>
@@ -722,6 +730,9 @@
 						transfers: (window.METRO_TRANSFERS || {}),
 						walkIcon: (window.WALK_ICON || ''),
 						fareIcon: (window.FARE_ICON || ''),
+						bjSplash: (window.BJ_SPLASH || ''),
+						sySplash: (window.SY_SPLASH || ''),
+						showSplash: true,
 						showTransfer: false,
 						fromStation: null,
 						toStation: null,
@@ -791,6 +802,12 @@
 							window.webkit.messageHandlers.tabChanged.postMessage(this.tab);
 						}
 					},
+					flashSplash(ms) {
+						var self = this;
+						this.showSplash = true;
+						if (this._splashTimer) clearTimeout(this._splashTimer);
+						this._splashTimer = setTimeout(function() { self.showSplash = false; }, ms || 600);
+					},
 					toggleCity() { this.switchCity(this.city === 'bj' ? 'sy' : 'bj'); },
 					switchCity(c) {
 						if (c === this.city) return;
@@ -812,6 +829,7 @@
 						this.query = '';
 						window._metroNeedFit = true;
 						this.setTab('map');
+						this.flashSplash(500);
 					},
 					openStations() { this.setTab('stations'); },
 					closeStations() {
@@ -1012,6 +1030,7 @@
 				computed: {
 					cityName() { return this.city === 'sy' ? '沈阳' : '北京'; },
 					cityLogo() { return this.city === 'sy' ? this.syLogo : this.bjLogo; },
+					splashImg() { return this.city === 'sy' ? this.sySplash : this.bjSplash; },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						if (!q) return this.stations;
@@ -1042,6 +1061,7 @@
 				mounted: function() {
 					var self = this;
 					this.applyTheme();
+					this.flashSplash(700);
 					if (window.matchMedia) {
 						window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() { self.applyTheme(); });
 					}

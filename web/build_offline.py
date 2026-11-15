@@ -140,6 +140,14 @@ html = sub_once(r'/\*__WALK_ICON__\*/', lambda _: walk_b64, html, "walk icon")
 fare_b64 = (BASE / "wallet-icon.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__FARE_ICON__\*/', lambda _: fare_b64, html, "fare icon")
 
+# M. inline the per-city splash (launch) images.
+# BJ splash = the native LaunchScreen image (app/splash.b64, Beijing 北京/配线查询);
+# SY splash = the user's Shenyang 沈阳/配线查询 image (web/shenyang/splash.b64).
+bj_splash_b64 = (BASE.parent / "app" / "splash.b64").read_text(encoding="utf-8").strip()
+sy_splash_b64 = (BASE / "shenyang" / "splash.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__BJ_SPLASH__\*/', lambda _: bj_splash_b64, html, "bj splash")
+html = sub_once(r'/\*__SY_SPLASH__\*/', lambda _: sy_splash_b64, html, "sy splash")
+
 out = OUT / "index.html"
 out.write_text(html, encoding="utf-8")
 
