@@ -174,11 +174,11 @@
 		#verInfoDiv { display: none; }
 
 		.glass {
-			background: rgba(255, 255, 255, 0.55);
+			background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(232, 242, 255, 0.52));
 			-webkit-backdrop-filter: blur(22px) saturate(180%);
 			backdrop-filter: blur(22px) saturate(180%);
-			border: 1px solid rgba(255, 255, 255, 0.65);
-			box-shadow: 0 8px 28px rgba(0, 30, 80, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+			border: 1px solid rgba(255, 255, 255, 0.8);
+			box-shadow: 0 12px 32px rgba(0, 40, 100, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 0 0 1px rgba(0, 51, 128, 0.06);
 		}
 
 		#brandChip {
@@ -217,7 +217,8 @@
 			left: 50%;
 			transform: translateX(-50%);
 			bottom: max(12px, env(safe-area-inset-bottom));
-			z-index: 99920;
+			z-index: 99930;
+			touch-action: pan-y;
 			width: min(420px, calc(100vw - 32px));
 			height: 64px;
 			display: flex;
@@ -231,14 +232,16 @@
 			width: calc((100% - 12px) / 3);
 			height: calc(100% - 12px);
 			border-radius: 999px;
-			background: rgba(255, 255, 255, 0.75);
-			border: 1px solid rgba(255, 255, 255, 0.85);
-			box-shadow: 0 2px 10px rgba(0, 30, 80, 0.14);
+			pointer-events: none;
+			background: rgba(255, 255, 255, 0.9);
+			border: 1px solid rgba(255, 255, 255, 0.9);
+			box-shadow: 0 3px 12px rgba(0, 30, 80, 0.2), inset 0 1px 0 rgba(255, 255, 255, 1);
 			transition: transform 0.28s ease;
 		}
 		.tab {
 			position: relative;
 			z-index: 1;
+			touch-action: manipulation;
 			flex: 1;
 			display: flex;
 			flex-direction: column;
@@ -623,6 +626,24 @@
 				}
 			});
 			const vm = App.mount("#app");
+			// Swipe left/right on the tab bar to switch tabs; the pill slides with it.
+			(function() {
+				var bar = document.getElementById('tabBar');
+				if (!bar) return;
+				var startX = null;
+				bar.addEventListener('touchstart', function(e) { startX = e.changedTouches[0].clientX; }, { passive: true });
+				bar.addEventListener('touchend', function(e) {
+					if (startX == null) return;
+					var dx = e.changedTouches[0].clientX - startX;
+					startX = null;
+					if (Math.abs(dx) < 40) return;
+					e.preventDefault();
+					var order = ['map', 'stations', 'more'];
+					var i = order.indexOf(vm.tab);
+					if (dx < 0 && i < 2) vm.setTab(order[i + 1]);
+					if (dx > 0 && i > 0) vm.setTab(order[i - 1]);
+				}, { passive: false });
+			})();
 
 			var panzoom;
 
@@ -789,7 +810,8 @@
 				panzoom.fit();
 				panzoom.center();
 				var s = panzoom.getSizes();
-				var ratio = Math.max((s.width / s.height) / (s.viewBox.width / s.viewBox.height), 1);
+				var wr = (s.width / s.viewBox.width) / (s.height / s.viewBox.height);
+				var ratio = Math.max(wr, 1 / wr);
 				panzoom.zoom(panzoom.getZoom() * ratio);
 				panzoom.center();
 				var ele = document.getElementById("svg8");
