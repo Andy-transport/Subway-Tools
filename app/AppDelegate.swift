@@ -60,6 +60,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // (Liquid Glass on iOS 26+) overlaid on the web panel's tab row.
     var sortTabs: UISegmentedControl!
     let sortTabKeys = ["rec", "early", "fewest", "cheap"]
+    // Native Apple UI Liquid Glass dark-mode picker (build 44): a
+    // UISegmentedControl (跟随系统/浅色/深色) overlaid on the settings
+    // panel's .more-theme-seg row, same pattern as sortTabs.
+    var themeSeg: UISegmentedControl!
+    let themeSegKeys = ["system", "light", "dark"]
     // Native Liquid Glass transfer input area (build 37): a glass card
     // holding the two station text fields + swap button, and a glass
     // 搜索 button, overlaid on the web panel's .tr-fields / .tr-search
@@ -117,6 +122,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "cityMenu")
         config.userContentController.add(self, name: "tabsFrame")
         config.userContentController.add(self, name: "transferFrame")
+        config.userContentController.add(self, name: "themeFrame")
         config.userContentController.add(self, name: "stationPicked")
         config.userContentController.add(self, name: "timePicker")
         config.userContentController.add(self, name: "openTransitApp")
@@ -142,10 +148,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         tabBar.selectedItem = items[1] // default tab is the map, same as the web page
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tabBar)
+        // iPad (user 2026-11-15): the tab bar moves to the TOP; iPhone
+        // keeps it at the bottom. The top pills move below the bar on
+        // iPad so they do not overlap it (see setupNativePills).
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
         NSLayoutConstraint.activate([
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            isPad ? tabBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
+                  : tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
 
         // Swipe left/right on the tab bar to switch tabs (keeps the web
@@ -172,11 +183,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         view.addSubview(backButton)
         NSLayoutConstraint.activate([
             backButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
+            // iPad: the tab bar is at the top, so the back button sits
+            // below it; iPhone: it sits above the bottom tab bar.
+            isPad ? backButton.topAnchor.constraint(equalTo: tabBar.bottomAnchor, constant: 16)
+                  : backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
         ])
 
         setupNativePills()
         setupSortTabs()
+        setupThemeSeg()
         setupTransferControls()
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
         loadMap()
@@ -206,11 +221,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             pill.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(pill)
         }
+        // iPad: the tab bar is at the top, so the pills sit below it;
+        // iPhone: the pills sit at the top safe area as before.
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
         NSLayoutConstraint.activate([
             cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
-            cityPill.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            cityPill.topAnchor.constraint(equalTo: isPad ? tabBar.bottomAnchor : view.safeAreaLayoutGuide.topAnchor, constant: 10),
             searchPill.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-            searchPill.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            searchPill.topAnchor.constraint(equalTo: isPad ? tabBar.bottomAnchor : view.safeAreaLayoutGuide.topAnchor, constant: 10),
         ])
         searchPill.addTarget(self, action: #selector(openStationSearch), for: .touchUpInside)
         updateCityPill()
@@ -419,6 +437,50 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             }
         } else {
             sortTabs.isHidden = true
+        }
+    }
+
+    // MARK: - Native Apple UI dark-mode picker (build 44)
+
+    // The 深色模式 picker (跟随系统/浅色/深色) is a native
+    // UISegmentedControl (Liquid Glass on iOS 26+), overlaid on the
+    // settings panel's .more-theme-seg row — same pattern as sortTabs.
+    // The web hides its own row in the native app and reports the frame.
+    func setupThemeSeg() {
+        themeSeg = UISegmentedControl(items: ["跟随系统", "浅色", "深色"])
+        themeSeg.selectedSegmentIndex = 0
+        themeSeg.translatesAutoresizingMaskIntoConstraints = true
+        themeSeg.isHidden = true
+        themeSeg.addTarget(self, action: #selector(themeSegChanged(_:)), for: .valueChanged)
+        let attrs: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 14, weight: .semibold)]
+        themeSeg.setTitleTextAttributes(attrs, for: .normal)
+        themeSeg.setTitleTextAttributes(attrs, for: .selected)
+        view.addSubview(themeSeg)
+    }
+
+    @objc func themeSegChanged(_ sender: UISegmentedControl) {
+        let idx = sender.selectedSegmentIndex
+        guard idx >= 0 && idx < themeSegKeys.count else { return }
+        let key = themeSegKeys[idx]
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setTheme('\(key)')", completionHandler: nil)
+    }
+
+    // Place the native dark-mode picker over the web row's reported
+    // frame. A zero-size rect (settings panel not shown) hides it.
+    func placeThemeSeg(frame dict: [String: Any]) {
+        let x = (dict["x"] as? Double) ?? 0
+        let y = (dict["y"] as? Double) ?? 0
+        let w = (dict["width"] as? Double) ?? 0
+        let h = (dict["height"] as? Double) ?? 0
+        let theme = dict["theme"] as? String ?? ""
+        if w > 0 && h > 0 && currentTab == "more" {
+            themeSeg.frame = CGRect(x: x, y: y, width: w, height: h)
+            themeSeg.isHidden = false
+            if let idx = themeSegKeys.firstIndex(of: theme) {
+                themeSeg.selectedSegmentIndex = idx
+            }
+        } else {
+            themeSeg.isHidden = true
         }
     }
 
@@ -673,6 +735,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             transferSearchButton.isHidden = true
             view.endEditing(true)
         }
+        // Dark-mode picker only lives on the settings tab.
+        if currentTab != "more" {
+            themeSeg.isHidden = true
+        }
     }
 
     func clearTransferFields() {
@@ -693,30 +759,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updateTransferSearchStyle() {
-        if #available(iOS 26.0, *) {
-            var config = UIButton.Configuration.glass()
-            config.title = "搜索"
-            config.baseForegroundColor = .white
-            // Full-strength city colour (build 43): the 0.6-alpha tint
-            // never showed — the button stayed the default blue in
-            // Shenyang/Shanghai. Use the colour at full opacity and set
-            // the tint as well so the red (sy) / gold (sh) actually
-            // renders on the glass.
-            config.baseBackgroundColor = searchButtonColor()
-            config.cornerStyle = .capsule
-            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
-                var out = incoming
-                out.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-                return out
-            }
-            transferSearchButton.configuration = config
-            transferSearchButton.tintColor = searchButtonColor()
-        } else {
-            transferSearchButton.setTitle("搜索", for: .normal)
-            transferSearchButton.setTitleColor(.white, for: .normal)
-            transferSearchButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
-            transferSearchButton.backgroundColor = searchButtonColor()
+        // Filled (solid) city colour (build 44): the glass configuration
+        // never showed the colour — UIButton.Configuration.glass() ignored
+        // baseBackgroundColor (and tintColor) on iOS 27.2, so the button
+        // stayed the default blue in Shenyang/Shanghai through builds 42
+        // and 43 ("按钮还是没改"). A filled button renders the exact city
+        // colour: Shenyang red / Shanghai gold / Beijing blue. Still a
+        // native Apple UIButton (capsule, bold white title).
+        var config = UIButton.Configuration.filled()
+        config.title = "搜索"
+        config.baseForegroundColor = .white
+        config.baseBackgroundColor = searchButtonColor()
+        config.cornerStyle = .capsule
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+            return out
         }
+        transferSearchButton.configuration = config
+        transferSearchButton.tintColor = searchButtonColor()
+        transferSearchButton.backgroundColor = searchButtonColor()
     }
 
     // Line badge: a small pill with the line's colour + name (same
@@ -1012,6 +1074,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "transferFrame",
                   let dict = message.body as? [String: Any] {
             placeTransfer(frame: dict)
+        } else if message.name == "themeFrame",
+                  let dict = message.body as? [String: Any] {
+            placeThemeSeg(frame: dict)
         } else if message.name == "stationPicked",
                   let dict = message.body as? [String: Any] {
             // The user tapped a web suggestion row: mirror the picked
