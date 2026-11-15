@@ -20,6 +20,7 @@ xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library \
 
 echo "== 3. bundle resources =="
 cp app/Info.plist build/Payload/Metro.app/Info.plist
+xcrun ibtool --compile build/Payload/Metro.app/LaunchScreen.storyboardc --sdk iphoneos app/LaunchScreen.storyboard
 cp web/offline/index.html build/Payload/Metro.app/web/index.html
 cp web/offline/vue.global.prod.js web/offline/hammer.min.js web/offline/svg-pan-zoom.js build/Payload/Metro.app/web/
 cp web/offline/MTR2.8.0.pdf build/Payload/Metro.app/web/MTR2.8.0.pdf

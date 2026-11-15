@@ -104,6 +104,65 @@
 			background-size: 100% 100%;
 			background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iMC4wMSIvPjxwYXRoIGQ9Ik0yNC4wNjA3IDEwTDI0LjAyNCAzOCIgc3Ryb2tlPSIjMDAzMzgwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xMCAyNEwzOCAyNCIgc3Ryb2tlPSIjMDAzMzgwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==");
 		}
+
+		/* --- Metro app: full-screen landscape layout --- */
+		html, body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background: #fff;
+			color-scheme: light;
+		}
+
+		#sideMenuDiv {
+			top: max(8px, env(safe-area-inset-top));
+			right: max(10px, env(safe-area-inset-right));
+			left: auto;
+			bottom: auto;
+			width: auto;
+			display: flex;
+			flex-direction: row;
+			gap: 4px;
+			background: rgba(255, 255, 255, 0.92);
+			border: 1px solid rgba(0, 51, 128, 0.25);
+			border-radius: 999px;
+			padding: 4px 8px;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+		}
+
+		.sideMenuCard {
+			margin: 0;
+			padding: 4px 6px;
+			border: none;
+			border-radius: 12px;
+			background: transparent;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			min-width: 46px;
+		}
+
+		.sideMenuImg {
+			margin: 0;
+			width: 26px;
+			height: 26px;
+		}
+
+		.sideMenuTxt {
+			font-size: 10px;
+			margin-top: 1px;
+		}
+
+		#verInfoDiv {
+			font-size: 11px;
+			bottom: max(8px, env(safe-area-inset-bottom));
+			left: max(10px, env(safe-area-inset-left));
+			right: auto;
+			width: auto;
+			text-align: left;
+			opacity: 0.75;
+			white-space: nowrap;
+		}
 	</style>
 
 
@@ -267,7 +326,7 @@
 						sideMenu: [{
 								text: "重置缩放",
 								icon: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iMC4wMSIvPjxwYXRoIGQ9Ik0yMSAzOEMzMC4zODg4IDM4IDM4IDMwLjM4ODggMzggMjFDMzggMTEuNjExMiAzMC4zODg4IDQgMjEgNEMxMS42MTEyIDQgNCAxMS42MTEyIDQgMjFDNCAzMC4zODg4IDExLjYxMTIgMzggMjEgMzhaIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDMzODAiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yMSAxNUwyMSAyNyIgc3Ryb2tlPSIjMDAzMzgwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xNSAyMUwyNyAyMSIgc3Ryb2tlPSIjMDAzMzgwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0zMy4yMjE4IDMzLjIyMThMNDEuNzA3MSA0MS43MDcxIiBzdHJva2U9IiMwMDMzODAiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+",
-								onclick: "svgZoomTo(coord.default)"
+								onclick: "resetView()"
 							},
 							{
 								text: "项目主页",
@@ -302,6 +361,7 @@
 
 			if (getQueryVars("x") != null && getQueryVars("y") != null && getQueryVars("z") != null) {
 				coord.curr = [getQueryVars("x"), getQueryVars("y"), getQueryVars("z")];
+				window._metroDeepLink = true;
 			}
 
 			switchEnv();
@@ -440,7 +500,35 @@
 					maxZoom: 60,
 					customEventsHandler: touchHandler,
 				});
-				svgZoomTo(coord.curr);
+				if (!window._metroViewInit) {
+					if (window._metroDeepLink) {
+						svgZoomTo(coord.curr);
+					} else {
+						resetView();
+					}
+					window._metroViewInit = true;
+				} else {
+					svgZoomTo(coord.curr);
+				}
+			};
+
+
+			// Full-coverage initial view (landscape): fit, then zoom so the
+			// square map covers the wider viewport, then center. Used for the
+			// first load and the reset button. Also syncs coord.curr so later
+			// Vue updates restore this same view.
+			function resetView() {
+				panzoom.fit();
+				panzoom.center();
+				var s = panzoom.getSizes();
+				var ratio = Math.max((s.width / s.height) / (s.viewBox.width / s.viewBox.height), 1);
+				panzoom.zoom(panzoom.getZoom() * ratio);
+				panzoom.center();
+				var ele = document.getElementById("svg8");
+				var rzoom = panzoom.getSizes().realZoom;
+				coord.curr[2] = panzoom.getZoom();
+				coord.curr[0] = (panzoom.getPan().x - ele.clientWidth / 2) / rzoom;
+				coord.curr[1] = (panzoom.getPan().y - ele.clientHeight / 2) / rzoom;
 			};
 
 
