@@ -6,13 +6,24 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "== 0. select Xcode (iOS SDK 27.3) =="
-XCODE_273=$(ls -d /Applications/Xcode_27.3*.app 2>/dev/null | head -n 1)
-if [ -n "$XCODE_273" ]; then
-  echo "Selecting Xcode: $XCODE_273"
-  sudo xcode-select -s "$XCODE_273" || echo "xcode-select failed; continuing with default Xcode"
+echo "== 0. select Xcode (iOS SDK 27.x) =="
+echo "Installed Xcode versions:"
+ls -d /Applications/Xcode*.app 2>/dev/null || echo "(none found)"
+# Prefer the newest iOS SDK 27.x available: 27.3, then 27.2, 27.1, 27.0,
+# then any other 27.x (highest version). Fall back to the default Xcode.
+XCODE_SEL=""
+for v in 27.3 27.2 27.1 27.0; do
+  CAND=$(ls -d /Applications/Xcode_${v}*.app 2>/dev/null | head -n 1)
+  if [ -n "$CAND" ]; then XCODE_SEL="$CAND"; break; fi
+done
+if [ -z "$XCODE_SEL" ]; then
+  XCODE_SEL=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -n 1)
+fi
+if [ -n "$XCODE_SEL" ]; then
+  echo "Selecting Xcode: $XCODE_SEL"
+  sudo xcode-select -s "$XCODE_SEL" || echo "xcode-select failed; continuing with default Xcode"
 else
-  echo "Xcode 27.3 not found; using default Xcode"
+  echo "No Xcode 27.x found; using default Xcode"
 fi
 echo "Xcode version:"; xcodebuild -version
 echo "iOS SDK version:"; xcrun -sdk iphoneos --show-sdk-version
