@@ -508,8 +508,8 @@
 					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? fromQuery : toQuery) ? '没有找到相关车站' : '输入站名、拼音或首字母' }}</div>
 				</div>
 				<div class="tr-pref">
-					<button :class="{ on: routePref === 'time' }" @click="routePref = 'time'">用时最少</button>
-					<button :class="{ on: routePref === 'fewest' }" @click="routePref = 'fewest'">换乘最少</button>
+					<button :class="{ on: routePref === 'time' }" @click="setPref('time')">用时最少</button>
+					<button :class="{ on: routePref === 'fewest' }" @click="setPref('fewest')">换乘最少</button>
 				</div>
 				<button class="tr-search" @click="doSearch">搜索</button>
 				<div class="tr-summary" v-if="routeResult">共 {{ routeResult.stops }} 站 · 换乘 {{ routeResult.transfers }} 次 · 约 {{ routeResult.minutes }} 分钟 · 预计 {{ routeResult.arrive }} 到达</div>
@@ -878,6 +878,11 @@
 					setTheme(t) {
 						this.theme = t;
 						this.applyTheme();
+					},
+					setPref(p) {
+						if (this.routePref === p) return;
+						this.routePref = p;
+						if (this.fromStation && this.toStation) this.doSearch();
 					},
 					doSearch() {
 						this.routeError = '';
