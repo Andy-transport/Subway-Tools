@@ -35,3 +35,8 @@ GitHub Actions（macOS）跑 `bash build.sh`：先把离线网页拼出来，再
 ## Build 23 (v1.0.2) — 顶栏液态玻璃改 Apple 原生
 - 顶部北京/搜车站两个小条去掉蓝色液态玻璃，改用中性 .glass（Apple 原生 Liquid Glass：透明底 + 模糊 + 高光 + 白边），文字恢复深蓝色 #003380；深色模式用深色玻璃 + 浅蓝字。之前蓝底白字的版本不是 Apple 原生效果。
 - 其余与 Build 22 相同（沈阳新图标白底）。
+
+
+## Build 24 (v1.0.2) — 应用改名
+- 应用名由 Beijing Subway motion 改为 Subway motion（Info.plist 显示名 + 网页标题；因为已不只北京，沈阳也进来了）。内部包名 Metro、安装包文件名 Beijing-Subway-motion-1.0.2-unsigned.ipa 未改。
+- 其余与 Build 23 相同（顶栏 Apple 原生液态玻璃、沈阳新图标白底）。
