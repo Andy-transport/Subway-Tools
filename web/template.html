@@ -544,6 +544,7 @@
 		.tab img.tt-tab-icon { width: 25px; height: 25px; opacity: .55; }
 		.tab.active img.tt-tab-icon { opacity: 1; }
 		.tt-view { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 16px; }
+		.tt-list-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 		.tt-title { display: flex; align-items: center; gap: 10px; padding: 8px 0 12px; }
 		.tt-back { border: none; background: none; color: #003380; font-size: 16px; font-weight: 600; padding: 4px 0; }
 		.tt-station { font-size: 20px; font-weight: 700; color: #111; }
@@ -698,7 +699,7 @@
 					</div>
 					<button class="sp-cancel" @click="closeTimetable">取消</button>
 				</div>
-				<div v-if="!ttLine">
+				<div v-if="!ttLine" class="tt-list-wrap">
 					<div class="sp-count">{{ ttQuery ? ('找到 ' + ttLineFiltered.length + ' 条') : ('共 ' + ttLineList.length + ' 条线路') }}</div>
 					<div class="sp-list">
 						<div class="sp-row" v-for="ln in ttLineFiltered" :key="ln.key" @click="pickTtLine(ln.key)">
@@ -1160,6 +1161,7 @@
 							this.routes = (window.METRO_ROUTES || null);
 							this.curr = env.prod;
 						}
+						this.ttLine = null; this.ttQuery = '';
 						this.fromStation = null; this.toStation = null;
 						this.fromQuery = ''; this.toQuery = '';
 						this.fromLine = null; this.toLine = null;
