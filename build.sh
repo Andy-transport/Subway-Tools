@@ -14,7 +14,8 @@ cd ..
 echo "== 2. compile Swift shell =="
 rm -rf build
 mkdir -p build/Payload/Metro.app/web
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O \
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library \
+  -framework UIKit -framework WebKit \
   -o build/Payload/Metro.app/Metro app/AppDelegate.swift
 
 echo "== 3. bundle resources =="
