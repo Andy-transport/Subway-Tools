@@ -19,18 +19,25 @@
 			window.SH_ROUTES = /*__SH_ROUTES__*/null;
 			window.SH_MAP = /*__SH_MAP__*/"";
 			window.SH_LOGO = "data:image/png;base64,/*__SH_LOGO__*/";
+			window.HB_STATIONS = /*__HB_STATIONS__*/[];
+			window.HB_ROUTES = /*__HB_ROUTES__*/null;
+			window.HB_MAP = /*__HB_MAP__*/"";
+			window.HB_LOGO = "data:image/png;base64,/*__HB_LOGO__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.WALK_ICON = "data:image/png;base64,/*__WALK_ICON__*/";
 			window.FARE_ICON = "data:image/png;base64,/*__FARE_ICON__*/";
 			window.YKT_ICON = "data:image/png;base64,/*__YKT_ICON__*/";
 			window.SJT_ICON = "data:image/png;base64,/*__SJT_ICON__*/";
 			window.MDDH_ICON = "data:image/png;base64,/*__MDDH_ICON__*/";
+			window.HBCT_ICON = "data:image/png;base64,/*__HBCT_ICON__*/";
 			window.BJ_SPLASH = "data:image/png;base64,/*__BJ_SPLASH__*/";
 			window.SY_SPLASH = "data:image/png;base64,/*__SY_SPLASH__*/";
 			window.SH_SPLASH = "data:image/png;base64,/*__SH_SPLASH__*/";
+			window.HB_SPLASH = "data:image/png;base64,/*__HB_SPLASH__*/";
 			window.BJ_TIMETABLE = /*__BJ_TIMETABLE__*/{};
 			window.SY_TIMETABLE = /*__SY_TIMETABLE__*/{};
 			window.SH_TIMETABLE = /*__SH_TIMETABLE__*/{};
+			window.HB_TIMETABLE = /*__HB_TIMETABLE__*/{};
 			window.TT_ICON = "data:image/png;base64,/*__TT_ICON__*/";
 		</script>
 	</head>
@@ -301,6 +308,11 @@
 		.sh-theme .tr-swap { color: #a8000c; border-color: rgba(230,0,18,0.35); }
 		.sh-theme .tr-tabs button { color: #a8000c; }
 		.sh-theme .tr-tabs button.on { background: #e60012; color: #fff; }
+		/* Harbin red theme: every blue accent -> Harbin brand red #C00030 (user: 主题色也是红色) */
+		.hb-theme .tr-city { color: #8a0020 !important; }
+		.hb-theme .tr-swap { color: #8a0020; border-color: rgba(192,0,48,0.35); }
+		.hb-theme .tr-tabs button { color: #8a0020; }
+		.hb-theme .tr-tabs button.on { background: #c00030; color: #fff; }
 
 		/* Native app (build 33): the route-sort tabs are a native
 		   UISegmentedControl (Apple Liquid Glass) overlaid on this row.
@@ -606,7 +618,7 @@
 
 
 	<body>
-		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'native-app': nativeApp }">
+		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'native-app': nativeApp }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="sideMenuDiv">
 				<div class="sideMenuCard" v-for="sMenu in sideMenu" :onclick="sMenu.onclick">
@@ -715,7 +727,7 @@
 							<div class="tt-time" v-else>暂无数据</div>
 						</div>
 					</div>
-					<div class="tt-note">周日–周四标准时刻表；周五、周六末班车可能延后。<span v-if="city==='sy'">沈阳为冬季时刻表（2026-11-01 至 2027-03-31），2027-04-01 起执行夏季时刻表。3号线甘官以东车站往李达方向末班为半程车，终点站甘官。</span></div>
+					<div class="tt-note">周日–周四标准时刻表；周五、周六末班车可能延后。<span v-if="city==='sy'">沈阳为冬季时刻表（2026-11-01 至 2027-03-31），2027-04-01 起执行夏季时刻表。3号线甘官以东车站往李达方向末班为半程车，终点站甘官。</span><span v-if="city==='hb'">哈尔滨时刻表为估算值（首末班 05:30–22:30，按站间约 2 分钟推算），请以车站公布为准。</span></div>
 				</div>
 			</div>
 
@@ -983,7 +995,7 @@
 						ttLine: null,
 						showMore: false,
 						query: '',
-						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
+						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
 					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
 						stations: (window.METRO_STATIONS || []),
 						bjLogo: (window.BJ_LOGO || ''),
@@ -996,18 +1008,25 @@
 						shRoutes: (window.SH_ROUTES || null),
 						shLogo: (window.SH_LOGO || ''),
 						shMap: (window.SH_MAP || ''),
+						hbStations: (window.HB_STATIONS || []),
+						hbRoutes: (window.HB_ROUTES || null),
+						hbLogo: (window.HB_LOGO || ''),
+						hbMap: (window.HB_MAP || ''),
 						transfers: (window.METRO_TRANSFERS || {}),
 						walkIcon: (window.WALK_ICON || ''),
 						fareIcon: (window.FARE_ICON || ''),
 						yktIcon: (window.YKT_ICON || ''),
 						sjtIcon: (window.SJT_ICON || ''),
 						mddhIcon: (window.MDDH_ICON || ''),
+						hbctIcon: (window.HBCT_ICON || ''),
 						bjSplash: (window.BJ_SPLASH || ''),
 						sySplash: (window.SY_SPLASH || ''),
 						shSplash: (window.SH_SPLASH || ''),
+						hbSplash: (window.HB_SPLASH || ''),
 						bjTimetable: (window.BJ_TIMETABLE || {}),
 						syTimetable: (window.SY_TIMETABLE || {}),
 						shTimetable: (window.SH_TIMETABLE || {}),
+						hbTimetable: (window.HB_TIMETABLE || {}),
 						ttIcon: (window.TT_ICON || ''),
 						showSplash: true,
 						showTransfer: false,
@@ -1122,6 +1141,7 @@
 						if (c === this.city) return;
 						if (c === 'sy' && (!this.syStations.length || !this.syMap)) return;
 						if (c === 'sh' && (!this.shStations.length || !this.shMap)) return;
+						if (c === 'hb' && (!this.hbStations.length || !this.hbMap)) return;
 						this.city = c;
 						if (c === 'sy') {
 							this.stations = this.syStations;
@@ -1131,6 +1151,10 @@
 							this.stations = this.shStations;
 							this.routes = this.shRoutes;
 							this.curr = { svgUrl: "", svgDom: this.shMap, pdfUrl: "", success: true, json: null, verName: "SH", verInfo: "{ 上海地铁线网图 , 2026-11 , 22条线 413站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+						} else if (c === 'hb') {
+							this.stations = this.hbStations;
+							this.routes = this.hbRoutes;
+							this.curr = { svgUrl: "", svgDom: this.hbMap, pdfUrl: "", success: true, json: null, verName: "HB", verInfo: "{ 哈尔滨地铁线网图 , 2026-08 , 3条线 73站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else {
 							this.stations = (window.METRO_STATIONS || []);
 							this.routes = (window.METRO_ROUTES || null);
@@ -1389,6 +1413,13 @@
 					// no suburban entry and falls back to 38). Non-Shanghai
 					// cities keep the Beijing 44 units/km scale.
 					shScaleFor(lineKey, mx, my) {
+						if (this.city === 'hb') {
+							// Harbin px/km, solved from the real line lengths
+							// (L1 26.3km, L2 28.7km, L3 loop 32.2km) over the
+							// map pixel path: L1 43.9, L2 41.6, L3 51.1.
+							var HB = { '1': 43.94, '2': 41.64, '3': 51.08 };
+							return HB[lineKey] || 45.82;
+						}
 						if (this.city !== 'sh') return 44;
 						var SH_SUB = {
 							'1': 8.60, '2': 11.92, '3': 8.86, '5': 19.23, '5B': 19.23,
@@ -1452,6 +1483,29 @@
 							else fSy = 6 + Math.ceil((kmSy - 28) / 10);
 							return Math.min(fSy, 7);
 						}
+						// Harbin: same distance bands as Shenyang (verified:
+						// 0-6km Y2, 6-10 Y3, 10-14 Y4, 14-21 Y5, 21-28 Y6,
+						// 28km+ +Y1 per 10km), but Harbin HAS station
+						// coordinates, so distance comes from the map (segKm
+						// with the Harbin px/km scale) instead of stops.
+						// No cap in the official table; the network max (~32km
+						// loop) lands at Y7 anyway.
+						if (this.city === 'hb') {
+							var kmHb = 0;
+							for (var hi = 0; hi < r.segments.length; hi++) {
+								var hd = self.segKm(r.segments[hi]);
+								if (hd == null || hd < 0) return null;
+								kmHb += hd;
+							}
+							var fHb;
+							if (kmHb <= 6) fHb = 2;
+							else if (kmHb <= 10) fHb = 3;
+							else if (kmHb <= 14) fHb = 4;
+							else if (kmHb <= 21) fHb = 5;
+							else if (kmHb <= 28) fHb = 6;
+							else fHb = 6 + Math.ceil((kmHb - 28) / 10);
+							return fHb;
+						}
 						var total = 0, legKm = 0;
 						function closeLeg() { if (legKm > 0) { total += (self.city === 'sh' ? fareForKmSh(legKm) : fareForKm(legKm)); legKm = 0; } }
 						for (var i = 0; i < r.segments.length; i++) {
@@ -1494,7 +1548,7 @@
 					openTransitApp() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openTransitApp;
 						if (h) { h.postMessage({}); return; }
-						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : '1071038870');
+						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : '1071038870'));
 						window.open('https://apps.apple.com/cn/app/id' + id, '_blank');
 					},
 					showTimePicker() {
@@ -1738,10 +1792,10 @@
 				},
 				computed: {
 					cityName() { return this.city === 'sy' ? '沈阳' : (this.city === 'sh' ? '上海' : '北京'); },
-					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : this.bjLogo); },
-					transitLabel() { return this.city === 'sy' ? '打开盛京通' : (this.city === 'sh' ? '打开Metro大都会' : '打开一卡通'); },
-					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : this.yktIcon); },
-					splashImg() { return this.city === 'sy' ? this.sySplash : (this.city === 'sh' ? this.shSplash : this.bjSplash); },
+					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : this.bjLogo)); },
+					transitLabel() { return this.city === 'sy' ? '打开盛京通' : (this.city === 'sh' ? '打开Metro大都会' : (this.city === 'hb' ? '打开哈尔滨城市通' : '打开一卡通')); },
+					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : this.yktIcon)); },
+					splashImg() { return this.city === 'sy' ? this.sySplash : (this.city === 'sh' ? this.shSplash : (this.city === 'hb' ? this.hbSplash : this.bjSplash)); },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						if (!q) return this.stations;
@@ -1752,6 +1806,7 @@
 					timetableData() {
 						if (this.city === 'sy') return this.syTimetable;
 						if (this.city === 'sh') return this.shTimetable;
+						if (this.city === 'hb') return this.hbTimetable;
 						return this.bjTimetable;
 					},
 					// All lines for the current city, in routes order, plus the
@@ -1876,7 +1931,7 @@
 					// city's splash. The swap happens behind the launch splash.
 					try {
 						var _savedCity = window.localStorage.getItem('metro-city');
-						if ((_savedCity === 'bj' || _savedCity === 'sy' || _savedCity === 'sh') && _savedCity !== this.city) {
+						if ((_savedCity === 'bj' || _savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb') && _savedCity !== this.city) {
 							this.switchCity(_savedCity);
 						}
 					} catch (e) {}

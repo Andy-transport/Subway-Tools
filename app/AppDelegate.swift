@@ -109,6 +109,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // Shanghai search button gold (user asked for gold on the 上海 搜索
     // button). Same champagne gold #D4B686 as the Shenyang theme gold.
     let shanghaiGold = UIColor(red: 212.0 / 255.0, green: 182.0 / 255.0, blue: 134.0 / 255.0, alpha: 1)
+    // Harbin brand red #C00030 (sampled from the Harbin metro logo /
+    // Line 1 on the user's 2026.08 map; user: 主题色也是红色).
+    let harbinRed = UIColor(red: 192.0 / 255.0, green: 0, blue: 48.0 / 255.0, alpha: 1)
+    let harbinRedDark = UIColor(red: 138.0 / 255.0, green: 0, blue: 32.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -128,7 +132,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh"].contains(saved) {
+           ["bj", "sy", "sh", "hb"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = .white
@@ -260,6 +264,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         switch currentCity {
         case "sy": splashName = "SplashSY"
         case "sh": splashName = "SplashSH"
+        case "hb": splashName = "SplashHB"
         default: splashName = "Splash"
         }
         splashImageView = UIImageView(image: UIImage(named: splashName))
@@ -318,6 +323,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func accentColor() -> UIColor {
         if currentCity == "sy" { return shenyangGold }
         if currentCity == "sh" { return shanghaiRed }
+        if currentCity == "hb" { return harbinRed }
         return subwayBlue
     }
 
@@ -326,6 +332,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func accentDark() -> UIColor {
         if currentCity == "sy" { return shenyangGoldDark }
         if currentCity == "sh" { return shanghaiRedDark }
+        if currentCity == "hb" { return harbinRedDark }
         return subwayBlue
     }
 
@@ -337,6 +344,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func searchButtonColor() -> UIColor {
         if currentCity == "sy" { return shenyangGold }
         if currentCity == "sh" { return shanghaiRed }
+        if currentCity == "hb" { return harbinRed }
         return accentColor()
     }
 
@@ -345,6 +353,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         switch currentCity {
         case "sy": name = "ShenyangLogo"
         case "sh": name = "ShanghaiLogo"
+        case "hb": name = "HarbinLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -360,6 +369,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         switch currentCity {
         case "sy": name = "沈阳"
         case "sh": name = "上海"
+        case "hb": name = "哈尔滨"
         default: name = "北京"
         }
         if #available(iOS 26.0, *) {
@@ -415,7 +425,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let sh = UIAction(title: "上海", state: currentCity == "sh" ? .on : .off) { [weak self] _ in
             self?.pickCity("sh")
         }
-        return UIMenu(title: "", children: [bj, sy, sh])
+        let hb = UIAction(title: "哈尔滨", state: currentCity == "hb" ? .on : .off) { [weak self] _ in
+            self?.pickCity("hb")
+        }
+        return UIMenu(title: "", children: [bj, sy, sh, hb])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -431,6 +444,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         })
         sheet.addAction(UIAlertAction(title: currentCity == "sh" ? "✓ 上海" : "上海", style: .default) { [weak self] _ in
             self?.pickCity("sh")
+        })
+        sheet.addAction(UIAlertAction(title: currentCity == "hb" ? "✓ 哈尔滨" : "哈尔滨", style: .default) { [weak self] _ in
+            self?.pickCity("hb")
         })
         sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
         sheet.modalPresentationStyle = .popover
@@ -1156,6 +1172,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         switch currentCity {
         case "sy": id = "1441271928"
         case "sh": id = "1202750238"
+        case "hb": id = "1448467024"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }

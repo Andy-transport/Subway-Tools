@@ -1,0 +1,513 @@
+[
+ {
+  "n": "北马路",
+  "py": "beimalu",
+  "ini": "bml",
+  "x": 498.5,
+  "y": 603.0
+ },
+ {
+  "n": "冰雪大世界",
+  "py": "bingxuedashijie",
+  "ini": "bxdsj",
+  "x": 258.0,
+  "y": 606.0
+ },
+ {
+  "n": "渤海路",
+  "py": "bohailu",
+  "ini": "bhl",
+  "x": 540.0,
+  "y": 1405.0
+ },
+ {
+  "n": "博物馆",
+  "py": "bowuguan",
+  "ini": "bwg",
+  "x": 527.0,
+  "y": 714.0
+ },
+ {
+  "n": "城乡路",
+  "py": "chengxianglu",
+  "ini": "cxl",
+  "x": 265.0,
+  "y": 950.0
+ },
+ {
+  "n": "大耿家",
+  "py": "dagengjia",
+  "ini": "dgj",
+  "x": 178.0,
+  "y": 330.0
+ },
+ {
+  "n": "大有坊街",
+  "py": "dayoufangjie",
+  "ini": "dyfj",
+  "x": 667.0,
+  "y": 590.0
+ },
+ {
+  "n": "丁香公园",
+  "py": "dingxianggongyuan",
+  "ini": "dxgy",
+  "x": 207.0,
+  "y": 808.0
+ },
+ {
+  "n": "东北农业大学",
+  "py": "dongbeinongyedaxue",
+  "ini": "dbnydx",
+  "x": 807.0,
+  "y": 861.0
+ },
+ {
+  "n": "公滨路",
+  "py": "gongbinlu",
+  "ini": "gbl",
+  "x": 701.0,
+  "y": 856.0
+ },
+ {
+  "n": "工程大学",
+  "py": "gongchengdaxue",
+  "ini": "gcdx",
+  "x": 579.0,
+  "y": 664.0
+ },
+ {
+  "n": "公路大桥",
+  "py": "gongludaqiao",
+  "ini": "gldq",
+  "x": 356.0,
+  "y": 760.0
+ },
+ {
+  "n": "工农大街",
+  "py": "gongnongdajie",
+  "ini": "gndj",
+  "x": 227.0,
+  "y": 906.0
+ },
+ {
+  "n": "工人文化宫",
+  "py": "gongrenwenhuagong",
+  "ini": "grwhg",
+  "x": 581.0,
+  "y": 769.0
+ },
+ {
+  "n": "哈达",
+  "py": "hada",
+  "ini": "hd",
+  "x": 449.0,
+  "y": 1092.0
+ },
+ {
+  "n": "哈尔滨北站",
+  "py": "haerbinbeizhan",
+  "ini": "hebbz",
+  "x": 166.0,
+  "y": 243.0
+ },
+ {
+  "n": "哈尔滨东站",
+  "py": "haerbindongzhan",
+  "ini": "hebdz",
+  "x": 764.0,
+  "y": 563.0
+ },
+ {
+  "n": "哈尔滨南站",
+  "py": "haerbinnanzhan",
+  "ini": "hebnz",
+  "x": 461.0,
+  "y": 1169.0
+ },
+ {
+  "n": "哈尔滨西站",
+  "py": "haerbinxizhan",
+  "ini": "hebxz",
+  "x": 299.0,
+  "y": 972.0
+ },
+ {
+  "n": "哈尔滨站",
+  "py": "haerbinzhan",
+  "ini": "hebz",
+  "x": 498.0,
+  "y": 699.0
+ },
+ {
+  "n": "哈工大",
+  "py": "hagongda",
+  "ini": "hgd",
+  "x": 455.0,
+  "y": 813.0
+ },
+ {
+  "n": "海河东路",
+  "py": "haihedonglu",
+  "ini": "hhdl",
+  "x": 706.0,
+  "y": 668.0
+ },
+ {
+  "n": "哈西大街",
+  "py": "haxidajie",
+  "ini": "hxdj",
+  "x": 367.0,
+  "y": 1027.5
+ },
+ {
+  "n": "黑龙江大学",
+  "py": "heilongjiangdaxue",
+  "ini": "hljdx",
+  "x": 434.0,
+  "y": 994.5
+ },
+ {
+  "n": "河山街",
+  "py": "heshanjie",
+  "ini": "hsj",
+  "x": 267.0,
+  "y": 797.0
+ },
+ {
+  "n": "河松街",
+  "py": "hesongjie",
+  "ini": "hsj",
+  "x": 326.0,
+  "y": 786.0
+ },
+ {
+  "n": "和兴路",
+  "py": "hexinglu",
+  "ini": "hxl",
+  "x": 419.0,
+  "y": 895.0
+ },
+ {
+  "n": "桦树街",
+  "py": "huashujie",
+  "ini": "hsj",
+  "x": 718.0,
+  "y": 571.0
+ },
+ {
+  "n": "会展中心",
+  "py": "huizhanzhongxin",
+  "ini": "hzzx",
+  "x": 712.0,
+  "y": 703.0
+ },
+ {
+  "n": "江北大学城",
+  "py": "jiangbeidaxuecheng",
+  "ini": "jbdxc",
+  "x": 186.0,
+  "y": 140.0
+ },
+ {
+  "n": "交通学院",
+  "py": "jiaotongxueyuan",
+  "ini": "jtxy",
+  "x": 685.5,
+  "y": 565.0
+ },
+ {
+  "n": "镜泊路",
+  "py": "jingpolu",
+  "ini": "jpl",
+  "x": 512.0,
+  "y": 1345.0
+ },
+ {
+  "n": "靖宇公园",
+  "py": "jingyugongyuan",
+  "ini": "jygy",
+  "x": 584.0,
+  "y": 556.0
+ },
+ {
+  "n": "进乡街",
+  "py": "jinxiangjie",
+  "ini": "jxj",
+  "x": 684.0,
+  "y": 984.0
+ },
+ {
+  "n": "凯盛源广场",
+  "py": "kaishengyuanguangchang",
+  "ini": "ksygc",
+  "x": 331.0,
+  "y": 998.0
+ },
+ {
+  "n": "劳动公园",
+  "py": "laodonggongyuan",
+  "ini": "ldgy",
+  "x": 656.0,
+  "y": 1007.0
+ },
+ {
+  "n": "理工大学",
+  "py": "ligongdaxue",
+  "ini": "lgdx",
+  "x": 431.0,
+  "y": 973.0
+ },
+ {
+  "n": "龙川路",
+  "py": "longchuanlu",
+  "ini": "lcl",
+  "x": 207.0,
+  "y": 388.0
+ },
+ {
+  "n": "南直路",
+  "py": "nanzhilu",
+  "ini": "nzl",
+  "x": 749.0,
+  "y": 837.0
+ },
+ {
+  "n": "汽轮机厂",
+  "py": "qilunjichang",
+  "ini": "qljc",
+  "x": 694.0,
+  "y": 938.0
+ },
+ {
+  "n": "清真寺",
+  "py": "qingzhensi",
+  "ini": "qzs",
+  "x": 555.0,
+  "y": 562.0
+ },
+ {
+  "n": "气象台",
+  "py": "qixiangtai",
+  "ini": "qxt",
+  "x": 879.0,
+  "y": 876.0
+ },
+ {
+  "n": "群力第五大道",
+  "py": "qunlidiwudadao",
+  "ini": "qldwdd",
+  "x": 198.0,
+  "y": 871.0
+ },
+ {
+  "n": "人民广场",
+  "py": "renminguangchang",
+  "ini": "rmgc",
+  "x": 389.0,
+  "y": 639.0
+ },
+ {
+  "n": "上海街",
+  "py": "shanghaijie",
+  "ini": "shj",
+  "x": 360.0,
+  "y": 717.0
+ },
+ {
+  "n": "尚志大街",
+  "py": "shangzhidajie",
+  "ini": "szdj",
+  "x": 468.0,
+  "y": 682.0
+ },
+ {
+  "n": "省医院",
+  "py": "shengyiyuan",
+  "ini": "syy",
+  "x": 643.0,
+  "y": 827.0
+ },
+ {
+  "n": "省政府",
+  "py": "shengzhengfu",
+  "ini": "szf",
+  "x": 604.0,
+  "y": 792.0
+ },
+ {
+  "n": "市第二医院",
+  "py": "shidieryiyuan",
+  "ini": "sdeyy",
+  "x": 699.0,
+  "y": 630.0
+ },
+ {
+  "n": "世茂大道",
+  "py": "shimaodadao",
+  "ini": "smdd",
+  "x": 217.0,
+  "y": 475.0
+ },
+ {
+  "n": "太平桥",
+  "py": "taipingqiao",
+  "ini": "tpq",
+  "x": 618.0,
+  "y": 565.0
+ },
+ {
+  "n": "太阳岛",
+  "py": "taiyangdao",
+  "ini": "tyd",
+  "x": 334.0,
+  "y": 592.0
+ },
+ {
+  "n": "铁路局",
+  "py": "tieluju",
+  "ini": "tlj",
+  "x": 479.0,
+  "y": 786.0
+ },
+ {
+  "n": "体育公园",
+  "py": "tiyugongyuan",
+  "ini": "tygy",
+  "x": 184.0,
+  "y": 853.0
+ },
+ {
+  "n": "同江路",
+  "py": "tongjianglu",
+  "ini": "tjl",
+  "x": 470.0,
+  "y": 1225.0
+ },
+ {
+  "n": "瓦盆窑",
+  "py": "wapenyao",
+  "ini": "wpy",
+  "x": 500.0,
+  "y": 1283.0
+ },
+ {
+  "n": "湘江路",
+  "py": "xiangjianglu",
+  "ini": "xjl",
+  "x": 719.0,
+  "y": 757.0
+ },
+ {
+  "n": "西大桥",
+  "py": "xidaqiao",
+  "ini": "xdq",
+  "x": 437.0,
+  "y": 846.0
+ },
+ {
+  "n": "新疆大街",
+  "py": "xinjiangdajie",
+  "ini": "xjdj",
+  "x": 495.0,
+  "y": 1481.0
+ },
+ {
+  "n": "学府路",
+  "py": "xuefulu",
+  "ini": "xfl",
+  "x": 425.0,
+  "y": 932.0
+ },
+ {
+  "n": "旭升街",
+  "py": "xushengjie",
+  "ini": "xsj",
+  "x": 603.0,
+  "y": 990.0
+ },
+ {
+  "n": "烟厂",
+  "py": "yanchang",
+  "ini": "yc",
+  "x": 562.0,
+  "y": 681.0
+ },
+ {
+  "n": "医大二院",
+  "py": "yidaeryuan",
+  "ini": "ydey",
+  "x": 437.0,
+  "y": 1016.0
+ },
+ {
+  "n": "医大一院",
+  "py": "yidayiyuan",
+  "ini": "ydyy",
+  "x": 544.0,
+  "y": 703.0
+ },
+ {
+  "n": "医大一院群力院区",
+  "py": "yidayiyuanqunliyuanqu",
+  "ini": "ydyyqlyq",
+  "x": 205.0,
+  "y": 885.0
+ },
+ {
+  "n": "油坊街",
+  "py": "youfangjie",
+  "ini": "yfj",
+  "x": 698.0,
+  "y": 892.0
+ },
+ {
+  "n": "友谊宫",
+  "py": "youyigong",
+  "ini": "yyg",
+  "x": 420.0,
+  "y": 616.0
+ },
+ {
+  "n": "兆麟公园",
+  "py": "zhaolingongyuan",
+  "ini": "zlgy",
+  "x": 462.0,
+  "y": 606.0
+ },
+ {
+  "n": "征仪路",
+  "py": "zhengyilu",
+  "ini": "zyl",
+  "x": 500.0,
+  "y": 1004.0
+ },
+ {
+  "n": "中华巴洛克街区",
+  "py": "zhonghuabaluokejiequ",
+  "ini": "zhblkjq",
+  "x": 525.0,
+  "y": 581.0
+ },
+ {
+  "n": "肿瘤医院",
+  "py": "zhongliuyiyuan",
+  "ini": "zlyy",
+  "x": 532.0,
+  "y": 1007.0
+ },
+ {
+  "n": "中央大街",
+  "py": "zhongyangdajie",
+  "ini": "zydj",
+  "x": 430.0,
+  "y": 663.0
+ },
+ {
+  "n": "珠江路",
+  "py": "zhujianglu",
+  "ini": "zjl",
+  "x": 698.0,
+  "y": 825.0
+ }
+]
