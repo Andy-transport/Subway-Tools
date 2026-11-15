@@ -147,6 +147,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         ]
         tabBar.items = items
         tabBar.selectedItem = items[1] // default tab is the map, same as the web page
+        // Floating Liquid Glass capsule (iOS 26 / SDK 27.2, user 2026-11-15):
+        // the bar floats above the content with rounded ends and a glass
+        // background, like the system tab bar in iOS 26. The timetable
+        // icon is a 25pt @1x/@2x/@3x template image (build 48) so it
+        // renders at the same size as the SF Symbol icons.
+        tabBar.layer.cornerRadius = 25
+        tabBar.layer.masksToBounds = true
+        if #available(iOS 26.0, *) {
+            let appearance = UITabBarAppearance()
+            appearance.configureWithDefaultBackground()
+            appearance.backgroundEffect = UIGlassEffect()
+            appearance.shadowColor = .clear
+            tabBar.standardAppearance = appearance
+            tabBar.scrollEdgeAppearance = appearance
+        }
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tabBar)
         // iPad (user 2026-11-15): the tab bar moves to the TOP; iPhone
@@ -154,10 +169,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // iPad so they do not overlap it (see setupNativePills).
         let isPad = UIDevice.current.userInterfaceIdiom == .pad
         NSLayoutConstraint.activate([
-            tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            isPad ? tabBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
-                  : tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            isPad ? tabBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
+                  : tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
         ])
 
         // Swipe left/right on the tab bar to switch tabs (keeps the web
