@@ -154,33 +154,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         tabBar.items = items
         tabBar.selectedItem = items[1] // default tab is the map, same as the web page
         // Floating Liquid Glass capsule (iOS 26 / SDK 27.2, user 2026-11-15):
-        // the bar floats above the content with rounded ends and a glass
-        // background, like the system tab bar in iOS 26. The timetable
-        // icon is a 25pt @1x/@2x/@3x template image (build 48) so it
-        // renders at the same size as the SF Symbol icons.
+        // the bar floats above the content with rounded ends. The glass is
+        // the UITabBar's OWN Apple glass (default appearance on iOS 26+)
+        // — a single layer. Build 50 added a UIVisualEffectView glass
+        // subview on top of the bar's own glass, so the glass showed
+        // TWICE (user 2026-11-15 "为啥有玻璃重复"). Do NOT add a glass
+        // view here; the default appearance already is Liquid Glass.
         tabBar.layer.cornerRadius = 25
         tabBar.layer.masksToBounds = true
         if #available(iOS 26.0, *) {
-            // Liquid Glass background. UITabBarAppearance.backgroundEffect
-            // only accepts UIBlurEffect (build 49 failed on UIGlassEffect),
-            // so the glass goes in as a UIVisualEffectView subview behind
-            // the tab items, with the bar itself transparent.
             let appearance = UITabBarAppearance()
-            appearance.configureWithTransparentBackground()
+            appearance.configureWithDefaultBackground()
             appearance.shadowColor = .clear
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
-            let glassView = UIVisualEffectView(effect: UIGlassEffect())
-            glassView.layer.cornerRadius = 25
-            glassView.layer.masksToBounds = true
-            glassView.translatesAutoresizingMaskIntoConstraints = false
-            tabBar.insertSubview(glassView, at: 0)
-            NSLayoutConstraint.activate([
-                glassView.leadingAnchor.constraint(equalTo: tabBar.leadingAnchor),
-                glassView.trailingAnchor.constraint(equalTo: tabBar.trailingAnchor),
-                glassView.topAnchor.constraint(equalTo: tabBar.topAnchor),
-                glassView.bottomAnchor.constraint(equalTo: tabBar.bottomAnchor),
-            ])
         }
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tabBar)
