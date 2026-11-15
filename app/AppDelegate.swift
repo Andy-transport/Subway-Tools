@@ -250,12 +250,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return subwayBlue
     }
 
-    // Search button colour: red in Shenyang, gold in Shanghai (user asked
-    // for 沈阳 red / 上海 gold on the 搜索 button), city accent elsewhere
-    // (Beijing blue).
+    // Search button colour (user 2026-11-15 ~20:12: "沈阳金 上海红"):
+    // the button now matches the city theme — gold in Shenyang, red in
+    // Shanghai. This reverses the 18:11 instruction (Shenyang red /
+    // Shanghai gold); the user said the red/gold button looked reversed
+    // against the gold/red theme.
     func searchButtonColor() -> UIColor {
-        if currentCity == "sy" { return shenyangRed }
-        if currentCity == "sh" { return shanghaiGold }
+        if currentCity == "sy" { return shenyangGold }
+        if currentCity == "sh" { return shanghaiRed }
         return accentColor()
     }
 
