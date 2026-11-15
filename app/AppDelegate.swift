@@ -18,11 +18,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         return true
     }
+
+    // Explicitly hand the system the scene configuration (build 42):
+    // relying on the Info.plist lookup alone left the app on a black
+    // screen, because the Swift class name the runtime registers is
+    // module-qualified and the plist's bare "SceneDelegate" did not
+    // resolve to it.
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let config = UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+        config.delegateClass = SceneDelegate.self
+        return config
+    }
 }
 
 // Scene lifecycle (build 41): owns the UIWindow. iOS 13+ (and
 // required in practice on iOS 27 / SDK 27) connects the scene here;
 // the AppDelegate no longer creates or manages the window.
+// @objc(SceneDelegate) (build 42): pins the Objective-C runtime name
+// to exactly "SceneDelegate" so the Info.plist lookup finds it even
+// though Swift registers the class module-qualified.
+@objc(SceneDelegate)
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
