@@ -47,6 +47,7 @@ cp web/offline/MTR2.8.0.pdf build/Payload/Metro.app/web/MTR2.8.0.pdf
 python3 app/decode_icons.py build/Payload/Metro.app
 python3 -c "import base64; open('build/Payload/Metro.app/Splash.png','wb').write(base64.b64decode(open('app/splash.b64').read()))"
 cp app/BeijingLogo.png app/ShenyangLogo.png app/ShanghaiLogo.png build/Payload/Metro.app/
+python3 -c "import base64; open('build/Payload/Metro.app/TimetableIcon.png','wb').write(base64.b64decode(open('web/timetable-icon.b64').read()))"
 
 echo "== 4. package IPA =="
 cd build

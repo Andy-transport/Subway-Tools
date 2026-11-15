@@ -86,7 +86,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var fromLineInfo: [String: Any]?
     var toLineInfo: [String: Any]?
     // Web tab keys, in the same order as the native tab bar items.
-    let tabKeys = ["transfer", "map", "stations", "more"]
+    let tabKeys = ["transfer", "map", "stations", "timetable", "more"]
     // Beijing Subway blue (Beijing theme, unchanged); Shenyang gold,
     // sampled from the user's gold image: #D4B686 (champagne gold);
     // Shanghai brand red #E60012 (user has not chosen a Shanghai color
@@ -142,7 +142,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             UITabBarItem(title: "换乘", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0),
             UITabBarItem(title: "配线图", image: UIImage(systemName: "map"), tag: 1),
             UITabBarItem(title: "搜索", image: UIImage(systemName: "magnifyingglass"), tag: 2),
-            UITabBarItem(title: "设置", image: UIImage(systemName: "gearshape"), tag: 3),
+            UITabBarItem(title: "时刻表", image: UIImage(named: "TimetableIcon"), tag: 3),
+            UITabBarItem(title: "设置", image: UIImage(systemName: "gearshape"), tag: 4),
         ]
         tabBar.items = items
         tabBar.selectedItem = items[1] // default tab is the map, same as the web page

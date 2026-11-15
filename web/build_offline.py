@@ -178,6 +178,20 @@ html = sub_once(r'/\*__SH_MAP__\*/""', lambda _: _json.dumps(sh_map), html, "sh 
 html = sub_once(r'/\*__SH_LOGO__\*/', lambda _: sh_logo_b64, html, "sh logo")
 html = sub_once(r'/\*__SH_SPLASH__\*/', lambda _: sh_splash_b64, html, "sh splash")
 
+# P. inline the first/last-train timetable data (web/timetable/*.json,
+# Sun-Thu standard timetable) + the user's calendar-clock tab icon.
+bj_tt = (BASE / "timetable" / "bj.json").read_text(encoding="utf-8")
+sy_tt = (BASE / "timetable" / "sy.json").read_text(encoding="utf-8")
+sh_tt = (BASE / "timetable" / "sh.json").read_text(encoding="utf-8")
+tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
+assert "</script" not in bj_tt, "bj timetable json must not contain </script"
+assert "</script" not in sy_tt, "sy timetable json must not contain </script"
+assert "</script" not in sh_tt, "sh timetable json must not contain </script"
+html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
+html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
+html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
+html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
+
 out = OUT / "index.html"
 out.write_text(html, encoding="utf-8")
 
