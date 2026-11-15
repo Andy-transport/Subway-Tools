@@ -10,13 +10,28 @@ import WebKit
 // the two stay in sync. Built with iOS SDK 26.5 (Xcode 26.6).
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    // No window here anymore (build 41): the window is created by
+    // SceneDelegate below. The old AppDelegate-owned window is what
+    // crashed on launch with SDK 27.x — iOS 27 expects the Scene
+    // lifecycle, so the window must be created in
+    // scene(_:willConnectTo:options:).
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        return true
+    }
+}
+
+// Scene lifecycle (build 41): owns the UIWindow. iOS 13+ (and
+// required in practice on iOS 27 / SDK 27) connects the scene here;
+// the AppDelegate no longer creates or manages the window.
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        window = UIWindow(frame: UIScreen.main.bounds)
-        window?.rootViewController = MapViewController()
-        window?.makeKeyAndVisible()
-        return true
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        let win = UIWindow(windowScene: windowScene)
+        win.rootViewController = MapViewController()
+        win.makeKeyAndVisible()
+        window = win
     }
 }
 
