@@ -1150,6 +1150,18 @@
 				}
 			};
 
+			// iPhone Duo (foldable): when the phone folds/unfolds the window
+			// size changes. Tell svg-pan-zoom to re-measure the viewport so
+			// the map keeps working at the new size. resize() preserves the
+			// current zoom/pan (no fit/center), so the station the user is
+			// looking at stays put. Debounced so a fold animation fires once.
+			var _metroResizeTimer = null;
+			window.addEventListener('resize', function () {
+				if (_metroResizeTimer) clearTimeout(_metroResizeTimer);
+				_metroResizeTimer = setTimeout(function () {
+					if (panzoom) panzoom.resize();
+				}, 120);
+			});
 
 			// Full-coverage initial view (landscape): fit, then zoom so the
 			// square map covers the wider viewport, then center. Used for the
