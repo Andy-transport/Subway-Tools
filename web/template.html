@@ -458,7 +458,7 @@
 			<div id="verInfoDiv" onclick="verInfoEvt()">{{curr.verInfo}}</div>
 
 			<div class="center" id="crosshair" v-if="showCrosshair"></div>
-			<div id="brandChip" class="glass" v-if="tab==='map'" @click="toggleCity">
+			<div id="brandChip" class="glass" v-if="tab==='map'" @click="showCityMenu">
 				<img v-if="cityLogo" :src="cityLogo" :alt="cityName + '地铁'">
 				<span class="bj-city">{{ cityName }}</span>
 				<svg class="bj-chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
@@ -510,7 +510,7 @@
 
 			<div id="transferPanel" v-show="showTransfer">
 				<div class="tr-head">
-					<div class="tr-city" @click="toggleCity">
+					<div class="tr-city" @click="showCityMenu">
 						<img v-if="cityLogo" :src="cityLogo" :alt="cityName + '地铁'">
 						<span>{{ cityName }}</span>
 						<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
@@ -547,9 +547,9 @@
 				</div>
 				<button class="tr-search" @click="doSearch">搜索</button>
 				<div class="tr-summary" v-if="routeResult">共 {{ routeResult.stops }} 站 · 换乘 {{ routeResult.transfers }} 次 · 约 {{ routeResult.minutes }} 分钟 · 预计 {{ routeResult.arrive }} 到达</div>
-				<div class="tr-fare" :class="{ warn: hasVirtual() }" v-if="routeResult">
+				<div class="tr-fare" :class="{ warn: fareWarn() }" v-if="routeResult">
 					<img :src="fareIcon" alt="">
-					<span>{{ hasVirtual() ? '票价不连续计费（虚拟换乘需出站）' : '票价连续计费' }}</span>
+					<span>{{ fareText() }}</span>
 				</div>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
 				<div class="tr-list" v-if="routeResult">
@@ -824,6 +824,11 @@
 						if (this._splashTimer) clearTimeout(this._splashTimer);
 						this._splashTimer = setTimeout(function() { self.showSplash = false; }, ms || 600);
 					},
+					showCityMenu() {
+						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu);
+						if (h) { h.postMessage({ city: this.city }); return; }
+						this.toggleCity();
+					},
 					toggleCity() { this.switchCity(this.city === 'bj' ? 'sy' : 'bj'); },
 					switchCity(c) {
 						if (c === this.city) return;
@@ -942,6 +947,71 @@
 							if (this.virtualInfo(i)) return true;
 						}
 						return false;
+					},
+					hasAirportLine() {
+						var r = this.routeResult;
+						if (!r || !r.segments) return false;
+						for (var i = 0; i < r.segments.length; i++) {
+							if (r.segments[i].line === 'AP' || r.segments[i].line === 'DAX') return true;
+						}
+						return false;
+					},
+					fareWarn() { return this.hasVirtual() || this.hasAirportLine(); },
+					fareText() {
+						var amt = this.fareAmount();
+						var reasons = [];
+						if (this.hasVirtual()) reasons.push('虚拟换乘需出站');
+						if (this.hasAirportLine()) reasons.push('机场线需单独购票');
+						var cont = reasons.length ? '票价不连续计费（' + reasons.join('、') + '）' : '票价连续计费';
+						if (amt == null) return cont;
+						return '预计 ¥' + amt + ' · ' + cont;
+					},
+					fareAmount() {
+						var r = this.routeResult;
+						if (!r || !r.segments || !r.segments.length) return null;
+						var R = this.routes;
+						if (!R || !R.lines) return null;
+						var self = this;
+						function pos(name) {
+							for (var i = 0; i < self.stations.length; i++) {
+								if (self.stations[i].n === name) return self.stations[i];
+							}
+							return null;
+						}
+						function fareForKm(km) {
+							if (km <= 6) return 3;
+							if (km <= 12) return 4;
+							if (km <= 22) return 5;
+							if (km <= 32) return 6;
+							return 6 + Math.ceil((km - 32) / 20);
+						}
+						function segSvg(seg) {
+							var line = R.lines[seg.line];
+							if (!line || !line.stations) return 0;
+							var a = line.stations.indexOf(seg.from), b = line.stations.indexOf(seg.to);
+							if (a < 0 || b < 0) return 0;
+							var lo = Math.min(a, b), hi = Math.max(a, b), tot = 0;
+							for (var i = lo; i < hi; i++) {
+								var p1 = pos(line.stations[i]), p2 = pos(line.stations[i + 1]);
+								if (!p1 || !p2) return 0;
+								if ((p1.x === 0 && p1.y === 0) || (p2.x === 0 && p2.y === 0)) return -1;
+								tot += Math.hypot(p2.x - p1.x, p2.y - p1.y);
+							}
+							return tot;
+						}
+						var total = 0, legSvg = 0;
+						function closeLeg() { if (legSvg > 0) { total += fareForKm(legSvg / 55); legSvg = 0; } }
+						for (var i = 0; i < r.segments.length; i++) {
+							var seg = r.segments[i];
+							if (seg.line === 'AP') { closeLeg(); total += 25; continue; }
+							if (seg.line === 'DAX') { closeLeg(); total += (seg.to === '大兴机场' || seg.from === '大兴机场') ? 35 : 25; continue; }
+							if (i > 0 && this.virtualInfo(i)) closeLeg();
+							var dd = segSvg(seg);
+							if (dd < 0) return null;
+							legSvg += dd;
+						}
+						closeLeg();
+						return total;
 					},
 					virtualInfo(i) {
 						if (!i || !this.routeResult || !this.routeResult.segments) return '';

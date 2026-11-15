@@ -33,6 +33,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "tabChanged")
+        config.userContentController.add(self, name: "cityMenu")
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -137,7 +138,44 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
            let tab = message.body as? String,
            let idx = tabKeys.firstIndex(of: tab) {
             tabBar.selectedItem = tabBar.items?[idx]
+            return
         }
+        if message.name == "cityMenu" {
+            var current = "bj"
+            if let body = message.body as? [String: Any], let c = body["city"] as? String {
+                current = c
+            } else if let c = message.body as? String {
+                current = c
+            }
+            showCityMenu(current: current)
+        }
+    }
+
+    // MARK: - Native city menu
+
+    // Tapping the city pill asks the native side to show an Apple-native
+    // action sheet (UIAlertController, .actionSheet, SDK 26.5) to pick the
+    // city. The web page falls back to a plain toggle when the native
+    // handler is absent (e.g. the offline page opened in a browser).
+    func showCityMenu(current: String) {
+        let sheet = UIAlertController(title: "切换城市", message: nil, preferredStyle: .actionSheet)
+        let bj = UIAlertAction(title: current == "bj" ? "✓ 北京" : "北京", style: .default) { [weak self] _ in
+            self?.webView.evaluateJavaScript("window.metroApp && window.metroApp.switchCity('bj')", completionHandler: nil)
+        }
+        let sy = UIAlertAction(title: current == "sy" ? "✓ 沈阳" : "沈阳", style: .default) { [weak self] _ in
+            self?.webView.evaluateJavaScript("window.metroApp && window.metroApp.switchCity('sy')", completionHandler: nil)
+        }
+        sheet.addAction(bj)
+        sheet.addAction(sy)
+        sheet.addAction(UIAlertAction(title: "取消", style: .cancel, handler: nil))
+        // iPad popover anchor (the app is iPhone-only, but this keeps the
+        // sheet from crashing if it is ever presented on iPad).
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = view
+            pop.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+            pop.permittedArrowDirections = []
+        }
+        present(sheet, animated: true, completion: nil)
     }
 
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
