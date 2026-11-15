@@ -2,7 +2,10 @@ import UIKit
 import WebKit
 
 // 北京市轨道交通线路配置图 (SierraQin/metro, CC0 1.0)
-// Minimal shell: a full-screen WKWebView loading the bundled offline page.
+// Shell: a full-screen WKWebView loading the bundled offline page,
+// plus a native UITabBar (iOS 27 SDK) at the bottom. The web page's own
+// tab bar is hidden; the native bar drives the web UI via JavaScript,
+// and the web page reports its current tab back so the two stay in sync.
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
@@ -15,19 +18,56 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 
-class MapViewController: UIViewController, WKNavigationDelegate {
+class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegate, WKScriptMessageHandler {
     var webView: WKWebView!
     var backButton: UIButton!
+    var tabBar: UITabBar!
+    // Web tab keys, in the same order as the native tab bar items.
+    let tabKeys = ["transfer", "map", "stations", "more"]
+    // Beijing Subway blue, used for the selected tab.
+    let subwayBlue = UIColor(red: 0, green: 51.0 / 255.0, blue: 128.0 / 255.0, alpha: 1)
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
 
-        webView = WKWebView(frame: view.bounds, configuration: WKWebViewConfiguration())
+        let config = WKWebViewConfiguration()
+        config.userContentController.add(self, name: "tabChanged")
+        webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         webView.allowsBackForwardNavigationGestures = true
         view.addSubview(webView)
+
+        // Native tab bar (UITabBar, iOS 27 SDK). The web page hides its own
+        // tab bar; this bar is the only one the user sees.
+        tabBar = UITabBar()
+        tabBar.delegate = self
+        tabBar.tintColor = subwayBlue
+        let items = [
+            UITabBarItem(title: "换乘", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0),
+            UITabBarItem(title: "配线图", image: UIImage(systemName: "map"), tag: 1),
+            UITabBarItem(title: "搜索", image: UIImage(systemName: "magnifyingglass"), tag: 2),
+            UITabBarItem(title: "设置", image: UIImage(systemName: "gearshape"), tag: 3),
+        ]
+        tabBar.items = items
+        tabBar.selectedItem = items[1] // default tab is the map, same as the web page
+        tabBar.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(tabBar)
+        NSLayoutConstraint.activate([
+            tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+
+        // Swipe left/right on the tab bar to switch tabs (keeps the web
+        // tab bar's swipe feature, now on the native bar).
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleTabSwipe(_:)))
+        swipeLeft.direction = .left
+        tabBar.addGestureRecognizer(swipeLeft)
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleTabSwipe(_:)))
+        swipeRight.direction = .right
+        tabBar.addGestureRecognizer(swipeRight)
 
         backButton = UIButton(type: .system)
         backButton.setTitle("‹ 返回", for: .normal)
@@ -44,7 +84,7 @@ class MapViewController: UIViewController, WKNavigationDelegate {
         view.addSubview(backButton)
         NSLayoutConstraint.activate([
             backButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            backButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
+            backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
         ])
 
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
@@ -59,6 +99,45 @@ class MapViewController: UIViewController, WKNavigationDelegate {
 
     @objc func goBack() {
         if webView.canGoBack { webView.goBack() }
+    }
+
+    // MARK: - Native tab bar -> web page
+
+    func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        setWebTab(index: item.tag)
+    }
+
+    func setWebTab(index: Int) {
+        guard index >= 0 && index < tabKeys.count else { return }
+        let key = tabKeys[index]
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
+    }
+
+    @objc func handleTabSwipe(_ gesture: UISwipeGestureRecognizer) {
+        let current = tabBar.selectedItem?.tag ?? 1
+        var next = current
+        if gesture.direction == .left {
+            next = min(current + 1, tabKeys.count - 1)
+        } else {
+            next = max(current - 1, 0)
+        }
+        if next != current {
+            tabBar.selectedItem = tabBar.items?[next]
+            setWebTab(index: next)
+        }
+    }
+
+    // MARK: - Web page -> native tab bar
+
+    // The web page posts its current tab whenever setTab runs, so the
+    // native bar stays selected on the tab the page is actually showing
+    // (e.g. when the user opens station search from the search pill).
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "tabChanged",
+           let tab = message.body as? String,
+           let idx = tabKeys.firstIndex(of: tab) {
+            tabBar.selectedItem = tabBar.items?[idx]
+        }
     }
 
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
