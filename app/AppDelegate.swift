@@ -155,12 +155,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         tabBar.layer.cornerRadius = 25
         tabBar.layer.masksToBounds = true
         if #available(iOS 26.0, *) {
+            // Liquid Glass background. UITabBarAppearance.backgroundEffect
+            // only accepts UIBlurEffect (build 49 failed on UIGlassEffect),
+            // so the glass goes in as a UIVisualEffectView subview behind
+            // the tab items, with the bar itself transparent.
             let appearance = UITabBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.backgroundEffect = UIGlassEffect()
+            appearance.configureWithTransparentBackground()
             appearance.shadowColor = .clear
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
+            let glassView = UIVisualEffectView(effect: UIGlassEffect())
+            glassView.layer.cornerRadius = 25
+            glassView.layer.masksToBounds = true
+            glassView.translatesAutoresizingMaskIntoConstraints = false
+            tabBar.insertSubview(glassView, at: 0)
+            NSLayoutConstraint.activate([
+                glassView.leadingAnchor.constraint(equalTo: tabBar.leadingAnchor),
+                glassView.trailingAnchor.constraint(equalTo: tabBar.trailingAnchor),
+                glassView.topAnchor.constraint(equalTo: tabBar.topAnchor),
+                glassView.bottomAnchor.constraint(equalTo: tabBar.bottomAnchor),
+            ])
         }
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tabBar)

@@ -543,6 +543,11 @@
 		.tt-time { color: #555; white-space: nowrap; }
 		.tt-time b { color: #111; font-weight: 700; }
 		.tt-note { margin-top: 14px; font-size: 12px; line-height: 1.6; color: #888; }
+		.tt-count { font-size: 13px; color: #888; }
+		.tt-station { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+		.tt-st-name { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 4px; }
+		html.dark .tt-st-name { color: #eee; }
+		html.dark .tt-count { color: #777; }
 		html.dark #timetablePanel { background: rgba(16, 20, 32, 0.88); }
 		html.dark .tt-station, html.dark .tt-dir-name, html.dark .tt-time b { color: #eee; }
 		html.dark .tt-time { color: #aaa; }
@@ -677,37 +682,40 @@
 				<div class="sp-head">
 					<div class="sp-search">
 						<svg viewBox="0 0 24 24" width="25" height="25"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-18c4.41 0 8 3.59 8 8s-3.59 8-8 8-8-3.59-8-8 3.59-8 8-8zm.5 4H11v6l5.25 3.15.75-1.23-4.5-2.67V8z" fill="currentColor"/></svg>
-						<input ref="ttInput" v-model="ttQuery" type="search" placeholder="输入车站名" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<input ref="ttInput" v-model="ttQuery" type="search" :placeholder="ttLine ? '输入车站名' : '输入线路名'" autocomplete="off" autocapitalize="off" spellcheck="false">
 						<button class="sp-clear" v-if="ttQuery" @click="ttQuery=''">✕</button>
 					</div>
 					<button class="sp-cancel" @click="closeTimetable">取消</button>
 				</div>
-				<div v-if="!ttStation">
-					<div class="sp-count">{{ ttQuery ? ('找到 ' + ttFiltered.length + ' 个') : ('共 ' + ttStations.length + ' 个车站') }}</div>
+				<div v-if="!ttLine">
+					<div class="sp-count">{{ ttQuery ? ('找到 ' + ttLineFiltered.length + ' 条') : ('共 ' + ttLineList.length + ' 条线路') }}</div>
 					<div class="sp-list">
-						<div class="sp-row" v-for="st in ttFiltered" :key="st.n" @click="pickTtStation(st.n)">
-							<div class="sp-name">{{ st.n }}</div>
-							<div class="sp-py">{{ st.py }}</div>
+						<div class="sp-row" v-for="ln in ttLineFiltered" :key="ln.key" @click="pickTtLine(ln.key)">
+							<div class="sp-name"><span class="tt-badge" :style="{ background: '#' + ln.color, color: ln.text }">{{ ln.name }}</span></div>
+							<div class="sp-py">{{ ln.loop ? '环线' : (ln.stations[0] + ' — ' + ln.stations[ln.stations.length - 1]) }}</div>
 						</div>
-						<div class="sp-empty" v-if="ttFiltered.length === 0">没有找到相关车站</div>
+						<div class="sp-empty" v-if="ttLineFiltered.length === 0">没有找到相关线路</div>
 					</div>
 				</div>
 				<div v-else class="tt-view">
 					<div class="tt-title">
-						<button class="tt-back" @click="ttStation=null">‹ 返回</button>
-						<span class="tt-station">{{ ttStation }}</span>
+						<button class="tt-back" @click="ttLine=null; ttQuery=''">‹ 返回</button>
+						<span class="tt-badge" :style="{ background: '#' + ttLineInfo.color, color: ttLineInfo.text }">{{ ttLineInfo.name }}</span>
+						<span class="tt-count">{{ ttLineStationFiltered.length }} 个车站</span>
 					</div>
-					<div class="tt-lines" v-if="ttLines.length">
-						<div class="tt-line" v-for="ln in ttLines" :key="ln.key">
-							<div class="tt-line-head"><span class="tt-badge" :style="{ background: '#' + ln.color, color: ln.text }">{{ ln.name }}</span></div>
-							<div class="tt-dir" v-for="d in ln.dirs" :key="d.dir">
-								<span class="tt-dir-name">往{{ d.dir }}</span>
-								<span class="tt-time" v-if="d.first || d.last">首班 <b>{{ d.first || '—' }}</b>&nbsp;&nbsp;末班 <b>{{ d.last || '—' }}</b></span>
-								<span class="tt-time" v-else>终点站</span>
+					<div class="tt-lines">
+						<div class="tt-station" v-for="st in ttLineStationFiltered" :key="st.n">
+							<div class="tt-st-name">{{ st.n }}</div>
+							<div v-if="st.dirs.length">
+								<div class="tt-dir" v-for="d in st.dirs" :key="d.dir">
+									<span class="tt-dir-name">往{{ d.dir }}</span>
+									<span class="tt-time" v-if="d.first || d.last">首班 <b>{{ d.first || '—' }}</b>&nbsp;&nbsp;末班 <b>{{ d.last || '—' }}</b></span>
+									<span class="tt-time" v-else>终点站</span>
+								</div>
 							</div>
+							<div class="tt-time" v-else>暂无数据</div>
 						</div>
 					</div>
-					<div class="sp-empty" v-else>该站暂无首末班车数据</div>
 					<div class="tt-note">周日–周四标准时刻表；周五、周六末班车可能延后。<span v-if="city==='sy'">沈阳为冬季时刻表（2026-11-01 至 2027-03-31），2027-04-01 起执行夏季时刻表。3号线甘官以东车站往李达方向末班为半程车，终点站甘官。</span></div>
 				</div>
 			</div>
@@ -973,7 +981,7 @@
 						showStations: false,
 						showTimetable: false,
 						ttQuery: '',
-						ttStation: null,
+						ttLine: null,
 						showMore: false,
 						query: '',
 						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
@@ -1145,11 +1153,17 @@
 					},
 					closeTimetable() {
 						this.ttQuery = '';
-						this.ttStation = null;
+						this.ttLine = null;
 						this.setTab('map');
 					},
-					pickTtStation(name) {
-						this.ttStation = name;
+					pickTtLine(key) {
+						this.ttLine = key;
+						this.ttQuery = '';
+					},
+					lineTextColor(hex) {
+						var r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
+						var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+						return lum > 0.6 ? '#1a1a1a' : '#ffffff';
 					},
 					closeMore() {
 						this.showMore = false;
@@ -1728,42 +1742,62 @@
 							return st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1;
 						}).slice(0, 200);
 					},
-					ttStations() {
-						var list = this.stations.slice();
-						if (this.city === 'sh') {
-							var extra = ['三林南', '康桥东', '上海国际旅游度假区'];
-							for (var i = 0; i < extra.length; i++) list.push({ n: extra[i], py: '', ini: '' });
-						}
-						return list;
-					},
-					ttFiltered() {
-						var q = this.ttQuery.trim().toLowerCase();
-						if (!q) return this.ttStations;
-						return this.ttStations.filter(function(st) {
-							return st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1;
-						}).slice(0, 200);
-					},
 					timetableData() {
 						if (this.city === 'sy') return this.syTimetable;
 						if (this.city === 'sh') return this.shTimetable;
 						return this.bjTimetable;
 					},
-					ttLines() {
-						if (!this.ttStation) return [];
-						var tt = this.timetableData[this.ttStation];
-						if (!tt) return [];
-						var lines = this.stationLines(this.ttStation);
+					// All lines for the current city, in routes order, plus the
+					// timetable-only Shanghai lines (Maglev + Airport Link,
+					// not in routes.json) with their station order.
+					ttLineList() {
 						var out = [];
-						for (var i = 0; i < lines.length; i++) {
-							var ln = lines[i];
-							if (tt[ln.key]) out.push({ key: ln.key, name: ln.name, color: ln.color, text: ln.text, dirs: tt[ln.key] });
+						var R = this.routes;
+						if (R && R.lines) {
+							for (var k in R.lines) {
+								var L = R.lines[k];
+								out.push({ key: k, name: L.name, color: L.color, text: this.lineTextColor(L.color), stations: L.stations, loop: !!L.loop });
+							}
 						}
-						for (var k in tt) {
-							var found = false;
-							for (var j = 0; j < out.length; j++) if (out[j].key === k) { found = true; break; }
-							if (!found) out.push({ key: k, name: (k === 'AIR' ? '市域机场线' : k + '号线'), color: '888888', text: '#ffffff', dirs: tt[k] });
+						if (this.city === 'sh') {
+							out.push({ key: 'MAG', name: '磁浮线', color: '009944', text: '#ffffff', stations: ['龙阳路', '浦东1号2号航站楼'], loop: false });
+							out.push({ key: 'AIR', name: '市域机场线', color: '0066CC', text: '#ffffff', stations: ['虹桥2号航站楼', '中春路', '景洪路', '三林南', '康桥东', '上海国际旅游度假区', '浦东1号2号航站楼'], loop: false });
 						}
 						return out;
+					},
+					ttLineFiltered() {
+						var q = this.ttQuery.trim().toLowerCase();
+						if (!q) return this.ttLineList;
+						return this.ttLineList.filter(function(ln) {
+							return ln.name.toLowerCase().indexOf(q) !== -1 || ln.key.toLowerCase().indexOf(q) !== -1;
+						});
+					},
+					ttLineInfo() {
+						if (!this.ttLine) return null;
+						var list = this.ttLineList;
+						for (var i = 0; i < list.length; i++) if (list[i].key === this.ttLine) return list[i];
+						return null;
+					},
+					// Stations of the selected line, in order, each with its
+					// first/last trains for that line.
+					ttLineStations() {
+						var ln = this.ttLineInfo;
+						if (!ln) return [];
+						var tt = this.timetableData;
+						var out = [];
+						for (var j = 0; j < ln.stations.length; j++) {
+							var name = ln.stations[j];
+							var entry = tt[name];
+							var dirs = entry ? entry[ln.key] : null;
+							out.push({ n: name, dirs: dirs || [] });
+						}
+						return out;
+					},
+					ttLineStationFiltered() {
+						var list = this.ttLineStations;
+						var q = this.ttQuery.trim().toLowerCase();
+						if (!q) return list;
+						return list.filter(function(st) { return st.n.indexOf(q) !== -1; });
 					},
 					suggestList() {
 						var q = this.suggestFor === 'from' ? this.fromQuery : (this.suggestFor === 'to' ? this.toQuery : '');
