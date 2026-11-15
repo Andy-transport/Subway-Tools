@@ -64,6 +64,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     let shenyangRed = UIColor(red: 199.0 / 255.0, green: 33.0 / 255.0, blue: 45.0 / 255.0, alpha: 1)
     let shanghaiRed = UIColor(red: 230.0 / 255.0, green: 0, blue: 18.0 / 255.0, alpha: 1)
     let shanghaiRedDark = UIColor(red: 168.0 / 255.0, green: 0, blue: 12.0 / 255.0, alpha: 1)
+    // Shanghai search button gold (user asked for gold on the 上海 搜索
+    // button). Same champagne gold #D4B686 as the Shenyang theme gold.
+    let shanghaiGold = UIColor(red: 212.0 / 255.0, green: 182.0 / 255.0, blue: 134.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
 
@@ -199,10 +202,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return subwayBlue
     }
 
-    // Search button colour: red in Shenyang (user asked for red on the
-    // 搜索 button), city accent elsewhere (Beijing blue, Shanghai red).
+    // Search button colour: red in Shenyang, gold in Shanghai (user asked
+    // for 沈阳 red / 上海 gold on the 搜索 button), city accent elsewhere
+    // (Beijing blue).
     func searchButtonColor() -> UIColor {
         if currentCity == "sy" { return shenyangRed }
+        if currentCity == "sh" { return shanghaiGold }
         return accentColor()
     }
 
