@@ -530,17 +530,32 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // selected one shows a static accent tint. They overlay the
     // settings panel's .more-theme-seg row (same pattern as sortTabs);
     // the web hides its own row in the native app and reports the frame.
+    // Glass button config for the theme picker: Liquid Glass on iOS 26+,
+    // a filled capsule below (same pattern as the top pills). The
+    // .glass() call must sit inside the #available check — calling it
+    // unconditionally does not compile against the iOS 16 target
+    // (that is what failed build 52).
+    func themeButtonConfig() -> UIButton.Configuration {
+        var cfg: UIButton.Configuration
+        if #available(iOS 26.0, *) {
+            cfg = UIButton.Configuration.glass()
+        } else {
+            cfg = UIButton.Configuration.filled()
+        }
+        cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+            var a = attrs
+            a.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+            return a
+        }
+        return cfg
+    }
+
     func setupThemeButtons() {
         let titles = ["跟随系统", "浅色", "深色"]
         for (i, title) in titles.enumerated() {
             let btn = UIButton(type: .system)
-            var cfg = UIButton.Configuration.glass()
+            var cfg = themeButtonConfig()
             cfg.title = title
-            cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
-                var a = attrs
-                a.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-                return a
-            }
             btn.configuration = cfg
             btn.tag = i
             btn.translatesAutoresizingMaskIntoConstraints = true
@@ -565,7 +580,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // plain glass with the default label colour.
     func updateThemeButtons(selected idx: Int) {
         for (i, btn) in themeButtons.enumerated() {
-            var cfg = btn.configuration ?? UIButton.Configuration.glass()
+            var cfg = btn.configuration ?? themeButtonConfig()
             if i == idx {
                 cfg.baseForegroundColor = accentColor()
                 cfg.baseBackgroundColor = accentColor().withAlphaComponent(0.15)
