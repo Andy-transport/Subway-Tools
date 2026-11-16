@@ -39,7 +39,7 @@ mkdir -p build/Payload/Metro.app/web
 # TripAttributes.swift is compiled into the app too, so AppDelegate can
 # start/update the Live Activity.
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library \
-  -framework UIKit -framework WebKit -weak_framework ActivityKit \
+  -framework UIKit -framework WebKit -Xlinker -weak_framework -Xlinker ActivityKit \
   -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/LiveActivity/TripAttributes.swift
 
 echo "== 2b. compile Live Activity widget extension =="
