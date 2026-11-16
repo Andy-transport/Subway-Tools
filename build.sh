@@ -6,14 +6,13 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "== 0. select Xcode (iOS SDK 27.2) =="
+echo "== 0. select Xcode (prefer 27.3 beta, then 27.2/27.1/27.0) =="
 echo "Installed Xcode versions:"
 ls -d /Applications/Xcode*.app 2>/dev/null || echo "(none found)"
-# Back to Xcode 27.2 (build 41): the SDK 27 launch crash is fixed by
-# the Scene lifecycle migration (SceneDelegate owns the window), so
-# SDK 27.2 is safe again. Fall back to Xcode 27.1, then 27.0.
+# Try Xcode 27.3 beta first (user request), then 27.2, 27.1, 27.0.
+# The Scene lifecycle migration fixed the SDK 27 launch crash, so SDK 27.x is safe.
 XCODE_SEL=""
-for v in 27.2 27.1 27.0; do
+for v in 27.3 27.2 27.1 27.0; do
   CAND=$(ls -d /Applications/Xcode_${v}*.app 2>/dev/null | head -n 1)
   if [ -n "$CAND" ]; then XCODE_SEL="$CAND"; break; fi
 done
