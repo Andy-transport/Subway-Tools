@@ -86,6 +86,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var transferSearchButton: UIButton!
     var fromField: UITextField!
     var toField: UITextField!
+    // Label buttons beside the native transfer fields (出发/到达), stored
+    // so applyLanguage() can retitle them on a language change.
+    var fromLabelBtn: UIButton?
+    var toLabelBtn: UIButton?
     var fromBadge: UIButton!
     var toBadge: UIButton!
     var fromClear: UIButton!
@@ -150,6 +154,89 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var webViewTrailingToSideBar: NSLayoutConstraint!
     private var lastSideBarLayoutWidth: CGFloat = 0
 
+    // ---- i18n (build 64) ----
+    // Native string table: key -> [zh-Hans, zh-Hant, en]. zh-Hans is the
+    // default and the fallback. Mirrors the web I18N table for native UI.
+    static let LANG: [String: [String]] = [
+        "tab.transfer": ["换乘", "換乘", "Transfer"],
+        "tab.map": ["配线图", "配線圖", "Track Map"],
+        "tab.stations": ["搜索", "搜索", "Search"],
+        "tab.timetable": ["时刻表", "時刻表", "Timetable"],
+        "tab.more": ["设置", "設定", "Settings"],
+        "city.bj": ["北京", "北京", "Beijing"],
+        "city.sy": ["沈阳", "瀋陽", "Shenyang"],
+        "city.sh": ["上海", "上海", "Shanghai"],
+        "city.hb": ["哈尔滨", "哈爾濱", "Harbin"],
+        "city.dl": ["大连", "大連", "Dalian"],
+        "city.jh": ["金华", "金華", "Jinhua"],
+        "native.cancel": ["取消", "取消", "Cancel"],
+        "tr.tab.rec": ["推荐", "推薦", "Recommended"],
+        "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
+        "tr.tab.fewest": ["路径最短", "路徑最短", "Shortest"],
+        "tr.tab.cheap": ["节省票价", "節省票價", "Cheapest"],
+        "more.theme.system": ["跟随系统", "跟隨系統", "System"],
+        "more.theme.light": ["浅色", "淺色", "Light"],
+        "more.theme.dark": ["深色", "深色", "Dark"],
+        "tr.search": ["搜索", "搜索", "Search"],
+        "tr.departNow": ["现在出发", "現在出發", "Depart now"],
+        "time.confirm": ["确定", "確定", "Done"],
+        "time.done": ["完成", "完成", "Done"],
+        "map.searchStation": ["搜车站", "搜車站", "Search Stations"],
+        "native.switchCity": ["切换城市", "切換城市", "Switch City"],
+        "tr.phFrom": ["选择出发站", "選擇出發站", "Choose departure station"],
+        "tr.phTo": ["选择到达站", "選擇到達站", "Choose arrival station"],
+        "tr.depart": ["出发", "出發", "Depart"],
+        "tr.arrive": ["到达", "到達", "Arrive"],
+        "loc.perm": ["需要定位权限才能查找附近车站，请在系统设置中开启。", "需要定位權限才能查找附近車站，請在系統設定中開啟。", "Location permission is needed to find nearby stations. Please enable it in Settings."],
+        "loc.failed": ["无法获取定位。", "無法獲取定位。", "Couldn't get your location."],
+        "loc.retry": ["定位失败，请稍后重试。", "定位失敗，請稍後再試。", "Location failed. Please try again."],
+    ]
+    var currentLang: String = UserDefaults.standard.string(forKey: "metro-lang") ?? "zh-Hans"
+    func L(_ key: String) -> String {
+        let arr = Self.LANG[key] ?? [key, key, key]
+        let idx: Int
+        switch currentLang {
+        case "zh-Hant": idx = 1
+        case "en": idx = 2
+        default: idx = 0
+        }
+        return arr.indices.contains(idx) ? arr[idx] : arr[0]
+    }
+    // Called by the web langChanged post. Updates native UI only; the web
+    // already switched, so do NOT call setLang on the web here (no loop).
+    func setLang(_ lang: String) {
+        let l = (lang == "zh-Hant" || lang == "en") ? lang : "zh-Hans"
+        currentLang = l
+        UserDefaults.standard.set(l, forKey: "metro-lang")
+        applyLanguage()
+    }
+    // Re-apply all native strings for the current language.
+    func applyLanguage() {
+        let titles = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
+        if let items = tabBar?.items {
+            for (i, item) in items.enumerated() where i < titles.count { item.title = titles[i] }
+        }
+        updateCityPill()
+        if sortTabs != nil {
+            sortTabs.setTitle(L("tr.tab.rec"), forSegmentAt: 0)
+            sortTabs.setTitle(L("tr.tab.early"), forSegmentAt: 1)
+            sortTabs.setTitle(L("tr.tab.fewest"), forSegmentAt: 2)
+            sortTabs.setTitle(L("tr.tab.cheap"), forSegmentAt: 3)
+        }
+        let themeTitles = [L("more.theme.system"), L("more.theme.light"), L("more.theme.dark")]
+        for (i, btn) in themeButtons.enumerated() where i < themeTitles.count {
+            var cfg = btn.configuration ?? themeButtonConfig()
+            cfg.title = themeTitles[i]
+            btn.configuration = cfg
+        }
+        if transferSearchButton != nil { updateTransferSearchStyle() }
+        if fromField != nil { fromField.placeholder = L("tr.phFrom") }
+        if toField != nil { toField.placeholder = L("tr.phTo") }
+        fromLabelBtn?.setTitle(L("tr.depart"), for: .normal)
+        toLabelBtn?.setTitle(L("tr.arrive"), for: .normal)
+        updateSideBarSelection()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Restore the last-used city (build 37): relaunch opens on
@@ -174,6 +261,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "openRideCode")
         config.userContentController.add(self, name: "requestLocation")
         config.userContentController.add(self, name: "cityChanged")
+        config.userContentController.add(self, name: "langChanged")
         config.userContentController.add(self, name: "splashDone")
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
@@ -187,11 +275,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         tabBar.delegate = self
         tabBar.tintColor = accentColor()
         let items = [
-            UITabBarItem(title: "换乘", image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0),
-            UITabBarItem(title: "配线图", image: UIImage(systemName: "map"), tag: 1),
-            UITabBarItem(title: "搜索", image: UIImage(systemName: "magnifyingglass"), tag: 2),
-            UITabBarItem(title: "时刻表", image: UIImage(named: "TimetableIcon"), tag: 3),
-            UITabBarItem(title: "设置", image: UIImage(systemName: "gearshape"), tag: 4),
+            UITabBarItem(title: L("tab.transfer"), image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0),
+            UITabBarItem(title: L("tab.map"), image: UIImage(systemName: "map"), tag: 1),
+            UITabBarItem(title: L("tab.stations"), image: UIImage(systemName: "magnifyingglass"), tag: 2),
+            UITabBarItem(title: L("tab.timetable"), image: UIImage(named: "TimetableIcon"), tag: 3),
+            UITabBarItem(title: L("tab.more"), image: UIImage(systemName: "gearshape"), tag: 4),
         ]
         tabBar.items = items
         tabBar.selectedItem = items[1] // default tab is the map, same as the web page
@@ -444,11 +532,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func updateCityPill() {
         let name: String
         switch currentCity {
-        case "sy": name = "沈阳"
-        case "sh": name = "上海"
-        case "hb": name = "哈尔滨"
-        case "dl": name = "大连"
-        default: name = "北京"
+        name = L("city." + currentCity)
         }
         if #available(iOS 26.0, *) {
             var config = UIButton.Configuration.glass()
@@ -476,7 +560,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func updateSearchPill() {
         if #available(iOS 26.0, *) {
             var config = UIButton.Configuration.glass()
-            config.title = "搜车站"
+            config.title = L("map.searchStation")
             config.image = UIImage(systemName: "magnifyingglass")
             config.imagePadding = 6
             config.baseForegroundColor = accentColor()
@@ -484,7 +568,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 14)
             searchPill.configuration = config
         } else {
-            searchPill.setTitle("搜车站", for: .normal)
+            searchPill.setTitle(L("map.searchStation"), for: .normal)
             searchPill.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
             searchPill.setTitleColor(accentColor(), for: .normal)
             searchPill.backgroundColor = UIColor(white: 1, alpha: 0.72)
@@ -494,19 +578,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func cityMenu() -> UIMenu {
-        let bj = UIAction(title: "北京", state: currentCity == "bj" ? .on : .off) { [weak self] _ in
+        let bj = UIAction(title: L("city.bj"), state: currentCity == "bj" ? .on : .off) { [weak self] _ in
             self?.pickCity("bj")
         }
-        let sy = UIAction(title: "沈阳", state: currentCity == "sy" ? .on : .off) { [weak self] _ in
+        let sy = UIAction(title: L("city.sy"), state: currentCity == "sy" ? .on : .off) { [weak self] _ in
             self?.pickCity("sy")
         }
-        let sh = UIAction(title: "上海", state: currentCity == "sh" ? .on : .off) { [weak self] _ in
+        let sh = UIAction(title: L("city.sh"), state: currentCity == "sh" ? .on : .off) { [weak self] _ in
             self?.pickCity("sh")
         }
-        let hb = UIAction(title: "哈尔滨", state: currentCity == "hb" ? .on : .off) { [weak self] _ in
+        let hb = UIAction(title: L("city.hb"), state: currentCity == "hb" ? .on : .off) { [weak self] _ in
             self?.pickCity("hb")
         }
-        let dl = UIAction(title: "大连", state: currentCity == "dl" ? .on : .off) { [weak self] _ in
+        let dl = UIAction(title: L("city.dl"), state: currentCity == "dl" ? .on : .off) { [weak self] _ in
             self?.pickCity("dl")
         }
         return UIMenu(title: "", children: [bj, sy, sh, hb, dl])
@@ -516,23 +600,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // show it as a native action sheet in a popover anchored to the
     // city pill (top-left), never in the middle of the screen.
     func presentCityMenuPopover() {
-        let sheet = UIAlertController(title: "切换城市", message: nil, preferredStyle: .actionSheet)
-        sheet.addAction(UIAlertAction(title: currentCity == "bj" ? "✓ 北京" : "北京", style: .default) { [weak self] _ in
+        let sheet = UIAlertController(title: L("native.switchCity"), message: nil, preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: currentCity == "bj" ? "✓ " + L("city.bj") : L("city.bj"), style: .default) { [weak self] _ in
             self?.pickCity("bj")
         })
-        sheet.addAction(UIAlertAction(title: currentCity == "sy" ? "✓ 沈阳" : "沈阳", style: .default) { [weak self] _ in
+        sheet.addAction(UIAlertAction(title: currentCity == "sy" ? "✓ " + L("city.sy") : L("city.sy"), style: .default) { [weak self] _ in
             self?.pickCity("sy")
         })
-        sheet.addAction(UIAlertAction(title: currentCity == "sh" ? "✓ 上海" : "上海", style: .default) { [weak self] _ in
+        sheet.addAction(UIAlertAction(title: currentCity == "sh" ? "✓ " + L("city.sh") : L("city.sh"), style: .default) { [weak self] _ in
             self?.pickCity("sh")
         })
-        sheet.addAction(UIAlertAction(title: currentCity == "hb" ? "✓ 哈尔滨" : "哈尔滨", style: .default) { [weak self] _ in
+        sheet.addAction(UIAlertAction(title: currentCity == "hb" ? "✓ " + L("city.hb") : L("city.hb"), style: .default) { [weak self] _ in
             self?.pickCity("hb")
         })
-        sheet.addAction(UIAlertAction(title: currentCity == "dl" ? "✓ 大连" : "大连", style: .default) { [weak self] _ in
+        sheet.addAction(UIAlertAction(title: currentCity == "dl" ? "✓ " + L("city.dl") : L("city.dl"), style: .default) { [weak self] _ in
             self?.pickCity("dl")
         })
-        sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
+        sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
             pop.sourceView = view
@@ -578,7 +662,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // this control sits exactly where the web tabs were. Position is
     // frame-based (not Auto Layout) because the web panel moves it.
     func setupSortTabs() {
-        sortTabs = UISegmentedControl(items: ["推荐", "耗时最短", "路径最短", "节省票价"])
+        sortTabs = UISegmentedControl(items: [L("tr.tab.rec"), L("tr.tab.early"), L("tr.tab.fewest"), L("tr.tab.cheap")])
         sortTabs.selectedSegmentIndex = 0
         sortTabs.translatesAutoresizingMaskIntoConstraints = true
         sortTabs.isHidden = true
@@ -652,7 +736,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func setupThemeButtons() {
-        let titles = ["跟随系统", "浅色", "深色"]
+        let titles = [L("more.theme.system"), L("more.theme.light"), L("more.theme.dark")]
         for (i, title) in titles.enumerated() {
             let btn = UIButton(type: .system)
             var cfg = themeButtonConfig()
@@ -762,18 +846,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         ])
 
         // Two rows: dot + label + text field + line badge + clear.
-        fromField = makeTransferField(tag: 0, placeholder: "选择出发站")
-        toField = makeTransferField(tag: 1, placeholder: "选择到达站")
+        fromField = makeTransferField(tag: 0, placeholder: L("tr.phFrom"))
+        toField = makeTransferField(tag: 1, placeholder: L("tr.phTo"))
         fromBadge = makeTransferBadge(tag: 0)
         toBadge = makeTransferBadge(tag: 1)
         fromClear = makeTransferClear(tag: 0)
         toClear = makeTransferClear(tag: 1)
         let fromRow = makeTransferRow(dotColor: UIColor(red: 34.0 / 255.0, green: 160.0 / 255.0, blue: 107.0 / 255.0, alpha: 1),
-                                      labelTitle: "出发", labelTag: 0,
+                                      labelTitle: L("tr.depart"), labelTag: 0,
                                       field: fromField, badge: fromBadge, clear: fromClear)
         let toRow = makeTransferRow(dotColor: UIColor(red: 229.0 / 255.0, green: 72.0 / 255.0, blue: 77.0 / 255.0, alpha: 1),
-                                    labelTitle: "到达", labelTag: 1,
+                                    labelTitle: L("tr.arrive"), labelTag: 1,
                                     field: toField, badge: toBadge, clear: toClear)
+        fromLabelBtn = fromRow.arrangedSubviews[1] as? UIButton
+        toLabelBtn = toRow.arrangedSubviews[1] as? UIButton
         for row in [fromRow, toRow] {
             row.translatesAutoresizingMaskIntoConstraints = false
             content.addSubview(row)
@@ -902,7 +988,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func makeKeyboardToolbar() -> UIToolbar {
         let tb = UIToolbar()
         tb.sizeToFit()
-        let done = UIBarButtonItem(title: "完成", style: .done, target: self, action: #selector(dismissTransferKeyboard))
+        let done = UIBarButtonItem(title: L("time.done"), style: .done, target: self, action: #selector(dismissTransferKeyboard))
         tb.items = [UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil), done]
         return tb
     }
@@ -1007,7 +1093,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // the height (set in placeTransfer), masksToBounds — the blue
         // itself IS the capsule, so nothing can overflow it.
         transferSearchButton.configuration = nil
-        transferSearchButton.setTitle("搜索", for: .normal)
+        transferSearchButton.setTitle(L("tr.search"), for: .normal)
         transferSearchButton.setTitleColor(.white, for: .normal)
         transferSearchButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         transferSearchButton.backgroundColor = searchButtonColor()
@@ -1197,7 +1283,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let picker = UIDatePicker()
         picker.datePickerMode = .time
         if #available(iOS 13.4, *) { picker.preferredDatePickerStyle = .wheels }
-        picker.locale = Locale(identifier: "zh_CN")
+        picker.locale = Locale(identifier: currentLang == "en" ? "en_US" : (currentLang == "zh-Hant" ? "zh_TW" : "zh_CN"))
         if let t = current {
             let fmt = DateFormatter()
             fmt.dateFormat = "HH:mm"
@@ -1207,7 +1293,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         vc.view.addSubview(picker)
 
         let nowButton = UIButton(type: .system)
-        nowButton.setTitle("现在出发", for: .normal)
+        nowButton.setTitle(L("tr.departNow"), for: .normal)
         nowButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
         nowButton.setTitleColor(accentDark(), for: .normal)
         nowButton.addTarget(self, action: #selector(timePickerNow), for: .touchUpInside)
@@ -1215,7 +1301,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         vc.view.addSubview(nowButton)
 
         let doneButton = UIButton(type: .system)
-        doneButton.setTitle("确定", for: .normal)
+        doneButton.setTitle(L("time.confirm"), for: .normal)
         doneButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
         doneButton.setTitleColor(accentDark(), for: .normal)
         doneButton.addTarget(self, action: #selector(timePickerDone(_:)), for: .touchUpInside)
@@ -1335,9 +1421,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             locationPending = true
             lm.requestLocation()
         case .denied, .restricted:
-            notifyLocationError("需要定位权限才能查找附近车站，请在系统设置中开启。")
+            notifyLocationError(L("loc.perm"))
         @unknown default:
-            notifyLocationError("无法获取定位。")
+            notifyLocationError(L("loc.failed"))
         }
     }
 
@@ -1349,7 +1435,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             manager.requestLocation()
         case .denied, .restricted:
             locationPending = false
-            notifyLocationError("需要定位权限才能查找附近车站，请在系统设置中开启。")
+            notifyLocationError(L("loc.perm"))
         default:
             break
         }
@@ -1367,7 +1453,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         guard locationPending else { return }
         locationPending = false
-        notifyLocationError("定位失败，请稍后重试。")
+        notifyLocationError(L("loc.retry"))
     }
 
     func notifyLocationError(_ message: String) {
@@ -1456,7 +1542,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             stack.bottomAnchor.constraint(equalTo: sideBarEffectView.contentView.bottomAnchor, constant: -10),
         ])
 
-        let titles = ["换乘", "配线图", "搜索", "时刻表", "设置"]
+        let titles = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
         let images: [UIImage?] = [
             UIImage(systemName: "arrow.triangle.2.circlepath"),
             UIImage(systemName: "map"),
@@ -1542,7 +1628,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func updateSideBarSelection() {
         guard !sideBarButtons.isEmpty else { return }
         let idx = tabKeys.firstIndex(of: currentTab) ?? 1
-        let titles = ["换乘", "配线图", "搜索", "时刻表", "设置"]
+        let titles = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
         let images: [UIImage?] = [
             UIImage(systemName: "arrow.triangle.2.circlepath"),
             UIImage(systemName: "map"),
@@ -1596,6 +1682,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 currentCity = city
                 refreshCityUI()
             }
+        } else if message.name == "langChanged",
+                  let dict = message.body as? [String: Any],
+                  let lang = dict["lang"] as? String {
+            // The web switched languages (settings picker or the startup
+            // restore). Mirror it natively; the web already switched, so
+            // do NOT call setLang on the web here (that would loop).
+            setLang(lang)
         } else if message.name == "tabsFrame",
                   let dict = message.body as? [String: Any] {
             placeSortTabs(frame: dict)

@@ -450,6 +450,7 @@
 		.sp-clear { border: none; background: rgba(0,0,0,0.08); color: #666; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; line-height: 1; padding: 0; flex: none; }
 		.sp-cancel { border: none; background: transparent; color: #003380; font-size: 16px; padding: 8px 4px; flex: none; }
 		.sp-count { padding: 6px 20px 2px; font-size: 12px; color: #888; }
+		.lang-en .sp-py, .lang-en .tr-sug-py { display: none; }
 		.sp-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 12px 12px; }
 		.sp-row { padding: 12px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
 		.sp-name { font-size: 17px; color: #111; }
@@ -507,6 +508,15 @@
 		.more-theme-seg { display: flex; gap: 6px; }
 		.more-theme-seg button { flex: 1; border: 1px solid rgba(0, 51, 128, 0.2); background: rgba(255, 255, 255, 0.6); color: #003380; font-size: 14px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
 		.more-theme-seg button.on { background: #003380; border-color: #003380; color: #fff; }
+		.more-lang-seg { display: flex; gap: 6px; }
+		.more-lang-seg button { flex: 1; border: 1px solid rgba(0, 51, 128, 0.2); background: rgba(255, 255, 255, 0.6); color: #003380; font-size: 14px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
+		.more-lang-seg button.on { background: #003380; border-color: #003380; color: #fff; }
+		.sy-theme .more-lang-seg button { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
+		.sy-theme .more-lang-seg button.on { background: #b08d57; border-color: #b08d57; color: #fff; }
+		.sh-theme .more-lang-seg button { color: #a8000c; border-color: rgba(230,0,18,0.35); }
+		.sh-theme .more-lang-seg button.on { background: #e60012; border-color: #e60012; color: #fff; }
+		html.dark .more-lang-seg button { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.08); color: #cfe0ff; }
+		html.dark .more-lang-seg button.on { background: #9cc2ff; border-color: #9cc2ff; color: #10203f; }
 
 		/* --- transfer (换乘) page --- */
 		#transferPanel {
@@ -710,7 +720,7 @@
 
 
 	<body>
-		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'native-app': nativeApp }">
+		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'native-app': nativeApp, ['lang-' + lang]: true }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="sideMenuDiv">
 				<div class="sideMenuCard" v-for="sMenu in sideMenu" :onclick="sMenu.onclick">
@@ -728,36 +738,36 @@
 
 			<div class="center" id="crosshair" v-if="showCrosshair"></div>
 			<div id="brandChip" class="glass" v-if="tab==='map' && !nativeApp" @click="showCityMenu">
-				<img v-if="cityLogo" :src="cityLogo" :alt="cityName + '地铁'">
+				<img v-if="cityLogo" :src="cityLogo" :alt="t('city.metro', {c: cityName})">
 				<span class="bj-city">{{ cityName }}</span>
 				<svg class="bj-chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
 			</div>
 
 			<div id="searchPill" class="glass" v-if="tab==='map' && !nativeApp" @click="openStations">
 				<svg viewBox="0 0 24 24" width="25" height="25"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z" fill="currentColor"/></svg>
-				<span>搜车站</span>
+				<span>{{ t('map.searchStation') }}</span>
 			</div>
 
 			<div id="tabBar">
 				<div class="tab" :class="{ active: tab==='transfer' }" @click="setTab('transfer')">
 					<svg viewBox="0 0 24 24" width="25" height="25"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" fill="currentColor"/></svg>
-					<span>换乘</span>
+					<span>{{ t('tab.transfer') }}</span>
 				</div>
 				<div class="tab" :class="{ active: tab==='map' }" @click="setTab('map')">
 					<svg viewBox="0 0 24 24" width="25" height="25"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" fill="currentColor"/></svg>
-					<span>配线图</span>
+					<span>{{ t('tab.map') }}</span>
 				</div>
 				<div class="tab" :class="{ active: tab==='stations' }" @click="setTab('stations')">
 					<svg viewBox="0 0 24 24" width="25" height="25"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z" fill="currentColor"/></svg>
-					<span>搜索</span>
+					<span>{{ t('tab.stations') }}</span>
 				</div>
 				<div class="tab" :class="{ active: tab==='timetable' }" @click="setTab('timetable')">
 					<img class="tt-tab-icon" :src="ttIcon" width="25" height="25">
-					<span>时刻表</span>
+					<span>{{ t('tab.timetable') }}</span>
 				</div>
 				<div class="tab" :class="{ active: tab==='more' }" @click="setTab('more')">
 					<svg viewBox="0 0 24 24" width="25" height="25"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
-					<span>设置</span>
+					<span>{{ t('tab.more') }}</span>
 				</div>
 			</div>
 
@@ -765,19 +775,19 @@
 				<div class="sp-head">
 					<div class="sp-search">
 						<svg viewBox="0 0 24 24" width="25" height="25"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z" fill="currentColor"/></svg>
-						<input ref="searchInput" v-model="query" type="search" placeholder="车站、拼音或首字母" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<input ref="searchInput" v-model="query" type="search" :placeholder="t('search.ph')" autocomplete="off" autocapitalize="off" spellcheck="false">
 						<button class="sp-clear" v-if="query" @click="clearQuery">✕</button>
 					</div>
-					<button class="sp-cancel" @click="closeStations">取消</button>
+					<button class="sp-cancel" @click="closeStations">{{ t('search.cancel') }}</button>
 				</div>
-				<div class="sp-pick" v-if="pickFor">{{ pickFor === 'from' ? '选择出发站' : '选择到达站' }}</div>
-				<div class="sp-count">{{ query ? ('找到 ' + filteredStations.length + ' 个') : ('共 ' + stations.length + ' 个车站') }}</div>
+				<div class="sp-pick" v-if="pickFor">{{ pickFor === 'from' ? t('search.pickFrom') : t('search.pickTo') }}</div>
+				<div class="sp-count">{{ query ? t('search.found', {n: filteredStations.length}) : t('search.total', {n: stations.length}) }}</div>
 				<div class="sp-list">
 					<div class="sp-row" v-for="st in filteredStations" :key="st.n" @click="goStation(st)">
-						<div class="sp-name">{{ st.n }}</div>
+						<div class="sp-name">{{ stName(st) }}</div>
 						<div class="sp-py">{{ st.py }}</div>
 					</div>
-					<div class="sp-empty" v-if="filteredStations.length === 0">没有找到相关车站</div>
+					<div class="sp-empty" v-if="filteredStations.length === 0">{{ t('search.empty') }}</div>
 				</div>
 			</div>
 
@@ -785,110 +795,110 @@
 				<div class="sp-head">
 					<div class="sp-search">
 						<svg viewBox="0 0 24 24" width="25" height="25"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-18c4.41 0 8 3.59 8 8s-3.59 8-8 8-8-3.59-8-8 3.59-8 8-8zm.5 4H11v6l5.25 3.15.75-1.23-4.5-2.67V8z" fill="currentColor"/></svg>
-						<input ref="ttInput" v-model="ttQuery" type="search" :placeholder="ttLine ? '输入车站名' : '输入线路名'" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<input ref="ttInput" v-model="ttQuery" type="search" :placeholder="ttLine ? t('tt.phStation') : t('tt.phLine')" autocomplete="off" autocapitalize="off" spellcheck="false">
 						<button class="sp-clear" v-if="ttQuery" @click="ttQuery=''">✕</button>
 					</div>
-					<button class="sp-cancel" @click="closeTimetable">取消</button>
+					<button class="sp-cancel" @click="closeTimetable">{{ t('search.cancel') }}</button>
 				</div>
 				<div v-if="!ttLine" class="tt-list-wrap">
-					<div class="sp-count">{{ ttQuery ? ('找到 ' + ttLineFiltered.length + ' 条') : ('共 ' + ttLineList.length + ' 条线路') }}</div>
+					<div class="sp-count">{{ ttQuery ? t('tt.foundLines', {n: ttLineFiltered.length}) : t('tt.totalLines', {n: ttLineList.length}) }}</div>
 					<div class="sp-list">
 						<div class="sp-row" v-for="ln in ttLineFiltered" :key="ln.key" @click="pickTtLine(ln.key)">
-							<div class="sp-name"><span class="tt-badge" :style="{ background: '#' + ln.color, color: ln.text }">{{ ln.name }}</span></div>
-							<div class="sp-py">{{ ln.loop ? '环线' : (ln.stations[0] + ' — ' + ln.stations[ln.stations.length - 1]) }}</div>
+							<div class="sp-name"><span class="tt-badge" :style="{ background: '#' + ln.color, color: ln.text }">{{ lineName(ln.name, ln.key) }}</span></div>
+							<div class="sp-py">{{ ln.loop ? t('tt.loop') : (stNameStr(ln.stations[0]) + ' — ' + stNameStr(ln.stations[ln.stations.length - 1])) }}</div>
 						</div>
-						<div class="sp-empty" v-if="ttLineFiltered.length === 0">没有找到相关线路</div>
+						<div class="sp-empty" v-if="ttLineFiltered.length === 0">{{ t('tt.noLines') }}</div>
 					</div>
 				</div>
 				<div v-else class="tt-view">
 					<div class="tt-title">
-						<button class="tt-back" @click="ttLine=null; ttQuery=''">‹ 返回</button>
-						<span class="tt-badge" :style="{ background: '#' + ttLineInfo.color, color: ttLineInfo.text }">{{ ttLineInfo.name }}</span>
-						<span class="tt-count">{{ ttLineStationFiltered.length }} 个车站</span>
+						<button class="tt-back" @click="ttLine=null; ttQuery=''">‹ {{ t('tt.back') }}</button>
+						<span class="tt-badge" :style="{ background: '#' + ttLineInfo.color, color: ttLineInfo.text }">{{ lineName(ttLineInfo.name, ttLineInfo.key) }}</span>
+						<span class="tt-count">{{ t('tt.stations', {n: ttLineStationFiltered.length}) }}</span>
 					</div>
 					<div class="tt-lines">
 						<div class="tt-station" v-for="st in ttLineStationFiltered" :key="st.n">
-							<div class="tt-st-name">{{ st.n }}</div>
+							<div class="tt-st-name">{{ stNameStr(st.n) }}</div>
 							<div v-if="st.dirs.length">
 								<div class="tt-dir" v-for="d in st.dirs" :key="d.dir">
-									<span class="tt-dir-name">往{{ d.dir }}</span>
-									<span class="tt-time" v-if="d.first || d.last">首班 <b>{{ d.first || '—' }}</b>&nbsp;&nbsp;末班 <b>{{ d.last || '—' }}</b></span>
+									<span class="tt-dir-name">{{ t('tt.to', {d: stNameStr(d.dir)}) }}</span>
+									<span class="tt-time" v-if="d.first || d.last">{{ t('tt.first') }} <b>{{ d.first || '—' }}</b>&nbsp;&nbsp;{{ t('tt.last') }} <b>{{ d.last || '—' }}</b></span>
 								<span class="tt-op" :class="opClass(d)" v-if="opLabel(d)">{{ opLabel(d) }}</span>
-									<span class="tt-time" v-else>终点站</span>
+									<span class="tt-time" v-else>{{ t('tt.terminus') }}</span>
 								</div>
 							</div>
-							<div class="tt-time" v-else>暂无数据</div>
+							<div class="tt-time" v-else>{{ t('tt.nodata') }}</div>
 						</div>
 					</div>
-					<div class="tt-note">周日–周四标准时刻表；周五、周六末班车可能延后。<span v-if="city==='sy'">沈阳为冬季时刻表（2026-11-01 至 2027-03-31），2027-04-01 起执行夏季时刻表。3号线甘官以东车站往李达方向末班为半程车，终点站甘官。</span><span v-if="city==='hb'">哈尔滨时刻表为估算值（首末班 05:30–22:30，按站间约 2 分钟推算），请以车站公布为准。</span><span v-if="city==='dl'">大连5号线时刻表为估算值（按站间距离推算），请以车站公布为准；3号线大连站往金石滩末班 19:30，往保税区末班 21:30。</span></div>
+					<div class="tt-note">{{ t('tt.note') }}<span v-if="city==='sy'">{{ t('tt.note.sy') }}</span><span v-if="city==='hb'">{{ t('tt.note.hb') }}</span><span v-if="city==='dl'">{{ t('tt.note.dl') }}</span></div>
 				</div>
 			</div>
 
 			<div id="transferPanel" v-show="showTransfer">
 				<div class="tr-head">
 					<div class="tr-city" @click="showCityMenu">
-						<img v-if="cityLogo" :src="cityLogo" :alt="cityName + '地铁'">
+						<img v-if="cityLogo" :src="cityLogo" :alt="t('city.metro', {c: cityName})">
 						<span>{{ cityName }}</span>
 						<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
 					</div>
-					<div class="tr-time" @click="showTimePicker">{{ departTime ? departTime + ' 出发' : '现在出发' }} ▾</div>
+					<div class="tr-time" @click="showTimePicker">{{ departTime ? t('tr.departAt', {t: departTime}) : t('tr.departNow') }} ▾</div>
 				</div>
 				<div class="tr-fields glass">
 					<div class="tr-field">
 						<span class="tr-dot from"></span>
-						<span class="tr-label" @click="openPick('from')">出发</span>
-						<input class="tr-input" type="text" v-model="fromQuery" @focus="suggestFor = 'from'" @input="onQueryInput('from')" @blur="hideSuggest" placeholder="选择出发站" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<span class="tr-label" @click="openPick('from')">{{ t('tr.depart') }}</span>
+						<input class="tr-input" type="text" v-model="fromQuery" @focus="suggestFor = 'from'" @input="onQueryInput('from')" @blur="hideSuggest" :placeholder="t('tr.phFrom')" autocomplete="off" autocapitalize="off" spellcheck="false">
 						<span class="tr-line-pick" v-if="fromLine" :style="{ background: '#' + fromLine.color, color: fromLine.text }" @click="clearLine('from')">{{ fromLine.name }}</span>
 						<button class="tr-clear" v-if="fromQuery" @click="clearStation('from')">✕</button>
 					</div>
 					<div class="tr-field">
 						<span class="tr-dot to"></span>
-						<span class="tr-label" @click="openPick('to')">到达</span>
-						<input class="tr-input" type="text" v-model="toQuery" @focus="suggestFor = 'to'" @input="onQueryInput('to')" @blur="hideSuggest" placeholder="选择到达站" autocomplete="off" autocapitalize="off" spellcheck="false">
+						<span class="tr-label" @click="openPick('to')">{{ t('tr.arrive') }}</span>
+						<input class="tr-input" type="text" v-model="toQuery" @focus="suggestFor = 'to'" @input="onQueryInput('to')" @blur="hideSuggest" :placeholder="t('tr.phTo')" autocomplete="off" autocapitalize="off" spellcheck="false">
 						<span class="tr-line-pick" v-if="toLine" :style="{ background: '#' + toLine.color, color: toLine.text }" @click="clearLine('to')">{{ toLine.name }}</span>
 						<button class="tr-clear" v-if="toQuery" @click="clearStation('to')">✕</button>
 					</div>
-					<button class="tr-swap" @click="swapStations" aria-label="交换出发和到达">
+					<button class="tr-swap" @click="swapStations" :aria-label="t('tr.swap')">
 						<svg viewBox="0 0 24 24"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 					</button>
 				</div>
 				<div class="tr-suggest glass" v-if="suggestFor">
 					<div class="tr-sug-row" v-for="opt in suggestList" :key="opt.st.n + '|' + opt.line.key" @click="pickSuggest(opt)">
-						<span class="tr-sug-name">{{ opt.st.n }}</span>
-						<span class="tr-sug-lines"><span class="tr-sug-line" :style="{ background: '#' + opt.line.color, color: opt.line.text }">{{ opt.line.name }}</span></span>
+						<span class="tr-sug-name">{{ stName(opt.st) }}</span>
+						<span class="tr-sug-lines"><span class="tr-sug-line" :style="{ background: '#' + opt.line.color, color: opt.line.text }">{{ lineName(opt.line.name, opt.line.key) }}</span></span>
 						<span class="tr-sug-py">{{ opt.st.py }}</span>
 					</div>
-					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? fromQuery : toQuery) ? '没有找到相关车站' : '输入站名、拼音或首字母' }}</div>
+					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? fromQuery : toQuery) ? t('tr.noStation') : t('tr.typeHint') }}</div>
 				</div>
 				<div class="tr-tabs" v-if="routeList.length">
-					<button :class="{ on: routeTab === 'rec' }" @click="setRouteTab('rec')">推荐</button>
-					<button :class="{ on: routeTab === 'early' }" @click="setRouteTab('early')">耗时最短</button>
-					<button :class="{ on: routeTab === 'fewest' }" @click="setRouteTab('fewest')">路径最短</button>
-					<button :class="{ on: routeTab === 'cheap' }" @click="setRouteTab('cheap')">节省票价</button>
+					<button :class="{ on: routeTab === 'rec' }" @click="setRouteTab('rec')">{{ t('tr.tab.rec') }}</button>
+					<button :class="{ on: routeTab === 'early' }" @click="setRouteTab('early')">{{ t('tr.tab.early') }}</button>
+					<button :class="{ on: routeTab === 'fewest' }" @click="setRouteTab('fewest')">{{ t('tr.tab.fewest') }}</button>
+					<button :class="{ on: routeTab === 'cheap' }" @click="setRouteTab('cheap')">{{ t('tr.tab.cheap') }}</button>
 				</div>
-				<button class="tr-search" @click="doSearch">搜索</button>
+				<button class="tr-search" @click="doSearch">{{ t('tr.search') }}</button>
 				<div class="tr-transit" @click="openTransitApp"><img v-if="transitIcon" :src="transitIcon" :alt="transitLabel"><span>{{ transitLabel }} ›</span></div>
-				<div class="tr-ridecode" @click="openRideCode"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="14" width="3" height="3" fill="currentColor"/><rect x="18" y="14" width="3" height="3" fill="currentColor"/><rect x="14" y="18" width="3" height="3" fill="currentColor"/><rect x="18" y="18" width="3" height="3" fill="currentColor"/></svg><span>乘车码 ›</span></div>
-				<div class="tr-nearby-row" @click="requestNearbyStations"><span>📍 附近车站</span><span v-if="nearbyLoading">定位中…</span></div>
+				<div class="tr-ridecode" @click="openRideCode"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="14" width="3" height="3" fill="currentColor"/><rect x="18" y="14" width="3" height="3" fill="currentColor"/><rect x="14" y="18" width="3" height="3" fill="currentColor"/><rect x="18" y="18" width="3" height="3" fill="currentColor"/></svg><span>{{ t('tr.ridecode') }} ›</span></div>
+				<div class="tr-nearby-row" @click="requestNearbyStations"><span>{{ t('tr.nearby') }}</span><span v-if="nearbyLoading">{{ t('tr.nearby.locating') }}</span></div>
 				<div class="tr-nearby" v-if="nearbyList.length">
-					<div class="tr-nearby-item" v-for="s in nearbyList" :key="s.n" @click="pickNearby(s)"><span>{{ s.n }}</span><span class="tr-nearby-dist">{{ s.distText }}</span></div>
+					<div class="tr-nearby-item" v-for="s in nearbyList" :key="s.n" @click="pickNearby(s)"><span>{{ stNameStr(s.n) }}</span><span class="tr-nearby-dist">{{ s.distText }}</span></div>
 				</div>
 				<div class="tr-nearby-msg" v-if="nearbyMsg">{{ nearbyMsg }}</div>
 				<div class="tr-history" v-if="searchHistory.length">
-					<div class="tr-history-head"><span>搜索记录</span><button @click="clearSearchHistory">清除</button></div>
-					<div class="tr-history-item" v-for="(h, i) in searchHistory" :key="i" @click="runHistory(h)"><span class="tr-history-route">{{ h.from }} → {{ h.to }}</span><span class="tr-history-city">{{ cityNameFor(h.city) }}</span><button class="tr-history-del" @click.stop="deleteHistoryItem(i)">×</button></div>
+					<div class="tr-history-head"><span>{{ t('tr.history') }}</span><button @click="clearSearchHistory">{{ t('tr.history.clear') }}</button></div>
+					<div class="tr-history-item" v-for="(h, i) in searchHistory" :key="i" @click="runHistory(h)"><span class="tr-history-route">{{ stNameStr(h.from) }} → {{ stNameStr(h.to) }}</span><span class="tr-history-city">{{ cityNameFor(h.city) }}</span><button class="tr-history-del" @click.stop="deleteHistoryItem(i)">×</button></div>
 				</div>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
 				<div class="tr-routes" v-if="routeList.length">
 					<div class="ropt" v-for="(r, idx) in sortedRoutes" :key="idx" :class="{ sel: routeResult === r }" @click="pickRoute(r)">
 						<div class="ropt-num">{{ idx + 1 }}</div>
 						<div class="ropt-main">
-							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ r.minutes }} 分钟</span></div>
-							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>换乘 {{ r.transfers }} 次 · 约 {{ r.km }} 公里</div>
+							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ t('tr.minutes', {n: r.minutes}) }}</span></div>
+							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>{{ t('tr.transfers', {n: r.transfers}) }} · {{ t('tr.km', {n: r.km}) }}</div>
 							<div class="ropt-opwarn" v-if="routeOpWarning(r)">⚠ {{ routeOpWarning(r) }}</div>
-							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line" :style="{ background: '#' + seg.color, color: seg.text }">{{ seg.name }}</span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ {{ seg.to }}</span></template></div>
+							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line" :style="{ background: '#' + seg.color, color: seg.text }">{{ lineName(seg.name, seg.line) }}</span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ {{ stNameStr(seg.to) }}</span></template></div>
 						</div>
-						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">早</span><span class="ropt-badge few" v-if="r.isShortest">短</span><span class="ropt-badge cheap" v-if="r.isCheap">省</span></div>
+						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="r.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="r.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 					</div>
 				</div>
 				<div class="tr-fare" :class="{ warn: fareWarn() }" v-if="routeResult">
@@ -902,12 +912,12 @@
 							<span>{{ virtualInfo(i) }}</span>
 						</div>
 						<div class="tr-seg" @click="goSegment(seg)">
-							<span class="tr-chip" :style="{ background: '#' + seg.color, color: seg.text }">{{ seg.name }}</span>
-							<span class="tr-seg-txt">{{ seg.from }} → {{ seg.to }}</span>
-							<span class="tr-seg-n">{{ seg.stops }} 站</span>
+							<span class="tr-chip" :style="{ background: '#' + seg.color, color: seg.text }">{{ lineName(seg.name, seg.line) }}</span>
+							<span class="tr-seg-txt">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</span>
+							<span class="tr-seg-n">{{ t('tr.stops', {n: seg.stops}) }}</span>
 						</div>
 					</template>
-					<div class="tr-hint">点一段可在图上查看</div>
+					<div class="tr-hint">{{ t('tr.hint') }}</div>
 				</div>
 			</div>
 
@@ -918,39 +928,49 @@
 					<img class="more-appicon" :src="cityLogo()" alt="">
 					<div>
 						<div class="more-appname">Subway motion</div>
-						<div class="more-appver">版本 1.0.3</div>
+						<div class="more-appver">{{ t('more.version', {v: '1.0.3'}) }}</div>
 					</div>
 				</div>
-				<div class="more-section">切换城市</div>
+				<div class="more-section">{{ t('more.switchCity') }}</div>
 				<div class="more-card">
 					<div class="more-city-row" v-for="c in cityList" :key="c.key" @click="switchCityKeepSettings(c.key)"><span>{{ c.name }}</span><span class="more-check" v-if="city === c.key">✓</span></div>
 				</div>
-				<div class="more-section">深色模式</div>
+				<div class="more-section">{{ t('more.theme') }}</div>
 				<div class="more-card">
 					<div class="more-theme">
 						<div class="more-theme-seg">
-							<button :class="{ on: theme==='system' }" @click="setTheme('system')">跟随系统</button>
-							<button :class="{ on: theme==='light' }" @click="setTheme('light')">浅色</button>
-							<button :class="{ on: theme==='dark' }" @click="setTheme('dark')">深色</button>
+							<button :class="{ on: theme==='system' }" @click="setTheme('system')">{{ t('more.theme.system') }}</button>
+							<button :class="{ on: theme==='light' }" @click="setTheme('light')">{{ t('more.theme.light') }}</button>
+							<button :class="{ on: theme==='dark' }" @click="setTheme('dark')">{{ t('more.theme.dark') }}</button>
 						</div>
 					</div>
 				</div>
-				<div class="more-section">更多</div>
+				<div class="more-section">{{ t('more.lang') }}</div>
+				<div class="more-card">
+					<div class="more-theme">
+						<div class="more-lang-seg">
+							<button :class="{ on: lang==='zh-Hans' }" @click="setLang('zh-Hans')">简体中文</button>
+							<button :class="{ on: lang==='zh-Hant' }" @click="setLang('zh-Hant')">繁體中文</button>
+							<button :class="{ on: lang==='en' }" @click="setLang('en')">English</button>
+						</div>
+					</div>
+				</div>
+				<div class="more-section">{{ t('more.more') }}</div>
 				<div class="more-card">
 					<div class="more-row" @click="doReset">
 						<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" fill="currentColor"/></svg>
-						<span>重置缩放</span>
+						<span>{{ t('more.reset') }}</span>
 					</div>
 					<div class="more-row" @click="doRepo">
 						<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"/></svg>
-						<span>项目主页</span>
+						<span>{{ t('more.repo') }}</span>
 					</div>
 					<div class="more-row" @click="doPdf">
 						<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
-						<span>下载PDF</span>
+						<span>{{ t('more.pdf') }}</span>
 					</div>
 				</div>
-				<div class="more-credit">数据来源 SierraQin · CC0 1.0</div>
+				<div class="more-credit">{{ t('more.credit') }}</div>
 			</div>
 
 <span id="svgDiv" v-html="curr.svgDom"></span>
@@ -973,6 +993,157 @@
 			};
 
 
+
+// ---- i18n (build 64): central string table ----
+// lang index: 0 = zh-Hans (Simplified, default), 1 = zh-Hant (Traditional), 2 = en (English).
+// zh-Hant values generated with OpenCC s2t (verified); en is hand-written.
+var I18N = {
+  'tab.transfer': ['换乘', '換乘', 'Transfer'],
+  'tab.map': ['配线图', '配線圖', 'Track Map'],
+  'tab.stations': ['搜索', '搜索', 'Search'],
+  'tab.timetable': ['时刻表', '時刻表', 'Timetable'],
+  'tab.more': ['设置', '設置', 'Settings'],
+  'search.ph': ['车站、拼音或首字母', '車站、拼音或首字母', 'Station, pinyin or initials'],
+  'search.cancel': ['取消', '取消', 'Cancel'],
+  'search.pickFrom': ['选择出发站', '選擇出發站', 'Select departure station'],
+  'search.pickTo': ['选择到达站', '選擇到達站', 'Select arrival station'],
+  'search.found': ['找到 {n} 个', '找到 {n} 個', '{n} found'],
+  'search.total': ['共 {n} 个车站', '共 {n} 個車站', '{n} stations'],
+  'search.empty': ['没有找到相关车站', '沒有找到相關車站', 'No matching stations'],
+  'map.searchStation': ['搜车站', '搜車站', 'Search stations'],
+  'map.verInfo': ['{c}地铁线网图 , {d} , {l}条线 {s}站', '{c}地鐵線網圖 , {d} , {l}條線 {s}站', '{c} Metro network map, {d}, {l} lines, {s} stations'],
+  'tt.phLine': ['输入线路名', '輸入線路名', 'Enter line name'],
+  'tt.phStation': ['输入车站名', '輸入車站名', 'Enter station name'],
+  'tt.foundLines': ['找到 {n} 条', '找到 {n} 條', '{n} lines found'],
+  'tt.totalLines': ['共 {n} 条线路', '共 {n} 條線路', '{n} lines'],
+  'tt.noLines': ['没有找到相关线路', '沒有找到相關線路', 'No matching lines'],
+  'tt.back': ['返回', '返回', 'Back'],
+  'tt.stations': ['{n} 个车站', '{n} 個車站', '{n} stations'],
+  'tt.loop': ['环线', '環線', 'Loop'],
+  'tt.to': ['往{d}', '往{d}', 'To {d}'],
+  'tt.first': ['首班', '首班', 'First'],
+  'tt.last': ['末班', '末班', 'Last'],
+  'tt.terminus': ['终点站', '終點站', 'Terminus'],
+  'tt.nodata': ['暂无数据', '暫無數據', 'No data'],
+  'tt.note': ['周日–周四标准时刻表；周五、周六末班车可能延后。', '週日–週四標準時刻表；週五、週六末班車可能延後。', 'Sun–Thu standard timetable; Fri/Sat last trains may run later.'],
+  'tt.note.sy': ['沈阳为冬季时刻表（2026-11-01 至 2027-03-31），2027-04-01 起执行夏季时刻表。3号线甘官以东车站往李达方向末班为半程车，终点站甘官。', '瀋陽為冬季時刻表（2026-11-01 至 2027-03-31），2027-04-01 起執行夏季時刻表。3號線甘官以東車站往李達方向末班為半程車，終點站甘官。', 'Shenyang winter timetable (2026-11-01 to 2027-03-31); summer timetable from 2027-04-01. Line 3 stations east of Gangua: last trains toward Lida are short-turn, ending at Gangua.'],
+  'tt.note.hb': ['哈尔滨时刻表为估算值（首末班 05:30–22:30，按站间约 2 分钟推算），请以车站公布为准。', '哈爾濱時刻表為估算值（首末班 05:30–22:30，按站間約 2 分鐘推算），請以車站公佈為準。', 'Harbin timetable is estimated (first/last 05:30–22:30, ~2 min per stop). Please follow station notices.'],
+  'tt.note.dl': ['大连5号线时刻表为估算值（按站间距离推算），请以车站公布为准；3号线大连站往金石滩末班 19:30，往保税区末班 21:30。', '大連5號線時刻表為估算值（按站間距離推算），請以車站公佈為準；3號線大連站往金石灘末班 19:30，往保稅區末班 21:30。', 'Dalian Line 5 timetable is estimated (by inter-station distance). Please follow station notices. Line 3 from Dalian Station: last train to Jinshitan 19:30, to Baoshuiqu 21:30.'],
+  'tr.depart': ['出发', '出發', 'Depart'],
+  'tr.arrive': ['到达', '到達', 'Arrive'],
+  'tr.phFrom': ['选择出发站', '選擇出發站', 'Select departure station'],
+  'tr.phTo': ['选择到达站', '選擇到達站', 'Select arrival station'],
+  'tr.departNow': ['现在出发', '現在出發', 'Depart now'],
+  'tr.departAt': ['{t} 出发', '{t} 出發', 'Depart at {t}'],
+  'tr.swap': ['交换出发和到达', '交換出發和到達', 'Swap departure and arrival'],
+  'tr.search': ['搜索', '搜索', 'Search'],
+  'tr.noStation': ['没有找到相关车站', '沒有找到相關車站', 'No matching stations'],
+  'tr.typeHint': ['输入站名、拼音或首字母', '輸入站名、拼音或首字母', 'Type a station name, pinyin or initials'],
+  'tr.tab.rec': ['推荐', '推薦', 'Recommended'],
+  'tr.tab.early': ['耗时最短', '耗時最短', 'Fastest'],
+  'tr.tab.fewest': ['路径最短', '路徑最短', 'Shortest'],
+  'tr.tab.cheap': ['节省票价', '節省票價', 'Cheapest'],
+  'tr.minutes': ['{n} 分钟', '{n} 分鐘', '{n} min'],
+  'tr.transfers': ['换乘 {n} 次', '換乘 {n} 次', '{n} transfers'],
+  'tr.km': ['约 {n} 公里', '約 {n} 公里', '~{n} km'],
+  'tr.stops': ['{n} 站', '{n} 站', '{n} stops'],
+  'tr.badge.early': ['早', '早', 'Fast'],
+  'tr.badge.few': ['短', '短', 'Short'],
+  'tr.badge.cheap': ['省', '省', 'Cheap'],
+  'tr.fare.est': ['预计 ¥{n}', '預計 ¥{n}', 'Est. ¥{n}'],
+  'tr.fare.cont': ['票价连续计费', '票價連續計費', 'Continuous fare'],
+  'tr.fare.nocont': ['票价不连续计费', '票價不連續計費', 'Non-continuous fare'],
+  'tr.fare.virtual': ['虚拟换乘需出站', '虛擬換乘需出站', 'Virtual transfer: exit station'],
+  'tr.fare.airport': ['机场线需单独购票', '機場線需單獨購票', 'Airport line: separate ticket'],
+  'tr.virtual': ['虚拟换乘 · 出站步行{dist}', '虛擬換乘 · 出站步行{dist}', 'Virtual transfer · exit and walk {dist}'],
+  'tr.hint': ['点一段可在图上查看', '點一段可在圖上查看', 'Tap a segment to view it on the map'],
+  'tr.history': ['搜索记录', '搜索記錄', 'Search History'],
+  'tr.history.clear': ['清除', '清除', 'Clear'],
+  'tr.op.notyet': ['未运营 · 首班车 {t}', '未營運 · 首班車 {t}', 'Not running · First train {t}'],
+  'tr.op.running': ['运营中', '營運中', 'Running'],
+  'tr.op.over': ['末班车已过', '末班車已過', 'Last train has passed'],
+  'tr.nearby': ['📍 附近车站', '📍 附近車站', '📍 Nearby Stations'],
+  'tr.nearby.locating': ['定位中…', '定位中…', 'Locating…'],
+  'tr.nearby.noloc': ['无法获取定位，请检查定位权限。', '無法獲取定位，請檢查定位權限。', 'Couldn\'t get your location. Check location permission.'],
+  'tr.nearby.unsupported': ['当前设备不支持定位。', '當前裝置不支援定位。', 'Location is not supported on this device.'],
+  'tr.nearby.nodata': ['该城市暂无车站坐标数据，附近车站功能即将上线。', '該城市暫無車站座標資料，附近車站功能即將上線。', 'No station coordinates for this city yet — nearby stations coming soon.'],
+  'tr.nearby.failed': ['定位失败，请稍后重试。', '定位失敗，請稍後再試。', 'Location failed. Please try again.'],
+  'tr.nearby.m': ['{n} 米', '{n} 米', '{n} m'],
+  'tr.nearby.km': ['{n} 公里', '{n} 公里', '{n} km'],
+  'tr.err.nostation': ['请先选择出发站和到达站', '請先選擇出發站和到達站', 'Select departure and arrival stations first'],
+  'tr.err.same': ['出发和到达是同一站', '出發和到達是同一站', 'Departure and arrival are the same station'],
+  'tr.err.noroute': ['暂无换乘方案', '暫無換乘方案', 'No route found'],
+  'tr.err.nocity': ['该城市没有这个车站', '該城市沒有這個車站', 'This city doesn\'t have that station'],
+  'tr.err.luyang': ['暂无换乘方案：潞阳所在的 22 号线未画进这版配线图', '暫無換乘方案：潞陽所在的 22 號線未畫進這版配線圖', 'No route: Luyang is on Line 22, which is not drawn in this map'],
+  'tr.err.nocoord': ['（配线图暂无该站坐标，无法定位）', '（配線圖暫無該站座標，無法定位）', '(no coordinates for this station on the map)'],
+  'transit.bj': ['打开一卡通', '打開一卡通', 'Open Yikatong'],
+  'transit.sy': ['打开盛京通', '打開盛京通', 'Open Shengjing Tong'],
+  'transit.sh': ['打开Metro大都会', '打開Metro大都會', 'Open Metro Daduhui'],
+  'transit.hb': ['打开哈尔滨城市通', '打開哈爾濱城市通', 'Open Harbin City Pass'],
+  'transit.dl': ['打开大连交通e出行', '打開大連交通e出行', 'Open Dalian e-Travel'],
+  'transit.jh': ['打开金华行', '打開金華行', 'Open Jinhua Transit'],
+  'ridecode': ['乘车码', '乘車碼', 'Ride Code'],
+  'more.reset': ['重置缩放', '重置縮放', 'Reset zoom'],
+  'more.repo': ['项目主页', '項目主頁', 'Project home'],
+  'more.pdf': ['下载PDF', '下載PDF', 'Download PDF'],
+  'more.dev': ['查看开发版', '查看開發版', 'View dev version'],
+  'more.theme': ['深色模式', '深色模式', 'Dark mode'],
+  'more.theme.system': ['跟随系统', '跟隨系統', 'Follow system'],
+  'more.theme.light': ['浅色', '淺色', 'Light'],
+  'more.theme.dark': ['深色', '深色', 'Dark'],
+  'more.lang': ['语言', '語言', 'Language'],
+  'more.switchCity': ['切换城市', '切換城市', 'Switch City'],
+  'more.more': ['更多', '更多', 'More'],
+  'more.version': ['版本 {v}', '版本 {v}', 'Version {v}'],
+  'more.credit': ['数据来源 SierraQin · CC0 1.0', '資料來源 SierraQin · CC0 1.0', 'Data: SierraQin · CC0 1.0'],
+  'more.lang': ['语言', '語言', 'Language'],
+  'more.lang.hans': ['简体中文', '簡體中文', 'Simplified Chinese'],
+  'more.lang.hant': ['繁體中文', '繁體中文', 'Traditional Chinese'],
+  'more.lang.en': ['English', 'English', 'English'],
+  'load.loading': ['加载中, 请稍候. 若长时间无反应可按Ctrl+F5刷新重试', '加載中, 請稍候. 若長時間無反應可按Ctrl+F5刷新重試', 'Loading, please wait. If it takes too long, press Ctrl+F5 to retry'],
+  'load.failed': ['加载失败, 请检查网络连接或按Ctrl+F5刷新重试', '加載失敗, 請檢查網絡連接或按Ctrl+F5刷新重試', 'Load failed. Check your connection or press Ctrl+F5 to retry'],
+  'load.dev': ['您正在查看的是开发中的过程性版本\u003cbr\u003e最终效果请以正式的发行版为准', '您正在查看的是開發中的過程性版本\u003cbr\u003e最終效果請以正式的發行版為準', 'You are viewing a work-in-progress dev version.\u003cbr\u003eThe final release may differ.'],
+  'city.bj': ['北京', '北京', 'Beijing'],
+  'city.sy': ['沈阳', '瀋陽', 'Shenyang'],
+  'city.sh': ['上海', '上海', 'Shanghai'],
+  'city.hb': ['哈尔滨', '哈爾濱', 'Harbin'],
+  'city.dl': ['大连', '大連', 'Dalian'],
+  'city.jh': ['金华', '金華', 'Jinhua'],
+  'city.metro': ['{c}地铁', '{c}地鐵', '{c} Metro'],
+  'native.now': ['现在出发', '現在出發', 'Depart now'],
+  'native.done': ['确定', '確定', 'Done'],
+  'native.cancel': ['取消', '取消', 'Cancel'],
+  'native.finish': ['完成', '完成', 'Done'],
+  'line.maglev': ['磁浮线', '磁浮線', 'Maglev Line'],
+  'line.airport': ['市域机场线', '市域機場線', 'Airport Link Line'],
+  'map.searchStation': ['搜车站', '搜車站', 'Search Stations'],
+  'native.switchCity': ['切换城市', '切換城市', 'Switch City'],
+  'loc.perm': ['需要定位权限才能查找附近车站，请在系统设置中开启。', '需要定位權限才能查找附近車站，請在系統設定中開啟。', 'Location permission is needed to find nearby stations. Please enable it in Settings.'],
+  'loc.failed': ['无法获取定位。', '無法獲取定位。', 'Couldn\'t get your location.'],
+  'loc.retry': ['定位失败，请稍后重试。', '定位失敗，請稍後再試。', 'Location failed. Please try again.'],
+};
+var LANGS = ['zh-Hans', 'zh-Hant', 'en'];
+function savedLang() { try { var l = window.localStorage.getItem('metro-lang'); return (l === 'zh-Hant' || l === 'en') ? l : 'zh-Hans'; } catch (e) { return 'zh-Hans'; } }
+var HANT_MAP = {'万':'萬', '业':'業', '东':'東', '个':'個', '丰':'豐', '临':'臨', '为':'為', '丽':'麗', '义':'義', '乌':'烏', '乐':'樂', '乡':'鄉', '书':'書', '于':'於', '云':'雲', '产':'產', '仓':'倉', '仪':'儀', '价':'價', '会':'會', '传':'傳', '伦':'倫', '体':'體', '余':'餘', '儿':'兒', '兰':'蘭', '关':'關', '兴':'興', '内':'內', '军':'軍', '农':'農', '准':'準', '凉':'涼', '凯':'凱', '刘':'劉', '创':'創', '刹':'剎', '剑':'劍', '务':'務', '动':'動', '劲':'勁', '劳':'勞', '区':'區', '医':'醫', '华':'華', '单':'單', '卫':'衛', '厂':'廠', '厦':'廈', '双':'雙', '发':'發', '台':'臺', '号':'號', '后':'後', '启':'啓', '吴':'吳', '团':'團', '园':'園', '国':'國', '图':'圖', '圆':'圓', '场':'場', '坛':'壇', '坝':'壩', '坞':'塢', '坟':'墳', '复':'復', '头':'頭', '奥':'奧', '娄':'婁', '孙':'孫', '学':'學', '宁':'寧', '宝':'寶', '宫':'宮', '宾':'賓', '寿':'壽', '将':'將', '尔':'爾', '属':'屬', '岚':'嵐', '岛':'島', '岩':'巖', '岭':'嶺', '峰':'峯', '巩':'鞏', '师':'師', '广':'廣', '庄':'莊', '应':'應', '庙':'廟', '开':'開', '张':'張', '当':'當', '征':'徵', '径':'徑', '怀':'懷', '恒':'恆', '戏':'戲', '户':'戶', '执':'執', '抚':'撫', '拟':'擬', '择':'擇', '换':'換', '据':'據', '数':'數', '无':'無', '旧':'舊', '时':'時', '暂':'暫', '术':'術', '机':'機', '权':'權', '条':'條', '来':'來', '杨':'楊', '杰':'傑', '枣':'棗', '枫':'楓', '标':'標', '栏':'欄', '树':'樹', '栗':'慄', '桥':'橋', '桦':'樺', '检':'檢', '楼':'樓', '横':'橫', '欢':'歡', '气':'氣', '汇':'匯', '汉':'漢', '沟':'溝', '没':'沒', '泽':'澤', '泾':'涇', '洼':'窪', '浅':'淺', '济':'濟', '浑':'渾', '涛':'濤', '淀':'澱', '渊':'淵', '温':'溫', '游':'遊', '湾':'灣', '滨':'濱', '滩':'灘', '澜':'瀾', '灯':'燈', '灵':'靈', '炉':'爐', '点':'點', '烟':'煙', '爱':'愛', '独':'獨', '玮':'瑋', '环':'環', '现':'現', '电':'電', '画':'畫', '盐':'鹽', '盘':'盤', '码':'碼', '确':'確', '礼':'禮', '离':'離', '积':'積', '税':'稅', '窑':'窯', '筑':'築', '简':'簡', '篮':'籃', '篱':'籬', '粤':'粵', '红':'紅', '约':'約', '纪':'紀', '纬':'緯', '线':'線', '细':'細', '终':'終', '经':'經', '结':'結', '络':'絡', '统':'統', '绣':'繡', '续':'續', '综':'綜', '绿':'綠', '缩':'縮', '网':'網', '罗':'羅', '群':'羣', '联':'聯', '肿':'腫', '胜':'勝', '艺':'藝', '节':'節', '芦':'蘆', '苏':'蘇', '苹':'蘋', '范':'範', '荐':'薦', '荣':'榮', '药':'藥', '莲':'蓮', '营':'營', '萧':'蕭', '蓝':'藍', '蓟':'薊', '虚':'虛', '裢':'褳', '观':'觀', '览':'覽', '计':'計', '议':'議', '设':'設', '试':'試', '该':'該', '语':'語', '请':'請', '谊':'誼', '贝':'貝', '贞':'貞', '财':'財', '贤':'賢', '败':'敗', '购':'購', '贸':'貿', '费':'費', '资':'資', '赛':'賽', '赵':'趙', '车':'車', '轨':'軌', '轮':'輪', '载':'載', '辉':'輝', '输':'輸', '边':'邊', '辽':'遼', '达':'達', '过':'過', '运':'運', '这':'這', '进':'進', '远':'遠', '连':'連', '选':'選', '遗':'遺', '邮':'郵', '里':'裏', '钓':'釣', '钟':'鍾', '钢':'鋼', '铁':'鐵', '铜':'銅', '银':'銀', '锣':'鑼', '锦':'錦', '镇':'鎮', '镜':'鏡', '长':'長', '门':'門', '间':'間', '闵':'閔', '闸':'閘', '阎':'閻', '阳':'陽', '际':'際', '陆':'陸', '陈':'陳', '陕':'陝', '随':'隨', '静':'靜', '韵':'韻', '页':'頁', '项':'項', '顺':'順', '顾':'顧', '预':'預', '颐':'頤', '颛':'顓', '风':'風', '饶':'饒', '馆':'館', '马':'馬', '驼':'駝', '鱼':'魚', '鲁':'魯', '鸟':'鳥', '鸿':'鴻', '鹏':'鵬', '鹤':'鶴', '黄':'黃', '龙':'龍'};
+var HANT_EXC = {'七里庄':'七里莊', '三十里堡':'三十里堡', '上海游泳馆':'上海游泳館', '九里':'九里', '二十里堡':'二十里堡', '二里沟':'二里溝', '五里河':'五里河', '八里桥':'八里橋', '六里桥':'六里橋', '六里桥东':'六里橋東', '分钟寺':'分鐘寺', '十三里':'十三里', '十八里店':'十八里店', '十里堡':'十里堡', '十里河':'十里河', '和平里北街':'和平里北街', '大钟寺':'大鐘寺', '安德里北街':'安德里北街', '平安里':'平安里', '徐家汇':'徐家彙', '沈阳北站':'瀋陽北站', '沈阳南站':'瀋陽南站', '沈阳大学':'瀋陽大學', '沈阳站':'瀋陽站', '海淀五路居':'海淀五路居', '海淀黄庄':'海淀黃莊', '灵境胡同':'靈境衚衕', '烟厂':'菸廠', '金鱼胡同':'金魚衚衕'};
+function toHant(s) {
+  if (HANT_EXC[s]) return HANT_EXC[s];
+  var out = '';
+  for (var i = 0; i < s.length; i++) { var c = s[i]; out += HANT_MAP[c] || c; }
+  return out;
+}
+function i18n(key, lang) {
+  var e = I18N[key]; if (!e) return key;
+  var idx = LANGS.indexOf(lang); if (idx < 0) idx = 0;
+  return e[idx] || e[0] || key;
+}
+function fmt(str, vars) {
+  return str.replace(/\{(\w+)\}/g, function(_, k) { return vars[k] != null ? vars[k] : '{' + k + '}'; });
+}
+function titlePy(py) {
+  if (!py) return '';
+  return py.charAt(0).toUpperCase() + py.slice(1);
+}
 
 			var uList = {
 				tcos: "https://metro-1252278458.cos.ap-beijing.myqcloud.com/",
@@ -1004,7 +1175,7 @@
 					verName: "",
 					verInfo: "",
 					showCmitInfo: true,
-					cmitFixed: "您正在查看的是开发中的过程性版本<br>最终效果请以正式的发行版为准",
+					cmitFixed: i18n('load.dev', savedLang()),
 					cmitVar: ""
 				},
 				empty: {
@@ -1015,7 +1186,7 @@
 					success: false,
 					json: null,
 					verName: "",
-					verInfo: "{ 加载中, 请稍候. 若长时间无反应可按Ctrl+F5刷新重试 }",
+					verInfo: "{ " + i18n('load.loading', savedLang()) + " }",
 					showCmitInfo: false,
 					cmitFixed: "",
 					cmitVar: ""
@@ -1117,6 +1288,7 @@
 						showMore: false,
 						query: '',
 						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
+						lang: savedLang(),
 					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
 						stations: (window.METRO_STATIONS || []),
 						bjLogo: (window.BJ_LOGO || ''),
@@ -1202,6 +1374,45 @@
 					}
 				},
 				methods: {
+					// ---- i18n (build 64) ----
+					t(key, vars) { return fmt(i18n(key, this.lang), vars || {}); },
+					setLang(l) {
+						if (l !== 'zh-Hans' && l !== 'zh-Hant' && l !== 'en') l = 'zh-Hans';
+						this.lang = l;
+						try { window.localStorage.setItem('metro-lang', l); } catch (e) {}
+						if (this.fromStation) this.fromQuery = this.stName(this.fromStation);
+						if (this.toStation) this.toQuery = this.stName(this.toStation);
+						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.langChanged);
+						if (h) { h.postMessage({ lang: l }); }
+					},
+					stName(st) {
+						if (!st) return '';
+						if (this.lang === 'en') return titlePy(st.py);
+						if (this.lang === 'zh-Hant') return toHant(st.n);
+						return st.n;
+					},
+					stNameStr(name) {
+						if (this.lang === 'zh-Hant') return toHant(name);
+						if (this.lang === 'en') { var p = this.pyFor(name); return p ? titlePy(p) : name; }
+						return name;
+					},
+					pyFor(name) {
+						for (var i = 0; i < this.stations.length; i++) if (this.stations[i].n === name) return this.stations[i].py;
+						return '';
+					},
+					lineName(name, key) {
+						if (!name) return '';
+						if (name === '磁浮线') return this.t('line.maglev');
+						if (name === '市域机场线') return this.t('line.airport');
+						var m = name.match(/^(\d+)号线(支线)?$/);
+						if (m) {
+							if (this.lang === 'en') return 'Line ' + m[1] + (m[2] ? ' Branch' : '');
+							if (this.lang === 'zh-Hant') return toHant(name);
+							return name;
+						}
+						if (this.lang === 'zh-Hant') return toHant(name);
+						return name;
+					},
 					openStations() { this.setTab('stations'); },
 					// City switch from the settings page (build 63): switchCity goes to
 					// the map tab, so come back to settings so the user sees the
@@ -1289,19 +1500,19 @@
 						if (c === 'sy') {
 							this.stations = this.syStations;
 							this.routes = this.syRoutes;
-							this.curr = { svgUrl: "", svgDom: this.syMap, pdfUrl: "", success: true, json: null, verName: "SY", verInfo: "{ 沈阳地铁线网图 , 2026-06 , 6条线 144站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+							this.curr = { svgUrl: "", svgDom: this.syMap, pdfUrl: "", success: true, json: null, verName: "SY", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.sy'), d: '2026-06', l: 6, s: 144}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else if (c === 'sh') {
 							this.stations = this.shStations;
 							this.routes = this.shRoutes;
-							this.curr = { svgUrl: "", svgDom: this.shMap, pdfUrl: "", success: true, json: null, verName: "SH", verInfo: "{ 上海地铁线网图 , 2026-11 , 22条线 413站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+							this.curr = { svgUrl: "", svgDom: this.shMap, pdfUrl: "", success: true, json: null, verName: "SH", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.sh'), d: '2026-11', l: 22, s: 413}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else if (c === 'hb') {
 							this.stations = this.hbStations;
 							this.routes = this.hbRoutes;
-							this.curr = { svgUrl: "", svgDom: this.hbMap, pdfUrl: "", success: true, json: null, verName: "HB", verInfo: "{ 哈尔滨地铁线网图 , 2026-08 , 3条线 73站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+							this.curr = { svgUrl: "", svgDom: this.hbMap, pdfUrl: "", success: true, json: null, verName: "HB", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.hb'), d: '2026-08', l: 3, s: 73}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else if (c === 'dl') {
 							this.stations = this.dlStations;
 							this.routes = this.dlRoutes;
-							this.curr = { svgUrl: "", svgDom: this.dlMap, pdfUrl: "", success: true, json: null, verName: "DL", verInfo: "{ 大连地铁线网图 , 2026-11 , 6条线 100站 }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+							this.curr = { svgUrl: "", svgDom: this.dlMap, pdfUrl: "", success: true, json: null, verName: "DL", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.dl'), d: '2026-11', l: 6, s: 100}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else {
 							this.stations = (window.METRO_STATIONS || []);
 							this.routes = (window.METRO_ROUTES || null);
@@ -1367,8 +1578,8 @@
 					},
 					goStation(st) {
 						if (this.pickFor) {
-							if (this.pickFor === 'from') { this.fromStation = st; this.fromQuery = st.n; this.fromLine = null; }
-							else { this.toStation = st; this.toQuery = st.n; this.toLine = null; }
+							if (this.pickFor === 'from') { this.fromStation = st; this.fromQuery = this.stName(st); this.fromLine = null; }
+							else { this.toStation = st; this.toQuery = this.stName(st); this.toLine = null; }
 							this.routeResult = null;
 							this.routeList = [];
 							this.routeError = '';
@@ -1382,7 +1593,7 @@
 						if (!st.x || !st.y) {
 							var lines = [];
 							for (var lk in this.routes.lines) { if (this.routes.lines[lk].stations.indexOf(st.n) >= 0) lines.push(this.routes.lines[lk].name); }
-							this.routeError = st.n + ' \u00b7 ' + lines.join(' / ') + '\uff08\u914d\u7ebf\u56fe\u6682\u65e0\u8be5\u7ad9\u5750\u6807\uff0c\u65e0\u6cd5\u5b9a\u4f4d\uff09';
+							this.routeError = this.stNameStr(st.n) + ' \u00b7 ' + lines.map(function(n) { return this.lineName(n); }.bind(this)).join(' / ') + this.t('tr.err.nocoord');
 							return;
 						}
 						locateStation(st);
@@ -1416,8 +1627,8 @@
 						var st = opt.st || opt;
 						var ln = opt.line || null;
 						var which = this.suggestFor === 'from' ? 'from' : 'to';
-						if (which === 'from') { this.fromStation = st; this.fromQuery = st.n; this.fromLine = ln; }
-						else { this.toStation = st; this.toQuery = st.n; this.toLine = ln; }
+						if (which === 'from') { this.fromStation = st; this.fromQuery = this.stName(st); this.fromLine = ln; }
+						else { this.toStation = st; this.toQuery = this.stName(st); this.toLine = ln; }
 						this.suggestFor = null;
 						this.routeResult = null;
 						this.routeList = [];
@@ -1490,11 +1701,11 @@
 					fareText() {
 						var amt = this.fareAmount();
 						var reasons = [];
-						if (this.hasVirtual()) reasons.push('虚拟换乘需出站');
-						if (this.hasAirportLine()) reasons.push('机场线需单独购票');
-						var cont = reasons.length ? '票价不连续计费（' + reasons.join('、') + '）' : '票价连续计费';
+						if (this.hasVirtual()) reasons.push(this.t('tr.fare.virtual'));
+						if (this.hasAirportLine()) reasons.push(this.t('tr.fare.airport'));
+						var cont = reasons.length ? this.t('tr.fare.nocont') + ' (' + reasons.join(', ') + ')' : this.t('tr.fare.cont');
 						if (amt == null) return cont;
-						return '预计 ¥' + amt + ' · ' + cont;
+						return this.t('tr.fare.est', { n: amt }) + ' \u00b7 ' + cont;
 					},
 					// Segment distance in km (build 37). Beijing: SVG units / 44
 					// (calibrated build 31). Shanghai: two-zone px/km model
@@ -1715,7 +1926,7 @@
 						if (!info || !info.lines) return '';
 						var prev = segs[i - 1].line, cur = segs[i].line;
 						if (info.lines.indexOf(prev) < 0 || info.lines.indexOf(cur) < 0) return '';
-						return '虚拟换乘 · 出站步行' + info.dist;
+						return this.t('tr.virtual', { dist: info.dist });
 					},
 					setRouteTab(t) { this.routeTab = t; },
 					// Departure time (build 34): null = depart now; otherwise
@@ -1758,8 +1969,8 @@
 						if (navigator.geolocation) {
 							var self = this;
 							this.nearbyLoading = true;
-							navigator.geolocation.getCurrentPosition(function (pos) { self.showNearbyStations(pos.coords.latitude, pos.coords.longitude); }, function () { self.nearbyLoading = false; self.nearbyMsg = '无法获取定位，请检查定位权限。'; }, { timeout: 10000 });
-						} else { this.nearbyMsg = '当前设备不支持定位。'; }
+							navigator.geolocation.getCurrentPosition(function (pos) { self.showNearbyStations(pos.coords.latitude, pos.coords.longitude); }, function () { self.nearbyLoading = false; self.nearbyMsg = self.t('tr.nearby.noloc'); }, { timeout: 10000 });
+						} else { this.nearbyMsg = this.t('tr.nearby.unsupported'); }
 					},
 					// Called by native with the device location. Computes the nearest
 					// stations (haversine) from the stations' lat/lng. Stations without
@@ -1773,15 +1984,15 @@
 							var s = sts[i];
 							if (s.lat == null || s.lng == null) continue;
 							var d = this.haversineKm(lat, lng, s.lat, s.lng);
-							list.push({ st: s, n: s.n, dist: d, distText: d < 1 ? Math.round(d * 1000) + ' 米' : d.toFixed(1) + ' 公里' });
+							list.push({ st: s, n: s.n, dist: d, distText: d < 1 ? this.t('tr.nearby.m', {n: Math.round(d * 1000)}) : this.t('tr.nearby.km', {n: d.toFixed(1)}) });
 						}
 						list.sort(function (a, b) { return a.dist - b.dist; });
 						this.nearbyList = list.slice(0, 5);
-						if (!this.nearbyList.length) { this.nearbyMsg = '该城市暂无车站坐标数据，附近车站功能即将上线。'; }
+						if (!this.nearbyList.length) { this.nearbyMsg = this.t('tr.nearby.nodata'); }
 					},
 					nearbyError(msg) {
 						this.nearbyLoading = false;
-						this.nearbyMsg = msg || '定位失败，请稍后重试。';
+						this.nearbyMsg = msg || this.t('tr.nearby.failed');
 					},
 					pickNearby(item) {
 						var st = item.st;
@@ -1820,9 +2031,9 @@
 						if (item.city && item.city !== this.city) { this.switchCity(item.city); this.setTab('transfer'); }
 						var fs = this.resolveStation(item.from);
 						var ts = this.resolveStation(item.to);
-						if (!fs || !ts) { this.routeError = '该城市没有这个车站'; return; }
-						this.fromStation = fs; this.fromQuery = fs.n;
-						this.toStation = ts; this.toQuery = ts.n;
+						if (!fs || !ts) { this.routeError = this.t('tr.err.nocity'); return; }
+						this.fromStation = fs; this.fromQuery = this.stName(fs);
+						this.toStation = ts; this.toQuery = this.stName(ts);
 						this.doSearch();
 					},
 					clearSearchHistory() {
@@ -1833,7 +2044,7 @@
 						this.searchHistory.splice(i, 1);
 						try { window.localStorage.setItem('metro-search-history', JSON.stringify(this.searchHistory)); } catch (e) {}
 					},
-					cityNameFor(c) { return c === 'sy' ? '沈阳' : (c === 'sh' ? '上海' : (c === 'hb' ? '哈尔滨' : (c === 'dl' ? '大连' : (c === 'jh' ? '金华' : '北京')))); },
+					cityNameFor(c) { return this.t('city.' + c); },
 					// Operating-hours prompt (build 63). Timetable data is NOT changed
 					// here — this only reads first/last times and says whether the line
 					// is running at a given moment. A last train after midnight (00:00)
@@ -1856,10 +2067,10 @@
 						var running;
 						if (l < f) running = (nowMin >= f) || (nowMin <= l);
 						else running = nowMin >= f && nowMin <= l;
-						if (running) return { running: true, label: '运营中' };
-						if (l < f) return { running: false, label: '未运营 · 首班车 ' + d.first };
-						if (nowMin < f) return { running: false, label: '未运营 · 首班车 ' + d.first };
-						return { running: false, label: '末班车已过' };
+						if (running) return { running: true, label: this.t('tr.op.running') };
+						if (l < f) return { running: false, label: this.t('tr.op.notyet', {t: d.first}) };
+						if (nowMin < f) return { running: false, label: this.t('tr.op.notyet', {t: d.first}) };
+						return { running: false, label: this.t('tr.op.over') };
 					},
 					opLabel(d) { return this.opStatus(d).label; },
 					opClass(d) { var s = this.opStatus(d); return s.running === true ? 'op-run' : (s.running === false ? 'op-off' : ''); },
@@ -1894,9 +2105,9 @@
 						if (l < f) running = (dep >= f) || (dep <= l);
 						else running = dep >= f && dep <= l;
 						if (running) return '';
-						if (l < f) return '未运营 · 首班车 ' + d.first;
-						if (dep < f) return '未运营 · 首班车 ' + d.first;
-						return '末班车已过';
+						if (l < f) return this.t('tr.op.notyet', {t: d.first});
+						if (dep < f) return this.t('tr.op.notyet', {t: d.first});
+						return this.t('tr.op.over');
 					},
 					showTimePicker() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.timePicker;
@@ -1991,16 +2202,16 @@
 						this.routeList = [];
 						this.suggestFor = null;
 						var fs = this.resolveStation(this.fromQuery);
-						if (fs) { this.fromStation = fs; this.fromQuery = fs.n; }
+						if (fs) { this.fromStation = fs; this.fromQuery = this.stName(fs); }
 						var ts = this.resolveStation(this.toQuery);
-						if (ts) { this.toStation = ts; this.toQuery = ts.n; }
-						if (!this.fromStation || !this.toStation) { this.routeError = '请先选择出发站和到达站'; return; }
-						if (this.fromStation.n === this.toStation.n) { this.routeError = '出发和到达是同一站'; return; }
+						if (ts) { this.toStation = ts; this.toQuery = this.stName(ts); }
+						if (!this.fromStation || !this.toStation) { this.routeError = this.t('tr.err.nostation'); return; }
+						if (this.fromStation.n === this.toStation.n) { this.routeError = this.t('tr.err.same'); return; }
 						this.saveSearchHistory();
 						var list = this.findRoutes(this.fromStation.n, this.toStation.n);
 						if (!list || !list.length) {
-							if (this.fromStation.n === '潞阳' || this.toStation.n === '潞阳') this.routeError = '暂无换乘方案：潞阳所在的 22 号线未画进这版配线图';
-							else this.routeError = '暂无换乘方案';
+							if (this.fromStation.n === '潞阳' || this.toStation.n === '潞阳') this.routeError = this.t('tr.err.luyang');
+							else this.routeError = this.t('tr.err.noroute');
 							return;
 						}
 						this.routeList = list;
@@ -2139,21 +2350,21 @@
 					doPdf() { this.closeMore(); pdfDownload(); }
 				},
 				computed: {
-					cityName() { return this.city === 'sy' ? '沈阳' : (this.city === 'sh' ? '上海' : (this.city === 'hb' ? '哈尔滨' : (this.city === 'dl' ? '大连' : '北京'))); },
+					cityName() { return this.t('city.' + this.city); },
 					// Cities for the settings switcher (build 63). Jinhua ('jh') joins
 					// this list when its wiring lands (after build 63).
 					cityList() {
-						return [{ key: 'bj', name: '北京' }, { key: 'sy', name: '沈阳' }, { key: 'sh', name: '上海' }, { key: 'hb', name: '哈尔滨' }, { key: 'dl', name: '大连' }];
+						return [{ key: 'bj', name: this.t('city.bj') }, { key: 'sy', name: this.t('city.sy') }, { key: 'sh', name: this.t('city.sh') }, { key: 'hb', name: this.t('city.hb') }, { key: 'dl', name: this.t('city.dl') }];
 					},
 					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : this.bjLogo))); },
-					transitLabel() { return this.city === 'sy' ? '打开盛京通' : (this.city === 'sh' ? '打开Metro大都会' : (this.city === 'hb' ? '打开哈尔滨城市通' : (this.city === 'dl' ? '打开大连交通e出行' : '打开一卡通'))); },
+					transitLabel() { return this.t('transit.' + this.city); },
 					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : this.yktIcon))); },
 					splashImg() { return this.city === 'sy' ? this.sySplash : (this.city === 'sh' ? this.shSplash : (this.city === 'hb' ? this.hbSplash : (this.city === 'dl' ? this.dlSplash : this.bjSplash))); },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						if (!q) return this.stations;
 						return this.stations.filter(function(st) {
-							return st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1;
+							return st.n.indexOf(q) !== -1 || toHant(st.n).indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1;
 						}).slice(0, 200);
 					},
 					timetableData() {
@@ -2185,7 +2396,7 @@
 						var q = this.ttQuery.trim().toLowerCase();
 						if (!q) return this.ttLineList;
 						return this.ttLineList.filter(function(ln) {
-							return ln.name.toLowerCase().indexOf(q) !== -1 || ln.key.toLowerCase().indexOf(q) !== -1;
+							return ln.name.toLowerCase().indexOf(q) !== -1 || toHant(ln.name).toLowerCase().indexOf(q) !== -1 || this.lineName(ln.name, ln.key).toLowerCase().indexOf(q) !== -1 || ln.key.toLowerCase().indexOf(q) !== -1;
 						});
 					},
 					ttLineInfo() {
@@ -2213,7 +2424,7 @@
 						var list = this.ttLineStations;
 						var q = this.ttQuery.trim().toLowerCase();
 						if (!q) return list;
-						return list.filter(function(st) { return st.n.indexOf(q) !== -1; });
+						var self = this; return list.filter(function(st) { return self.stNameStr(st.n).toLowerCase().indexOf(q) !== -1 || st.n.indexOf(q) !== -1 || toHant(st.n).indexOf(q) !== -1; });
 					},
 					suggestList() {
 						var q = this.suggestFor === 'from' ? this.fromQuery : (this.suggestFor === 'to' ? this.toQuery : '');
@@ -2222,7 +2433,7 @@
 						var out = [];
 						for (var i = 0; i < this.stations.length && out.length < 8; i++) {
 							var st = this.stations[i];
-							if (st.n.indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1) {
+							if (st.n.indexOf(q) !== -1 || toHant(st.n).indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1) {
 								var lns = this.stationLines(st.n);
 								for (var j = 0; j < lns.length && out.length < 8; j++) out.push({ st: st, line: lns[j] });
 								if (!lns.length) out.push({ st: st, line: null });
@@ -2318,6 +2529,8 @@
 					// (keeps pills/tint in sync if the stores ever diverge).
 					var _ch0 = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityChanged);
 					if (_ch0) { _ch0.postMessage({ city: this.city }); }
+					var _lh0 = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.langChanged);
+					if (_lh0) { _lh0.postMessage({ lang: this.lang }); }
 					this.flashSplash(2000);
 					if (window.matchMedia) {
 						window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() { self.applyTheme(); });
@@ -2433,7 +2646,7 @@
 									vm.curr = env.prod;
 									//setPanZoom();
 								} else if (this.readyState == 4 && this.status != 0) {
-									env.prod.verInfo = "{ 加载失败, 请检查网络连接或按Ctrl+F5刷新重试 }";
+									env.prod.verInfo = "{ " + i18n('load.failed', savedLang()) + " }";
 									env.prod.success = false;
 								}
 							};
@@ -2441,7 +2654,7 @@
 							x.send();
 						} else {
 							env.prod.verName = "ERROR";
-							env.prod.verInfo = "{ 加载失败, 请检查网络连接或按Ctrl+F5刷新重试 }";
+							env.prod.verInfo = "{ " + i18n('load.failed', savedLang()) + " }";
 							env.prod.success = false;
 						}
 					};
@@ -2484,7 +2697,7 @@
 									vm.curr = env.dev;
 									//setPanZoom();
 								} else if (this.readyState == 4 && this.status != 0) {
-									env.dev.verInfo = "{ 加载失败, 请检查网络连接或按Ctrl+F5刷新重试 }";
+									env.dev.verInfo = "{ " + i18n('load.failed', savedLang()) + " }";
 									env.dev.success = false;
 								}
 							};
@@ -2492,7 +2705,7 @@
 							x.send();
 						} else {
 							env.dev.verName = "ERROR";
-							env.dev.verInfo = "{ 加载失败, 请检查网络连接或按Ctrl+F5刷新重试 }";
+							env.dev.verInfo = "{ " + i18n('load.failed', savedLang()) + " }";
 							env.dev.success = false;
 						}
 					};
