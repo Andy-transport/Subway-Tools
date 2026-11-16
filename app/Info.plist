@@ -79,5 +79,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>weixin</string>
+	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>用于查找离你最近的地铁站，并将其设为出发站。</string>
 </dict>
 </plist>

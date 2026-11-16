@@ -1,5 +1,6 @@
 import UIKit
 import WebKit
+import CoreLocation
 
 // 北京市轨道交通线路配置图 (SierraQin/metro, CC0 1.0)
 // Shell: a full-screen WKWebView loading the bundled offline page,
@@ -50,7 +51,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
-class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegate, WKScriptMessageHandler, UITextFieldDelegate {
+class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegate, WKScriptMessageHandler, UITextFieldDelegate, CLLocationManagerDelegate {
     var webView: WKWebView!
     var backButton: UIButton!
     var tabBar: UITabBar!
@@ -129,6 +130,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // splash image from launch, covering the white gap before the web
     // page loads and its own splash appears. Hidden in splashFinished().
     var splashImageView: UIImageView!
+    // Location (build 63): find the nearest station. The permission
+    // prompt appears only when the user taps 附近车站, never at launch.
+    var locationManager: CLLocationManager?
+    var locationPending = false
     // iPhone Duo sidebar (build 63): on a wide iPhone (Duo unfolded)
     // the bottom tab bar is replaced by a vertical floating glass
     // sidebar on the right edge. Same 5 tabs, same order, icon above
@@ -166,6 +171,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "stationPicked")
         config.userContentController.add(self, name: "timePicker")
         config.userContentController.add(self, name: "openTransitApp")
+        config.userContentController.add(self, name: "openRideCode")
+        config.userContentController.add(self, name: "requestLocation")
         config.userContentController.add(self, name: "cityChanged")
         config.userContentController.add(self, name: "splashDone")
         webView = WKWebView(frame: view.bounds, configuration: config)
@@ -216,7 +223,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         NSLayoutConstraint.activate([
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4),
+            // Lowered (build 63, user 2026-11-16 "把这个底栏下移一点
+            // 按图二的高度"): the bar sits just above the home
+            // indicator with only a small gap, like Apple's floating
+            // tab bar in iOS 27.2 — anchored to the view bottom (not
+            // the safe area) so it is the same height on iPhone and
+            // iPad. Was safeArea.bottom - 4 (build 56), which left a
+            // large gap above the home indicator.
+            tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -18),
         ])
         // iPhone Duo sidebar (build 63): created here so the web view
         // trailing constraint below can anchor to it.
@@ -310,6 +324,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // bar for the launch width; viewDidLayoutSubviews re-picks it
         // when the phone folds/unfolds.
         updateSideBarLayout()
+        // Hide the status bar while the splash is showing (build 63).
+        setNeedsStatusBarAppearanceUpdate()
+    }
+
+    // Status bar (build 63, user 2026-11-16 "启动图片上面不要有时间
+    // 和状态栏显示"): hide the status bar while the launch splash is
+    // showing, so no time/battery/signal sits on top of the splash
+    // image. It comes back once the splash fades and the app content
+    // is shown. Only the in-app splash — the LaunchScreen is already
+    // a plain blank screen and is untouched.
+    override var prefersStatusBarHidden: Bool {
+        return splashShowing
     }
 
     // Fold/unfold (and rotation) change the view width: re-evaluate
@@ -925,11 +951,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if sw > 0 && sh > 0 && currentTab == "transfer" {
             transferSearchButton.frame = CGRect(x: sx + webOffset.x, y: sy + webOffset.y, width: sw, height: sh)
             transferSearchButton.isHidden = false
-            transferSearchButton.layer.cornerRadius = sh / 2
             // Refresh the button colour here too (build 43): the colour
             // is set from currentCity, and placeTransfer runs every time
             // the web reports the frame (city switch, scroll, layout),
             // so the red/gold is always re-applied when the button shows.
+            // The capsule radius is (re-)applied inside
+            // updateTransferSearchStyle, after configuration = nil
+            // (build 63 overflow fix) — do not set it here.
             updateTransferSearchStyle()
         } else {
             transferSearchButton.isHidden = true
@@ -984,6 +1012,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         transferSearchButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         transferSearchButton.backgroundColor = searchButtonColor()
         transferSearchButton.tintColor = .white
+        // Capsule radius (build 63, user 2026-11-16 "颜色溢出"): the
+        // radius MUST be set here, AFTER configuration = nil — clearing
+        // the configuration resets the layer's corner radius, so the
+        // solid background painted past the rounded ends even though
+        // placeTransfer had set it (the build-55 fix was undone by
+        // the ordering). bounds.height is the button's current height
+        // (placeTransfer sets the frame before calling this); the
+        // zero-height guard covers setup time, before any frame.
+        if transferSearchButton.bounds.height > 0 {
+            transferSearchButton.layer.cornerRadius = transferSearchButton.bounds.height / 2
+        }
         transferSearchButton.clipsToBounds = true
         transferSearchButton.layer.masksToBounds = true
     }
@@ -1126,6 +1165,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func splashFinished() {
         guard splashShowing else { return }
         splashShowing = false
+        // Status bar comes back now that the splash is done (build 63).
+        setNeedsStatusBarAppearanceUpdate()
         // Reveal the tab bar or the Duo sidebar, whichever the current
         // layout uses (build 63).
         updateSideBarLayout()
@@ -1240,6 +1281,98 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
+
+    // 乘车码 (build 63): jump to the WeChat 乘车码 mini-program. The
+    // user-provided mini-program link is
+    // #小程序://乘车码/cZxzR2rsEppAxSv — one mini-program covering
+    // all cities, so the same link is used for every city. WeChat's
+    // deep link is weixin://dl/business/?t= with the link
+    // percent-encoded as the ticket; if WeChat cannot open it, fall
+    // back to opening WeChat itself. `weixin` is declared in
+    // LSApplicationQueriesSchemes so canOpenURL works. Whether WeChat
+    // opens the mini-program directly from this ticket needs an
+    // on-device check — the link form is WeChat's own share format.
+    func openRideCode(link: String) {
+        let encoded = link.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "weixin://dl/business/?t=\(encoded)"),
+           UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            return
+        }
+        if let wx = URL(string: "weixin://"), UIApplication.shared.canOpenURL(wx) {
+            UIApplication.shared.open(wx, options: [:], completionHandler: nil)
+        }
+    }
+
+    // MARK: - Location: nearest station (build 63)
+
+    // The user taps 附近车站 in the transfer panel. The permission
+    // prompt appears ONLY here, never at launch. If already
+    // authorized, fetch one location fix and hand it to the web,
+    // which computes the nearest stations (haversine) from the
+    // stations' lat/lng and lists them. If denied/restricted, tell
+    // the web so it shows a message instead of crashing or hanging.
+    // NOTE: station lat/lng data is pending for all 5 cities in this
+    // build (no reliable geocoding source was reachable — Overpass
+    // timed out, Nominatim returned nothing for these stations), so
+    // the web currently reports "coordinates not yet available" until
+    // lat/lng is added per city. The wiring below is complete.
+    func requestNearbyLocation() {
+        if locationManager == nil {
+            let lm = CLLocationManager()
+            lm.delegate = self
+            lm.desiredAccuracy = kCLLocationAccuracyHundredMeters
+            locationManager = lm
+        }
+        guard let lm = locationManager else { return }
+        let status = lm.authorizationStatus
+        switch status {
+        case .notDetermined:
+            locationPending = true
+            lm.requestWhenInUseAuthorization()
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationPending = true
+            lm.requestLocation()
+        case .denied, .restricted:
+            notifyLocationError("需要定位权限才能查找附近车站，请在系统设置中开启。")
+        @unknown default:
+            notifyLocationError("无法获取定位。")
+        }
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        // Called after the user answers the permission prompt.
+        guard locationPending else { return }
+        switch manager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            manager.requestLocation()
+        case .denied, .restricted:
+            locationPending = false
+            notifyLocationError("需要定位权限才能查找附近车站，请在系统设置中开启。")
+        default:
+            break
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard locationPending, let loc = locations.last else { return }
+        locationPending = false
+        manager.stopUpdatingLocation()
+        let lat = loc.coordinate.latitude
+        let lng = loc.coordinate.longitude
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.showNearbyStations(\(lat), \(lng))", completionHandler: nil)
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        guard locationPending else { return }
+        locationPending = false
+        notifyLocationError("定位失败，请稍后重试。")
+    }
+
+    func notifyLocationError(_ message: String) {
+        let escaped = message.replacingOccurrences(of: "'", with: "\\'")
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.nearbyError('\(escaped)')", completionHandler: nil)
     }
 
     // MARK: - Native tab bar -> web page
@@ -1495,6 +1628,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             presentTimePicker(current: current)
         } else if message.name == "openTransitApp" {
             openTransitApp()
+        } else if message.name == "openRideCode",
+                  let dict = message.body as? [String: Any] {
+            openRideCode(link: dict["link"] as? String ?? "#小程序://乘车码/cZxzR2rsEppAxSv")
+        } else if message.name == "requestLocation" {
+            requestNearbyLocation()
         }
     }
 

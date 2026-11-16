@@ -414,9 +414,8 @@
 			position: fixed;
 			inset: 0;
 			z-index: 99925;
-			background: rgba(255, 255, 255, 0.7);
-			-webkit-backdrop-filter: blur(18px) saturate(180%);
-			backdrop-filter: blur(18px) saturate(180%);
+			/* Solid (build 63): was rgba(255,255,255,0.7) + blur, so the track map showed through. */
+			background: #ffffff;
 			display: flex;
 			flex-direction: column;
 			padding-top: max(10px, env(safe-area-inset-top));
@@ -458,21 +457,52 @@
 		.sp-empty { padding: 32px 8px; text-align: center; color: #888; font-size: 15px; }
 
 		#sheetBackdrop { position: fixed; inset: 0; z-index: 99923; background: rgba(0, 0, 0, 0.15); }
+		/* Settings page (build 63, Floating light style): a full-screen solid
+		   page, NOT a bottom sheet, so the map (and its 'Transit Track Layout'
+		   title banner) is fully covered and no map lines show through. The
+		   native bottom tab bar stays visible above it. */
 		#moreSheet {
 			position: fixed;
-			left: 50%;
-			transform: translateX(-50%);
-			bottom: calc(57px + env(safe-area-inset-bottom));
+			inset: 0;
+			left: 0;
+			transform: none;
+			width: auto;
 			z-index: 99924;
-			width: min(420px, calc(100vw - 32px));
-			border-radius: 24px;
-			padding: 8px;
+			overflow-y: auto;
+			background: #ffffff;
+			-webkit-backdrop-filter: none;
+			backdrop-filter: none;
+			border: none;
+			border-radius: 0;
+			box-shadow: none;
+			padding: calc(env(safe-area-inset-top) + 20px) 20px calc(100px + env(safe-area-inset-bottom));
 		}
-		.more-row { display: flex; align-items: center; gap: 12px; padding: 14px 12px; font-size: 16px; font-weight: 600; color: #003380; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+		html.dark #moreSheet { background: #101420; }
+		.more-title { font-size: 30px; font-weight: 800; color: #111; margin: 8px 4px 16px; }
+		html.dark .more-title { color: #f0f2f8; }
+		.more-appcard { display: flex; align-items: center; gap: 14px; background: #f2f2f7; border-radius: 20px; padding: 16px; margin-bottom: 24px; }
+		html.dark .more-appcard { background: rgba(255,255,255,0.08); }
+		.more-appicon { width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0; }
+		.more-appname { font-size: 18px; font-weight: 700; color: #111; }
+		html.dark .more-appname { color: #f0f2f8; }
+		.more-appver { font-size: 14px; color: #888; margin-top: 2px; }
+		html.dark .more-appver { color: #aaa; }
+		.more-section { font-size: 13px; font-weight: 600; color: #888; margin: 0 4px 8px; }
+		html.dark .more-section { color: #aaa; }
+		.more-card { background: #f2f2f7; border-radius: 20px; padding: 4px 16px; margin-bottom: 24px; overflow: hidden; }
+		html.dark .more-card { background: rgba(255,255,255,0.08); }
+		.more-city-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; font-size: 16px; font-weight: 600; color: #111; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.06); }
+		.more-city-row:last-child { border-bottom: none; }
+		html.dark .more-city-row { color: #f0f2f8; border-bottom-color: rgba(255,255,255,0.08); }
+		.more-check { color: #003380; font-weight: 800; }
+		html.dark .more-check { color: #7db3ff; }
+		.more-credit { text-align: center; font-size: 12px; color: #aaa; padding: 8px 0 0; }
+		.more-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; font-size: 16px; font-weight: 600; color: #111; border-bottom: 1px solid rgba(0, 0, 0, 0.06); cursor: pointer; }
+		html.dark .more-row { color: #f0f2f8; border-bottom-color: rgba(255,255,255,0.08); }
 		.more-row:last-of-type { border-bottom: none; }
 		.more-row svg { width: 20px; height: 20px; }
 		.more-ver { padding: 10px 12px 6px; font-size: 11px; color: rgba(0, 51, 128, 0.6); text-align: center; }
-		.more-theme { padding: 10px 12px 4px; }
+		.more-theme { padding: 10px 0; }
 		.more-theme-label { font-size: 13px; color: rgba(0, 51, 128, 0.7); font-weight: 600; margin-bottom: 8px; }
 		.more-theme-seg { display: flex; gap: 6px; }
 		.more-theme-seg button { flex: 1; border: 1px solid rgba(0, 51, 128, 0.2); background: rgba(255, 255, 255, 0.6); color: #003380; font-size: 14px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
@@ -483,9 +513,8 @@
 			position: fixed;
 			inset: 0;
 			z-index: 99925;
-			background: rgba(255, 255, 255, 0.7);
-			-webkit-backdrop-filter: blur(18px) saturate(180%);
-			backdrop-filter: blur(18px) saturate(180%);
+			/* Solid (build 63): was rgba(255,255,255,0.7) + blur, so the track map showed through. */
+			background: #ffffff;
 			display: flex;
 			flex-direction: column;
 			padding-top: max(10px, env(safe-area-inset-top));
@@ -541,6 +570,42 @@
 		html.dark .tr-transit { color: #7db3ff; }
 		html.dark .sy-theme .tr-transit { color: #d4b686; }
 		html.dark .sh-theme .tr-transit { color: #ff8a95; }
+		/* 乘车码 (build 63): same row style as the transit-app row, one mini-program for all cities. */
+		.tr-ridecode { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
+		.tr-ridecode svg { width: 28px; height: 28px; border-radius: 7px; flex: none; display: block; }
+		.sy-theme .tr-ridecode { color: #8a6d2b !important; }
+		.sh-theme .tr-ridecode { color: #a8000c !important; }
+		html.dark .tr-ridecode { color: #7db3ff; }
+		html.dark .sy-theme .tr-ridecode { color: #d4b686; }
+		html.dark .sh-theme .tr-ridecode { color: #ff8a95; }
+		/* 附近车站 (build 63): row + nearest-station list, same style as the transit rows. */
+		.tr-nearby-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
+		.sy-theme .tr-nearby-row { color: #8a6d2b !important; }
+		.sh-theme .tr-nearby-row { color: #a8000c !important; }
+		html.dark .tr-nearby-row { color: #7db3ff; }
+		html.dark .sy-theme .tr-nearby-row { color: #d4b686; }
+		html.dark .sh-theme .tr-nearby-row { color: #ff8a95; }
+		.tr-nearby { margin: 8px 16px 0; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.65); }
+		html.dark .tr-nearby { background: rgba(255,255,255,0.08); }
+		.tr-nearby-item { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; font-size: 15px; font-weight: 600; color: #222; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.06); }
+		.tr-nearby-item:last-child { border-bottom: none; }
+		html.dark .tr-nearby-item { color: #f0f2f8; border-bottom-color: rgba(255,255,255,0.08); }
+		.tr-nearby-dist { font-size: 13px; font-weight: 400; color: #888; }
+		html.dark .tr-nearby-dist { color: #aaa; }
+		.tr-nearby-msg { margin: 8px 16px 0; font-size: 13px; color: #888; text-align: center; }
+		/* 搜索记录 (build 63). */
+		.tr-history { margin: 12px 16px 0; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.65); }
+		html.dark .tr-history { background: rgba(255,255,255,0.08); }
+		.tr-history-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 6px; font-size: 13px; font-weight: 700; color: #888; }
+		html.dark .tr-history-head { color: #aaa; }
+		.tr-history-head button { border: none; background: none; font-size: 13px; color: #003380; cursor: pointer; padding: 0; }
+		html.dark .tr-history-head button { color: #7db3ff; }
+		.tr-history-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 15px; font-weight: 600; color: #222; cursor: pointer; border-top: 1px solid rgba(0,0,0,0.06); }
+		html.dark .tr-history-item { color: #f0f2f8; border-top-color: rgba(255,255,255,0.08); }
+		.tr-history-route { flex: 1; }
+		.tr-history-city { font-size: 12px; font-weight: 400; color: #888; }
+		html.dark .tr-history-city { color: #aaa; }
+		.tr-history-del { border: none; background: none; font-size: 18px; line-height: 1; color: #bbb; cursor: pointer; padding: 0 2px; }
 		/* iPad (build 37): on wide screens keep the transfer/search
 		   panels to a centered readable column; the map tab stays
 		   full-bleed. Applies to any viewport >= 700px wide (iPad
@@ -574,6 +639,14 @@
 		.tt-time { color: #555; white-space: nowrap; }
 		.tt-time b { color: #111; font-weight: 700; }
 		.tt-note { margin-top: 14px; font-size: 12px; line-height: 1.6; color: #888; }
+		/* Operating-hours prompt (build 63): status badge in the timetable and a warning on route results. */
+		.tt-op { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+		.tt-op.op-run { background: #e6f4ea; color: #1a7f37; }
+		.tt-op.op-off { background: #fdecea; color: #c00; }
+		html.dark .tt-op.op-run { background: rgba(46,160,67,0.25); color: #7ee2a0; }
+		html.dark .tt-op.op-off { background: rgba(220,60,60,0.25); color: #ff8a95; }
+		.ropt-opwarn { margin-top: 4px; font-size: 13px; font-weight: 700; color: #c00; }
+		html.dark .ropt-opwarn { color: #ff8a95; }
 		.tt-count { font-size: 13px; color: #888; }
 		.tt-station { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
 		.tt-st-name { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 4px; }
@@ -607,7 +680,7 @@
 		}
 		html.dark #brandChip .bj-city, html.dark #brandChip .bj-chev { color: #9cc2ff; }
 		html.dark #searchPill { color: #9cc2ff; }
-		html.dark #stationPanel, html.dark #transferPanel { background: rgba(16, 20, 32, 0.88); }
+		html.dark #stationPanel, html.dark #transferPanel { background: #101420; }
 		html.dark .sp-search { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
 		html.dark .sp-search input { color: #f0f2f8; }
 		html.dark .sp-search svg { color: #aaa; }
@@ -740,6 +813,7 @@
 								<div class="tt-dir" v-for="d in st.dirs" :key="d.dir">
 									<span class="tt-dir-name">往{{ d.dir }}</span>
 									<span class="tt-time" v-if="d.first || d.last">首班 <b>{{ d.first || '—' }}</b>&nbsp;&nbsp;末班 <b>{{ d.last || '—' }}</b></span>
+								<span class="tt-op" :class="opClass(d)" v-if="opLabel(d)">{{ opLabel(d) }}</span>
 									<span class="tt-time" v-else>终点站</span>
 								</div>
 							</div>
@@ -794,6 +868,16 @@
 				</div>
 				<button class="tr-search" @click="doSearch">搜索</button>
 				<div class="tr-transit" @click="openTransitApp"><img v-if="transitIcon" :src="transitIcon" :alt="transitLabel"><span>{{ transitLabel }} ›</span></div>
+				<div class="tr-ridecode" @click="openRideCode"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="14" width="3" height="3" fill="currentColor"/><rect x="18" y="14" width="3" height="3" fill="currentColor"/><rect x="14" y="18" width="3" height="3" fill="currentColor"/><rect x="18" y="18" width="3" height="3" fill="currentColor"/></svg><span>乘车码 ›</span></div>
+				<div class="tr-nearby-row" @click="requestNearbyStations"><span>📍 附近车站</span><span v-if="nearbyLoading">定位中…</span></div>
+				<div class="tr-nearby" v-if="nearbyList.length">
+					<div class="tr-nearby-item" v-for="s in nearbyList" :key="s.n" @click="pickNearby(s)"><span>{{ s.n }}</span><span class="tr-nearby-dist">{{ s.distText }}</span></div>
+				</div>
+				<div class="tr-nearby-msg" v-if="nearbyMsg">{{ nearbyMsg }}</div>
+				<div class="tr-history" v-if="searchHistory.length">
+					<div class="tr-history-head"><span>搜索记录</span><button @click="clearSearchHistory">清除</button></div>
+					<div class="tr-history-item" v-for="(h, i) in searchHistory" :key="i" @click="runHistory(h)"><span class="tr-history-route">{{ h.from }} → {{ h.to }}</span><span class="tr-history-city">{{ cityNameFor(h.city) }}</span><button class="tr-history-del" @click.stop="deleteHistoryItem(i)">×</button></div>
+				</div>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
 				<div class="tr-routes" v-if="routeList.length">
 					<div class="ropt" v-for="(r, idx) in sortedRoutes" :key="idx" :class="{ sel: routeResult === r }" @click="pickRoute(r)">
@@ -801,6 +885,7 @@
 						<div class="ropt-main">
 							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ r.minutes }} 分钟</span></div>
 							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>换乘 {{ r.transfers }} 次 · 约 {{ r.km }} 公里</div>
+							<div class="ropt-opwarn" v-if="routeOpWarning(r)">⚠ {{ routeOpWarning(r) }}</div>
 							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line" :style="{ background: '#' + seg.color, color: seg.text }">{{ seg.name }}</span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ {{ seg.to }}</span></template></div>
 						</div>
 						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">早</span><span class="ropt-badge few" v-if="r.isShortest">短</span><span class="ropt-badge cheap" v-if="r.isCheap">省</span></div>
@@ -828,30 +913,47 @@
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
 			<div id="moreSheet" class="glass" v-show="showMore">
-				<div class="more-row" @click="doReset">
-					<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" fill="currentColor"/></svg>
-					<span>重置缩放</span>
-				</div>
-				<div class="more-row" @click="doRepo">
-					<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"/></svg>
-					<span>项目主页</span>
-				</div>
-				<div class="more-row" @click="doPdf">
-					<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
-					<span>下载PDF</span>
-				</div>
-				<div class="more-theme">
-					<div class="more-theme-label">深色模式</div>
-					<div class="more-theme-seg">
-						<button :class="{ on: theme==='system' }" @click="setTheme('system')">跟随系统</button>
-						<button :class="{ on: theme==='light' }" @click="setTheme('light')">浅色</button>
-						<button :class="{ on: theme==='dark' }" @click="setTheme('dark')">深色</button>
+				<div class="more-title">Subway motion</div>
+				<div class="more-appcard">
+					<img class="more-appicon" :src="cityLogo()" alt="">
+					<div>
+						<div class="more-appname">Subway motion</div>
+						<div class="more-appver">版本 1.0.3</div>
 					</div>
 				</div>
-				<div class="more-ver">{{ curr.verInfo }}</div>
+				<div class="more-section">切换城市</div>
+				<div class="more-card">
+					<div class="more-city-row" v-for="c in cityList" :key="c.key" @click="switchCityKeepSettings(c.key)"><span>{{ c.name }}</span><span class="more-check" v-if="city === c.key">✓</span></div>
+				</div>
+				<div class="more-section">深色模式</div>
+				<div class="more-card">
+					<div class="more-theme">
+						<div class="more-theme-seg">
+							<button :class="{ on: theme==='system' }" @click="setTheme('system')">跟随系统</button>
+							<button :class="{ on: theme==='light' }" @click="setTheme('light')">浅色</button>
+							<button :class="{ on: theme==='dark' }" @click="setTheme('dark')">深色</button>
+						</div>
+					</div>
+				</div>
+				<div class="more-section">更多</div>
+				<div class="more-card">
+					<div class="more-row" @click="doReset">
+						<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" fill="currentColor"/></svg>
+						<span>重置缩放</span>
+					</div>
+					<div class="more-row" @click="doRepo">
+						<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"/></svg>
+						<span>项目主页</span>
+					</div>
+					<div class="more-row" @click="doPdf">
+						<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+						<span>下载PDF</span>
+					</div>
+				</div>
+				<div class="more-credit">数据来源 SierraQin · CC0 1.0</div>
 			</div>
 
-			<span id="svgDiv" v-html="curr.svgDom"></span>
+<span id="svgDiv" v-html="curr.svgDom"></span>
 
 
 
@@ -1069,6 +1171,10 @@
 						departTime: null,
 						fromLine: null,
 						toLine: null,
+						nearbyList: [],
+						nearbyMsg: '',
+						nearbyLoading: false,
+						searchHistory: (function () { try { var h = JSON.parse(window.localStorage.getItem('metro-search-history') || '[]'); return Array.isArray(h) ? h : []; } catch (e) { return []; } })(),
 						theme: 'system',
 						lastTab: 'map',
 
@@ -1097,6 +1203,11 @@
 				},
 				methods: {
 					openStations() { this.setTab('stations'); },
+					// City switch from the settings page (build 63): switchCity goes to
+					// the map tab, so come back to settings so the user sees the
+					// checkmark move. setTab posts tabChanged, so the native tab bar
+					// ends on 'more'.
+					switchCityKeepSettings(c) { this.switchCity(c); this.setTab('more'); },
 					setTab(t) {
 						if (t === 'stations') {
 							this.tab = 'stations';
@@ -1163,8 +1274,13 @@
 						this.toggleCity();
 					},
 					toggleCity() { this.switchCity(this.city === 'bj' ? 'sy' : 'bj'); },
-					switchCity(c) {
-						if (c === this.city) return;
+					switchCity(c, force) {
+						// force (build 63): relaunch restore passes true so
+						// the saved city's map/stations/routes are applied
+						// even when c === this.city (data() already restored
+						// the city name). Normal user switches pass nothing
+						// and keep the early return.
+						if (c === this.city && !force) return;
 						if (c === 'sy' && (!this.syStations.length || !this.syMap)) return;
 						if (c === 'sh' && (!this.shStations.length || !this.shMap)) return;
 						if (c === 'hb' && (!this.hbStations.length || !this.hbMap)) return;
@@ -1192,6 +1308,7 @@
 							this.curr = env.prod;
 						}
 						this.ttLine = null; this.ttQuery = '';
+						this.nearbyList = []; this.nearbyMsg = ''; this.nearbyLoading = false;
 						this.fromStation = null; this.toStation = null;
 						this.fromQuery = ''; this.toQuery = '';
 						this.fromLine = null; this.toLine = null;
@@ -1618,6 +1735,169 @@
 						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : (this.city === 'dl' ? '1383655806' : '1071038870')));
 						window.open('https://apps.apple.com/cn/app/id' + id, '_blank');
 					},
+					// 乘车码 (build 63): jump to the WeChat 乘车码 mini-program.
+					// One mini-program covers all cities, so the same user-provided
+					// link is used for every city. In the native app the shell opens
+					// it via WeChat's deep link; in a plain browser, navigate to the
+					// weixin:// URL so the browser offers to open WeChat.
+					openRideCode() {
+						var link = '#小程序://乘车码/cZxzR2rsEppAxSv';
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openRideCode;
+						if (h) { h.postMessage({ link: link }); return; }
+						window.location.href = 'weixin://dl/business/?t=' + encodeURIComponent(link);
+					},
+					// 附近车站 (build 63): ask the native shell for one location fix
+					// (permission prompt appears only here, never at launch), or use
+					// HTML5 geolocation in a plain browser. The native side calls
+					// showNearbyStations(lat, lng) / nearbyError(msg) with the result.
+					requestNearbyStations() {
+						this.nearbyMsg = '';
+						this.nearbyList = [];
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.requestLocation;
+						if (h) { this.nearbyLoading = true; h.postMessage({}); return; }
+						if (navigator.geolocation) {
+							var self = this;
+							this.nearbyLoading = true;
+							navigator.geolocation.getCurrentPosition(function (pos) { self.showNearbyStations(pos.coords.latitude, pos.coords.longitude); }, function () { self.nearbyLoading = false; self.nearbyMsg = '无法获取定位，请检查定位权限。'; }, { timeout: 10000 });
+						} else { this.nearbyMsg = '当前设备不支持定位。'; }
+					},
+					// Called by native with the device location. Computes the nearest
+					// stations (haversine) from the stations' lat/lng. Stations without
+					// coordinates are skipped, never guessed. If no station in the
+					// current city has coordinates yet, say so plainly.
+					showNearbyStations(lat, lng) {
+						this.nearbyLoading = false;
+						var list = [];
+						var sts = this.stations || [];
+						for (var i = 0; i < sts.length; i++) {
+							var s = sts[i];
+							if (s.lat == null || s.lng == null) continue;
+							var d = this.haversineKm(lat, lng, s.lat, s.lng);
+							list.push({ st: s, n: s.n, dist: d, distText: d < 1 ? Math.round(d * 1000) + ' 米' : d.toFixed(1) + ' 公里' });
+						}
+						list.sort(function (a, b) { return a.dist - b.dist; });
+						this.nearbyList = list.slice(0, 5);
+						if (!this.nearbyList.length) { this.nearbyMsg = '该城市暂无车站坐标数据，附近车站功能即将上线。'; }
+					},
+					nearbyError(msg) {
+						this.nearbyLoading = false;
+						this.nearbyMsg = msg || '定位失败，请稍后重试。';
+					},
+					pickNearby(item) {
+						var st = item.st;
+						this.fromStation = st;
+						this.fromQuery = st.n;
+						this.fromLine = null;
+						this.routeResult = null;
+						this.routeList = [];
+						this.routeError = '';
+						this.nearbyList = [];
+						var hp = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.stationPicked;
+						if (hp) hp.postMessage({ which: 'from', name: st.n, line: null });
+					},
+					haversineKm(lat1, lng1, lat2, lng2) {
+						var R = 6371;
+						var dLat = (lat2 - lat1) * Math.PI / 180;
+						var dLng = (lng2 - lng1) * Math.PI / 180;
+						var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+						return 2 * R * Math.asin(Math.sqrt(a));
+					},
+					// 搜索记录 (build 63): every route search with a from + to is saved
+					// to localStorage ('metro-search-history'), most recent first, cap 10.
+					// Same from→to in the same city moves to the top, not duplicated.
+					saveSearchHistory() {
+						if (!this.fromStation || !this.toStation) return;
+						var entry = { city: this.city, from: this.fromStation.n, to: this.toStation.n, ts: Date.now() };
+						var list = this.searchHistory || [];
+						for (var i = list.length - 1; i >= 0; i--) { if (list[i].city === entry.city && list[i].from === entry.from && list[i].to === entry.to) list.splice(i, 1); }
+						list.unshift(entry);
+						this.searchHistory = list.slice(0, 10);
+						try { window.localStorage.setItem('metro-search-history', JSON.stringify(this.searchHistory)); } catch (e) {}
+					},
+					// Tap a history entry: switch to that entry's city first if needed,
+					// then fill from/to and run the search.
+					runHistory(item) {
+						if (item.city && item.city !== this.city) { this.switchCity(item.city); this.setTab('transfer'); }
+						var fs = this.resolveStation(item.from);
+						var ts = this.resolveStation(item.to);
+						if (!fs || !ts) { this.routeError = '该城市没有这个车站'; return; }
+						this.fromStation = fs; this.fromQuery = fs.n;
+						this.toStation = ts; this.toQuery = ts.n;
+						this.doSearch();
+					},
+					clearSearchHistory() {
+						this.searchHistory = [];
+						try { window.localStorage.removeItem('metro-search-history'); } catch (e) {}
+					},
+					deleteHistoryItem(i) {
+						this.searchHistory.splice(i, 1);
+						try { window.localStorage.setItem('metro-search-history', JSON.stringify(this.searchHistory)); } catch (e) {}
+					},
+					cityNameFor(c) { return c === 'sy' ? '沈阳' : (c === 'sh' ? '上海' : (c === 'hb' ? '哈尔滨' : (c === 'dl' ? '大连' : (c === 'jh' ? '金华' : '北京')))); },
+					// Operating-hours prompt (build 63). Timetable data is NOT changed
+					// here — this only reads first/last times and says whether the line
+					// is running at a given moment. A last train after midnight (00:00)
+					// is treated as 24:00+ of the service day. Harbin per-station times
+					// and Dalian L5 are ESTIMATED (flagged in-app); they are shown as-is.
+					toMin(t) {
+						if (!t) return null;
+						var p = String(t).split(':');
+						if (p.length !== 2) return null;
+						var h = parseInt(p[0], 10), m = parseInt(p[1], 10);
+						if (isNaN(h) || isNaN(m)) return null;
+						return h * 60 + m;
+					},
+					// Status of one timetable direction right now.
+					opStatus(d) {
+						var f = this.toMin(d.first), l = this.toMin(d.last);
+						if (f == null || l == null) return { running: null, label: '' };
+						var now = new Date();
+						var nowMin = now.getHours() * 60 + now.getMinutes();
+						var running;
+						if (l < f) running = (nowMin >= f) || (nowMin <= l);
+						else running = nowMin >= f && nowMin <= l;
+						if (running) return { running: true, label: '运营中' };
+						if (l < f) return { running: false, label: '未运营 · 首班车 ' + d.first };
+						if (nowMin < f) return { running: false, label: '未运营 · 首班车 ' + d.first };
+						return { running: false, label: '末班车已过' };
+					},
+					opLabel(d) { return this.opStatus(d).label; },
+					opClass(d) { var s = this.opStatus(d); return s.running === true ? 'op-run' : (s.running === false ? 'op-off' : ''); },
+					// Flag on a route result (build 63): checks the departure line at the
+					// departure time. If that time is before the first train or after the
+					// last train for the line+direction at the departure station, return
+					// a short warning; otherwise ''. Missing timetable data means no
+					// warning (never guess).
+					routeOpWarning(r) {
+						if (!r || !r.segments || !r.segments.length || !r.depart) return '';
+						var seg = r.segments[0];
+						var R = this.routes;
+						if (!R || !R.lines || !R.lines[seg.line]) return '';
+						var sts = R.lines[seg.line].stations || [];
+						var fi = sts.indexOf(seg.from), ti = sts.indexOf(seg.to);
+						if (fi < 0 || ti < 0 || fi === ti) return '';
+						var dirName = ti > fi ? sts[sts.length - 1] : sts[0];
+						var tt = this.timetableData;
+						if (!tt) return '';
+						var stTT = tt[seg.from];
+						if (!stTT) return '';
+						var dirs = stTT[seg.line];
+						if (!dirs) return '';
+						var d = null;
+						for (var i = 0; i < dirs.length; i++) { if (dirs[i].dir === dirName) { d = dirs[i]; break; } }
+						if (!d) return '';
+						var f = this.toMin(d.first), l = this.toMin(d.last);
+						if (f == null || l == null) return '';
+						var dep = this.toMin(r.depart);
+						if (dep == null) return '';
+						var running;
+						if (l < f) running = (dep >= f) || (dep <= l);
+						else running = dep >= f && dep <= l;
+						if (running) return '';
+						if (l < f) return '未运营 · 首班车 ' + d.first;
+						if (dep < f) return '未运营 · 首班车 ' + d.first;
+						return '末班车已过';
+					},
 					showTimePicker() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.timePicker;
 						if (h) { h.postMessage({ departTime: this.departTime }); return; }
@@ -1716,6 +1996,7 @@
 						if (ts) { this.toStation = ts; this.toQuery = ts.n; }
 						if (!this.fromStation || !this.toStation) { this.routeError = '请先选择出发站和到达站'; return; }
 						if (this.fromStation.n === this.toStation.n) { this.routeError = '出发和到达是同一站'; return; }
+						this.saveSearchHistory();
 						var list = this.findRoutes(this.fromStation.n, this.toStation.n);
 						if (!list || !list.length) {
 							if (this.fromStation.n === '潞阳' || this.toStation.n === '潞阳') this.routeError = '暂无换乘方案：潞阳所在的 22 号线未画进这版配线图';
@@ -1859,6 +2140,11 @@
 				},
 				computed: {
 					cityName() { return this.city === 'sy' ? '沈阳' : (this.city === 'sh' ? '上海' : (this.city === 'hb' ? '哈尔滨' : (this.city === 'dl' ? '大连' : '北京'))); },
+					// Cities for the settings switcher (build 63). Jinhua ('jh') joins
+					// this list when its wiring lands (after build 63).
+					cityList() {
+						return [{ key: 'bj', name: '北京' }, { key: 'sy', name: '沈阳' }, { key: 'sh', name: '上海' }, { key: 'hb', name: '哈尔滨' }, { key: 'dl', name: '大连' }];
+					},
 					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : this.bjLogo))); },
 					transitLabel() { return this.city === 'sy' ? '打开盛京通' : (this.city === 'sh' ? '打开Metro大都会' : (this.city === 'hb' ? '打开哈尔滨城市通' : (this.city === 'dl' ? '打开大连交通e出行' : '打开一卡通'))); },
 					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : this.yktIcon))); },
@@ -1981,6 +2267,22 @@
 					// wrong rows. Throttled with requestAnimationFrame.
 					var _panel = document.getElementById('transferPanel');
 					if (_panel) {
+					// Settings page scroll (build 63): #moreSheet is now a full-screen
+					// scrollable page, so re-report the theme-picker frame while it
+					// scrolls, like the transfer panel above. reportThemeFrame hides
+					// the native buttons when the row scrolls out of view.
+					var _more = document.getElementById('moreSheet');
+					if (_more) {
+						var _moreTicking = false;
+						_more.addEventListener('scroll', function() {
+							if (!self.nativeApp || _moreTicking) return;
+							_moreTicking = true;
+							window.requestAnimationFrame(function() {
+								_moreTicking = false;
+								self.reportThemeFrame();
+							});
+						}, { passive: true });
+					}
 						var _scrollTicking = false;
 						_panel.addEventListener('scroll', function() {
 							if (!self.nativeApp || _scrollTicking) return;
@@ -1999,8 +2301,17 @@
 					// city's splash. The swap happens behind the launch splash.
 					try {
 						var _savedCity = window.localStorage.getItem('metro-city');
-						if ((_savedCity === 'bj' || _savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb' || _savedCity === 'dl') && _savedCity !== this.city) {
-							this.switchCity(_savedCity);
+						// Relaunch restore (build 63): data() already set
+						// this.city from the same localStorage value, so
+						// _savedCity === this.city and the old
+						// `_savedCity !== this.city` guard skipped the
+						// switch - leaving the Beijing map/stations even
+						// though the pill showed the saved city. Force the
+						// switch for any valid non-Beijing city so its map,
+						// stations and routes are actually applied; for
+						// 'bj' the Beijing defaults are already correct.
+						if (_savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb' || _savedCity === 'dl') {
+							this.switchCity(_savedCity, true);
 						}
 					} catch (e) {}
 					// Tell native the current city even when nothing switched
