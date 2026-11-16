@@ -66,11 +66,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // .more-theme-seg row, same pattern as sortTabs.
     var themeButtons: [UIButton] = []
     let themeSegKeys = ["system", "light", "dark"]
-    // Web view's origin in the main view (build 52): on iPad the web
-    // view starts below the independent top tab bar, so web
-    // getBoundingClientRect coordinates must be shifted by this offset
-    // to land in main-view space. On iPhone the web view is full-screen
-    // so the offset is (0, 0) and nothing changes.
+    // Web view's origin in the main view: the web view is full-screen
+    // on every device (build 63 removed the iPad top strip), so the
+    // origin is (0, 0) and web getBoundingClientRect coordinates map
+    // 1:1 to main-view space. Kept as a property so the frame
+    // placement code (placeTransfer / placeSortTabs /
+    // placeThemeButtons) does not need to know the layout.
     var webOffset: CGPoint { webView.frame.origin }
     // Native Liquid Glass transfer input area (build 37): a glass card
     // holding the two station text fields + swap button, and a glass
@@ -128,6 +129,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // splash image from launch, covering the white gap before the web
     // page loads and its own splash appears. Hidden in splashFinished().
     var splashImageView: UIImageView!
+    // iPhone Duo sidebar (build 63): on a wide iPhone (Duo unfolded)
+    // the bottom tab bar is replaced by a vertical floating glass
+    // sidebar on the right edge. Same 5 tabs, same order, icon above
+    // label. iPad keeps the bottom tab bar (build 63 removes the iPad
+    // top strip; the bar floats at the bottom there too).
+    var sideBar: UIView!
+    var sideBarEffectView: UIVisualEffectView!
+    var sideBarButtons: [UIButton] = []
+    var sideBarActive = false
+    // Web view trailing constraints (build 63): toggled between the
+    // view edge (narrow / iPad) and the sidebar's leading edge (wide
+    // iPhone) so web content never goes under the sidebar.
+    var webViewTrailingToView: NSLayoutConstraint!
+    var webViewTrailingToSideBar: NSLayoutConstraint!
+    private var lastSideBarLayoutWidth: CGFloat = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -139,7 +155,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
            ["bj", "sy", "sh", "hb", "dl"].contains(saved) {
             currentCity = saved
         }
-        view.backgroundColor = .white
+        view.backgroundColor = UIColor(red: 12.0 / 255.0, green: 15.0 / 255.0, blue: 22.0 / 255.0, alpha: 1) // #0c0f16, the web's dark background (build 63): nothing white shows through while the page loads or at the edges.
 
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "tabChanged")
@@ -192,29 +208,36 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         view.addSubview(tabBar)
         // Splash gate: hidden until the web splash finishes.
         tabBar.isHidden = true
-        // iPad (user 2026-11-15): the tab bar moves to the TOP; iPhone
-        // keeps it at the bottom. The top pills move below the bar on
-        // iPad so they do not overlap it (see setupNativePills).
-        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        // Floating bottom tab bar on EVERY device (build 63): the iPad
+        // top strip is gone (user 2026-11-16 "不要这个大上吧" /
+        // "底栏悬浮用 Apple UI SDK27.2") — the bar floats at the
+        // bottom on iPad too, exactly like iPhone. The web view is
+        // full-screen, so there is no white strip behind the bar.
         NSLayoutConstraint.activate([
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            isPad ? tabBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
-                  : tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4),
+            tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4),
         ])
+        // iPhone Duo sidebar (build 63): created here so the web view
+        // trailing constraint below can anchor to it.
+        setupSideBar()
 
-        // iPad top bar is INDEPENDENT (build 52, user 2026-11-15
-        // "帮顶栏独立，不要遮挡iPad显示内容"): the web view starts
-        // BELOW the top tab bar, so no web content (e.g. the timetable
-        // panel's search field) is ever covered by the bar. iPhone keeps
-        // the full-screen web view (the bar floats at the bottom there).
+        // Web view is full-screen on every device (build 63): iPad no
+        // longer starts below a top tab bar (that strip is gone), and
+        // iPhone keeps the full-screen web view. The bottom clearance
+        // for the floating tab bar lives in the web CSS (panels:
+        // padding-bottom 57px + safe-area), so no content is hidden
+        // behind the floating bar. iPhone Duo sidebar: the trailing
+        // edge toggles between the view edge and the sidebar's leading
+        // edge (see updateSideBarLayout).
         webView.translatesAutoresizingMaskIntoConstraints = false
+        webViewTrailingToView = webView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        webViewTrailingToSideBar = webView.trailingAnchor.constraint(equalTo: sideBar.leadingAnchor, constant: -8)
         NSLayoutConstraint.activate([
             webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            webViewTrailingToView,
             webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            isPad ? webView.topAnchor.constraint(equalTo: tabBar.bottomAnchor, constant: 8)
-                  : webView.topAnchor.constraint(equalTo: view.topAnchor),
+            webView.topAnchor.constraint(equalTo: view.topAnchor),
         ])
 
         // Swipe left/right on the tab bar to switch tabs (keeps the web
@@ -241,10 +264,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         view.addSubview(backButton)
         NSLayoutConstraint.activate([
             backButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            // iPad: the tab bar is at the top, so the back button sits
-            // below it; iPhone: it sits above the bottom tab bar.
-            isPad ? backButton.topAnchor.constraint(equalTo: tabBar.bottomAnchor, constant: 16)
-                  : backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
+            // Above the floating bottom tab bar on every device
+            // (build 63: iPad no longer has a top tab bar).
+            backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
         ])
 
         setupNativePills()
@@ -284,6 +306,27 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         ])
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
         loadMap()
+        // iPhone Duo sidebar (build 63): pick sidebar vs bottom tab
+        // bar for the launch width; viewDidLayoutSubviews re-picks it
+        // when the phone folds/unfolds.
+        updateSideBarLayout()
+    }
+
+    // Fold/unfold (and rotation) change the view width: re-evaluate
+    // sidebar vs bottom tab bar. Only when the width actually moved,
+    // so a constraint toggle does not re-trigger itself.
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let w = view.bounds.width
+        if abs(w - lastSideBarLayoutWidth) > 0.5 {
+            lastSideBarLayoutWidth = w
+            updateSideBarLayout()
+        }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        updateSideBarLayout()
     }
 
     func loadMap() {
@@ -310,14 +353,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             pill.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(pill)
         }
-        // iPad: the tab bar is at the top, so the pills sit below it;
-        // iPhone: the pills sit at the top safe area as before.
-        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        // Pills sit at the top safe area on every device (build 63:
+        // the iPad top tab bar is gone, so there is no bar to sit below).
         NSLayoutConstraint.activate([
             cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
-            cityPill.topAnchor.constraint(equalTo: isPad ? tabBar.bottomAnchor : view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            cityPill.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             searchPill.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-            searchPill.topAnchor.constraint(equalTo: isPad ? tabBar.bottomAnchor : view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            searchPill.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
         ])
         searchPill.addTarget(self, action: #selector(openStationSearch), for: .touchUpInside)
         updateCityPill()
@@ -484,6 +526,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         backButton.setTitleColor(accentDark(), for: .normal)
         updateCityPill()
         updateSearchPill()
+        updateSideBarSelection()
         clearTransferFields()
         updateTransferTint()
     }
@@ -1083,7 +1126,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func splashFinished() {
         guard splashShowing else { return }
         splashShowing = false
-        tabBar.isHidden = false
+        // Reveal the tab bar or the Duo sidebar, whichever the current
+        // layout uses (build 63).
+        updateSideBarLayout()
         updatePillVisibility()
         // Fade the native launch splash out (same 0.4s as the web splash)
         // to reveal the map underneath.
@@ -1209,6 +1254,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         currentTab = key
         updatePillVisibility()
         updateTransferVisibility()
+        updateSideBarSelection()
         if key != "transfer" { sortTabs.isHidden = true }
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
     }
@@ -1227,6 +1273,166 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
     }
 
+    // MARK: - iPhone Duo sidebar (build 63)
+
+    // The sidebar is a vertical floating glass capsule on the right
+    // edge, vertically centered, with the same 5 tabs in the same
+    // order as the bottom tab bar (transfer, map, stations, timetable,
+    // more), each as a button with its icon above its label — the
+    // effect in the user's iPhone Duo screenshot. It appears ONLY on
+    // a wide iPhone (Duo unfolded); iPad and narrow iPhone keep the
+    // bottom floating tab bar. Content is never covered: when the
+    // sidebar is active the web view's trailing edge moves to the
+    // sidebar's leading edge (minus 8pt), so the web reflows into the
+    // space left of it.
+    func setupSideBar() {
+        sideBar = UIView()
+        sideBar.translatesAutoresizingMaskIntoConstraints = false
+        sideBar.layer.cornerRadius = 32
+        sideBar.clipsToBounds = true
+        sideBar.isHidden = true
+        view.addSubview(sideBar)
+
+        // Single glass layer: the capsule's own Liquid Glass
+        // (UIGlassEffect on iOS 26+, frosted material below). The
+        // buttons inside are PLAIN — not glass() — or the glass would
+        // stack twice (the build-50 double-glass bug the user
+        // rejected: "为啥有玻璃重复"). The selected item is highlighted
+        // with the city accent instead.
+        sideBarEffectView = makeGlassEffectView()
+        sideBarEffectView.translatesAutoresizingMaskIntoConstraints = false
+        sideBar.addSubview(sideBarEffectView)
+        NSLayoutConstraint.activate([
+            sideBarEffectView.leadingAnchor.constraint(equalTo: sideBar.leadingAnchor),
+            sideBarEffectView.trailingAnchor.constraint(equalTo: sideBar.trailingAnchor),
+            sideBarEffectView.topAnchor.constraint(equalTo: sideBar.topAnchor),
+            sideBarEffectView.bottomAnchor.constraint(equalTo: sideBar.bottomAnchor),
+        ])
+
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 6
+        stack.alignment = .fill
+        stack.distribution = .fill
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        sideBarEffectView.contentView.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: sideBarEffectView.contentView.leadingAnchor, constant: 4),
+            stack.trailingAnchor.constraint(equalTo: sideBarEffectView.contentView.trailingAnchor, constant: -4),
+            stack.topAnchor.constraint(equalTo: sideBarEffectView.contentView.topAnchor, constant: 10),
+            stack.bottomAnchor.constraint(equalTo: sideBarEffectView.contentView.bottomAnchor, constant: -10),
+        ])
+
+        let titles = ["换乘", "配线图", "搜索", "时刻表", "设置"]
+        let images: [UIImage?] = [
+            UIImage(systemName: "arrow.triangle.2.circlepath"),
+            UIImage(systemName: "map"),
+            UIImage(systemName: "magnifyingglass"),
+            UIImage(named: "TimetableIcon"),
+            UIImage(systemName: "gearshape"),
+        ]
+        for i in 0..<tabKeys.count {
+            let btn = UIButton(type: .system)
+            btn.tag = i
+            btn.configuration = sideBarButtonConfig(title: titles[i], image: images[i], selected: i == 1)
+            btn.addTarget(self, action: #selector(sideBarButtonTapped(_:)), for: .touchUpInside)
+            btn.translatesAutoresizingMaskIntoConstraints = false
+            btn.heightAnchor.constraint(equalToConstant: 52).isActive = true
+            stack.addArrangedSubview(btn)
+            sideBarButtons.append(btn)
+        }
+
+        NSLayoutConstraint.activate([
+            sideBar.widthAnchor.constraint(equalToConstant: 64),
+            sideBar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            sideBar.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        ])
+    }
+
+    // Sidebar button: plain configuration (see setupSideBar — the
+    // glass lives in the container, not in the buttons). Icon above
+    // label; selected = city accent icon + title on a faint accent
+    // wash, unselected = default label colour on clear.
+    func sideBarButtonConfig(title: String, image: UIImage?, selected: Bool) -> UIButton.Configuration {
+        var cfg = UIButton.Configuration.plain()
+        cfg.title = title
+        cfg.image = image
+        cfg.imagePlacement = .top
+        cfg.imagePadding = 4
+        cfg.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 2, bottom: 6, trailing: 2)
+        cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+            var a = attrs
+            a.font = UIFont.systemFont(ofSize: 11, weight: .semibold)
+            return a
+        }
+        cfg.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        cfg.baseForegroundColor = selected ? accentColor() : .label
+        var bg = UIBackgroundConfiguration.clear()
+        bg.backgroundColor = selected ? accentColor().withAlphaComponent(0.15) : .clear
+        bg.cornerRadius = 10
+        cfg.background = bg
+        return cfg
+    }
+
+    // Wide iPhone = Duo unfolded (also a large iPhone in landscape,
+    // which is acceptable adaptive behaviour). iPad never gets the
+    // sidebar — it keeps the bottom floating tab bar.
+    func sideBarShouldShow() -> Bool {
+        return UIDevice.current.userInterfaceIdiom == .phone && view.bounds.width >= 700
+    }
+
+    // Switch between sidebar (wide iPhone) and bottom tab bar
+    // (narrow / iPad). Idempotent: constraint toggling only runs when
+    // the mode actually changes; visibility is re-asserted every time
+    // (it also follows the splash gate, same as the tab bar).
+    func updateSideBarLayout() {
+        guard sideBar != nil else { return }
+        let show = sideBarShouldShow()
+        if show != sideBarActive {
+            sideBarActive = show
+            if show {
+                webViewTrailingToView.isActive = false
+                webViewTrailingToSideBar.isActive = true
+            } else {
+                webViewTrailingToSideBar.isActive = false
+                webViewTrailingToView.isActive = true
+            }
+        }
+        tabBar.isHidden = show || splashShowing
+        sideBar.isHidden = !show || splashShowing
+        updateSideBarSelection()
+    }
+
+    // Keep the sidebar's selected highlight in sync with currentTab
+    // (and with the city accent). Called by updateSideBarLayout,
+    // setWebTab, the tabChanged handler and refreshCityUI.
+    func updateSideBarSelection() {
+        guard !sideBarButtons.isEmpty else { return }
+        let idx = tabKeys.firstIndex(of: currentTab) ?? 1
+        let titles = ["换乘", "配线图", "搜索", "时刻表", "设置"]
+        let images: [UIImage?] = [
+            UIImage(systemName: "arrow.triangle.2.circlepath"),
+            UIImage(systemName: "map"),
+            UIImage(systemName: "magnifyingglass"),
+            UIImage(named: "TimetableIcon"),
+            UIImage(systemName: "gearshape"),
+        ]
+        for (i, btn) in sideBarButtons.enumerated() {
+            btn.configuration = sideBarButtonConfig(title: titles[i], image: images[i], selected: i == idx)
+        }
+    }
+
+    // Tapping a sidebar item switches tabs exactly like tapping the
+    // bottom tab bar item (same setWebTab path); the hidden tab bar's
+    // selectedItem is kept in sync so folding back to narrow shows
+    // the right tab selected.
+    @objc func sideBarButtonTapped(_ sender: UIButton) {
+        let idx = sender.tag
+        guard idx >= 0 && idx < tabKeys.count else { return }
+        tabBar.selectedItem = tabBar.items?[idx]
+        setWebTab(index: idx)
+    }
+
     // MARK: - Web page -> native tab bar
 
     // The web page posts its current tab whenever setTab runs, so the
@@ -1240,6 +1446,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             updatePillVisibility()
             updateTransferVisibility()
             tabBar.selectedItem = tabBar.items?[idx]
+            updateSideBarSelection()
         } else if message.name == "cityMenu" {
             presentCityMenuPopover()
         } else if message.name == "splashDone" {
