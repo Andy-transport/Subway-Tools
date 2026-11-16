@@ -64,6 +64,17 @@
 			width: 100%;
 		}
 
+		/* Dark-mode map (build 65): black map background. The map SVG has no
+		   background of its own (Beijing is a transparent vector; the other
+		   cities are JPEGs with white baked in), so the page behind it goes
+		   black and the whole map is inverted + hue-restored: white bg -> black,
+		   black labels -> white, line hues preserved (lightness inverted, so
+		   dark lines become light versions of the same hue). A plain black
+		   background alone would hide Beijing's 790 black station labels.
+		   (The black page background lives in the dark-mode section below:
+		   it must come after the general `html.dark body` rule to win.) */
+		html.dark #svg8 { filter: invert(1) hue-rotate(180deg); }
+
 		/* Smooth zoom/pan (build 32): put the pan/zoom viewport on its own
 		   compositor layer so pinch/drag transforms composite on the GPU
 		   instead of re-rasterizing the whole map on every frame. */
@@ -495,9 +506,44 @@
 		.more-city-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; font-size: 16px; font-weight: 600; color: #111; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.06); }
 		.more-city-row:last-child { border-bottom: none; }
 		html.dark .more-city-row { color: #f0f2f8; border-bottom-color: rgba(255,255,255,0.08); }
+		.more-city-name { display: flex; align-items: center; gap: 10px; }
+		.more-city-logo { width: 26px; height: 26px; border-radius: 50%; object-fit: contain; flex: none; }
+		/* 'More cities' chip grid (build 65): supported cities are tappable
+		   chips in the theme colour; not-yet-supported cities are greyed out. */
+		.more-city-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 2px 6px; }
+		.more-city-chip { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(0,51,128,0.4); color: #003380; font-size: 14px; cursor: pointer; }
+		.more-city-chip.on { background: #003380; border-color: #003380; color: #fff; font-weight: 700; }
+		.sy-theme .more-city-chip { border-color: rgba(176,141,87,0.55); color: #8a6d2b; }
+		.sy-theme .more-city-chip.on { background: #b08d57; border-color: #b08d57; color: #fff; }
+		.sh-theme .more-city-chip { border-color: rgba(230,0,18,0.45); color: #e60012; }
+		.sh-theme .more-city-chip.on { background: #e60012; border-color: #e60012; color: #fff; }
+		.hb-theme .more-city-chip { border-color: rgba(192,0,48,0.45); color: #c00030; }
+		.hb-theme .more-city-chip.on { background: #c00030; border-color: #c00030; color: #fff; }
+		.dl-theme .more-city-chip { border-color: rgba(13,87,154,0.45); color: #0d579a; }
+		.dl-theme .more-city-chip.on { background: #0d579a; border-color: #0d579a; color: #fff; }
+		.more-city-chip.soon { border-color: rgba(0,0,0,0.12); color: #9a9a9a; background: rgba(0,0,0,0.04); }
+		.more-soon-note { padding: 6px 2px 8px; font-size: 13px; color: #888; }
+		html.dark .more-city-chip { border-color: rgba(255,255,255,0.3); color: #9cc2ff; }
+		html.dark .more-city-chip.on { background: #9cc2ff; border-color: #9cc2ff; color: #10203f; }
+		html.dark .sy-theme .more-city-chip { border-color: rgba(212,182,134,0.5); color: #d4b686; }
+		html.dark .sy-theme .more-city-chip.on { background: #b08d57; border-color: #b08d57; color: #fff; }
+		html.dark .sh-theme .more-city-chip { border-color: rgba(255,138,149,0.5); color: #ff8a95; }
+		html.dark .sh-theme .more-city-chip.on { background: #e60012; border-color: #e60012; color: #fff; }
+		html.dark .hb-theme .more-city-chip { border-color: rgba(255,138,149,0.5); color: #ff8a95; }
+		html.dark .hb-theme .more-city-chip.on { background: #c00030; border-color: #c00030; color: #fff; }
+		html.dark .dl-theme .more-city-chip { border-color: rgba(156,194,255,0.5); color: #9cc2ff; }
+		html.dark .dl-theme .more-city-chip.on { background: #0d579a; border-color: #0d579a; color: #fff; }
+		html.dark .more-city-chip.soon { border-color: rgba(255,255,255,0.12); color: #666; background: rgba(255,255,255,0.04); }
+		html.dark .more-soon-note { color: #999; }
 		.more-check { color: #003380; font-weight: 800; }
 		html.dark .more-check { color: #7db3ff; }
 		.more-credit { text-align: center; font-size: 12px; color: #aaa; padding: 8px 0 0; }
+		.more-new-row { display: flex; align-items: flex-start; gap: 8px; padding: 9px 2px; font-size: 14px; color: #333; border-bottom: 1px solid rgba(0,0,0,0.06); }
+		.more-new-row:last-child { border-bottom: none; }
+		.more-new-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: #003380; margin-top: 6px; }
+		.more-new-sub { font-weight: 700; margin: 10px 0 2px; }
+		html.dark .more-new-sub { color: #eee; }
+		html.dark .more-new-row { color: #ddd; border-color: rgba(255,255,255,0.08); }
 		.more-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; font-size: 16px; font-weight: 600; color: #111; border-bottom: 1px solid rgba(0, 0, 0, 0.06); cursor: pointer; }
 		html.dark .more-row { color: #f0f2f8; border-bottom-color: rgba(255,255,255,0.08); }
 		.more-row:last-of-type { border-bottom: none; }
@@ -571,6 +617,22 @@
 		.tr-seg-txt { flex: 1; font-size: 16px; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 		.tr-seg-n { flex: none; font-size: 13px; color: #888; }
 		.tr-hint { padding: 12px 10px 4px; font-size: 12px; color: #999; text-align: center; }
+		.tr-trip { margin: 14px 16px 0; }
+		.tr-trip-start { display: block; width: 100%; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 999px; background: linear-gradient(180deg, rgba(0, 90, 180, 0.9), rgba(0, 51, 128, 0.9)); color: #fff; font-size: 17px; font-weight: 700; padding: 13px 0; cursor: pointer; }
+		.tr-trip-note { display: block; margin-top: 8px; font-size: 13px; color: #666; text-align: center; }
+		.tr-trip.active { display: flex; align-items: center; gap: 10px; background: rgba(0, 51, 128, 0.06); border: 1px solid rgba(0, 51, 128, 0.15); border-radius: 14px; padding: 12px; }
+		.tr-trip-info { flex: 1; min-width: 0; }
+		.tr-trip-next { display: block; font-size: 16px; font-weight: 700; color: #111; }
+		.tr-trip-left { display: block; font-size: 13px; color: #555; margin-top: 2px; }
+		.tr-trip-end { flex: none; border: none; border-radius: 999px; background: #c00; color: #fff; font-size: 14px; font-weight: 700; padding: 9px 16px; cursor: pointer; }
+		.sy-theme .tr-trip-start { background: linear-gradient(180deg, rgba(212, 182, 134, 0.9), rgba(180, 148, 90, 0.9)) !important; }
+		.sh-theme .tr-trip-start { background: linear-gradient(180deg, rgba(230, 0, 18, 0.9), rgba(168, 0, 12, 0.9)) !important; }
+		.hb-theme .tr-trip-start { background: linear-gradient(180deg, rgba(192, 0, 48, 0.9), rgba(138, 0, 32, 0.9)) !important; }
+		.dl-theme .tr-trip-start { background: linear-gradient(180deg, rgba(13, 87, 154, 0.9), rgba(10, 66, 115, 0.9)) !important; }
+		html.dark .tr-trip-note { color: #aaa; }
+		html.dark .tr-trip-next { color: #f0f2f8; }
+		html.dark .tr-trip-left { color: #ccc; }
+		html.dark .tr-trip.active { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
 		.tr-virtual { display: flex; align-items: center; gap: 6px; padding: 10px 10px 0; font-size: 13px; color: #b26a00; font-weight: 600; }
 		.tr-fare { display: flex; align-items: center; gap: 6px; padding: 8px 20px 0; font-size: 13px; color: #555; font-weight: 600; }
 		.tr-transit { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 12px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
@@ -679,6 +741,10 @@
 
 		/* --- dark mode (html.dark, set by JS from system setting or the 更多 toggle) --- */
 		html.dark, html.dark body { background: #0c0f16; }
+		/* Dark-mode map (build 65): the map SVG is transparent, so the page
+		   behind it is the map background — pure black, not the #0c0f16 app
+		   background above. Must sit after that rule (same specificity). */
+		html.dark body { background: #000; }
 		html.dark .glass { background: linear-gradient(180deg, rgba(38, 44, 62, 0.6), rgba(22, 27, 42, 0.42)); border-color: rgba(255, 255, 255, 0.22); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
 		html.dark #tabBar { background: rgba(28, 28, 30, 0.78); border-top-color: rgba(255, 255, 255, 0.12); }
 		html.dark .tab { color: rgba(255, 255, 255, 0.55); }
@@ -919,6 +985,14 @@
 					</template>
 					<div class="tr-hint">{{ t('tr.hint') }}</div>
 				</div>
+				<div class="tr-trip" v-if="routeResult && !tripActive">
+					<button class="tr-trip-start" @click="startTrip">&#9654; {{ t('live.start') }}</button>
+					<span class="tr-trip-note">{{ stNameStr(fromStation.n) }} &rarr; {{ stNameStr(toStation.n) }} &middot; {{ t('tr.minutes', {n: routeResult.minutes}) }}</span>
+				</div>
+				<div class="tr-trip active" v-if="tripActive">
+					<div class="tr-trip-info"><span class="tr-trip-next">{{ t('live.next') }} {{ tripNext }}</span><span class="tr-trip-left">{{ t('live.stopsLeft', {n: tripRemaining}) }} &middot; {{ tripEtaText }} {{ t('tr.arrive') }}</span></div>
+					<button class="tr-trip-end" @click="endTrip">{{ t('live.end') }}</button>
+				</div>
 			</div>
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
@@ -928,12 +1002,20 @@
 					<img class="more-appicon" :src="cityLogo()" alt="">
 					<div>
 						<div class="more-appname">Subway motion</div>
-						<div class="more-appver">{{ t('more.version', {v: '1.0.3'}) }}</div>
+						<div class="more-appver">{{ t('more.version', {v: '1.0.4'}) }}</div>
 					</div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
 				<div class="more-card">
-					<div class="more-city-row" v-for="c in cityList" :key="c.key" @click="switchCityKeepSettings(c.key)"><span>{{ c.name }}</span><span class="more-check" v-if="city === c.key">✓</span></div>
+					<div class="more-city-row" v-for="c in cityList" :key="c.key" @click="switchCityKeepSettings(c.key)"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-check" v-if="city === c.key">✓</span></div>
+				</div>
+				<div class="more-section">{{ t('more.citiesSoon') }}</div>
+				<div class="more-card">
+					<div class="more-city-chips">
+						<span class="more-city-chip" :class="{ on: city === c.key }" v-for="c in cityList" :key="'ok-'+c.key" @click="switchCityKeepSettings(c.key)">{{ c.name }}<span v-if="city === c.key"> ✓</span></span>
+						<span class="more-city-chip soon" v-for="c in soonCityList" :key="'soon-'+c" @click="showSoonCity(c)">{{ c }}</span>
+					</div>
+					<div class="more-soon-note" v-if="soonNote">{{ t('more.citiesSoonNote', {c: soonNote}) }}</div>
 				</div>
 				<div class="more-section">{{ t('more.theme') }}</div>
 				<div class="more-card">
@@ -969,6 +1051,12 @@
 						<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
 						<span>{{ t('more.pdf') }}</span>
 					</div>
+				</div>
+				<div class="more-section">{{ t('more.whatsnew', {v: '1.0.4'}) }}</div>
+				<div class="more-card">
+					<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.3','more.new.4','more.new.5','more.new.6','more.new.7','more.new.8','more.new.9','more.new.10','more.new.11','more.new.12','more.new.13','more.new.14']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+					<div class="more-new-sub">{{ t('more.bugfix') }}</div>
+					<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 				</div>
 				<div class="more-credit">{{ t('more.credit') }}</div>
 			</div>
@@ -1070,6 +1158,11 @@ var I18N = {
   'tr.nearby.failed': ['定位失败，请稍后重试。', '定位失敗，請稍後再試。', 'Location failed. Please try again.'],
   'tr.nearby.m': ['{n} 米', '{n} 米', '{n} m'],
   'tr.nearby.km': ['{n} 公里', '{n} 公里', '{n} km'],
+  'live.start': ['开始行程', '開始行程', 'Start trip'],
+  'live.end': ['结束行程', '結束行程', 'End trip'],
+  'live.next': ['下一站', '下一站', 'Next stop'],
+  'live.stopsLeft': ['还剩 {n} 站', '還剩 {n} 站', '{n} stops left'],
+  'live.arrived': ['已到达', '已到達', 'Arrived'],
   'tr.err.nostation': ['请先选择出发站和到达站', '請先選擇出發站和到達站', 'Select departure and arrival stations first'],
   'tr.err.same': ['出发和到达是同一站', '出發和到達是同一站', 'Departure and arrival are the same station'],
   'tr.err.noroute': ['暂无换乘方案', '暫無換乘方案', 'No route found'],
@@ -1093,9 +1186,33 @@ var I18N = {
   'more.theme.dark': ['深色', '深色', 'Dark'],
   'more.lang': ['语言', '語言', 'Language'],
   'more.switchCity': ['切换城市', '切換城市', 'Switch City'],
+  'more.citiesSoon': ['更多城市 · 即将支持', '更多城市 · 即將支持', 'More Cities · Coming Soon'],
+  'more.citiesSoonNote': ['{c} 即将支持，敬请期待', '{c} 即將支持，敬請期待', '{c} is coming soon — stay tuned'],
   'more.more': ['更多', '更多', 'More'],
   'more.version': ['版本 {v}', '版本 {v}', 'Version {v}'],
   'more.credit': ['数据来源 SierraQin · CC0 1.0', '資料來源 SierraQin · CC0 1.0', 'Data: SierraQin · CC0 1.0'],
+  'more.whatsnew': ['更新内容 · {v}', '更新內容 · {v}', "What's New · {v}"],
+  'more.new.1': ['iPhone Duo 右侧边栏', 'iPhone Duo 右側邊欄', 'iPhone Duo right sidebar'],
+  'more.new.2': ['iPad 悬浮底栏', 'iPad 懸浮底欄', 'iPad floating bottom bar'],
+  'more.new.3': ['切换城市后重进保持当前城市', '切換城市後重進保持當前城市', 'Reopening keeps your current city'],
+  'more.new.4': ['乘车码', '乘車碼', 'Ride Code'],
+  'more.new.5': ['搜索记录', '搜索記錄', 'Search history'],
+  'more.new.6': ['定位找最近车站（车站坐标即将上线）', '定位找最近車站（車站座標即將上線）', 'Nearby stations by location (coordinates coming soon)'],
+  'more.new.7': ['运营时间提示', '營運時間提示', 'Operating-hours prompts'],
+  'more.new.8': ['设置页按浮光风格重做，加入切换城市', '設定頁按浮光風格重做，加入切換城市', 'Settings redesigned in Floating light style, with city switcher'],
+  'more.new.9': ['英文与繁体中文', '英文與繁體中文', 'English and Traditional Chinese'],
+  'more.new.10': ['实时活动：锁屏与灵动岛显示行程', '即時活動：鎖屏與動態島顯示行程', 'Live Activities: trip on Lock Screen and Dynamic Island'],
+  'more.new.11': ['城市标志改为圆形', '城市標誌改為圓形', 'City logos are now round'],
+  'more.new.12': ['切换城市不再闪现旧界面', '切換城市不再閃現舊介面', 'City switch no longer flashes the old UI'],
+  'more.new.13': ['更多城市目录：全国 58 个开通轨道交通的城市，未支持的显示为灰色', '更多城市目錄：全國 58 個開通軌道交通的城市，未支援的顯示為灰色', 'City directory: all 58 mainland cities with rail transit, unsupported ones greyed out'],
+  'more.new.14': ['切换城市列表加上各城市轨道交通标志', '切換城市列表加上各城市軌道交通標誌', 'City switcher now shows each city\'s rail transit logo'],
+  'more.bugfix': ['Bug 修复', 'Bug 修復', 'Bug Fixes'],
+  'more.fix.1': ['搜索按钮颜色不再溢出胶囊两端', '搜尋按鈕顏色不再溢出膠囊兩端', 'Search button colour no longer bleeds past the capsule ends'],
+  'more.fix.2': ['切换城市后重进不再默认回到北京', '切換城市後重進不再預設回到北京', 'Reopening no longer resets the city to Beijing'],
+  'more.fix.3': ['切换城市不再闪现旧界面', '切換城市不再閃現舊介面', 'City switch no longer flashes the old interface'],
+  'more.fix.4': ['换乘/搜索面板底板改为纯色，地图不再透出', '換乘/搜尋面板底板改為純色，地圖不再透出', 'Transfer/search panels now have solid backgrounds — the map no longer shows through'],
+  'more.fix.5': ['启动图期间隐藏状态栏和时间', '啟動圖期間隱藏狀態列和時間', 'Status bar and time hidden during the splash screen'],
+  'more.fix.6': ['iPad 顶部大白条已去掉，改为悬浮底栏', 'iPad 頂部大白條已去掉，改為懸浮底欄', 'iPad top strip removed in favour of a floating bottom bar'],
   'more.lang': ['语言', '語言', 'Language'],
   'more.lang.hans': ['简体中文', '簡體中文', 'Simplified Chinese'],
   'more.lang.hant': ['繁體中文', '繁體中文', 'Traditional Chinese'],
@@ -1340,6 +1457,19 @@ function titlePy(py) {
 						routeError: '',
 						routeList: [],
 						routeTab: 'rec',
+						// Live Activity trip (build 65): the trip currently
+						// shown on the Lock Screen / Dynamic Island.
+						tripActive: false,
+						tripRoute: null,
+						tripStartMs: 0,
+						tripEtaMs: 0,
+						tripNext: '',
+						tripRemaining: 0,
+						tripEtaText: '',
+						// 'More cities' directory (build 65): city tapped from the
+						// greyed-out list, shown briefly as a 'coming soon' note.
+						soonNote: '',
+						tripTimer: null,
 						departTime: null,
 						fromLine: null,
 						toLine: null,
@@ -1419,6 +1549,7 @@ function titlePy(py) {
 					// checkmark move. setTab posts tabChanged, so the native tab bar
 					// ends on 'more'.
 					switchCityKeepSettings(c) { this.switchCity(c); this.setTab('more'); },
+					showSoonCity(c) { this.soonNote = c; if (this._soonTimer) clearTimeout(this._soonTimer); this._soonTimer = setTimeout(() => { this.soonNote = ''; }, 2500); },
 					setTab(t) {
 						if (t === 'stations') {
 							this.tab = 'stations';
@@ -1496,6 +1627,27 @@ function titlePy(py) {
 						if (c === 'sh' && (!this.shStations.length || !this.shMap)) return;
 						if (c === 'hb' && (!this.hbStations.length || !this.hbMap)) return;
 						if (c === 'dl' && (!this.dlStations.length || !this.dlMap)) return;
+						// Atomic switch (build 65 flash fix): clear the old
+						// city's transfer/search state AND hide the panels
+						// FIRST, before the city changes, so no render can
+						// show the new city with the old city's from/to,
+						// route results or city name (or vice versa). The old
+						// code cleared the state after applying the new city,
+						// so the search panel could flash the old city's UI
+						// for a frame when switching (noticed on Beijing).
+						this.endTrip();
+						this.fromStation = null; this.toStation = null;
+						this.fromQuery = ''; this.toQuery = '';
+						this.fromLine = null; this.toLine = null;
+						this.routeList = []; this.routeResult = null; this.routeError = '';
+						this.departTime = null; this.routeTab = 'rec';
+						this.nearbyList = []; this.nearbyMsg = ''; this.nearbyLoading = false;
+						this.ttLine = null; this.ttQuery = '';
+						this.suggestFor = null; this.pickFor = null;
+						this.query = '';
+						this.showTransfer = false;
+						this.showStations = false;
+						this.showTimetable = false;
 						this.city = c;
 						if (c === 'sy') {
 							this.stations = this.syStations;
@@ -1518,15 +1670,6 @@ function titlePy(py) {
 							this.routes = (window.METRO_ROUTES || null);
 							this.curr = env.prod;
 						}
-						this.ttLine = null; this.ttQuery = '';
-						this.nearbyList = []; this.nearbyMsg = ''; this.nearbyLoading = false;
-						this.fromStation = null; this.toStation = null;
-						this.fromQuery = ''; this.toQuery = '';
-						this.fromLine = null; this.toLine = null;
-						this.routeList = []; this.routeResult = null; this.routeError = '';
-						this.departTime = null; this.routeTab = 'rec';
-						this.suggestFor = null; this.pickFor = null;
-						this.query = '';
 						window._metroNeedFit = true;
 						this.setTab('map');
 						// Persist the city (build 37): relaunch opens on this
@@ -2045,6 +2188,10 @@ function titlePy(py) {
 						try { window.localStorage.setItem('metro-search-history', JSON.stringify(this.searchHistory)); } catch (e) {}
 					},
 					cityNameFor(c) { return this.t('city.' + c); },
+					// Logo for the city switcher rows (build 65): the official
+					// metro logo already inlined for the city pill, shown
+					// circular via CSS. Jinhua joins when its wiring lands.
+					cityLogoFor(k) { return k === 'sy' ? this.syLogo : (k === 'sh' ? this.shLogo : (k === 'hb' ? this.hbLogo : (k === 'dl' ? this.dlLogo : this.bjLogo))); },
 					// Operating-hours prompt (build 63). Timetable data is NOT changed
 					// here — this only reads first/last times and says whether the line
 					// is running at a given moment. A last train after midnight (00:00)
@@ -2195,8 +2342,104 @@ function titlePy(py) {
 						if (r.bottom < 0 || r.top > window.innerHeight) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, theme: this.theme }); return; }
 						h.postMessage({ x: r.left, y: r.top, width: r.width, height: r.height, theme: this.theme });
 					},
-					pickRoute(r) { this.routeResult = r; },
+					pickRoute(r) {
+						// Picking a different route ends the active trip
+						// (it tracked the old route).
+						if (this.tripActive && this.tripRoute !== r) this.endTrip();
+						this.routeResult = r;
+					},
+					// ---- Live Activity trip (build 65) ----
+					// City theme colour for the Live Activity (matches the
+					// app theme). The widget parses the hex.
+					tripThemeHex() {
+						var m = { bj: '003380', sy: 'D4B686', sh: 'E60012', hb: 'C00030', dl: '0D579A', jh: 'D8273D' };
+						return m[this.city] || '003380';
+					},
+					// Scheduled arrival (epoch ms) at each station index.
+					// Time model (same as findRoute): 2 min per stop + 5 min
+					// per transfer; the 5 min is spent AT the transfer
+					// station, so it counts for stations AFTER the boundary.
+					tripStationTimes(route, startMs) {
+						var b = [], idx = 0;
+						for (var j = 0; j < route.segments.length - 1; j++) { idx += route.segments[j].stops; b.push(idx); }
+						var times = [];
+						for (var i = 0; i < route.stations.length; i++) {
+							var tr = 0;
+							for (var k = 0; k < b.length; k++) if (b[k] < i) tr++;
+							times.push(startMs + (i * 2 + tr * 5) * 60000);
+						}
+						return times;
+					},
+					// Current position from the schedule + wall clock.
+					tripProgress() {
+						var r = this.tripRoute;
+						if (!r || !r.stations || !r.stations.length) return { next: '', remaining: 0, etaMs: this.tripEtaMs, done: true };
+						var now = Date.now();
+						var times = this.tripStationTimes(r, this.tripStartMs);
+						var cur = -1;
+						for (var i = 0; i < times.length; i++) { if (times[i] <= now) cur = i; else break; }
+						if (cur >= r.stations.length - 1) return { next: '', remaining: 0, etaMs: this.tripEtaMs, done: true };
+						return { next: this.stNameStr(r.stations[cur + 1]), remaining: r.stops - cur, etaMs: this.tripEtaMs, done: false };
+					},
+					tripPost(action, payload) {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liveActivity;
+						if (!h) return;
+						h.postMessage(payload);
+					},
+					tripPayload(action, p) {
+						var r = this.tripRoute;
+						return {
+							action: action,
+							from: this.stName(this.fromStation),
+							to: this.stName(this.toStation),
+							line: (r.segments && r.segments.length) ? this.lineName(r.segments[0].name, r.segments[0].line) : '',
+							themeHex: this.tripThemeHex(),
+							totalStops: r.stops,
+							minutes: r.minutes,
+							nextStation: p.next,
+							remainingStops: p.remaining,
+							arrivalMs: this.tripEtaMs
+						};
+					},
+					tripFmtTime(ms) {
+						var d = new Date(ms);
+						var h = d.getHours(), m = d.getMinutes();
+						return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+					},
+					startTrip() {
+						var r = this.routeResult;
+						if (!r || !r.stations || !r.stations.length || !this.fromStation || !this.toStation) return;
+						if (this.tripActive) this.endTrip();
+						this.tripRoute = r;
+						this.tripStartMs = Date.now();
+						this.tripEtaMs = this.tripStartMs + r.minutes * 60000;
+						this.tripActive = true;
+						var p = this.tripProgress();
+						this.tripNext = p.next; this.tripRemaining = p.remaining;
+						this.tripEtaText = this.tripFmtTime(this.tripEtaMs);
+						this.tripPost('start', this.tripPayload('start', p));
+						var self = this;
+						if (this.tripTimer) clearInterval(this.tripTimer);
+						this.tripTimer = setInterval(function() { self.tripTick(); }, 30000);
+					},
+					tripTick() {
+						if (!this.tripActive) return;
+						var p = this.tripProgress();
+						if (p.done) { this.endTrip(); return; }
+						this.tripNext = p.next; this.tripRemaining = p.remaining;
+						this.tripPost('update', this.tripPayload('update', p));
+					},
+					endTrip() {
+						if (!this.tripActive) return;
+						if (this.tripTimer) { clearInterval(this.tripTimer); this.tripTimer = null; }
+						this.tripActive = false;
+						this.tripRoute = null;
+						this.tripNext = ''; this.tripRemaining = 0; this.tripEtaText = '';
+						this.tripPost('end', { action: 'end' });
+					},
 					doSearch() {
+						// A new search invalidates the tracked trip.
+						this.endTrip();
 						this.routeError = '';
 						this.routeResult = null;
 						this.routeList = [];
@@ -2271,7 +2514,7 @@ function titlePy(py) {
 									}
 								}
 								var nTransfers = segs.length - 1;
-								return { stops: stops, transfers: nTransfers, segments: segs, minutes: stops * 2 + nTransfers * 5 };
+								return { stops: stops, transfers: nTransfers, segments: segs, minutes: stops * 2 + nTransfers * 5, stations: path.map(function(pp) { return pp[0]; }) };
 							}
 							(adj[st] || []).forEach(function(nb) {
 								if (isBanned[nb[0]]) return;
@@ -2355,6 +2598,14 @@ function titlePy(py) {
 					// this list when its wiring lands (after build 63).
 					cityList() {
 						return [{ key: 'bj', name: this.t('city.bj') }, { key: 'sy', name: this.t('city.sy') }, { key: 'sh', name: this.t('city.sh') }, { key: 'hb', name: this.t('city.hb') }, { key: 'dl', name: this.t('city.dl') }];
+					},
+					// 'More cities' directory (build 65): every other mainland city
+					// with operating urban rail transit, per CAMET 2026-Q3 (58 cities
+					// total, as of 2026-09-30; no new city in Q4 2026). The 5
+					// supported cities are excluded here; Jinhua ('jh') stays in
+					// this list until its wiring lands.
+					soonCityList() {
+						return ['天津', '重庆', '广州', '深圳', '武汉', '南京', '长春', '成都', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '无锡', '南昌', '兰州', '青岛', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '石家庄', '贵阳', '厦门', '温州', '济南', '常州', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '洛阳', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '金华', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌'];
 					},
 					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : this.bjLogo))); },
 					transitLabel() { return this.t('transit.' + this.city); },

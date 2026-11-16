@@ -1,6 +1,7 @@
 import UIKit
 import WebKit
 import CoreLocation
+import ActivityKit
 
 // 北京市轨道交通线路配置图 (SierraQin/metro, CC0 1.0)
 // Shell: a full-screen WKWebView loading the bundled offline page,
@@ -190,6 +191,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "loc.perm": ["需要定位权限才能查找附近车站，请在系统设置中开启。", "需要定位權限才能查找附近車站，請在系統設定中開啟。", "Location permission is needed to find nearby stations. Please enable it in Settings."],
         "loc.failed": ["无法获取定位。", "無法獲取定位。", "Couldn't get your location."],
         "loc.retry": ["定位失败，请稍后重试。", "定位失敗，請稍後再試。", "Location failed. Please try again."],
+        "live.next": ["下一站", "下一站", "Next stop"],
+        "live.stopsLeft": ["还剩 {n} 站", "還剩 {n} 站", "{n} stops left"],
+        "live.trip": ["行程", "行程", "Trip"],
+        "live.arrived": ["已到达", "已到達", "Arrived"],
     ]
     var currentLang: String = UserDefaults.standard.string(forKey: "metro-lang") ?? "zh-Hans"
     func L(_ key: String) -> String {
@@ -263,6 +268,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "cityChanged")
         config.userContentController.add(self, name: "langChanged")
         config.userContentController.add(self, name: "splashDone")
+        config.userContentController.add(self, name: "liveActivity")
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -513,8 +519,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func cityLogoImage() -> UIImage? {
+        return cityLogoImage(for: currentCity)
+    }
+
+    // Circular logo for a given city (build 65): the city switcher menu
+    // shows each city's rail-transit logo in front of its name, so the
+    // logo lookup takes the city instead of always using the current one.
+    // The artwork is untouched — only clipped to a circle, as in the pill.
+    func cityLogoImage(for city: String) -> UIImage? {
         let name: String
-        switch currentCity {
+        switch city {
         case "sy": name = "ShenyangLogo"
         case "sh": name = "ShanghaiLogo"
         case "hb": name = "HarbinLogo"
@@ -524,16 +538,29 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard let img = UIImage(named: name) else { return nil }
         let size = CGSize(width: 26, height: 26)
         let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { _ in
-            img.draw(in: CGRect(origin: .zero, size: size))
+        return renderer.image { ctx in
+            // Circular clip (build 65): the Dalian logo is a square
+            // image and showed as a square in the pill; the user wants
+            // it round. The logo artwork itself is not redrawn or
+            // altered — only the outer shape is clipped to a circle
+            // (transparent corners). Aspect-fit so a non-square logo
+            // is never distorted; a square source fills the circle.
+            // Both the glass-configuration path and the setImage
+            // fallback path use this, so the pill logo is round in
+            // both. The pill's own capsule shape is unchanged.
+            let rect = CGRect(origin: .zero, size: size)
+            ctx.cgContext.addEllipse(in: rect)
+            ctx.cgContext.clip()
+            let scale = min(size.width / img.size.width, size.height / img.size.height)
+            let w = img.size.width * scale, h = img.size.height * scale
+            let drawRect = CGRect(x: (size.width - w) / 2, y: (size.height - h) / 2, width: w, height: h)
+            img.draw(in: drawRect)
         }
     }
 
     func updateCityPill() {
         let name: String
-        switch currentCity {
         name = L("city." + currentCity)
-        }
         if #available(iOS 26.0, *) {
             var config = UIButton.Configuration.glass()
             config.title = name + "  ▾"
@@ -578,19 +605,22 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func cityMenu() -> UIMenu {
-        let bj = UIAction(title: L("city.bj"), state: currentCity == "bj" ? .on : .off) { [weak self] _ in
+        // City logos in front of each name (build 65, user request):
+        // .alwaysOriginal so the menu shows the logos in their own
+        // colours instead of tinting them as template images.
+        let bj = UIAction(title: L("city.bj"), image: cityLogoImage(for: "bj")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "bj" ? .on : .off) { [weak self] _ in
             self?.pickCity("bj")
         }
-        let sy = UIAction(title: L("city.sy"), state: currentCity == "sy" ? .on : .off) { [weak self] _ in
+        let sy = UIAction(title: L("city.sy"), image: cityLogoImage(for: "sy")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sy" ? .on : .off) { [weak self] _ in
             self?.pickCity("sy")
         }
-        let sh = UIAction(title: L("city.sh"), state: currentCity == "sh" ? .on : .off) { [weak self] _ in
+        let sh = UIAction(title: L("city.sh"), image: cityLogoImage(for: "sh")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sh" ? .on : .off) { [weak self] _ in
             self?.pickCity("sh")
         }
-        let hb = UIAction(title: L("city.hb"), state: currentCity == "hb" ? .on : .off) { [weak self] _ in
+        let hb = UIAction(title: L("city.hb"), image: cityLogoImage(for: "hb")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "hb" ? .on : .off) { [weak self] _ in
             self?.pickCity("hb")
         }
-        let dl = UIAction(title: L("city.dl"), state: currentCity == "dl" ? .on : .off) { [weak self] _ in
+        let dl = UIAction(title: L("city.dl"), image: cityLogoImage(for: "dl")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "dl" ? .on : .off) { [weak self] _ in
             self?.pickCity("dl")
         }
         return UIMenu(title: "", children: [bj, sy, sh, hb, dl])
@@ -601,21 +631,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // city pill (top-left), never in the middle of the screen.
     func presentCityMenuPopover() {
         let sheet = UIAlertController(title: L("native.switchCity"), message: nil, preferredStyle: .actionSheet)
-        sheet.addAction(UIAlertAction(title: currentCity == "bj" ? "✓ " + L("city.bj") : L("city.bj"), style: .default) { [weak self] _ in
-            self?.pickCity("bj")
-        })
-        sheet.addAction(UIAlertAction(title: currentCity == "sy" ? "✓ " + L("city.sy") : L("city.sy"), style: .default) { [weak self] _ in
-            self?.pickCity("sy")
-        })
-        sheet.addAction(UIAlertAction(title: currentCity == "sh" ? "✓ " + L("city.sh") : L("city.sh"), style: .default) { [weak self] _ in
-            self?.pickCity("sh")
-        })
-        sheet.addAction(UIAlertAction(title: currentCity == "hb" ? "✓ " + L("city.hb") : L("city.hb"), style: .default) { [weak self] _ in
-            self?.pickCity("hb")
-        })
-        sheet.addAction(UIAlertAction(title: currentCity == "dl" ? "✓ " + L("city.dl") : L("city.dl"), style: .default) { [weak self] _ in
-            self?.pickCity("dl")
-        })
+        // City logos (build 65): UIAlertAction has no public image API,
+        // so the logo is attached with setValue(forKey: "image") — the
+        // long-established way to put an image on an alert action.
+        func cityAction(_ city: String) -> UIAlertAction {
+            let a = UIAlertAction(title: currentCity == city ? "✓ " + L("city." + city) : L("city." + city), style: .default) { [weak self] _ in
+                self?.pickCity(city)
+            }
+            if let img = cityLogoImage(for: city)?.withRenderingMode(.alwaysOriginal) {
+                a.setValue(img, forKey: "image")
+            }
+            return a
+        }
+        sheet.addAction(cityAction("bj"))
+        sheet.addAction(cityAction("sy"))
+        sheet.addAction(cityAction("sh"))
+        sheet.addAction(cityAction("hb"))
+        sheet.addAction(cityAction("dl"))
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
@@ -1652,6 +1684,110 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         setWebTab(index: idx)
     }
 
+    // MARK: - Live Activity (build 65)
+
+    // The running Live Activity for the current trip, if any. Only
+    // touched inside `if #available(iOS 16.1, *)` — ActivityKit does
+    // not exist on iOS 16.0 (the app's deployment target), and the
+    // framework is weak-linked in build.sh for that reason.
+    var tripActivity: Activity<TripAttributes>?
+
+    // Handle the web's liveActivity posts:
+    // {action: 'start'|'update'|'end', from, to, line, themeHex,
+    //  totalStops, minutes, nextStation, remainingStops, arrivalMs}.
+    // The web computes the route + progress; native owns the ActivityKit
+    // activity. Never crashes and never starts a stale activity: a
+    // payload missing from/to or the route data is ignored.
+    func handleLiveActivity(_ dict: [String: Any]) {
+        guard #available(iOS 16.1, *) else { return }
+        let action = dict["action"] as? String ?? ""
+        switch action {
+        case "start":
+            startTripActivity(dict)
+        case "update":
+            updateTripActivity(dict)
+        case "end":
+            endTripActivity()
+        default:
+            break
+        }
+    }
+
+    // City theme colour as a 6-digit hex string (matches the app theme).
+    func themeHex() -> String {
+        switch currentCity {
+        case "sy": return "D4B686"
+        case "sh": return "E60012"
+        case "hb": return "C00030"
+        case "dl": return "0D579A"
+        case "jh": return "D8273D"
+        default: return "003380"
+        }
+    }
+
+    func startTripActivity(_ dict: [String: Any]) {
+        guard #available(iOS 16.1, *) else { return }
+        guard let from = dict["from"] as? String, !from.isEmpty,
+              let to = dict["to"] as? String, !to.isEmpty,
+              let next = dict["nextStation"] as? String,
+              let remaining = dict["remainingStops"] as? Int,
+              let arrivalMs = dict["arrivalMs"] as? Double else { return }
+        let line = dict["line"] as? String ?? ""
+        let totalStops = dict["totalStops"] as? Int ?? 0
+        let theme = dict["themeHex"] as? String ?? themeHex()
+        let arrival = Date(timeIntervalSince1970: arrivalMs / 1000)
+        // End any running activity first (never two at once).
+        if let old = tripActivity {
+            Task { await old.end(nil, dismissalPolicy: .immediate) }
+            tripActivity = nil
+        }
+        let attrs = TripAttributes(
+            fromName: from, toName: to, lineName: line,
+            themeHex: theme, totalStops: totalStops,
+            nextLabel: L("live.next"),
+            stopsFormat: L("live.stopsLeft"),
+            tripLabel: L("live.trip"),
+            arrivedLabel: L("live.arrived")
+        )
+        let state = TripAttributes.ContentState(
+            nextStation: next, remainingStops: remaining,
+            arrivalDate: arrival, status: "active"
+        )
+        do {
+            let activity = try Activity<TripAttributes>.request(
+                attributes: attrs,
+                content: .init(state: state, staleDate: arrival),
+                pushType: nil
+            )
+            tripActivity = activity
+        } catch {
+            // Live Activities disabled for this app, or the system
+            // refused: fail silently (the in-app trip UI still works).
+            tripActivity = nil
+        }
+    }
+
+    func updateTripActivity(_ dict: [String: Any]) {
+        guard #available(iOS 16.1, *) else { return }
+        guard let activity = tripActivity,
+              let next = dict["nextStation"] as? String,
+              let remaining = dict["remainingStops"] as? Int,
+              let arrivalMs = dict["arrivalMs"] as? Double else { return }
+        let arrival = Date(timeIntervalSince1970: arrivalMs / 1000)
+        let state = TripAttributes.ContentState(
+            nextStation: next, remainingStops: remaining,
+            arrivalDate: arrival, status: "active"
+        )
+        Task { await activity.update(.init(state: state, staleDate: arrival)) }
+    }
+
+    func endTripActivity() {
+        guard #available(iOS 16.1, *) else { return }
+        guard let activity = tripActivity else { return }
+        tripActivity = nil
+        Task { await activity.end(nil, dismissalPolicy: .immediate) }
+    }
+
     // MARK: - Web page -> native tab bar
 
     // The web page posts its current tab whenever setTab runs, so the
@@ -1726,6 +1862,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             openRideCode(link: dict["link"] as? String ?? "#小程序://乘车码/cZxzR2rsEppAxSv")
         } else if message.name == "requestLocation" {
             requestNearbyLocation()
+        } else if message.name == "liveActivity",
+                  let dict = message.body as? [String: Any] {
+            handleLiveActivity(dict)
         }
     }
 

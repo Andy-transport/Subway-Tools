@@ -34,9 +34,21 @@ cd ..
 echo "== 2. compile Swift shell =="
 rm -rf build
 mkdir -p build/Payload/Metro.app/web
+# ActivityKit is weak-linked: it does not exist on iOS 16.0 (the app's
+# deployment target), and every use is guarded `if #available(iOS 16.1, *)`.
+# TripAttributes.swift is compiled into the app too, so AppDelegate can
+# start/update the Live Activity.
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library \
-  -framework UIKit -framework WebKit \
-  -o build/Payload/Metro.app/Metro app/AppDelegate.swift
+  -framework UIKit -framework WebKit -weak_framework ActivityKit \
+  -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/LiveActivity/TripAttributes.swift
+
+echo "== 2b. compile Live Activity widget extension =="
+mkdir -p build/Payload/Metro.app/PlugIns/LiveActivityWidget.appex
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.1 -O -parse-as-library \
+  -framework SwiftUI -framework WidgetKit -framework ActivityKit \
+  -o build/Payload/Metro.app/PlugIns/LiveActivityWidget.appex/LiveActivityWidget \
+  app/LiveActivity/TripAttributes.swift app/LiveActivity/LiveActivityWidget.swift
+cp app/LiveActivity/LiveActivity-Info.plist build/Payload/Metro.app/PlugIns/LiveActivityWidget.appex/Info.plist
 
 echo "== 3. bundle resources =="
 cp app/Info.plist build/Payload/Metro.app/Info.plist
@@ -62,6 +74,6 @@ python3 -c "import base64; [open('build/Payload/Metro.app/TimetableIcon' + s + '
 
 echo "== 4. package IPA =="
 cd build
-zip -r -y Convenient-transportation-1.0.3-unsigned.ipa Payload
-ls -l Convenient-transportation-1.0.3-unsigned.ipa
-unzip -l Convenient-transportation-1.0.3-unsigned.ipa
+zip -r -y Convenient-transportation-1.0.4-unsigned.ipa Payload
+ls -l Convenient-transportation-1.0.4-unsigned.ipa
+unzip -l Convenient-transportation-1.0.4-unsigned.ipa
