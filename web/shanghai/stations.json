@@ -3,2891 +3,2891 @@
   "n": "爱国路",
   "py": "aiguolu",
   "ini": "agl",
-  "x": 864,
-  "y": 317
+  "x": 747,
+  "y": 269
  },
  {
   "n": "爱辉路",
   "py": "aihuilu",
   "ini": "ahl",
   "x": 609,
-  "y": 191
+  "y": 101
  },
  {
   "n": "鞍山新村",
   "py": "anshanxincun",
   "ini": "asxc",
-  "x": 815,
-  "y": 315
+  "x": 712,
+  "y": 241
  },
  {
   "n": "安亭",
   "py": "anting",
   "ini": "at",
-  "x": 249,
-  "y": 219
+  "x": 354,
+  "y": 127
  },
  {
   "n": "白银路",
   "py": "baiyinlu",
   "ini": "byl",
-  "x": 335,
-  "y": 159
+  "x": 385,
+  "y": 52
  },
  {
   "n": "宝安公路",
   "py": "baoangonglu",
   "ini": "bagl",
-  "x": 590,
-  "y": 112
+  "x": 574,
+  "y": 58
  },
  {
   "n": "宝山路",
   "py": "baoshanlu",
   "ini": "bsl",
-  "x": 670,
-  "y": 335
+  "x": 611,
+  "y": 192
  },
  {
   "n": "宝杨路",
   "py": "baoyanglu",
   "ini": "byl",
-  "x": 750,
-  "y": 108
+  "x": 652,
+  "y": 41
  },
  {
   "n": "北蔡",
   "py": "beicai",
   "ini": "bc",
-  "x": 753,
-  "y": 689
+  "x": 730,
+  "y": 451
  },
  {
   "n": "北桥",
   "py": "beiqiao",
   "ini": "bq",
-  "x": 373,
-  "y": 754
+  "x": 581,
+  "y": 555
  },
  {
   "n": "北新泾",
   "py": "beixinjing",
   "ini": "bxj",
-  "x": 332,
-  "y": 442
+  "x": 415,
+  "y": 281
  },
  {
   "n": "北洋泾路",
   "py": "beiyangjinglu",
   "ini": "byjl",
-  "x": 841,
-  "y": 440
+  "x": 806,
+  "y": 384
  },
  {
   "n": "北中路",
   "py": "beizhonglu",
   "ini": "bzl",
-  "x": 821,
-  "y": 638
+  "x": 747,
+  "y": 402
  },
  {
   "n": "博兴路",
   "py": "boxinglu",
   "ini": "bxl",
-  "x": 920,
-  "y": 437
+  "x": 815,
+  "y": 372
  },
  {
   "n": "漕宝路",
   "py": "caobaolu",
   "ini": "cbl",
-  "x": 454,
-  "y": 540
+  "x": 546,
+  "y": 454
  },
  {
   "n": "漕河泾开发区",
   "py": "caohejingkaifaqu",
   "ini": "chjkfq",
-  "x": 385,
-  "y": 517
+  "x": 498,
+  "y": 470
  },
  {
   "n": "曹路",
   "py": "caolu",
   "ini": "cl",
-  "x": 1006,
-  "y": 571
+  "x": 766,
+  "y": 96
  },
  {
   "n": "漕溪路",
   "py": "caoxilu",
   "ini": "cxl",
-  "x": 444,
-  "y": 515
+  "x": 521,
+  "y": 433
  },
  {
   "n": "曹杨路",
   "py": "caoyanglu",
   "ini": "cyl",
-  "x": 478,
-  "y": 353
+  "x": 434,
+  "y": 235
  },
  {
   "n": "漕盈路",
   "py": "caoyinglu",
   "ini": "cyl",
-  "x": 157,
-  "y": 569
+  "x": 357,
+  "y": 340
  },
  {
   "n": "长江南路",
   "py": "changjiangnanlu",
   "ini": "cjnl",
-  "x": 705,
-  "y": 202
+  "x": 649,
+  "y": 131
  },
  {
   "n": "长江西路",
   "py": "changjiangxilu",
   "ini": "cjxl",
-  "x": 653,
-  "y": 206
+  "x": 630,
+  "y": 95
  },
  {
   "n": "昌吉东路",
   "py": "changjidonglu",
   "ini": "cjdl",
-  "x": 291,
-  "y": 225
+  "x": 373,
+  "y": 104
  },
  {
   "n": "昌平路",
   "py": "changpinglu",
   "ini": "cpl",
-  "x": 559,
-  "y": 405
+  "x": 466,
+  "y": 266
  },
  {
   "n": "长寿路",
   "py": "changshoulu",
   "ini": "csl",
-  "x": 533,
-  "y": 380
+  "x": 454,
+  "y": 240
  },
  {
   "n": "常熟路",
   "py": "changshulu",
   "ini": "csl",
-  "x": 522,
-  "y": 482
+  "x": 566,
+  "y": 345
  },
  {
   "n": "昌邑路",
   "py": "changyilu",
   "ini": "cyl",
-  "x": 810,
-  "y": 428
+  "x": 748,
+  "y": 334
  },
  {
   "n": "场中路",
   "py": "changzhonglu",
   "ini": "czl",
-  "x": 472,
-  "y": 262
+  "x": 446,
+  "y": 143
  },
  {
   "n": "陈春路",
   "py": "chenchunlu",
   "ini": "ccl",
-  "x": 768,
-  "y": 694
+  "x": 715,
+  "y": 412
  },
  {
   "n": "成山路",
   "py": "chengshanlu",
   "ini": "csl",
-  "x": 630,
-  "y": 652
+  "x": 817,
+  "y": 456
  },
  {
   "n": "陈翔公路",
   "py": "chenxianggonglu",
   "ini": "cxgl",
-  "x": 392,
-  "y": 238
+  "x": 391,
+  "y": 107
  },
  {
   "n": "赤峰路",
   "py": "chifenglu",
   "ini": "cfl",
-  "x": 691,
-  "y": 288
+  "x": 652,
+  "y": 138
  },
  {
   "n": "创新中路",
   "py": "chuangxinzhonglu",
   "ini": "cxzl",
-  "x": 972,
-  "y": 605
+  "x": 761,
+  "y": 194
  },
  {
   "n": "川沙",
   "py": "chuansha",
   "ini": "cs",
-  "x": 993,
-  "y": 658
+  "x": 748,
+  "y": 156
  },
  {
   "n": "春申路",
   "py": "chunshenlu",
   "ini": "csl",
-  "x": 398,
-  "y": 624
+  "x": 524,
+  "y": 568
  },
  {
   "n": "大柏树",
   "py": "dabaishu",
   "ini": "dbs",
-  "x": 724,
-  "y": 279
+  "x": 664,
+  "y": 154
  },
  {
   "n": "大场镇",
   "py": "dachangzhen",
   "ini": "dcz",
-  "x": 487,
-  "y": 251
+  "x": 492,
+  "y": 124
  },
  {
   "n": "大渡河路",
   "py": "daduhelu",
   "ini": "ddhl",
-  "x": 391,
-  "y": 378
+  "x": 419,
+  "y": 238
  },
  {
   "n": "大华三路",
   "py": "dahuasanlu",
   "ini": "dhsl",
-  "x": 503,
-  "y": 263
+  "x": 515,
+  "y": 136
  },
  {
   "n": "大连路",
   "py": "dalianlu",
   "ini": "dll",
-  "x": 766,
-  "y": 349
+  "x": 681,
+  "y": 239
  },
  {
   "n": "大木桥路",
   "py": "damuqiaolu",
   "ini": "dmql",
-  "x": 575,
-  "y": 549
+  "x": 675,
+  "y": 403
  },
  {
   "n": "丹阳路",
   "py": "danyanglu",
   "ini": "dyl",
-  "x": 834,
-  "y": 366
+  "x": 745,
+  "y": 319
  },
  {
   "n": "打浦桥",
   "py": "dapuqiao",
   "ini": "dpq",
-  "x": 608,
-  "y": 515
+  "x": 674,
+  "y": 382
  },
  {
   "n": "大世界",
   "py": "dashijie",
   "ini": "dsj",
-  "x": 644,
-  "y": 457
+  "x": 630,
+  "y": 312
  },
  {
   "n": "德平路",
   "py": "depinglu",
   "ini": "dpl",
-  "x": 852,
-  "y": 441
+  "x": 816,
+  "y": 401
  },
  {
   "n": "淀山湖大道",
   "py": "dianshanhudadao",
   "ini": "dshdd",
-  "x": 147,
-  "y": 594
+  "x": 357,
+  "y": 348
  },
  {
   "n": "定边路",
   "py": "dingbianlu",
   "ini": "dbl",
-  "x": 371,
-  "y": 356
+  "x": 396,
+  "y": 196
  },
  {
   "n": "迪士尼",
   "py": "dishini",
   "ini": "dsn",
-  "x": 937,
-  "y": 725
+  "x": 756,
+  "y": 495
  },
  {
   "n": "滴水湖",
   "py": "dishuihu",
   "ini": "dsh",
-  "x": 1036,
-  "y": 897
+  "x": 799,
+  "y": 665
  },
  {
   "n": "东安路",
   "py": "donganlu",
   "ini": "dal",
-  "x": 529,
-  "y": 554
+  "x": 646,
+  "y": 443
  },
  {
   "n": "东宝兴路",
   "py": "dongbaoxinglu",
   "ini": "dbxl",
-  "x": 711,
-  "y": 315
+  "x": 652,
+  "y": 178
  },
  {
   "n": "东城一路",
   "py": "dongchengyilu",
   "ini": "dcyl",
-  "x": 634,
-  "y": 947
+  "x": 616,
+  "y": 551
  },
  {
   "n": "东川路",
   "py": "dongchuanlu",
   "ini": "dcl",
-  "x": 366,
-  "y": 825
+  "x": 604,
+  "y": 640
  },
  {
   "n": "东方绿舟",
   "py": "dongfanglvzhou",
   "ini": "dflz",
-  "x": 106,
-  "y": 633
+  "x": 393,
+  "y": 370
  },
  {
   "n": "东方体育中心",
   "py": "dongfangtiyuzhongxin",
   "ini": "dftyzx",
-  "x": 606,
-  "y": 714
+  "x": 796,
+  "y": 504
  },
  {
   "n": "洞泾",
   "py": "dongjing",
   "ini": "dj",
-  "x": 189,
-  "y": 588
+  "x": 374,
+  "y": 344
  },
  {
   "n": "东靖路",
   "py": "dongjinglu",
   "ini": "djl",
-  "x": 936,
-  "y": 306
+  "x": 787,
+  "y": 240
  },
  {
   "n": "东兰路",
   "py": "donglanlu",
   "ini": "dll",
-  "x": 376,
-  "y": 533
+  "x": 498,
+  "y": 497
  },
  {
   "n": "东陆路",
   "py": "donglulu",
   "ini": "dll",
-  "x": 895,
-  "y": 370
+  "x": 776,
+  "y": 341
  },
  {
   "n": "东明路",
   "py": "dongminglu",
   "ini": "dml",
-  "x": 702,
-  "y": 651
+  "x": 793,
+  "y": 449
  },
  {
   "n": "芳甸路",
   "py": "fangdianlu",
   "ini": "fdl",
-  "x": 852,
-  "y": 488
+  "x": 802,
+  "y": 373
  },
  {
   "n": "芳华路",
   "py": "fanghualu",
   "ini": "fhl",
-  "x": 814,
-  "y": 589
+  "x": 784,
+  "y": 416
  },
  {
   "n": "芳芯路",
   "py": "fangxinlu",
   "ini": "fxl",
-  "x": 810,
-  "y": 606
+  "x": 782,
+  "y": 409
  },
  {
   "n": "繁荣路",
   "py": "fanronglu",
   "ini": "frl",
-  "x": 811,
-  "y": 803
+  "x": 666,
+  "y": 471
  },
  {
   "n": "封浜",
   "py": "fengbang",
   "ini": "fb",
-  "x": 311,
-  "y": 351
+  "x": 374,
+  "y": 191
  },
  {
   "n": "奉浦大道",
   "py": "fengpudadao",
   "ini": "fpdd",
-  "x": 352,
-  "y": 938
+  "x": 583,
+  "y": 617
  },
  {
   "n": "枫桥路",
   "py": "fengqiaolu",
   "ini": "fql",
-  "x": 441,
-  "y": 350
+  "x": 437,
+  "y": 228
  },
  {
   "n": "丰翔路",
   "py": "fengxianglu",
   "ini": "fxl",
-  "x": 472,
-  "y": 219
+  "x": 485,
+  "y": 108
  },
  {
   "n": "奉贤新城",
   "py": "fengxianxincheng",
   "ini": "fxxc",
-  "x": 413,
-  "y": 1003
+  "x": 583,
+  "y": 646
  },
  {
   "n": "丰庄",
   "py": "fengzhuang",
   "ini": "fz",
-  "x": 326,
-  "y": 393
+  "x": 394,
+  "y": 224
  },
  {
   "n": "复旦大学",
   "py": "fudandaxue",
   "ini": "fddx",
-  "x": 774,
-  "y": 255
+  "x": 675,
+  "y": 169
  },
  {
   "n": "富锦路",
   "py": "fujinlu",
   "ini": "fjl",
-  "x": 579,
-  "y": 73
+  "x": 556,
+  "y": 18
  },
  {
   "n": "抚顺路",
   "py": "fushunlu",
   "ini": "fsl",
-  "x": 816,
-  "y": 315
+  "x": 715,
+  "y": 250
  },
  {
   "n": "复兴岛",
   "py": "fuxingdao",
   "ini": "fxd",
-  "x": 863,
-  "y": 347
+  "x": 769,
+  "y": 297
  },
  {
   "n": "港城路",
   "py": "gangchenglu",
   "ini": "gcl",
-  "x": 937,
-  "y": 141
+  "x": 724,
+  "y": 59
  },
  {
   "n": "高科西路",
   "py": "gaokexilu",
   "ini": "gkxl",
-  "x": 712,
-  "y": 627
+  "x": 798,
+  "y": 443
  },
  {
   "n": "高桥",
   "py": "gaoqiao",
   "ini": "gq",
-  "x": 890,
-  "y": 141
+  "x": 710,
+  "y": 76
  },
  {
   "n": "高桥西",
   "py": "gaoqiaoxi",
   "ini": "gqx",
-  "x": 916,
-  "y": 146
+  "x": 718,
+  "y": 72
  },
  {
   "n": "高青路",
   "py": "gaoqinglu",
   "ini": "gql",
-  "x": 671,
-  "y": 681
+  "x": 788,
+  "y": 454
  },
  {
   "n": "共富新村",
   "py": "gongfuxincun",
   "ini": "gfxc",
-  "x": 594,
-  "y": 131
+  "x": 581,
+  "y": 78
  },
  {
   "n": "共康路",
   "py": "gongkanglu",
   "ini": "gkl",
-  "x": 573,
-  "y": 225
+  "x": 588,
+  "y": 114
  },
  {
   "n": "广兰路",
   "py": "guanglanlu",
   "ini": "gll",
-  "x": 932,
-  "y": 589
+  "x": 774,
+  "y": 251
  },
  {
   "n": "光明路",
   "py": "guangminglu",
   "ini": "gml",
-  "x": 196,
-  "y": 212
+  "x": 344,
+  "y": 136
  },
  {
   "n": "顾村公园",
   "py": "gucungongyuan",
   "ini": "gcgy",
-  "x": 458,
-  "y": 181
+  "x": 476,
+  "y": 59
  },
  {
   "n": "顾戴路",
   "py": "gudailu",
   "ini": "gdl",
-  "x": 357,
-  "y": 529
+  "x": 468,
+  "y": 478
  },
  {
   "n": "桂林公园",
   "py": "guilingongyuan",
   "ini": "glgy",
-  "x": 408,
-  "y": 548
+  "x": 499,
+  "y": 517
  },
  {
   "n": "桂林路",
   "py": "guilinlu",
   "ini": "gll",
-  "x": 405,
-  "y": 528
+  "x": 498,
+  "y": 490
  },
  {
   "n": "桂桥路",
   "py": "guiqiaolu",
   "ini": "gql",
-  "x": 961,
-  "y": 581
+  "x": 795,
+  "y": 194
  },
  {
   "n": "古浪路",
   "py": "gulanglu",
   "ini": "gll",
-  "x": 463,
-  "y": 288
+  "x": 452,
+  "y": 190
  },
  {
   "n": "国帆路",
   "py": "guofanlu",
   "ini": "gfl",
-  "x": 849,
-  "y": 145
+  "x": 670,
+  "y": 79
  },
  {
   "n": "国家会展中心",
   "py": "guojiahuizhanzhongxin",
   "ini": "gjhzzx",
-  "x": 193,
-  "y": 519
+  "x": 392,
+  "y": 262
  },
  {
   "n": "国际客运中心",
   "py": "guojikeyunzhongxin",
   "ini": "gjkyzx",
-  "x": 734,
-  "y": 379
+  "x": 643,
+  "y": 240
  },
  {
   "n": "国权路",
   "py": "guoquanlu",
   "ini": "gql",
-  "x": 808,
-  "y": 262
+  "x": 693,
+  "y": 188
  },
  {
   "n": "顾唐路",
   "py": "gutanglu",
   "ini": "gtl",
-  "x": 980,
-  "y": 547
+  "x": 815,
+  "y": 159
  },
  {
   "n": "海伦路",
   "py": "hailunlu",
   "ini": "hll",
-  "x": 734,
-  "y": 328
+  "x": 659,
+  "y": 190
  },
  {
   "n": "海天三路",
   "py": "haitiansanlu",
   "ini": "htsl",
-  "x": 1007,
-  "y": 717
+  "x": 752,
+  "y": 119
  },
  {
   "n": "航津路",
   "py": "hangjinlu",
   "ini": "hjl",
-  "x": 959,
-  "y": 186
+  "x": 741,
+  "y": 108
  },
  {
   "n": "航头",
   "py": "hangtou",
   "ini": "ht",
-  "x": 804,
-  "y": 869
+  "x": 665,
+  "y": 591
  },
  {
   "n": "航头东",
   "py": "hangtoudong",
   "ini": "htd",
-  "x": 844,
-  "y": 798
+  "x": 720,
+  "y": 494
  },
  {
   "n": "航中路",
   "py": "hangzhonglu",
   "ini": "hzl",
-  "x": 313,
-  "y": 515
+  "x": 448,
+  "y": 394
  },
  {
   "n": "汉中路",
   "py": "hanzhonglu",
   "ini": "hzl",
-  "x": 616,
-  "y": 394
+  "x": 532,
+  "y": 241
  },
  {
   "n": "合川路",
   "py": "hechuanlu",
   "ini": "hcl",
-  "x": 361,
-  "y": 520
+  "x": 465,
+  "y": 470
  },
  {
   "n": "衡山路",
   "py": "hengshanlu",
   "ini": "hsl",
-  "x": 520,
-  "y": 500
+  "x": 578,
+  "y": 357
  },
  {
   "n": "鹤沙航城",
   "py": "heshahangcheng",
   "ini": "hshc",
-  "x": 851,
-  "y": 807
+  "x": 722,
+  "y": 517
  },
  {
   "n": "鹤涛路",
   "py": "hetaolu",
   "ini": "htl",
-  "x": 809,
-  "y": 834
+  "x": 666,
+  "y": 549
  },
  {
   "n": "红宝石路",
   "py": "hongbaoshilu",
   "ini": "hbsl",
-  "x": 403,
-  "y": 491
+  "x": 442,
+  "y": 369
  },
  {
   "n": "虹漕路",
   "py": "hongcaolu",
   "ini": "hcl",
-  "x": 402,
-  "y": 536
+  "x": 509,
+  "y": 504
  },
  {
   "n": "虹口足球场",
   "py": "hongkouzuqiuchang",
   "ini": "hkzqc",
-  "x": 696,
-  "y": 293
+  "x": 655,
+  "y": 147
  },
  {
   "n": "虹梅路",
   "py": "hongmeilu",
   "ini": "hml",
-  "x": 390,
-  "y": 534
+  "x": 498,
+  "y": 510
  },
  {
   "n": "虹梅南路",
   "py": "hongmeinanlu",
   "ini": "hmnl",
-  "x": 425,
-  "y": 756
+  "x": 599,
+  "y": 567
  },
  {
   "n": "虹桥1号航站楼",
   "py": "hongqiao1haohangzhanlou",
   "ini": "hq1hhzl",
-  "x": 343,
-  "y": 464
+  "x": 432,
+  "y": 331
  },
  {
   "n": "虹桥2号航站楼",
   "py": "hongqiao2haohangzhanlou",
   "ini": "hq2hhzl",
-  "x": 284,
-  "y": 460
+  "x": 427,
+  "y": 270
  },
  {
   "n": "虹桥火车站",
   "py": "hongqiaohuochezhan",
   "ini": "hqhcz",
-  "x": 230,
-  "y": 485
+  "x": 402,
+  "y": 281
  },
  {
   "n": "虹桥路",
   "py": "hongqiaolu",
   "ini": "hql",
-  "x": 455,
-  "y": 484
+  "x": 486,
+  "y": 349
  },
  {
   "n": "虹莘路",
   "py": "hongshenlu",
   "ini": "hsl",
-  "x": 336,
-  "y": 527
+  "x": 463,
+  "y": 460
  },
  {
   "n": "后滩",
   "py": "houtan",
   "ini": "ht",
-  "x": 582,
-  "y": 636
+  "x": 762,
+  "y": 470
  },
  {
   "n": "华东理工大学",
   "py": "huadongligongdaxue",
   "ini": "hdlgdx",
-  "x": 453,
-  "y": 625
+  "x": 586,
+  "y": 541
  },
  {
   "n": "淮海中路",
   "py": "huaihaizhonglu",
   "ini": "hhzl",
-  "x": 564,
-  "y": 478
+  "x": 589,
+  "y": 323
  },
  {
   "n": "花木路",
   "py": "huamulu",
   "ini": "hml",
-  "x": 872,
-  "y": 581
+  "x": 779,
+  "y": 347
  },
  {
   "n": "环城东路",
   "py": "huanchengdonglu",
   "ini": "hcdl",
-  "x": 369,
-  "y": 963
+  "x": 581,
+  "y": 611
  },
  {
   "n": "黄兴公园",
   "py": "huangxinggongyuan",
   "ini": "hxgy",
-  "x": 850,
-  "y": 244
+  "x": 703,
+  "y": 178
  },
  {
   "n": "黄兴路",
   "py": "huangxinglu",
   "ini": "hxl",
-  "x": 853,
-  "y": 266
+  "x": 715,
+  "y": 206
  },
  {
   "n": "黄杨路",
   "py": "huangyanglu",
   "ini": "hyl",
-  "x": 871,
-  "y": 534
+  "x": 804,
+  "y": 354
  },
  {
   "n": "华宁路",
   "py": "huaninglu",
   "ini": "hnl",
-  "x": 332,
-  "y": 776
+  "x": 576,
+  "y": 591
  },
  {
   "n": "华鹏路",
   "py": "huapenglu",
   "ini": "hpl",
-  "x": 721,
-  "y": 689
+  "x": 756,
+  "y": 448
  },
  {
   "n": "花桥",
   "py": "huaqiao",
   "ini": "hq",
-  "x": 189,
-  "y": 212
+  "x": 341,
+  "y": 141
  },
  {
   "n": "华夏东路",
   "py": "huaxiadonglu",
   "ini": "hxdl",
-  "x": 982,
-  "y": 628
+  "x": 748,
+  "y": 182
  },
  {
   "n": "华夏西路",
   "py": "huaxiaxilu",
   "ini": "hxxl",
-  "x": 667,
-  "y": 695
+  "x": 783,
+  "y": 460
  },
  {
   "n": "华夏中路",
   "py": "huaxiazhonglu",
   "ini": "hxzl",
-  "x": 860,
-  "y": 672
+  "x": 723,
+  "y": 403
  },
  {
   "n": "汇金路",
   "py": "huijinlu",
   "ini": "hjl",
-  "x": 128,
-  "y": 525
+  "x": 380,
+  "y": 316
  },
  {
   "n": "惠南",
   "py": "huinan",
   "ini": "hn",
-  "x": 932,
-  "y": 836
+  "x": 756,
+  "y": 575
  },
  {
   "n": "惠南东",
   "py": "huinandong",
   "ini": "hnd",
-  "x": 962,
-  "y": 836
+  "x": 782,
+  "y": 600
  },
  {
   "n": "汇臻路",
   "py": "huizhenlu",
   "ini": "hzl",
-  "x": 619,
-  "y": 993
+  "x": 584,
+  "y": 549
  },
  {
   "n": "呼兰路",
   "py": "hulanlu",
   "ini": "hll",
-  "x": 579,
-  "y": 168
+  "x": 590,
+  "y": 94
  },
  {
   "n": "嘉定北",
   "py": "jiadingbei",
   "ini": "jdb",
-  "x": 336,
-  "y": 150
+  "x": 385,
+  "y": 45
  },
  {
   "n": "嘉定西",
   "py": "jiadingxi",
   "ini": "jdx",
-  "x": 333,
-  "y": 133
+  "x": 384,
+  "y": 38
  },
  {
   "n": "嘉定新城",
   "py": "jiadingxincheng",
   "ini": "jdxc",
-  "x": 339,
-  "y": 219
+  "x": 384,
+  "y": 94
  },
  {
   "n": "剑川路",
   "py": "jianchuanlu",
   "ini": "jcl",
-  "x": 370,
-  "y": 771
+  "x": 582,
+  "y": 590
  },
  {
   "n": "江川路",
   "py": "jiangchuanlu",
   "ini": "jcl",
-  "x": 370,
-  "y": 855
+  "x": 604,
+  "y": 648
  },
  {
   "n": "江宁路",
   "py": "jiangninglu",
   "ini": "jnl",
-  "x": 566,
-  "y": 385
+  "x": 459,
+  "y": 261
  },
  {
   "n": "江浦公园",
   "py": "jiangpugongyuan",
   "ini": "jpgy",
-  "x": 820,
-  "y": 351
+  "x": 737,
+  "y": 288
  },
  {
   "n": "江浦路",
   "py": "jiangpulu",
   "ini": "jpl",
-  "x": 820,
-  "y": 310
+  "x": 720,
+  "y": 245
  },
  {
   "n": "江苏路",
   "py": "jiangsulu",
   "ini": "jsl",
-  "x": 484,
-  "y": 438
+  "x": 472,
+  "y": 267
  },
  {
   "n": "江湾体育场",
   "py": "jiangwantiyuchang",
   "ini": "jwtyc",
-  "x": 841,
-  "y": 144
+  "x": 671,
+  "y": 86
  },
  {
   "n": "江湾镇",
   "py": "jiangwanzhen",
   "ini": "jwz",
-  "x": 686,
-  "y": 255
+  "x": 655,
+  "y": 106
  },
  {
   "n": "江杨北路",
   "py": "jiangyangbeilu",
   "ini": "jybl",
-  "x": 691,
-  "y": 66
+  "x": 617,
+  "y": 7
  },
  {
   "n": "江月路",
   "py": "jiangyuelu",
   "ini": "jyl",
-  "x": 589,
-  "y": 806
+  "x": 621,
+  "y": 514
  },
  {
   "n": "交通大学",
   "py": "jiaotongdaxue",
   "ini": "jtdx",
-  "x": 501,
-  "y": 475
+  "x": 524,
+  "y": 329
  },
  {
   "n": "嘉善路",
   "py": "jiashanlu",
   "ini": "jsl",
-  "x": 564,
-  "y": 515
+  "x": 624,
+  "y": 392
  },
  {
   "n": "嘉松中路",
   "py": "jiasongzhonglu",
   "ini": "jszl",
-  "x": 153,
-  "y": 474
+  "x": 378,
+  "y": 300
  },
  {
   "n": "嘉怡路",
   "py": "jiayilu",
   "ini": "jyl",
-  "x": 359,
-  "y": 355
+  "x": 399,
+  "y": 188
  },
  {
   "n": "基隆路",
   "py": "jilonglu",
   "ini": "jll",
-  "x": 979,
-  "y": 146
+  "x": 779,
+  "y": 24
  },
  {
   "n": "静安寺",
   "py": "jingansi",
   "ini": "jas",
-  "x": 533,
-  "y": 428
+  "x": 536,
+  "y": 258
  },
  {
   "n": "景洪路",
   "py": "jinghonglu",
   "ini": "jhl",
-  "x": 458,
-  "y": 689
+  "x": 622,
+  "y": 549
  },
  {
   "n": "景西路",
   "py": "jingxilu",
   "ini": "jxl",
-  "x": 424,
-  "y": 775
+  "x": 599,
+  "y": 574
  },
  {
   "n": "金海湖",
   "py": "jinhaihu",
   "ini": "jhh",
-  "x": 420,
-  "y": 966
+  "x": 586,
+  "y": 626
  },
  {
   "n": "金海路",
   "py": "jinhailu",
   "ini": "jhl",
-  "x": 962,
-  "y": 539
+  "x": 813,
+  "y": 213
  },
  {
   "n": "锦江乐园",
   "py": "jinjiangleyuan",
   "ini": "jjly",
-  "x": 412,
-  "y": 552
+  "x": 532,
+  "y": 519
  },
  {
   "n": "金吉路",
   "py": "jinjilu",
   "ini": "jjl",
-  "x": 937,
-  "y": 514
+  "x": 814,
+  "y": 278
  },
  {
   "n": "金京路",
   "py": "jinjinglu",
   "ini": "jjl",
-  "x": 961,
-  "y": 421
+  "x": 821,
+  "y": 293
  },
  {
   "n": "金科路",
   "py": "jinkelu",
   "ini": "jkl",
-  "x": 901,
-  "y": 589
+  "x": 773,
+  "y": 294
  },
  {
   "n": "金平路",
   "py": "jinpinglu",
   "ini": "jpl",
-  "x": 370,
-  "y": 798
+  "x": 582,
+  "y": 598
  },
  {
   "n": "金桥",
   "py": "jinqiao",
   "ini": "jq",
-  "x": 920,
-  "y": 482
+  "x": 821,
+  "y": 327
  },
  {
   "n": "金桥路",
   "py": "jinqiaolu",
   "ini": "jql",
-  "x": 907,
-  "y": 449
+  "x": 816,
+  "y": 373
  },
  {
   "n": "锦秋路",
   "py": "jinqiulu",
   "ini": "jql",
-  "x": 472,
-  "y": 209
+  "x": 476,
+  "y": 86
  },
  {
   "n": "金沙江路",
   "py": "jinshajianglu",
   "ini": "jsjl",
-  "x": 437,
-  "y": 390
+  "x": 425,
+  "y": 240
  },
  {
   "n": "金沙江西路",
   "py": "jinshajiangxilu",
   "ini": "jsjxl",
-  "x": 305,
-  "y": 397
+  "x": 381,
+  "y": 212
  },
  {
   "n": "锦绣路",
   "py": "jinxiulu",
   "ini": "jxl",
-  "x": 795,
-  "y": 618
+  "x": 773,
+  "y": 432
  },
  {
   "n": "金粤路",
   "py": "jinyuelu",
   "ini": "jyl",
-  "x": 939,
-  "y": 560
+  "x": 816,
+  "y": 238
  },
  {
   "n": "金运路",
   "py": "jinyunlu",
   "ini": "jyl",
-  "x": 278,
-  "y": 365
+  "x": 368,
+  "y": 200
  },
  {
   "n": "九亭",
   "py": "jiuting",
   "ini": "jt",
-  "x": 213,
-  "y": 549
+  "x": 387,
+  "y": 317
  },
  {
   "n": "巨峰路",
   "py": "jufenglu",
   "ini": "jfl",
-  "x": 914,
-  "y": 370
+  "x": 793,
+  "y": 287
  },
  {
   "n": "康恒路",
   "py": "kanghenglu",
   "ini": "khl",
-  "x": 753,
-  "y": 739
+  "x": 705,
+  "y": 412
  },
  {
   "n": "康桥",
   "py": "kangqiao",
   "ini": "kq",
-  "x": 811,
-  "y": 775
+  "x": 667,
+  "y": 448
  },
  {
   "n": "康文路",
   "py": "kangwenlu",
   "ini": "kwl",
-  "x": 527,
-  "y": 195
+  "x": 573,
+  "y": 96
  },
  {
   "n": "康新公路",
   "py": "kangxingonglu",
   "ini": "kxgl",
-  "x": 910,
-  "y": 728
+  "x": 742,
+  "y": 474
  },
  {
   "n": "蓝村路",
   "py": "lancunlu",
   "ini": "lcl",
-  "x": 748,
-  "y": 541
+  "x": 814,
+  "y": 426
  },
  {
   "n": "岚皋路",
   "py": "langaolu",
   "ini": "lgl",
-  "x": 514,
-  "y": 304
+  "x": 466,
+  "y": 200
  },
  {
   "n": "蓝天路",
   "py": "lantianlu",
   "ini": "ltl",
-  "x": 875,
-  "y": 502
+  "x": 802,
+  "y": 361
  },
  {
   "n": "老西门",
   "py": "laoximen",
   "ini": "lxm",
-  "x": 650,
-  "y": 481
+  "x": 673,
+  "y": 337
  },
  {
   "n": "乐秀路",
   "py": "lexiulu",
   "ini": "lxl",
-  "x": 331,
-  "y": 354
+  "x": 380,
+  "y": 195
  },
  {
   "n": "联航路",
   "py": "lianhanglu",
   "ini": "lhl",
-  "x": 589,
-  "y": 833
+  "x": 594,
+  "y": 515
  },
  {
   "n": "莲花路",
   "py": "lianhualu",
   "ini": "lhl",
-  "x": 400,
-  "y": 553
+  "x": 500,
+  "y": 568
  },
  {
   "n": "莲溪路",
   "py": "lianxilu",
   "ini": "lxl",
-  "x": 820,
-  "y": 681
+  "x": 722,
+  "y": 410
  },
  {
   "n": "临港大道",
   "py": "lingangdadao",
   "ini": "lgdd",
-  "x": 1000,
-  "y": 879
+  "x": 799,
+  "y": 646
  },
  {
   "n": "凌空路",
   "py": "lingkonglu",
   "ini": "lkl",
-  "x": 993,
-  "y": 681
+  "x": 766,
+  "y": 132
  },
  {
   "n": "灵岩南路",
   "py": "lingyannanlu",
   "ini": "lynl",
-  "x": 616,
-  "y": 722
+  "x": 769,
+  "y": 478
  },
  {
   "n": "凌兆新村",
   "py": "lingzhaoxincun",
   "ini": "lzxc",
-  "x": 589,
-  "y": 725
+  "x": 740,
+  "y": 482
  },
  {
   "n": "临平路",
   "py": "linpinglu",
   "ini": "lpl",
-  "x": 768,
-  "y": 327
+  "x": 684,
+  "y": 232
  },
  {
   "n": "临洮路",
   "py": "lintaolu",
   "ini": "ltl",
-  "x": 347,
-  "y": 355
+  "x": 383,
+  "y": 199
  },
  {
   "n": "临沂新村",
   "py": "linyixincun",
   "ini": "lyxc",
-  "x": 737,
-  "y": 597
+  "x": 804,
+  "y": 437
  },
  {
   "n": "刘行",
   "py": "liuxing",
   "ini": "lx",
-  "x": 463,
-  "y": 173
+  "x": 477,
+  "y": 51
  },
  {
   "n": "李子园",
   "py": "liziyuan",
   "ini": "lzy",
-  "x": 401,
-  "y": 301
+  "x": 402,
+  "y": 180
  },
  {
   "n": "龙柏新村",
   "py": "longbaixincun",
   "ini": "lbxc",
-  "x": 345,
-  "y": 473
+  "x": 438,
+  "y": 343
  },
  {
   "n": "龙漕路",
   "py": "longcaolu",
   "ini": "lcl",
-  "x": 463,
-  "y": 594
+  "x": 586,
+  "y": 513
  },
  {
   "n": "隆昌路",
   "py": "longchanglu",
   "ini": "lcl",
-  "x": 849,
-  "y": 317
+  "x": 738,
+  "y": 272
  },
  {
   "n": "隆德路",
   "py": "longdelu",
   "ini": "ldl",
-  "x": 474,
-  "y": 380
+  "x": 425,
+  "y": 246
  },
  {
   "n": "龙华",
   "py": "longhua",
   "ini": "lh",
-  "x": 506,
-  "y": 600
+  "x": 658,
+  "y": 461
  },
  {
   "n": "龙华中路",
   "py": "longhuazhonglu",
   "ini": "lhzl",
-  "x": 536,
-  "y": 575
+  "x": 665,
+  "y": 454
  },
  {
   "n": "龙溪路",
   "py": "longxilu",
   "ini": "lxl",
-  "x": 369,
-  "y": 483
+  "x": 444,
+  "y": 383
  },
  {
   "n": "龙阳路",
   "py": "longyanglu",
   "ini": "lyl",
-  "x": 861,
-  "y": 626
+  "x": 767,
+  "y": 398
  },
  {
   "n": "龙耀路",
   "py": "longyaolu",
   "ini": "lyl",
-  "x": 516,
-  "y": 669
+  "x": 721,
+  "y": 506
  },
  {
   "n": "娄山关路",
   "py": "loushanguanlu",
   "ini": "lsgl",
-  "x": 393,
-  "y": 426
+  "x": 409,
+  "y": 281
  },
  {
   "n": "鲁班路",
   "py": "lubanlu",
   "ini": "lbl",
-  "x": 600,
-  "y": 538
+  "x": 688,
+  "y": 404
  },
  {
   "n": "芦恒路",
   "py": "luhenglu",
   "ini": "lhl",
-  "x": 589,
-  "y": 752
+  "x": 719,
+  "y": 487
  },
  {
   "n": "陆家浜路",
   "py": "lujiabanglu",
   "ini": "ljbl",
-  "x": 649,
-  "y": 511
+  "x": 704,
+  "y": 364
  },
  {
   "n": "陆家嘴",
   "py": "lujiazui",
   "ini": "ljz",
-  "x": 735,
-  "y": 446
+  "x": 667,
+  "y": 277
  },
  {
   "n": "罗南新村",
   "py": "luonanxincun",
   "ini": "lnxc",
-  "x": 454,
-  "y": 105
+  "x": 479,
+  "y": 27
  },
  {
   "n": "罗山路",
   "py": "luoshanlu",
   "ini": "lsl",
-  "x": 846,
-  "y": 729
+  "x": 722,
+  "y": 454
  },
  {
   "n": "罗秀路",
   "py": "luoxiulu",
   "ini": "lxl",
-  "x": 464,
-  "y": 657
+  "x": 620,
+  "y": 533
  },
  {
   "n": "马当路",
   "py": "madanglu",
   "ini": "mdl",
-  "x": 614,
-  "y": 511
+  "x": 674,
+  "y": 363
  },
  {
   "n": "马陆",
   "py": "malu",
   "ini": "ml",
-  "x": 327,
-  "y": 213
+  "x": 391,
+  "y": 88
  },
  {
   "n": "美兰湖",
   "py": "meilanhu",
   "ini": "mlh",
-  "x": 454,
-  "y": 78
+  "x": 479,
+  "y": 10
  },
  {
   "n": "梅岭北路",
   "py": "meilingbeilu",
   "ini": "mlbl",
-  "x": 402,
-  "y": 397
+  "x": 406,
+  "y": 244
  },
  {
   "n": "民雷路",
   "py": "minleilu",
   "ini": "mll",
-  "x": 994,
-  "y": 558
+  "x": 804,
+  "y": 129
  },
  {
   "n": "闵瑞路",
   "py": "minruilu",
   "ini": "mrl",
-  "x": 640,
-  "y": 904
+  "x": 608,
+  "y": 509
  },
  {
   "n": "民生路",
   "py": "minshenglu",
   "ini": "msl",
-  "x": 820,
-  "y": 455
+  "x": 782,
+  "y": 398
  },
  {
   "n": "闵行开发区",
   "py": "minxingkaifaqu",
   "ini": "mxkfq",
-  "x": 307,
-  "y": 747
+  "x": 527,
+  "y": 562
  },
  {
   "n": "南陈路",
   "py": "nanchenlu",
   "ini": "ncl",
-  "x": 464,
-  "y": 249
+  "x": 448,
+  "y": 124
  },
  {
   "n": "南大路",
   "py": "nandalu",
   "ini": "ndl",
-  "x": 447,
-  "y": 252
+  "x": 446,
+  "y": 131
  },
  {
   "n": "南京东路",
   "py": "nanjingdonglu",
   "ini": "njdl",
-  "x": 703,
-  "y": 429
+  "x": 629,
+  "y": 282
  },
  {
   "n": "南京西路",
   "py": "nanjingxilu",
   "ini": "njxl",
-  "x": 584,
-  "y": 433
+  "x": 564,
+  "y": 266
  },
  {
   "n": "南浦大桥",
   "py": "nanpudaqiao",
   "ini": "npdq",
-  "x": 695,
-  "y": 545
+  "x": 773,
+  "y": 419
  },
  {
   "n": "南翔",
   "py": "nanxiang",
   "ini": "nx",
-  "x": 368,
-  "y": 254
+  "x": 384,
+  "y": 127
  },
  {
   "n": "嫩江路",
   "py": "nenjianglu",
   "ini": "njl",
-  "x": 850,
-  "y": 190
+  "x": 694,
+  "y": 127
  },
  {
   "n": "宁国路",
   "py": "ningguolu",
   "ini": "ngl",
-  "x": 836,
-  "y": 321
+  "x": 735,
+  "y": 263
  },
  {
   "n": "潘广路",
   "py": "panguanglu",
   "ini": "pgl",
-  "x": 454,
-  "y": 132
+  "x": 476,
+  "y": 43
  },
  {
   "n": "蟠龙路",
   "py": "panlonglu",
   "ini": "pll",
-  "x": 173,
-  "y": 454
+  "x": 393,
+  "y": 289
  },
  {
   "n": "蟠祥路·国家会计学院",
   "py": "panxiangluguojiakuaijixueyuan",
   "ini": "pxlgjkjxy",
-  "x": 154,
-  "y": 454
+  "x": 343,
+  "y": 297
  },
  {
   "n": "彭浦新村",
   "py": "pengpuxincun",
   "ini": "ppxc",
-  "x": 573,
-  "y": 242
+  "x": 580,
+  "y": 118
  },
  {
   "n": "平凉路",
   "py": "pinglianglu",
   "ini": "pll",
-  "x": 834,
-  "y": 355
+  "x": 751,
+  "y": 297
  },
  {
   "n": "浦电路",
   "py": "pudianlu",
   "ini": "pdl",
-  "x": 775,
-  "y": 474
+  "x": 763,
+  "y": 380
  },
  {
   "n": "浦东1号2号航站楼",
   "py": "pudong1hao2haohangzhanlou",
   "ini": "pd1h2hhzl",
-  "x": 1031,
-  "y": 729
+  "x": 768,
+  "y": 106
  },
  {
   "n": "浦东大道",
   "py": "pudongdadao",
   "ini": "pddd",
-  "x": 782,
-  "y": 427
+  "x": 711,
+  "y": 306
  },
  {
   "n": "浦东南路",
   "py": "pudongnanlu",
   "ini": "pdnl",
-  "x": 767,
-  "y": 440
+  "x": 691,
+  "y": 294
  },
  {
   "n": "浦东足球场",
   "py": "pudongzuqiuchang",
   "ini": "pdzqc",
-  "x": 915,
-  "y": 544
+  "x": 815,
+  "y": 286
  },
  {
   "n": "浦航路",
   "py": "puhanglu",
   "ini": "phl",
-  "x": 644,
-  "y": 923
+  "x": 620,
+  "y": 520
  },
  {
   "n": "浦江镇",
   "py": "pujiangzhen",
   "ini": "pjz",
-  "x": 589,
-  "y": 780
+  "x": 666,
+  "y": 480
  },
  {
   "n": "浦三路",
   "py": "pusanlu",
   "ini": "psl",
-  "x": 720,
-  "y": 736
+  "x": 713,
+  "y": 448
  },
  {
   "n": "祁安路",
   "py": "qianlu",
   "ini": "qal",
-  "x": 468,
-  "y": 274
+  "x": 458,
+  "y": 155
  },
  {
   "n": "七宝",
   "py": "qibao",
   "ini": "qb",
-  "x": 320,
-  "y": 527
+  "x": 456,
+  "y": 433
  },
  {
   "n": "祁华路",
   "py": "qihualu",
   "ini": "qhl",
-  "x": 451,
-  "y": 217
+  "x": 471,
+  "y": 104
  },
  {
   "n": "祁连山路",
   "py": "qilianshanlu",
   "ini": "qlsl",
-  "x": 422,
-  "y": 287
+  "x": 425,
+  "y": 190
  },
  {
   "n": "祁连山南路",
   "py": "qilianshannanlu",
   "ini": "qlsnl",
-  "x": 340,
-  "y": 398
+  "x": 406,
+  "y": 236
  },
  {
   "n": "青浦新城",
   "py": "qingpuxincheng",
   "ini": "qpxc",
-  "x": 128,
-  "y": 549
+  "x": 372,
+  "y": 336
  },
  {
   "n": "七莘路",
   "py": "qishenlu",
   "ini": "qsl",
-  "x": 312,
-  "y": 525
+  "x": 445,
+  "y": 428
  },
  {
   "n": "曲阜路",
   "py": "qufulu",
   "ini": "qfl",
-  "x": 644,
-  "y": 389
+  "x": 565,
+  "y": 240
  },
  {
   "n": "曲阳路",
   "py": "quyanglu",
   "ini": "qyl",
-  "x": 752,
-  "y": 302
+  "x": 675,
+  "y": 189
  },
  {
   "n": "人民广场",
   "py": "renminguangchang",
   "ini": "rmgc",
-  "x": 649,
-  "y": 428
+  "x": 592,
+  "y": 287
  },
  {
   "n": "三林",
   "py": "sanlin",
   "ini": "sl",
-  "x": 653,
-  "y": 731
+  "x": 740,
+  "y": 461
  },
  {
   "n": "三林东",
   "py": "sanlindong",
   "ini": "sld",
-  "x": 687,
-  "y": 733
+  "x": 722,
+  "y": 460
  },
  {
   "n": "三鲁公路",
   "py": "sanlugonglu",
   "ini": "slgl",
-  "x": 630,
-  "y": 854
+  "x": 599,
+  "y": 509
  },
  {
   "n": "三门路",
   "py": "sanmenlu",
   "ini": "sml",
-  "x": 818,
-  "y": 146
+  "x": 678,
+  "y": 107
  },
  {
   "n": "商城路",
   "py": "shangchenglu",
   "ini": "scl",
-  "x": 757,
-  "y": 492
+  "x": 732,
+  "y": 340
  },
  {
   "n": "上大路",
   "py": "shangdalu",
   "ini": "sdl",
-  "x": 477,
-  "y": 238
+  "x": 484,
+  "y": 120
  },
  {
   "n": "上海财经大学",
   "py": "shanghaicaijingdaxue",
   "ini": "shcjdx",
-  "x": 771,
-  "y": 173
+  "x": 673,
+  "y": 114
  },
  {
   "n": "上海大学",
   "py": "shanghaidaxue",
   "ini": "shdx",
-  "x": 468,
-  "y": 193
+  "x": 479,
+  "y": 81
  },
  {
   "n": "上海动物园",
   "py": "shanghaidongwuyuan",
   "ini": "shdwy",
-  "x": 356,
-  "y": 467
+  "x": 445,
+  "y": 338
  },
  {
   "n": "上海儿童医学中心",
   "py": "shanghaiertongyixuezhongxin",
   "ini": "shetyxzx",
-  "x": 748,
-  "y": 567
+  "x": 809,
+  "y": 431
  },
  {
   "n": "上海火车站",
   "py": "shanghaihuochezhan",
   "ini": "shhcz",
-  "x": 597,
-  "y": 345
+  "x": 521,
+  "y": 218
  },
  {
   "n": "上海科技馆",
   "py": "shanghaikejiguan",
   "ini": "shkjg",
-  "x": 795,
-  "y": 511
+  "x": 753,
+  "y": 398
  },
  {
   "n": "上海马戏城",
   "py": "shanghaimaxicheng",
   "ini": "shmxc",
-  "x": 576,
-  "y": 271
+  "x": 580,
+  "y": 151
  },
  {
   "n": "上海南站",
   "py": "shanghainanzhan",
   "ini": "shnz",
-  "x": 431,
-  "y": 589
+  "x": 552,
+  "y": 546
  },
  {
   "n": "上海汽车城",
   "py": "shanghaiqichecheng",
   "ini": "shqcc",
-  "x": 276,
-  "y": 219
+  "x": 362,
+  "y": 115
  },
  {
   "n": "上海赛车场",
   "py": "shanghaisaichechang",
   "ini": "shscc",
-  "x": 341,
-  "y": 236
+  "x": 380,
+  "y": 107
  },
  {
   "n": "上海松江站",
   "py": "shanghaisongjiangzhan",
   "ini": "shsjz",
-  "x": 196,
-  "y": 722
+  "x": 425,
+  "y": 464
  },
  {
   "n": "上海体育场",
   "py": "shanghaitiyuchang",
   "ini": "shtyc",
-  "x": 510,
-  "y": 536
+  "x": 614,
+  "y": 423
  },
  {
   "n": "上海体育馆",
   "py": "shanghaitiyuguan",
   "ini": "shtyg",
-  "x": 472,
-  "y": 521
+  "x": 553,
+  "y": 404
  },
  {
   "n": "上海图书馆",
   "py": "shanghaitushuguan",
   "ini": "shtsg",
-  "x": 505,
-  "y": 475
+  "x": 546,
+  "y": 323
  },
  {
   "n": "上海西站",
   "py": "shanghaixizhan",
   "ini": "shxz",
-  "x": 424,
-  "y": 320
+  "x": 420,
+  "y": 195
  },
  {
   "n": "上海游泳馆",
   "py": "shanghaiyouyongguan",
   "ini": "shyyg",
-  "x": 487,
-  "y": 579
+  "x": 606,
+  "y": 503
  },
  {
   "n": "上南路",
   "py": "shangnanlu",
   "ini": "snl",
-  "x": 640,
-  "y": 708
+  "x": 777,
+  "y": 466
  },
  {
   "n": "陕西南路",
   "py": "shanxinanlu",
   "ini": "sxnl",
-  "x": 549,
-  "y": 482
+  "x": 586,
+  "y": 341
  },
  {
   "n": "沈杜公路",
   "py": "shendugonglu",
   "ini": "sdgl",
-  "x": 594,
-  "y": 855
+  "x": 577,
+  "y": 513
  },
  {
   "n": "申江路",
   "py": "shenjianglu",
   "ini": "sjl",
-  "x": 971,
-  "y": 485
+  "x": 816,
+  "y": 230
  },
  {
   "n": "沈梅路",
   "py": "shenmeilu",
   "ini": "sml",
-  "x": 810,
-  "y": 818
+  "x": 666,
+  "y": 533
  },
  {
   "n": "佘山",
   "py": "sheshan",
   "ini": "ss",
-  "x": 189,
-  "y": 562
+  "x": 382,
+  "y": 326
  },
  {
   "n": "世博大道",
   "py": "shibodadao",
   "ini": "sbdd",
-  "x": 608,
-  "y": 622
+  "x": 762,
+  "y": 454
  },
  {
   "n": "世博会博物馆",
   "py": "shibohuibowuguan",
   "ini": "sbhbwg",
-  "x": 632,
-  "y": 568
+  "x": 746,
+  "y": 410
  },
  {
   "n": "市光路",
   "py": "shiguanglu",
   "ini": "sgl",
-  "x": 850,
-  "y": 163
+  "x": 706,
+  "y": 138
  },
  {
   "n": "世纪大道",
   "py": "shijidadao",
   "ini": "sjdd",
-  "x": 780,
-  "y": 478
+  "x": 712,
+  "y": 333
  },
  {
   "n": "世纪公园",
   "py": "shijigongyuan",
   "ini": "sjgy",
-  "x": 799,
-  "y": 551
+  "x": 816,
+  "y": 408
  },
  {
   "n": "石龙路",
   "py": "shilonglu",
   "ini": "sll",
-  "x": 464,
-  "y": 609
+  "x": 586,
+  "y": 520
  },
  {
   "n": "双柏路",
   "py": "shuangbailu",
   "ini": "sbl",
-  "x": 425,
-  "y": 820
+  "x": 604,
+  "y": 604
  },
  {
   "n": "双江路",
   "py": "shuangjianglu",
   "ini": "sjl",
-  "x": 870,
-  "y": 146
+  "x": 671,
+  "y": 70
  },
  {
   "n": "水产路",
   "py": "shuichanlu",
   "ini": "scl",
-  "x": 702,
-  "y": 114
+  "x": 661,
+  "y": 58
  },
  {
   "n": "水城路",
   "py": "shuichenglu",
   "ini": "scl",
-  "x": 376,
-  "y": 478
+  "x": 440,
+  "y": 377
  },
  {
   "n": "曙建路",
   "py": "shujianlu",
   "ini": "sjl",
-  "x": 424,
-  "y": 786
+  "x": 600,
+  "y": 580
  },
  {
   "n": "书院",
   "py": "shuyuan",
   "ini": "sy",
-  "x": 990,
-  "y": 862
+  "x": 797,
+  "y": 619
  },
  {
   "n": "四川北路",
   "py": "sichuanbeilu",
   "ini": "scbl",
-  "x": 714,
-  "y": 349
+  "x": 630,
+  "y": 209
  },
  {
   "n": "泗泾",
   "py": "sijing",
   "ini": "sj",
-  "x": 189,
-  "y": 541
+  "x": 388,
+  "y": 298
  },
  {
   "n": "四平路",
   "py": "sipinglu",
   "ini": "spl",
-  "x": 758,
-  "y": 301
+  "x": 684,
+  "y": 186
  },
  {
   "n": "淞滨路",
   "py": "songbinlu",
   "ini": "sbl",
-  "x": 699,
-  "y": 130
+  "x": 661,
+  "y": 92
  },
  {
   "n": "淞发路",
   "py": "songfalu",
   "ini": "sfl",
-  "x": 696,
-  "y": 163
+  "x": 648,
+  "y": 112
  },
  {
   "n": "淞虹路",
   "py": "songhonglu",
   "ini": "shl",
-  "x": 294,
-  "y": 433
+  "x": 408,
+  "y": 270
  },
  {
   "n": "松江大学城",
   "py": "songjiangdaxuecheng",
   "ini": "sjdxc",
-  "x": 189,
-  "y": 614
+  "x": 385,
+  "y": 378
  },
  {
   "n": "松江体育中心",
   "py": "songjiangtiyuzhongxin",
   "ini": "sjtyzx",
-  "x": 189,
-  "y": 665
+  "x": 432,
+  "y": 429
  },
  {
   "n": "松江新城",
   "py": "songjiangxincheng",
   "ini": "sjxc",
-  "x": 189,
-  "y": 638
+  "x": 378,
+  "y": 396
  },
  {
   "n": "宋园路",
   "py": "songyuanlu",
   "ini": "syl",
-  "x": 419,
-  "y": 478
+  "x": 456,
+  "y": 355
  },
  {
   "n": "台儿庄路",
   "py": "taierzhuanglu",
   "ini": "tezl",
-  "x": 894,
-  "y": 484
+  "x": 817,
+  "y": 355
  },
  {
   "n": "塘桥",
   "py": "tangqiao",
   "ini": "tq",
-  "x": 746,
-  "y": 550
+  "x": 814,
+  "y": 419
  },
  {
   "n": "唐镇",
   "py": "tangzhen",
   "ini": "tz",
-  "x": 962,
-  "y": 589
+  "x": 773,
+  "y": 206
  },
  {
   "n": "桃浦新村",
   "py": "taopuxincun",
   "ini": "tpxc",
-  "x": 413,
-  "y": 269
+  "x": 437,
+  "y": 124
  },
  {
   "n": "天潼路",
   "py": "tiantonglu",
   "ini": "ttl",
-  "x": 694,
-  "y": 368
+  "x": 609,
+  "y": 222
  },
  {
   "n": "铁力路",
   "py": "tielilu",
   "ini": "tll",
-  "x": 720,
-  "y": 71
+  "x": 626,
+  "y": 24
  },
  {
   "n": "提篮桥",
   "py": "tilanqiao",
   "ini": "tlq",
-  "x": 746,
-  "y": 367
+  "x": 661,
+  "y": 232
  },
  {
   "n": "铜川路",
   "py": "tongchuanlu",
   "ini": "tcl",
-  "x": 403,
-  "y": 350
+  "x": 407,
+  "y": 201
  },
  {
   "n": "通河新村",
   "py": "tonghexincun",
   "ini": "thxc",
-  "x": 566,
-  "y": 207
+  "x": 589,
+  "y": 102
  },
  {
   "n": "同济大学",
   "py": "tongjidaxue",
   "ini": "tjdx",
-  "x": 773,
-  "y": 288
+  "x": 683,
+  "y": 192
  },
  {
   "n": "通南路",
   "py": "tongnanlu",
   "ini": "tnl",
-  "x": 676,
-  "y": 209
+  "x": 649,
+  "y": 103
  },
  {
   "n": "外高桥保税区北",
   "py": "waigaoqiaobaoshuiqubei",
   "ini": "wgqbsqb",
-  "x": 959,
-  "y": 159
+  "x": 751,
+  "y": 89
  },
  {
   "n": "外高桥保税区南",
   "py": "waigaoqiaobaoshuiqunan",
   "ini": "wgqbsqn",
-  "x": 959,
-  "y": 213
+  "x": 746,
+  "y": 119
  },
  {
   "n": "外环路",
   "py": "waihuanlu",
   "ini": "whl",
-  "x": 389,
-  "y": 549
+  "x": 503,
+  "y": 561
  },
  {
   "n": "望园路",
   "py": "wangyuanlu",
   "ini": "wyl",
-  "x": 390,
-  "y": 976
+  "x": 583,
+  "y": 623
  },
  {
   "n": "威宁路",
   "py": "weininglu",
   "ini": "wnl",
-  "x": 348,
-  "y": 440
+  "x": 408,
+  "y": 296
  },
  {
   "n": "文井路",
   "py": "wenjinglu",
   "ini": "wjl",
-  "x": 321,
-  "y": 766
+  "x": 528,
+  "y": 572
  },
  {
   "n": "汶水路",
   "py": "wenshuilu",
   "ini": "wsl",
-  "x": 579,
-  "y": 257
+  "x": 577,
+  "y": 128
  },
  {
   "n": "武定路",
   "py": "wudinglu",
   "ini": "wdl",
-  "x": 507,
-  "y": 405
+  "x": 477,
+  "y": 248
  },
  {
   "n": "五角场",
   "py": "wujiaochang",
   "ini": "wjc",
-  "x": 799,
-  "y": 193
+  "x": 700,
+  "y": 143
  },
  {
   "n": "五莲路",
   "py": "wulianlu",
   "ini": "wll",
-  "x": 897,
-  "y": 411
+  "x": 814,
+  "y": 370
  },
  {
   "n": "武宁路",
   "py": "wuninglu",
   "ini": "wnl",
-  "x": 505,
-  "y": 385
+  "x": 445,
+  "y": 240
  },
  {
   "n": "武威东路",
   "py": "wuweidonglu",
   "ini": "wwdl",
-  "x": 450,
-  "y": 309
+  "x": 430,
+  "y": 195
  },
  {
   "n": "武威路",
   "py": "wuweilu",
   "ini": "wwl",
-  "x": 390,
-  "y": 284
+  "x": 369,
+  "y": 129
  },
  {
   "n": "吴中路",
   "py": "wuzhonglu",
   "ini": "wzl",
-  "x": 403,
-  "y": 502
+  "x": 483,
+  "y": 428
  },
  {
   "n": "五洲大道",
   "py": "wuzhoudadao",
   "ini": "wzdd",
-  "x": 946,
-  "y": 265
+  "x": 748,
+  "y": 188
  },
  {
   "n": "下南路",
   "py": "xiananlu",
   "ini": "xnl",
-  "x": 737,
-  "y": 691
+  "x": 750,
+  "y": 454
  },
  {
   "n": "向城路",
   "py": "xiangchenglu",
   "ini": "xcl",
-  "x": 782,
-  "y": 505
+  "x": 721,
+  "y": 363
  },
  {
   "n": "翔殷路",
   "py": "xiangyinlu",
   "ini": "xyl",
-  "x": 850,
-  "y": 216
+  "x": 706,
+  "y": 158
  },
  {
   "n": "小南门",
   "py": "xiaonanmen",
   "ini": "xnm",
-  "x": 695,
-  "y": 503
+  "x": 729,
+  "y": 371
  },
  {
   "n": "萧塘",
   "py": "xiaotang",
   "ini": "xt",
-  "x": 352,
-  "y": 912
+  "x": 588,
+  "y": 631
  },
  {
   "n": "下沙",
   "py": "xiasha",
   "ini": "xs",
-  "x": 805,
-  "y": 852
+  "x": 665,
+  "y": 572
  },
  {
   "n": "西岑",
   "py": "xicen",
   "ini": "xc",
-  "x": 103,
-  "y": 660
+  "x": 356,
+  "y": 406
  },
  {
   "n": "西渡",
   "py": "xidu",
   "ini": "xd",
-  "x": 352,
-  "y": 884
+  "x": 594,
+  "y": 647
  },
  {
   "n": "歇浦路",
   "py": "xiepulu",
   "ini": "xpl",
-  "x": 877,
-  "y": 402
+  "x": 811,
+  "y": 372
  },
  {
   "n": "新场",
   "py": "xinchang",
   "ini": "xc",
-  "x": 862,
-  "y": 818
+  "x": 722,
+  "y": 525
  },
  {
   "n": "新村路",
   "py": "xincunlu",
   "ini": "xcl",
-  "x": 493,
-  "y": 286
+  "x": 483,
+  "y": 178
  },
  {
   "n": "行知路",
   "py": "xingzhilu",
   "ini": "xzl",
-  "x": 481,
-  "y": 274
+  "x": 457,
+  "y": 162
  },
  {
   "n": "星中路",
   "py": "xingzhonglu",
   "ini": "xzl",
-  "x": 342,
-  "y": 523
+  "x": 463,
+  "y": 454
  },
  {
   "n": "新江湾城",
   "py": "xinjiangwancheng",
   "ini": "xjwc",
-  "x": 823,
-  "y": 147
+  "x": 725,
+  "y": 108
  },
  {
   "n": "新闸路",
   "py": "xinzhalu",
   "ini": "xzl",
-  "x": 655,
-  "y": 404
+  "x": 582,
+  "y": 260
  },
  {
   "n": "莘庄",
   "py": "xinzhuang",
   "ini": "xz",
-  "x": 377,
-  "y": 561
+  "x": 506,
+  "y": 568
  },
  {
   "n": "秀沿路",
   "py": "xiuyanlu",
   "ini": "xyl",
-  "x": 884,
-  "y": 731
+  "x": 733,
+  "y": 465
  },
  {
   "n": "西藏北路",
   "py": "xizangbeilu",
   "ini": "xzbl",
-  "x": 661,
-  "y": 275
+  "x": 647,
+  "y": 122
  },
  {
   "n": "西藏南路",
   "py": "xizangnanlu",
   "ini": "xznl",
-  "x": 644,
-  "y": 554
+  "x": 738,
+  "y": 405
  },
  {
   "n": "学林路",
   "py": "xuelinlu",
   "ini": "xll",
-  "x": 928,
-  "y": 622
+  "x": 756,
+  "y": 295
  },
  {
   "n": "徐家汇",
   "py": "xujiahui",
   "ini": "xjh",
-  "x": 492,
-  "y": 510
+  "x": 578,
+  "y": 390
  },
  {
   "n": "徐泾北城",
   "py": "xujingbeicheng",
   "ini": "xjbc",
-  "x": 154,
-  "y": 463
+  "x": 392,
+  "y": 295
  },
  {
   "n": "徐盈路",
   "py": "xuyinglu",
   "ini": "xyl",
-  "x": 150,
-  "y": 490
+  "x": 381,
+  "y": 290
  },
  {
   "n": "延安西路",
   "py": "yananxilu",
   "ini": "yaxl",
-  "x": 444,
-  "y": 456
+  "x": 446,
+  "y": 299
  },
  {
   "n": "延长路",
   "py": "yanchanglu",
   "ini": "ycl",
-  "x": 584,
-  "y": 284
+  "x": 581,
+  "y": 195
  },
  {
   "n": "杨高北路",
   "py": "yanggaobeilu",
   "ini": "ygbl",
-  "x": 943,
-  "y": 384
+  "x": 796,
+  "y": 292
  },
  {
   "n": "杨高南路",
   "py": "yanggaonanlu",
   "ini": "ygnl",
-  "x": 772,
-  "y": 639
+  "x": 764,
+  "y": 438
  },
  {
   "n": "杨高中路",
   "py": "yanggaozhonglu",
   "ini": "ygzl",
-  "x": 820,
-  "y": 488
+  "x": 771,
+  "y": 341
  },
  {
   "n": "杨树浦路",
   "py": "yangshupulu",
   "ini": "yspl",
-  "x": 789,
-  "y": 378
+  "x": 713,
+  "y": 284
  },
  {
   "n": "杨思",
   "py": "yangsi",
   "ini": "ys",
-  "x": 610,
-  "y": 688
+  "x": 809,
+  "y": 459
  },
  {
   "n": "延吉中路",
   "py": "yanjizhonglu",
   "ini": "yjzl",
-  "x": 850,
-  "y": 259
+  "x": 708,
+  "y": 201
  },
  {
   "n": "姚虹路",
   "py": "yaohonglu",
   "ini": "yhl",
-  "x": 401,
-  "y": 476
+  "x": 471,
+  "y": 404
  },
  {
   "n": "耀华路",
   "py": "yaohualu",
   "ini": "yhl",
-  "x": 644,
-  "y": 635
+  "x": 810,
+  "y": 453
  },
  {
   "n": "野生动物园",
   "py": "yeshengdongwuyuan",
   "ini": "ysdwy",
-  "x": 892,
-  "y": 830
+  "x": 738,
+  "y": 556
  },
  {
   "n": "一大会址·黄陂南路",
   "py": "yidahuizhihuangpinanlu",
   "ini": "ydhzhpnl",
   "x": 618,
-  "y": 457
+  "y": 300
  },
  {
   "n": "一大会址·新天地",
   "py": "yidahuizhixintiandi",
   "ini": "ydhzxtd",
-  "x": 595,
-  "y": 483
+  "x": 616,
+  "y": 329
  },
  {
   "n": "伊犁路",
   "py": "yililu",
   "ini": "yll",
-  "x": 411,
-  "y": 474
+  "x": 450,
+  "y": 343
  },
  {
   "n": "银都路",
   "py": "yindoulu",
   "ini": "ydl",
-  "x": 357,
-  "y": 682
+  "x": 534,
+  "y": 567
  },
  {
   "n": "殷高东路",
   "py": "yingaodonglu",
   "ini": "ygdl",
-  "x": 815,
-  "y": 148
+  "x": 679,
+  "y": 114
  },
  {
   "n": "殷高路",
   "py": "yingaolu",
   "ini": "ygl",
-  "x": 744,
-  "y": 227
+  "x": 651,
+  "y": 154
  },
  {
   "n": "殷高西路",
   "py": "yingaoxilu",
   "ini": "ygxl",
-  "x": 682,
-  "y": 240
+  "x": 667,
+  "y": 94
  },
  {
   "n": "迎春路",
   "py": "yingchunlu",
   "ini": "ycl",
-  "x": 851,
-  "y": 527
+  "x": 796,
+  "y": 357
  },
  {
   "n": "宜山路",
   "py": "yishanlu",
   "ini": "ysl",
-  "x": 447,
-  "y": 516
+  "x": 524,
+  "y": 416
  },
  {
   "n": "永德路",
   "py": "yongdelu",
   "ini": "ydl",
-  "x": 411,
-  "y": 879
+  "x": 601,
+  "y": 634
  },
  {
   "n": "邮电新村",
   "py": "youdianxincun",
   "ini": "ydxc",
-  "x": 755,
-  "y": 306
+  "x": 671,
+  "y": 195
  },
  {
   "n": "友谊路",
   "py": "youyilu",
   "ini": "yyl",
-  "x": 736,
-  "y": 91
+  "x": 637,
+  "y": 34
  },
  {
   "n": "友谊西路",
   "py": "youyixilu",
   "ini": "yyxl",
-  "x": 586,
-  "y": 91
+  "x": 564,
+  "y": 37
  },
  {
   "n": "远东大道",
   "py": "yuandongdadao",
   "ini": "yddd",
-  "x": 993,
-  "y": 704
+  "x": 760,
+  "y": 126
  },
  {
   "n": "元江路",
   "py": "yuanjianglu",
   "ini": "yjl",
-  "x": 418,
-  "y": 853
+  "x": 604,
+  "y": 627
  },
  {
   "n": "源深路",
   "py": "yuanshenlu",
   "ini": "ysl",
-  "x": 801,
-  "y": 427
+  "x": 731,
+  "y": 320
  },
  {
   "n": "源深体育中心",
   "py": "yuanshentiyuzhongxin",
   "ini": "ystyzx",
-  "x": 815,
-  "y": 460
+  "x": 746,
+  "y": 362
  },
  {
   "n": "云锦路",
   "py": "yunjinlu",
   "ini": "yjl",
-  "x": 501,
-  "y": 648
+  "x": 666,
+  "y": 514
  },
  {
   "n": "云山路",
   "py": "yunshanlu",
   "ini": "ysl",
-  "x": 874,
-  "y": 453
+  "x": 817,
+  "y": 376
  },
  {
   "n": "云顺路",
   "py": "yunshunlu",
   "ini": "ysl",
-  "x": 898,
-  "y": 537
+  "x": 810,
+  "y": 322
  },
  {
   "n": "云台路",
   "py": "yuntailu",
   "ini": "ytl",
-  "x": 679,
-  "y": 641
+  "x": 786,
+  "y": 446
  },
  {
   "n": "御桥",
   "py": "yuqiao",
   "ini": "yq",
-  "x": 820,
-  "y": 738
+  "x": 721,
+  "y": 443
  },
  {
   "n": "豫园",
   "py": "yuyuan",
   "ini": "yy",
-  "x": 681,
-  "y": 466
+  "x": 658,
+  "y": 327
  },
  {
   "n": "长风公园",
   "py": "zhangfenggongyuan",
   "ini": "zfgy",
-  "x": 414,
-  "y": 378
+  "x": 398,
+  "y": 231
  },
  {
   "n": "张华浜",
   "py": "zhanghuabang",
   "ini": "zhb",
-  "x": 698,
-  "y": 146
+  "x": 661,
+  "y": 100
  },
  {
   "n": "张江高科",
   "py": "zhangjianggaoke",
   "ini": "zjgk",
-  "x": 884,
-  "y": 588
+  "x": 786,
+  "y": 346
  },
  {
   "n": "张江路",
   "py": "zhangjianglu",
   "ini": "zjl",
-  "x": 948,
-  "y": 623
+  "x": 748,
+  "y": 252
  },
  {
   "n": "长清路",
   "py": "zhangqinglu",
   "ini": "zql",
-  "x": 604,
-  "y": 627
+  "x": 771,
+  "y": 456
  },
  {
   "n": "兆丰路",
   "py": "zhaofenglu",
   "ini": "zfl",
-  "x": 223,
-  "y": 219
+  "x": 347,
+  "y": 130
  },
  {
   "n": "肇嘉浜路",
   "py": "zhaojiabanglu",
   "ini": "zjbl",
-  "x": 533,
-  "y": 510
+  "x": 600,
+  "y": 390
  },
  {
   "n": "赵巷",
   "py": "zhaoxiang",
   "ini": "zx",
-  "x": 151,
-  "y": 500
+  "x": 377,
+  "y": 309
  },
  {
   "n": "真北路",
   "py": "zhenbeilu",
   "ini": "zbl",
-  "x": 358,
-  "y": 393
+  "x": 413,
+  "y": 237
  },
  {
   "n": "真光路",
   "py": "zhenguanglu",
   "ini": "zgl",
-  "x": 393,
-  "y": 355
+  "x": 417,
+  "y": 200
  },
  {
   "n": "镇坪路",
   "py": "zhenpinglu",
   "ini": "zpl",
-  "x": 523,
-  "y": 345
+  "x": 441,
+  "y": 235
  },
  {
   "n": "真如",
   "py": "zhenru",
   "ini": "zr",
-  "x": 444,
-  "y": 340
+  "x": 432,
+  "y": 200
  },
  {
   "n": "真新新村",
   "py": "zhenxinxincun",
   "ini": "zxxc",
-  "x": 381,
-  "y": 357
+  "x": 390,
+  "y": 208
  },
  {
   "n": "中春路",
   "py": "zhongchunlu",
   "ini": "zcl",
-  "x": 270,
-  "y": 553
+  "x": 432,
+  "y": 394
  },
  {
   "n": "中华艺术宫",
   "py": "zhonghuayishugong",
   "ini": "zhysg",
-  "x": 644,
-  "y": 609
+  "x": 778,
+  "y": 442
  },
  {
   "n": "中科路",
   "py": "zhongkelu",
   "ini": "zkl",
-  "x": 910,
-  "y": 627
+  "x": 768,
+  "y": 334
  },
  {
   "n": "中宁路",
   "py": "zhongninglu",
   "ini": "znl",
-  "x": 478,
-  "y": 318
+  "x": 438,
+  "y": 206
  },
  {
   "n": "中山北路",
   "py": "zhongshanbeilu",
   "ini": "zsbl",
-  "x": 583,
-  "y": 297
+  "x": 555,
+  "y": 194
  },
  {
   "n": "中山公园",
   "py": "zhongshangongyuan",
   "ini": "zsgy",
   "x": 437,
-  "y": 438
+  "y": 281
  },
  {
   "n": "中潭路",
   "py": "zhongtanlu",
   "ini": "ztl",
-  "x": 554,
-  "y": 307
+  "x": 516,
+  "y": 195
  },
  {
   "n": "中兴路",
   "py": "zhongxinglu",
   "ini": "zxl",
-  "x": 659,
-  "y": 304
+  "x": 617,
+  "y": 154
  },
  {
   "n": "洲海路",
   "py": "zhouhailu",
   "ini": "zhl",
-  "x": 949,
-  "y": 237
+  "x": 757,
+  "y": 143
  },
  {
   "n": "周浦",
   "py": "zhoupu",
   "ini": "zp",
-  "x": 809,
-  "y": 790
+  "x": 666,
+  "y": 461
  },
  {
   "n": "周浦东",
   "py": "zhoupudong",
   "ini": "zpd",
-  "x": 839,
-  "y": 783
+  "x": 721,
+  "y": 475
  },
  {
   "n": "颛桥",
   "py": "zhuanqiao",
   "ini": "zq",
-  "x": 374,
-  "y": 709
+  "x": 563,
+  "y": 569
  },
  {
   "n": "朱家角",
   "py": "zhujiajiao",
   "ini": "zjj",
-  "x": 109,
-  "y": 607
+  "x": 355,
+  "y": 358
  },
  {
   "n": "朱梅路",
   "py": "zhumeilu",
   "ini": "zml",
-  "x": 462,
-  "y": 683
+  "x": 624,
+  "y": 542
  },
  {
   "n": "自然博物馆",
   "py": "ziranbowuguan",
   "ini": "zrbwg",
-  "x": 608,
-  "y": 406
+  "x": 542,
+  "y": 258
  },
  {
   "n": "紫藤路",
   "py": "zitenglu",
   "ini": "ztl",
-  "x": 313,
-  "y": 482
+  "x": 424,
+  "y": 342
  },
  {
   "n": "紫竹高新区",
   "py": "zizhugaoxinqu",
   "ini": "zzgxq",
-  "x": 409,
-  "y": 910
+  "x": 595,
+  "y": 627
  },
  {
   "n": "醉白池",
   "py": "zuibaichi",
   "ini": "zbc",
-  "x": 189,
-  "y": 690
+  "x": 425,
+  "y": 437
  }
 ]

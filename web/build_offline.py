@@ -140,6 +140,25 @@ html = sub_once(r'/\*__WALK_ICON__\*/', lambda _: walk_b64, html, "walk icon")
 fare_b64 = (BASE / "wallet-icon.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__FARE_ICON__\*/', lambda _: fare_b64, html, "fare icon")
 
+# L2. inline the per-city virtual-transfer data (same format as Beijing's
+# transfers.json; each file is hand-maintained — see TRANSFERS-NOTES.md).
+# Empty {} when a city has no verified virtual transfer. Chongqing is
+# NOT inlined yet (data prep still in progress; wire it when stable).
+sy_transfers = (BASE / "shenyang" / "transfers.json").read_text(encoding="utf-8")
+sh_transfers = (BASE / "shanghai" / "transfers.json").read_text(encoding="utf-8")
+hb_transfers = (BASE / "harbin" / "transfers.json").read_text(encoding="utf-8")
+dl_transfers = (BASE / "dalian" / "transfers.json").read_text(encoding="utf-8")
+jh_transfers = (BASE / "jinhua" / "transfers.json").read_text(encoding="utf-8")
+cz_transfers = (BASE / "changzhou" / "transfers.json").read_text(encoding="utf-8")
+for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers):
+    assert "</script" not in _t, "per-city transfers json must not contain </script"
+html = sub_once(r'/\*__SY_TRANSFERS__\*/\{\}', lambda _: sy_transfers, html, "sy transfers json")
+html = sub_once(r'/\*__SH_TRANSFERS__\*/\{\}', lambda _: sh_transfers, html, "sh transfers json")
+html = sub_once(r'/\*__HB_TRANSFERS__\*/\{\}', lambda _: hb_transfers, html, "hb transfers json")
+html = sub_once(r'/\*__DL_TRANSFERS__\*/\{\}', lambda _: dl_transfers, html, "dl transfers json")
+html = sub_once(r'/\*__JH_TRANSFERS__\*/\{\}', lambda _: jh_transfers, html, "jh transfers json")
+html = sub_once(r'/\*__CZ_TRANSFERS__\*/\{\}', lambda _: cz_transfers, html, "cz transfers json")
+
 # M. inline the per-city splash (launch) images.
 # BJ splash = the native LaunchScreen image (app/splash.b64, Beijing 北京/配线查询);
 # SY splash = the user's Shenyang 沈阳/配线查询 image (web/shenyang/splash.b64).

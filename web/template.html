@@ -28,6 +28,12 @@
 			window.DL_MAP = /*__DL_MAP__*/"";
 			window.DL_LOGO = "data:image/png;base64,/*__DL_LOGO__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
+			window.SY_TRANSFERS = /*__SY_TRANSFERS__*/{};
+			window.SH_TRANSFERS = /*__SH_TRANSFERS__*/{};
+			window.HB_TRANSFERS = /*__HB_TRANSFERS__*/{};
+			window.DL_TRANSFERS = /*__DL_TRANSFERS__*/{};
+			window.JH_TRANSFERS = /*__JH_TRANSFERS__*/{};
+			window.CZ_TRANSFERS = /*__CZ_TRANSFERS__*/{};
 			window.WALK_ICON = "data:image/png;base64,/*__WALK_ICON__*/";
 			window.FARE_ICON = "data:image/png;base64,/*__FARE_ICON__*/";
 			window.YKT_ICON = "data:image/png;base64,/*__YKT_ICON__*/";
@@ -1051,6 +1057,10 @@
 						<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
 						<span>{{ t('more.pdf') }}</span>
 					</div>
+					<div class="more-row" @click="doDouyin">
+						<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" fill="currentColor"/></svg>
+						<span>{{ t('more.douyin') }}</span>
+					</div>
 				</div>
 				<div class="more-section">{{ t('more.whatsnew', {v: '1.0.4'}) }}</div>
 				<div class="more-card">
@@ -1179,6 +1189,7 @@ var I18N = {
   'more.reset': ['重置缩放', '重置縮放', 'Reset zoom'],
   'more.repo': ['项目主页', '項目主頁', 'Project home'],
   'more.pdf': ['下载PDF', '下載PDF', 'Download PDF'],
+  'more.douyin': ['作者抖音', '作者抖音', 'Author on Douyin'],
   'more.dev': ['查看开发版', '查看開發版', 'View dev version'],
   'more.theme': ['深色模式', '深色模式', 'Dark mode'],
   'more.theme.system': ['跟随系统', '跟隨系統', 'Follow system'],
@@ -1652,22 +1663,27 @@ function titlePy(py) {
 						if (c === 'sy') {
 							this.stations = this.syStations;
 							this.routes = this.syRoutes;
+							this.transfers = (window.SY_TRANSFERS || {});
 							this.curr = { svgUrl: "", svgDom: this.syMap, pdfUrl: "", success: true, json: null, verName: "SY", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.sy'), d: '2026-06', l: 6, s: 144}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else if (c === 'sh') {
 							this.stations = this.shStations;
 							this.routes = this.shRoutes;
+							this.transfers = (window.SH_TRANSFERS || {});
 							this.curr = { svgUrl: "", svgDom: this.shMap, pdfUrl: "", success: true, json: null, verName: "SH", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.sh'), d: '2026-11', l: 22, s: 413}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else if (c === 'hb') {
 							this.stations = this.hbStations;
 							this.routes = this.hbRoutes;
+							this.transfers = (window.HB_TRANSFERS || {});
 							this.curr = { svgUrl: "", svgDom: this.hbMap, pdfUrl: "", success: true, json: null, verName: "HB", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.hb'), d: '2026-08', l: 3, s: 73}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else if (c === 'dl') {
 							this.stations = this.dlStations;
 							this.routes = this.dlRoutes;
+							this.transfers = (window.DL_TRANSFERS || {});
 							this.curr = { svgUrl: "", svgDom: this.dlMap, pdfUrl: "", success: true, json: null, verName: "DL", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.dl'), d: '2026-11', l: 6, s: 100}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else {
 							this.stations = (window.METRO_STATIONS || []);
 							this.routes = (window.METRO_ROUTES || null);
+							this.transfers = (window.METRO_TRANSFERS || {});
 							this.curr = env.prod;
 						}
 						window._metroNeedFit = true;
@@ -2066,9 +2082,25 @@ function titlePy(py) {
 						if (i >= segs.length) return '';
 						var st = segs[i].from;
 						var info = this.transfers && this.transfers[st];
-						if (!info || !info.lines) return '';
+						if (!info) return '';
 						var prev = segs[i - 1].line, cur = segs[i].line;
-						if (info.lines.indexOf(prev) < 0 || info.lines.indexOf(cur) < 0) return '';
+						// "pairs" (virtual transfers, build 66): for stations where
+						// only SOME line pairs are virtual (e.g. Shanghai 曹杨路
+						// 3/4/11 vs 14), the badge must show only for those pairs —
+						// the plain "lines" list would also badge in-station pairs
+						// (3<->4) at the same station. "pairs" is a list of
+						// [lineA, lineB]; when present it takes precedence.
+						if (info.pairs) {
+							var _ok = false;
+							for (var _k = 0; _k < info.pairs.length; _k++) {
+								var _p = info.pairs[_k];
+								if ((_p[0] === prev && _p[1] === cur) || (_p[0] === cur && _p[1] === prev)) { _ok = true; break; }
+							}
+							if (!_ok) return '';
+						} else {
+							if (!info.lines) return '';
+							if (info.lines.indexOf(prev) < 0 || info.lines.indexOf(cur) < 0) return '';
+						}
 						return this.t('tr.virtual', { dist: info.dist });
 					},
 					setRouteTab(t) { this.routeTab = t; },
@@ -2591,6 +2623,7 @@ function titlePy(py) {
 					doReset() { this.closeMore(); if (panzoom) resetView(); },
 					doRepo() { this.closeMore(); openRepo(); },
 					doPdf() { this.closeMore(); pdfDownload(); }
+					doDouyin() { this.closeMore(); openDouyin(); },
 				},
 				computed: {
 					cityName() { return this.t('city.' + this.city); },
@@ -3072,6 +3105,22 @@ function titlePy(py) {
 
 			function openRepo() {
 				window.open("https://github.com/SierraQin/metro");
+			};
+
+
+			function openDouyin() {
+				// Author's Douyin homepage (ID 351453703): open the Douyin app
+				// if installed, otherwise fall back to a web search for the ID.
+				var appOpened = false;
+				function onHide() { appOpened = true; }
+				document.addEventListener('visibilitychange', onHide);
+				window.location.href = "snssdk1128://user/profile/351453703";
+				setTimeout(function () {
+					document.removeEventListener('visibilitychange', onHide);
+					if (!appOpened && !document.hidden) {
+						window.open("https://www.douyin.com/search/351453703");
+					}
+				}, 1500);
 			};
 
 
