@@ -840,11 +840,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // rows (the web hides its own rows in the native app and reports
     // their frames, like the sort tabs). The suggestion dropdown stays
     // web: it renders below the hidden fields card, i.e. directly
-    // below this native card. The faint tint follows the city
-    // accent (Beijing blue / Shenyang gold / Shanghai red). The card
-    // is a UIVisualEffectView with
-    // UIGlassEffect on iOS 26+ (frosted systemMaterial below) plus a
-    // faint accent tint overlay; the search button uses
+    // below this native card. The card is a UIVisualEffectView with
+    // UIGlassEffect .clear on iOS 26+ (thinnest material below) — a
+    // solid-colour transparent glass (user 2026-11-17 "改为纯色透明玻璃"):
+    // the clear glass lets the background show through, and the card's
+    // single solid colour is the uniform accent tint overlay (Beijing
+    // blue / Shenyang gold / Shanghai red). The search button uses
     // UIButton.Configuration.glass() like the top pills.
     func setupTransferControls() {
         // Card container (frame-positioned from the web .tr-fields rect).
@@ -854,7 +855,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         transferCard.isHidden = true
         view.addSubview(transferCard)
 
-        transferEffectView = makeGlassEffectView()
+        transferEffectView = makeClearGlassEffectView()
         transferEffectView.translatesAutoresizingMaskIntoConstraints = false
         transferCard.addSubview(transferEffectView)
         NSLayoutConstraint.activate([
@@ -866,7 +867,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
         let content = transferEffectView.contentView
         transferTintView = UIView()
-        transferTintView.backgroundColor = accentColor().withAlphaComponent(0.10)
+        transferTintView.backgroundColor = accentColor().withAlphaComponent(0.15)
         transferTintView.isUserInteractionEnabled = false
         transferTintView.translatesAutoresizingMaskIntoConstraints = false
         content.addSubview(transferTintView)
@@ -947,6 +948,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             return UIVisualEffectView(effect: UIGlassEffect(style: .regular))
         }
         return UIVisualEffectView(effect: UIBlurEffect(style: .systemMaterial))
+    }
+
+    // Clear glass for the transfer card (user 2026-11-17 "改为纯色透明玻璃"):
+    // UIGlassEffect .clear is the most transparent glass — the background
+    // shows through with blur and almost no built-in tint, so the card's
+    // single solid colour comes only from the uniform accent tint overlay.
+    // Fallback on older iOS is the thinnest material.
+    func makeClearGlassEffectView() -> UIVisualEffectView {
+        if #available(iOS 26.0, *) {
+            return UIVisualEffectView(effect: UIGlassEffect(style: .clear))
+        }
+        return UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
     }
 
     func makeTransferRow(dotColor: UIColor, labelTitle: String, labelTag: Int, field: UITextField, badge: UIButton, clear: UIButton) -> UIStackView {
@@ -1105,7 +1118,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updateTransferTint() {
-        transferTintView.backgroundColor = accentColor().withAlphaComponent(0.10)
+        transferTintView.backgroundColor = accentColor().withAlphaComponent(0.15)
         transferSwapButton.layer.borderColor = accentDark().cgColor
         transferSwapButton.tintColor = accentDark()
         updateTransferSearchStyle()
