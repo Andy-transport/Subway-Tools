@@ -1101,7 +1101,7 @@
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
 			<div id="moreSheet" class="glass" v-show="showMore">
-				<div class="more-main" v-show="!showCitySub && !showLangSub">
+				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub">
 				<div class="more-title">Subway tools</div>
 				<div class="more-appcard">
 					<img class="more-appicon" :src="cityLogo" alt="">
@@ -1153,21 +1153,10 @@
 					</div>
 					<div class="more-loc-hint" v-if="locPermHint">{{ t('more.loc.hint') }}</div>
 				</div>
-				<div class="more-section">{{ t('more.whatsnew', {v: '1.0.4'}) }}</div>
 				<div class="more-card">
-					<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.3','more.new.4','more.new.5','more.new.6','more.new.7','more.new.8','more.new.9','more.new.10','more.new.11','more.new.12','more.new.13','more.new.14']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
-					<div class="more-new-sub">{{ t('more.bugfix') }}</div>
-					<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
-				</div>
-				<div class="more-section">{{ t('more.upcoming') }}</div>
-				<div class="more-card">
-					<div class="more-up-row" v-for="u in upcomingLines" :key="u.key"><span class="more-up-badge" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }">{{ u.badge }}</span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
-					<div class="more-up-note">{{ t('upcoming.note.sh22') }}</div>
-				</div>
-				<div class="more-section">{{ t('more.briefing') }}</div>
-				<div class="more-card">
-					<div class="more-brief-card" v-for="b in briefingItems" :key="b.id"><div class="more-brief-head"><span class="more-brief-dot" :style="{ background: b.color }"></span><span class="more-brief-title">{{ briefingText(b, 'title') }}</span></div><div class="more-brief-sum">{{ briefingText(b, 'summary') }}</div><div class="more-brief-date">{{ briefingText(b, 'date') }}</div></div>
-					<div class="more-brief-updated">{{ t('more.briefing.updated', {d: briefingUpdated}) }}</div>
+					<div class="more-row" @click="showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.0.4</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: upcomingLines.length}) }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-credit">{{ t('more.credit') }}</div>
 				</div>
@@ -1198,6 +1187,37 @@
 						<div class="more-city-row" @click="setLang('zh-Hans'); showLangSub = false"><span class="more-city-name">{{ t('more.lang.hans') }}</span><span class="more-check" v-if="langPref === 'zh-Hans'">✓</span></div>
 						<div class="more-city-row" @click="setLang('zh-Hant'); showLangSub = false"><span class="more-city-name">{{ t('more.lang.hant') }}</span><span class="more-check" v-if="langPref === 'zh-Hant'">✓</span></div>
 						<div class="more-city-row" @click="setLang('en'); showLangSub = false"><span class="more-city-name">{{ t('more.lang.en') }}</span><span class="more-check" v-if="langPref === 'en'">✓</span></div>
+					</div>
+				</div>
+				<div class="more-sub" v-show="showWhatsNewSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showWhatsNewSub = false">‹ {{ t('more.back') }}</button>
+						<div class="more-sub-title">{{ t('more.whatsnew', {v: '1.0.4'}) }}</div>
+					</div>
+					<div class="more-card">
+						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.3','more.new.4','more.new.5','more.new.6','more.new.7','more.new.8','more.new.9','more.new.10','more.new.11','more.new.12','more.new.13','more.new.14']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+						<div class="more-new-sub">{{ t('more.bugfix') }}</div>
+						<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+					</div>
+				</div>
+				<div class="more-sub" v-show="showUpcomingSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showUpcomingSub = false">‹ {{ t('more.back') }}</button>
+						<div class="more-sub-title">{{ t('more.upcoming') }}</div>
+					</div>
+					<div class="more-card">
+						<div class="more-up-row" v-for="u in upcomingLines" :key="u.key"><span class="more-up-badge" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }">{{ u.badge }}</span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
+						<div class="more-up-note">{{ t('upcoming.note.sh22') }}</div>
+					</div>
+				</div>
+				<div class="more-sub" v-show="showBriefingSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showBriefingSub = false">‹ {{ t('more.back') }}</button>
+						<div class="more-sub-title">{{ t('more.briefing') }}</div>
+					</div>
+					<div class="more-card">
+						<div class="more-brief-card" v-for="b in briefingItems" :key="b.id"><div class="more-brief-head"><span class="more-brief-dot" :style="{ background: b.color }"></span><span class="more-brief-title">{{ briefingText(b, 'title') }}</span></div><div class="more-brief-sum">{{ briefingText(b, 'summary') }}</div><div class="more-brief-date">{{ briefingText(b, 'date') }}</div></div>
+						<div class="more-brief-updated">{{ t('more.briefing.updated', {d: briefingUpdated}) }}</div>
 					</div>
 				</div>
 			</div>
@@ -1347,6 +1367,7 @@ var I18N = {
   'more.version': ['版本 {v}', '版本 {v}', 'Version {v}'],
   'more.credit': ['数据来源 SierraQin · CC0 1.0', '資料來源 SierraQin · CC0 1.0', 'Data: SierraQin · CC0 1.0'],
   'more.whatsnew': ['更新内容 · {v}', '更新內容 · {v}', "What's New · {v}"],
+  'more.whatsnew.title': ['更新内容', '更新內容', "What's New"],
   'more.new.1': ['iPhone Duo 右侧边栏', 'iPhone Duo 右側邊欄', 'iPhone Duo right sidebar'],
   'more.new.2': ['iPad 悬浮底栏', 'iPad 懸浮底欄', 'iPad floating bottom bar'],
   'more.new.3': ['切换城市后重进保持当前城市', '切換城市後重進保持當前城市', 'Reopening keeps your current city'],
@@ -1369,6 +1390,7 @@ var I18N = {
   'more.fix.5': ['启动图期间隐藏状态栏和时间', '啟動圖期間隱藏狀態列和時間', 'Status bar and time hidden during the splash screen'],
   'more.fix.6': ['iPad 顶部大白条已去掉，改为悬浮底栏', 'iPad 頂部大白條已去掉，改為懸浮底欄', 'iPad top strip removed in favour of a floating bottom bar'],
   'more.upcoming': ['即将开通', '即將開通', 'Opening Soon'],
+  'more.upcoming.count': ['{n}条线路', '{n}條線路', '{n} lines'],
   'more.briefing': ['轨道交通信息简报', '軌道交通資訊簡報', 'Transit Briefing'],
   'more.briefing.updated': ['更新于 {d}', '更新於 {d}', 'Updated {d}'],
   'upcoming.bj22': ['北京22号线', '北京22號線', 'Beijing Line 22'],
@@ -1720,6 +1742,9 @@ function titlePy(py) {
 						theme: 'system',
 					showCitySub: false,
 					showLangSub: false,
+					showWhatsNewSub: false,
+					showUpcomingSub: false,
+					showBriefingSub: false,
 						lastTab: 'map',
 
 						sideMenu: [{
