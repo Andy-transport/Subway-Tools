@@ -155,6 +155,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // prompt appears only when the user taps 附近车站, never at launch.
     var locationManager: CLLocationManager?
     var locationPending = false
+    // Location permission row (Settings): true while waiting for the
+    // user to answer the permission prompt triggered from the row.
+    var locPermPending = false
     // iPhone Duo sidebar (build 63): on a wide iPhone (Duo unfolded)
     // the bottom tab bar is replaced by a vertical floating glass
     // sidebar on the right edge. Same 5 tabs, same order, icon above
@@ -284,6 +287,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "openTransitApp")
         config.userContentController.add(self, name: "openRideCode")
         config.userContentController.add(self, name: "requestLocation")
+        config.userContentController.add(self, name: "requestLocationPermission")
         config.userContentController.add(self, name: "cityChanged")
         config.userContentController.add(self, name: "langChanged")
         config.userContentController.add(self, name: "splashDone")
@@ -1490,11 +1494,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // which computes the nearest stations (haversine) from the
     // stations' lat/lng and lists them. If denied/restricted, tell
     // the web so it shows a message instead of crashing or hanging.
-    // NOTE: station lat/lng data is pending for all 5 cities in this
-    // build (no reliable geocoding source was reachable — Overpass
-    // timed out, Nominatim returned nothing for these stations), so
-    // the web currently reports "coordinates not yet available" until
-    // lat/lng is added per city. The wiring below is complete.
+    // NOTE: station lat/lng is now wired in (Wikidata-verified tables
+    // in web/latlng/, inlined by build_offline.py): 1524 of 1644
+    // stations across 9 cities have coordinates; unmatched stations
+    // are simply absent and are skipped by the nearest search.
     func requestNearbyLocation() {
         if locationManager == nil {
             let lm = CLLocationManager()
@@ -1520,6 +1523,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         // Called after the user answers the permission prompt.
+        if locPermPending {
+            locPermPending = false
+            reportLocationPermission()
+        }
         guard locationPending else { return }
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
@@ -1550,6 +1557,42 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func notifyLocationError(_ message: String) {
         let escaped = message.replacingOccurrences(of: "'", with: "\\'")
         webView.evaluateJavaScript("window.metroApp && window.metroApp.nearbyError('\(escaped)')", completionHandler: nil)
+    }
+
+    // Location permission (Settings row): report the current state to
+    // the web, or trigger the system prompt if not yet determined.
+    // Never prompts twice: when already denied/restricted the web
+    // shows the iOS Settings hint instead. A query (from launch)
+    // only reports the state and never prompts.
+    func requestLocationPermission(queryOnly: Bool = false) {
+        if locationManager == nil {
+            let lm = CLLocationManager()
+            lm.delegate = self
+            lm.desiredAccuracy = kCLLocationAccuracyHundredMeters
+            locationManager = lm
+        }
+        guard let lm = locationManager else { return }
+        if lm.authorizationStatus == .notDetermined && !queryOnly {
+            locPermPending = true
+            lm.requestWhenInUseAuthorization()
+        } else {
+            reportLocationPermission()
+        }
+    }
+
+    func reportLocationPermission() {
+        let status: String
+        if let lm = locationManager {
+            switch lm.authorizationStatus {
+            case .authorizedWhenInUse, .authorizedAlways: status = "granted"
+            case .denied: status = "denied"
+            case .restricted: status = "restricted"
+            default: status = "unknown"
+            }
+        } else {
+            status = "unknown"
+        }
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.locPermStatus('\(status)')", completionHandler: nil)
     }
 
     // MARK: - Native tab bar -> web page
@@ -1922,6 +1965,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             openRideCode(link: dict["link"] as? String ?? "#小程序://乘车码/cZxzR2rsEppAxSv")
         } else if message.name == "requestLocation" {
             requestNearbyLocation()
+        } else if message.name == "requestLocationPermission" {
+            if let dict = message.body as? [String: Any], dict["query"] as? Bool == true {
+                requestLocationPermission(queryOnly: true)
+            } else {
+                requestLocationPermission()
+            }
         } else if message.name == "liveActivity",
                   let dict = message.body as? [String: Any] {
             handleLiveActivity(dict)

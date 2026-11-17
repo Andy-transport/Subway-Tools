@@ -358,6 +358,40 @@ html = sub_once(r'/\*__CQ_TIMETABLE__\*/\{\}', lambda _: cq_tt, html, "cq timeta
 html = sub_once(r'/\*__CC_TIMETABLE__\*/\{\}', lambda _: cc_tt, html, "cc timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
+# U. inline verified station lat/lng (web/latlng/latlng-{city}.json,
+# Wikidata-sourced, 6 decimals; name -> [lat, lng]). Unmatched stations
+# are simply absent from a table — never invented or interpolated. The
+# web merges each city's table into its station objects by exact Chinese
+# name (see applyLatLng in template.html); stations without a match keep
+# no lat/lng and are skipped by the nearest-station search.
+bj_ll = (BASE / "latlng" / "latlng-bj.json").read_text(encoding="utf-8")
+sy_ll = (BASE / "latlng" / "latlng-sy.json").read_text(encoding="utf-8")
+sh_ll = (BASE / "latlng" / "latlng-sh.json").read_text(encoding="utf-8")
+hb_ll = (BASE / "latlng" / "latlng-hb.json").read_text(encoding="utf-8")
+dl_ll = (BASE / "latlng" / "latlng-dl.json").read_text(encoding="utf-8")
+jh_ll = (BASE / "latlng" / "latlng-jh.json").read_text(encoding="utf-8")
+cz_ll = (BASE / "latlng" / "latlng-cz.json").read_text(encoding="utf-8")
+cq_ll = (BASE / "latlng" / "latlng-cq.json").read_text(encoding="utf-8")
+cc_ll = (BASE / "latlng" / "latlng-cc.json").read_text(encoding="utf-8")
+assert "</script" not in bj_ll, "bj latlng json must not contain </script"
+assert "</script" not in sy_ll, "sy latlng json must not contain </script"
+assert "</script" not in sh_ll, "sh latlng json must not contain </script"
+assert "</script" not in hb_ll, "hb latlng json must not contain </script"
+assert "</script" not in dl_ll, "dl latlng json must not contain </script"
+assert "</script" not in jh_ll, "jh latlng json must not contain </script"
+assert "</script" not in cz_ll, "cz latlng json must not contain </script"
+assert "</script" not in cq_ll, "cq latlng json must not contain </script"
+assert "</script" not in cc_ll, "cc latlng json must not contain </script"
+html = sub_once(r'/\*__BJ_LATLNG__\*/\{\}', lambda _: bj_ll, html, "bj latlng json")
+html = sub_once(r'/\*__SY_LATLNG__\*/\{\}', lambda _: sy_ll, html, "sy latlng json")
+html = sub_once(r'/\*__SH_LATLNG__\*/\{\}', lambda _: sh_ll, html, "sh latlng json")
+html = sub_once(r'/\*__HB_LATLNG__\*/\{\}', lambda _: hb_ll, html, "hb latlng json")
+html = sub_once(r'/\*__DL_LATLNG__\*/\{\}', lambda _: dl_ll, html, "dl latlng json")
+html = sub_once(r'/\*__JH_LATLNG__\*/\{\}', lambda _: jh_ll, html, "jh latlng json")
+html = sub_once(r'/\*__CZ_LATLNG__\*/\{\}', lambda _: cz_ll, html, "cz latlng json")
+html = sub_once(r'/\*__CQ_LATLNG__\*/\{\}', lambda _: cq_ll, html, "cq latlng json")
+html = sub_once(r'/\*__CC_LATLNG__\*/\{\}', lambda _: cc_ll, html, "cc latlng json")
+
 # T. inline the transit briefing seed (web/briefing.json): the 10 upcoming
 # lines + the Dalian Line 4 delay. The page renders from this seed when
 # offline; when online the app fetches the live file from GitHub and
