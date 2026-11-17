@@ -73,6 +73,7 @@
 			window.JH_TIMETABLE = /*__JH_TIMETABLE__*/{};
 			window.CZ_TIMETABLE = /*__CZ_TIMETABLE__*/{};
 			window.CQ_TIMETABLE = /*__CQ_TIMETABLE__*/{};
+			window.BRIEFING_SEED = /*__BRIEFING_SEED__*/{};
 			window.TT_ICON = "data:image/png;base64,/*__TT_ICON__*/";
 		</script>
 	</head>
@@ -599,6 +600,25 @@
 		.more-new-sub { font-weight: 700; margin: 10px 0 2px; }
 		html.dark .more-new-sub { color: #eee; }
 		html.dark .more-new-row { color: #ddd; border-color: rgba(255,255,255,0.08); }
+		.more-up-row { display: flex; align-items: center; gap: 10px; padding: 10px 2px; font-size: 15px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+		.more-up-row:last-child { border-bottom: none; }
+		.more-up-badge { flex: none; min-width: 34px; padding: 3px 8px; border-radius: 999px; font-size: 13px; font-weight: 700; text-align: center; }
+		.more-up-name { flex: 1; font-weight: 600; color: #222; }
+		.more-up-date { flex: none; font-size: 13px; color: #888; }
+		html.dark .more-up-row { border-color: rgba(255,255,255,0.08); }
+		html.dark .more-up-name { color: #eee; }
+		.more-up-note { font-size: 12px; color: #999; line-height: 1.55; padding: 8px 2px 0; }
+		.more-brief-card { padding: 10px 2px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+		.more-brief-card:last-child { border-bottom: none; }
+		.more-brief-head { display: flex; align-items: center; gap: 8px; }
+		.more-brief-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+		.more-brief-title { font-size: 15px; font-weight: 700; color: #222; }
+		.more-brief-sum { font-size: 13px; color: #666; line-height: 1.55; margin-top: 4px; }
+		.more-brief-date { font-size: 12px; color: #aaa; margin-top: 4px; }
+		html.dark .more-brief-card { border-color: rgba(255,255,255,0.08); }
+		html.dark .more-brief-title { color: #eee; }
+		html.dark .more-brief-sum { color: #bbb; }
+		.more-brief-updated { font-size: 12px; color: #999; padding: 6px 2px 0; }
 		.more-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; font-size: 16px; font-weight: 600; color: #111; border-bottom: 1px solid rgba(0, 0, 0, 0.06); cursor: pointer; }
 		html.dark .more-row { color: #f0f2f8; border-bottom-color: rgba(255,255,255,0.08); }
 		.more-row:last-of-type { border-bottom: none; }
@@ -1117,6 +1137,16 @@
 					<div class="more-new-sub">{{ t('more.bugfix') }}</div>
 					<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 				</div>
+				<div class="more-section">{{ t('more.upcoming') }}</div>
+				<div class="more-card">
+					<div class="more-up-row" v-for="u in upcomingLines" :key="u.key"><span class="more-up-badge" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }">{{ u.badge }}</span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
+					<div class="more-up-note">{{ t('upcoming.note.sh22') }}</div>
+				</div>
+				<div class="more-section">{{ t('more.briefing') }}</div>
+				<div class="more-card">
+					<div class="more-brief-card" v-for="b in briefingItems" :key="b.id"><div class="more-brief-head"><span class="more-brief-dot" :style="{ background: b.color }"></span><span class="more-brief-title">{{ briefingText(b, 'title') }}</span></div><div class="more-brief-sum">{{ briefingText(b, 'summary') }}</div><div class="more-brief-date">{{ briefingText(b, 'date') }}</div></div>
+					<div class="more-brief-updated">{{ t('more.briefing.updated', {d: briefingUpdated}) }}</div>
+				</div>
 				<div class="more-credit">{{ t('more.credit') }}</div>
 			</div>
 
@@ -1276,6 +1306,22 @@ var I18N = {
   'more.fix.4': ['换乘/搜索面板底板改为纯色，地图不再透出', '換乘/搜尋面板底板改為純色，地圖不再透出', 'Transfer/search panels now have solid backgrounds — the map no longer shows through'],
   'more.fix.5': ['启动图期间隐藏状态栏和时间', '啟動圖期間隱藏狀態列和時間', 'Status bar and time hidden during the splash screen'],
   'more.fix.6': ['iPad 顶部大白条已去掉，改为悬浮底栏', 'iPad 頂部大白條已去掉，改為懸浮底欄', 'iPad top strip removed in favour of a floating bottom bar'],
+  'more.upcoming': ['即将开通', '即將開通', 'Opening Soon'],
+  'more.briefing': ['轨道交通信息简报', '軌道交通資訊簡報', 'Transit Briefing'],
+  'more.briefing.updated': ['更新于 {d}', '更新於 {d}', 'Updated {d}'],
+  'upcoming.bj22': ['北京22号线', '北京22號線', 'Beijing Line 22'],
+  'upcoming.sh22': ['上海22号线', '上海22號線', 'Shanghai Line 22'],
+  'upcoming.gz12': ['广州12号线中段', '廣州12號線中段', 'Guangzhou Line 12 (middle section)'],
+  'upcoming.gz13': ['广州13号线二期西段', '廣州13號線二期西段', 'Guangzhou Line 13 Phase 2 (west section)'],
+  'upcoming.sy6': ['沈阳6号线', '瀋陽6號線', 'Shenyang Line 6'],
+  'upcoming.sy9': ['沈阳9号线二期', '瀋陽9號線二期', 'Shenyang Line 9 Phase 2'],
+  'upcoming.sz13': ['深圳13号线南延', '深圳13號線南延', 'Shenzhen Line 13 (south extension)'],
+  'upcoming.cq27': ['重庆27号线一期', '重慶27號線一期', 'Chongqing Line 27 Phase 1'],
+  'upcoming.cdS5': ['成都S5线', '成都S5線', 'Chengdu Line S5'],
+  'upcoming.tjZ2': ['天津Z2线', '天津Z2線', 'Tianjin Line Z2'],
+  'upcoming.date.2026': ['预计2026年底', '預計2026年底', 'Expected end of 2026'],
+  'upcoming.date.2027': ['预计2027', '預計2027', 'Expected 2027'],
+  'upcoming.note.sh22': ['上海22号线另有消息称2029年开通，日期尚未确认。', '上海22號線另有消息稱2029年開通，日期尚未確認。', 'Another source gives 2029 for Shanghai Line 22; the date is unconfirmed.'],
   'more.lang': ['语言', '語言', 'Language'],
   'more.lang.hans': ['简体中文', '簡體中文', 'Simplified Chinese'],
   'more.lang.hant': ['繁體中文', '繁體中文', 'Traditional Chinese'],
@@ -1531,6 +1577,28 @@ function titlePy(py) {
 						cqSplash: (window.CQ_SPLASH || ''),
 						cqTimetable: (window.CQ_TIMETABLE || {}),
 						ttIcon: (window.TT_ICON || ''),
+						// Upcoming openings (build 70): 10 lines, each with its
+						// own official colour; dates are always "expected",
+						// never a confirmed day. #016098 is NOT a real line
+						// colour (the blue "2号线" image was only a badge
+						// template) and is never used here.
+						upcomingLines: [
+							{ key: 'bj22', badge: '22', color: 'F4C1CA', date: '2026' },
+							{ key: 'sh22', badge: '22', color: '401AA6', date: '2026' },
+							{ key: 'gz12', badge: '12', color: '59621D', date: '2026' },
+							{ key: 'gz13', badge: '13', color: '888600', date: '2026' },
+							{ key: 'sy6', badge: '6', color: 'FEDC00', date: '2027' },
+							{ key: 'sy9', badge: '9', color: '0095D2', date: '2027' },
+							{ key: 'sz13', badge: '13', color: 'DE7C00', date: '2027' },
+							{ key: 'cq27', badge: '27', color: '0057B8', date: '2027' },
+							{ key: 'cdS5', badge: 'S5', color: 'A7C6ED', date: '2027' },
+							{ key: 'tjZ2', badge: 'Z2', color: '006BA6', date: '2027' }
+						],
+						// Transit briefing (build 70): seeded from the inlined
+						// briefing.json; refreshed from the live file on GitHub
+						// when online (cached in localStorage).
+						briefingItems: (window.BRIEFING_SEED && window.BRIEFING_SEED.items) || [],
+						briefingUpdated: (window.BRIEFING_SEED && window.BRIEFING_SEED.updated) || '',
 						showSplash: true,
 						showTransfer: false,
 						fromStation: null,
@@ -1807,6 +1875,39 @@ function titlePy(py) {
 						var r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
 						var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 						return lum > 0.6 ? '#1a1a1a' : '#ffffff';
+					},
+					// Briefing item text in the current language: the seed
+					// carries Chinese + an English translation (direct
+					// equivalents only); Traditional goes through toHant;
+					// English falls back to Chinese when no translation exists.
+					briefingText(item, field) {
+						if (!item) return '';
+						if (this.lang === 'en') return item[field + '_en'] || item[field] || '';
+						if (this.lang === 'zh-Hant') { try { return toHant(item[field] || ''); } catch (e) { return item[field] || ''; } }
+						return item[field] || '';
+					},
+					// Briefing refresh: cached copy first (newer than the
+					// inlined seed when present), then the live file from
+					// GitHub when online. Offline keeps seed/cached copy.
+					refreshBriefing() {
+						var self = this;
+						try {
+							var cached = JSON.parse(window.localStorage.getItem('metro-briefing') || 'null');
+							if (cached && Array.isArray(cached.items) && cached.items.length) {
+								self.briefingItems = cached.items;
+								self.briefingUpdated = cached.updated || self.briefingUpdated;
+							}
+						} catch (e) {}
+						if (!window.fetch) return;
+						fetch('https://raw.githubusercontent.com/Andy-transport/Subway-motion/main/web/briefing.json', { cache: 'no-cache' })
+							.then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+							.then(function (data) {
+								if (!data || !Array.isArray(data.items) || !data.items.length) return;
+								self.briefingItems = data.items;
+								self.briefingUpdated = data.updated || self.briefingUpdated;
+								try { window.localStorage.setItem('metro-briefing', JSON.stringify({ items: data.items, updated: data.updated || '' })); } catch (e) {}
+							})
+							.catch(function () { /* offline: keep seed/cached copy */ });
 					},
 					closeMore() {
 						this.showMore = false;
@@ -3006,6 +3107,7 @@ function titlePy(py) {
 					var _lh0 = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.langChanged);
 					if (_lh0) { _lh0.postMessage({ lang: this.lang }); }
 					this.flashSplash(2000);
+					this.refreshBriefing();
 					if (window.matchMedia) {
 						window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() { self.applyTheme(); });
 					}

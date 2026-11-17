@@ -334,6 +334,14 @@ html = sub_once(r'/\*__CZ_TIMETABLE__\*/\{\}', lambda _: cz_tt, html, "cz timeta
 html = sub_once(r'/\*__CQ_TIMETABLE__\*/\{\}', lambda _: cq_tt, html, "cq timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
+# T. inline the transit briefing seed (web/briefing.json): the 10 upcoming
+# lines + the Dalian Line 4 delay. The page renders from this seed when
+# offline; when online the app fetches the live file from GitHub and
+# caches it in localStorage (see refreshBriefing in template.html).
+briefing = (BASE / "briefing.json").read_text(encoding="utf-8")
+assert "</script" not in briefing, "briefing json must not contain </script"
+html = sub_once(r'/\*__BRIEFING_SEED__\*/\{\}', lambda _: briefing, html, "briefing seed json")
+
 out = OUT / "index.html"
 out.write_text(html, encoding="utf-8")
 
