@@ -57,6 +57,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var backButton: UIButton!
     var tabBar: UITabBar!
     var cityPill: UIButton!
+    // Map tools pill (top-right, build 74): a single Liquid Glass capsule
+    // holding the my-location arrow + station search, matching the Apple
+    // UI reference the user sent. The two icon buttons live inside it.
+    var mapToolsPill: UIView!
+    var locateButton: UIButton!
     var searchPill: UIButton!
     // Native Liquid Glass route-sort tabs (build 33): a UISegmentedControl
     // (Liquid Glass on iOS 26+) overlaid on the web panel's tab row.
@@ -179,7 +184,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // default and the fallback. Mirrors the web I18N table for native UI.
     static let LANG: [String: [String]] = [
         "tab.transfer": ["换乘", "換乘", "Transfer"],
-        "tab.map": ["配线图", "配線圖", "Track Map"],
+        "tab.map": ["线路图", "線路圖", "Line Map"],
         "tab.stations": ["搜索", "搜索", "Search"],
         "tab.timetable": ["时刻表", "時刻表", "Timetable"],
         "tab.more": ["设置", "設定", "Settings"],
@@ -218,7 +223,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "live.trip": ["行程", "行程", "Trip"],
         "live.arrived": ["已到达", "已到達", "Arrived"],
     ]
-    var currentLang: String = UserDefaults.standard.string(forKey: "metro-lang") ?? "zh-Hans"
+    // System per-app language (iOS Settings > Subway tools > Language).
+    // Bundle.main.preferredLocalizations reflects the per-app choice when
+    // the bundle has .lproj localizations; otherwise the device language.
+    static func systemLang() -> String {
+        let pref = Bundle.main.preferredLocalizations.first ?? ""
+        if pref.hasPrefix("zh-Hant") || pref.hasPrefix("zh-HK") || pref.hasPrefix("zh-TW") || pref.hasPrefix("zh-MO") { return "zh-Hant" }
+        if pref.hasPrefix("en") { return "en" }
+        return "zh-Hans"
+    }
+    // Effective language: the explicit in-app choice (UserDefaults
+    // "metro-lang") if the user picked one in the app, else the iOS
+    // per-app language from System Settings. "metro-lang-explicit" is
+    // false until the user taps a language in the in-app picker, so a
+    // fresh install follows the system language.
+    var currentLang: String = {
+        if UserDefaults.standard.bool(forKey: "metro-lang-explicit"),
+           let saved = UserDefaults.standard.string(forKey: "metro-lang") { return saved }
+        return Self.systemLang()
+    }()
     func L(_ key: String) -> String {
         let arr = Self.LANG[key] ?? [key, key, key]
         let idx: Int
@@ -231,9 +254,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
     // Called by the web langChanged post. Updates native UI only; the web
     // already switched, so do NOT call setLang on the web here (no loop).
-    func setLang(_ lang: String) {
+    // lang == "system" means the user picked Follow System in-app: clear
+    // the explicit override and follow the iOS per-app language.
+    // explicit == false is the web's startup restore post, not a user
+    // choice: never turn it into an explicit override.
+    func setLang(_ lang: String, explicit: Bool = true) {
+        if lang == "system" {
+            UserDefaults.standard.set(false, forKey: "metro-lang-explicit")
+            UserDefaults.standard.removeObject(forKey: "metro-lang")
+            currentLang = Self.systemLang()
+            applyLanguage()
+            return
+        }
         let l = (lang == "zh-Hant" || lang == "en") ? lang : "zh-Hans"
+        guard explicit else {
+            applyLanguage()
+            return
+        }
         currentLang = l
+        UserDefaults.standard.set(true, forKey: "metro-lang-explicit")
         UserDefaults.standard.set(l, forKey: "metro-lang")
         applyLanguage()
     }
@@ -292,6 +331,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "langChanged")
         config.userContentController.add(self, name: "splashDone")
         config.userContentController.add(self, name: "liveActivity")
+        // Inject the iOS per-app language + device idiom before the page's
+        // scripts run, so the web's savedLang() can follow the system
+        // language when the user has no explicit in-app choice (see
+        // systemLang()), and the web can clear the top tab bar on iPad.
+        let _isPadStr = UIDevice.current.userInterfaceIdiom == .pad ? "true" : "false"
+        let _langScript = WKUserScript(source: "window._metroSystemLang = '\(Self.systemLang())'; window._metroIsPad = \(_isPadStr);", injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        config.userContentController.addUserScript(_langScript)
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -332,14 +378,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         view.addSubview(tabBar)
         // Splash gate: hidden until the web splash finishes.
         tabBar.isHidden = true
-        // Floating bottom tab bar on EVERY device (build 63): the iPad
-        // top strip is gone (user 2026-11-16 "不要这个大上吧" /
-        // "底栏悬浮用 Apple UI SDK27.2") — the bar floats at the
-        // bottom on iPad too, exactly like iPhone. The web view is
-        // full-screen, so there is no white strip behind the bar.
-        NSLayoutConstraint.activate([
+        // Floating tab bar (build 74, user 2026-11-18 "将iPad底栏改成顶栏"):
+        // iPad floats it at the TOP as a compact capsule (not the big top
+        // strip removed in build 63); iPhone keeps it at the bottom.
+        // The web view is full-screen, so there is no white strip
+        // behind the bar.
+        let isPadBar = UIDevice.current.userInterfaceIdiom == .pad
+        var barConstraints = [
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+        ]
+        if isPadBar {
+            barConstraints.append(tabBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10))
+        } else {
             // Lowered (build 63, user 2026-11-16 "把这个底栏下移一点
             // 按图二的高度"): the bar sits just above the home
             // indicator with only a small gap, like Apple's floating
@@ -347,8 +398,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // the safe area) so it is the same height on iPhone and
             // iPad. Was safeArea.bottom - 4 (build 56), which left a
             // large gap above the home indicator.
-            tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -18),
-        ])
+            barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -18))
+        }
+        NSLayoutConstraint.activate(barConstraints)
         // iPhone Duo sidebar (build 63): created here so the web view
         // trailing constraint below can anchor to it.
         setupSideBar()
@@ -495,20 +547,51 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // Beijing keeps its blue theme; Shenyang uses gold.
     func setupNativePills() {
         cityPill = UIButton(type: .system)
+        // Map tools pill (top-right, build 74): one Liquid Glass capsule
+        // with a my-location arrow + station search, matching the Apple
+        // UI reference the user sent. The two icon buttons sit inside it.
+        mapToolsPill = UIView()
+        mapToolsPill.translatesAutoresizingMaskIntoConstraints = false
+        locateButton = UIButton(type: .system)
+        locateButton.translatesAutoresizingMaskIntoConstraints = false
+        locateButton.setImage(UIImage(systemName: "location.fill"), for: .normal)
+        locateButton.addTarget(self, action: #selector(centerOnMyLocation), for: .touchUpInside)
         searchPill = UIButton(type: .system)
-        for pill in [cityPill!, searchPill!] {
-            pill.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(pill)
-        }
-        // Pills sit at the top safe area on every device (build 63:
-        // the iPad top tab bar is gone, so there is no bar to sit below).
+        searchPill.translatesAutoresizingMaskIntoConstraints = false
+        searchPill.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
+        searchPill.addTarget(self, action: #selector(openStationSearch), for: .touchUpInside)
+        let divider = UIView()
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        divider.backgroundColor = UIColor(white: 1, alpha: 0.35)
+        mapToolsPill.addSubview(locateButton)
+        mapToolsPill.addSubview(divider)
+        mapToolsPill.addSubview(searchPill)
+        cityPill.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(cityPill)
+        view.addSubview(mapToolsPill)
+        // Pills sit at the top safe area on iPhone. On iPad the tab bar
+        // floats at the top (build 74), so the pills sit below it.
+        let pillTopAnchor: NSLayoutYAxisAnchor = (UIDevice.current.userInterfaceIdiom == .pad) ? tabBar.bottomAnchor : view.safeAreaLayoutGuide.topAnchor
         NSLayoutConstraint.activate([
             cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
-            cityPill.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            searchPill.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-            searchPill.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            cityPill.topAnchor.constraint(equalTo: pillTopAnchor, constant: 10),
+            mapToolsPill.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            mapToolsPill.topAnchor.constraint(equalTo: pillTopAnchor, constant: 10),
+            mapToolsPill.heightAnchor.constraint(equalToConstant: 36),
+            locateButton.leadingAnchor.constraint(equalTo: mapToolsPill.leadingAnchor, constant: 4),
+            locateButton.topAnchor.constraint(equalTo: mapToolsPill.topAnchor),
+            locateButton.bottomAnchor.constraint(equalTo: mapToolsPill.bottomAnchor),
+            locateButton.widthAnchor.constraint(equalToConstant: 44),
+            divider.leadingAnchor.constraint(equalTo: locateButton.trailingAnchor),
+            divider.centerYAnchor.constraint(equalTo: mapToolsPill.centerYAnchor),
+            divider.widthAnchor.constraint(equalToConstant: 1),
+            divider.heightAnchor.constraint(equalToConstant: 20),
+            searchPill.leadingAnchor.constraint(equalTo: divider.trailingAnchor),
+            searchPill.trailingAnchor.constraint(equalTo: mapToolsPill.trailingAnchor, constant: -4),
+            searchPill.topAnchor.constraint(equalTo: mapToolsPill.topAnchor),
+            searchPill.bottomAnchor.constraint(equalTo: mapToolsPill.bottomAnchor),
+            searchPill.widthAnchor.constraint(equalToConstant: 44),
         ])
-        searchPill.addTarget(self, action: #selector(openStationSearch), for: .touchUpInside)
         updateCityPill()
         updateSearchPill()
         updatePillVisibility()
@@ -628,23 +711,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updateSearchPill() {
-        if #available(iOS 26.0, *) {
-            var config = UIButton.Configuration.glass()
-            config.title = L("map.searchStation")
-            config.image = UIImage(systemName: "magnifyingglass")
-            config.imagePadding = 6
-            config.baseForegroundColor = accentColor()
-            config.cornerStyle = .capsule
-            config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 14)
-            searchPill.configuration = config
-        } else {
-            searchPill.setTitle(L("map.searchStation"), for: .normal)
-            searchPill.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
-            searchPill.setTitleColor(accentColor(), for: .normal)
-            searchPill.backgroundColor = UIColor(white: 1, alpha: 0.72)
-            searchPill.layer.cornerRadius = 18
-            searchPill.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 14)
-        }
+        // The tools pill is one glass capsule (shared makeGlassEffectView,
+        // Liquid Glass on iOS 26+); the two icon buttons inside take the
+        // city accent colour. Rebuilt each call so a city switch re-tints.
+        mapToolsPill.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
+        let effectView = makeGlassEffectView()
+        effectView.translatesAutoresizingMaskIntoConstraints = false
+        effectView.layer.cornerRadius = 18
+        effectView.clipsToBounds = true
+        mapToolsPill.insertSubview(effectView, at: 0)
+        NSLayoutConstraint.activate([
+            effectView.leadingAnchor.constraint(equalTo: mapToolsPill.leadingAnchor),
+            effectView.trailingAnchor.constraint(equalTo: mapToolsPill.trailingAnchor),
+            effectView.topAnchor.constraint(equalTo: mapToolsPill.topAnchor),
+            effectView.bottomAnchor.constraint(equalTo: mapToolsPill.bottomAnchor),
+        ])
+        mapToolsPill.layer.cornerRadius = 18
+        mapToolsPill.clipsToBounds = true
+        locateButton.tintColor = accentColor()
+        searchPill.tintColor = accentColor()
     }
 
     func cityMenu() -> UIMenu {
@@ -733,15 +818,28 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func pickCity(_ city: String) {
-        guard city != currentCity else { return }
+        // Always sync the web, even when native already thinks it is on
+        // this city (build 74 fix for "切到沈阳还是北京图"): native and
+        // web can drift — e.g. a switch tapped before the web finished
+        // loading is skipped by the `window.metroApp &&` guard while
+        // native still saves the city — and the old early return then
+        // made the stuck state unfixable by re-tapping the same city.
+        // The web's own guard no-ops when it is already on that city.
+        let changed = city != currentCity
         currentCity = city
         UserDefaults.standard.set(city, forKey: "metro-city")
-        refreshCityUI()
+        if changed { refreshCityUI() }
         webView.evaluateJavaScript("window.metroApp && window.metroApp.switchCity('\(city)')", completionHandler: nil)
     }
 
     @objc func openStationSearch() {
         webView.evaluateJavaScript("window.metroApp && window.metroApp.openStations()", completionHandler: nil)
+    }
+
+    // Top-right pill location arrow: find nearby stations from the
+    // user's current location (same as the Settings nearby feature).
+    @objc func centerOnMyLocation() {
+        requestNearbyLocation()
     }
 
     // MARK: - Native Liquid Glass route-sort tabs
@@ -1334,7 +1432,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func updatePillVisibility() {
         let show = currentTab == "map" && !splashShowing
         cityPill.isHidden = !show
-        searchPill.isHidden = !show
+        mapToolsPill.isHidden = !show
     }
 
     // Called when the web splash finishes (or the fallback timer fires):
@@ -1924,10 +2022,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "langChanged",
                   let dict = message.body as? [String: Any],
                   let lang = dict["lang"] as? String {
-            // The web switched languages (settings picker or the startup
-            // restore). Mirror it natively; the web already switched, so
-            // do NOT call setLang on the web here (that would loop).
-            setLang(lang)
+            // The web switched languages. explicit == true only when the
+            // user tapped a language option (or Follow System) in the
+            // in-app picker; the startup restore post has explicit false
+            // and must not become an override. The web already switched,
+            // so do NOT call setLang on the web here (that would loop).
+            let explicit = (dict["explicit"] as? Bool) ?? false
+            setLang(lang, explicit: explicit)
         } else if message.name == "tabsFrame",
                   let dict = message.body as? [String: Any] {
             placeSortTabs(frame: dict)

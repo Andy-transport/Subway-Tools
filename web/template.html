@@ -440,12 +440,9 @@
 		   sit exactly where the web rows were. The suggestion dropdown
 		   (.tr-suggest) stays web and appears below the native card. */
 		.native-app .tr-fields, .native-app .tr-search { visibility: hidden !important; border-color: transparent !important; box-shadow: none !important; background: transparent !important; }
-		.native-app .more-theme-seg { visibility: hidden !important; }
 		.native-app .tr-tabs { visibility: hidden !important; }
 		.sy-theme .sp-cancel { color: #8a6d2b; }
 		.sy-theme .more-row { color: #8a6d2b; }
-		.sy-theme .more-theme-seg button { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
-		.sy-theme .more-theme-seg button.on { background: #b08d57; border-color: #b08d57; color: #fff; }
 		.sy-theme .sp-pick { color: #8a6d2b; }
 		.sy-theme .tab.active { color: #8a6d2b; }
 		.sy-theme #verInfoDiv { color: #8a6d2b; }
@@ -453,8 +450,6 @@
 		.sy-theme .ropt-badge.few { background: #fdf3d7; color: #8a6d2b; }
 		.sh-theme .sp-cancel { color: #a8000c; }
 		.sh-theme .more-row { color: #a8000c; }
-		.sh-theme .more-theme-seg button { color: #a8000c; border-color: rgba(230,0,18,0.35); }
-		.sh-theme .more-theme-seg button.on { background: #e60012; border-color: #e60012; color: #fff; }
 		.sh-theme .sp-pick { color: #a8000c; }
 		.sh-theme .tab.active { color: #a8000c; }
 		.sh-theme #verInfoDiv { color: #a8000c; }
@@ -562,7 +557,7 @@
 			width: auto;
 			z-index: 99924;
 			overflow-y: auto;
-			background: #ffffff;
+			background: #f2f2f7;
 			-webkit-backdrop-filter: none;
 			backdrop-filter: none;
 			border: none;
@@ -570,23 +565,30 @@
 			box-shadow: none;
 			padding: calc(env(safe-area-inset-top) + 20px) 20px calc(100px + env(safe-area-inset-bottom));
 		}
-		html.dark #moreSheet { background: #101420; }
-		.more-title { font-size: 30px; font-weight: 800; color: #111; margin: 8px 4px 16px; }
-		html.dark .more-title { color: #f0f2f8; }
-		.more-appcard { display: flex; align-items: center; gap: 14px; background: #f2f2f7; border-radius: 20px; padding: 16px; margin-bottom: 24px; }
-		html.dark .more-appcard { background: rgba(255,255,255,0.08); }
+		html.dark #moreSheet { background: #000000; }
+		/* iPad top tab bar (build 74): the native floating tab bar sits at
+		   the TOP (safe-area top + 10, ~49pt tall), so the full-screen panels
+		   need top clearance there and no bottom-bar clearance. iPhone is
+		   unchanged (bottom bar). window._metroIsPad is injected by native
+		   at document start; undefined (offline preview) means iPhone. */
+		html.is-pad #moreSheet { padding-top: calc(env(safe-area-inset-top) + 72px); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+		html.is-pad #stationPanel, html.is-pad #transferPanel, html.is-pad #timetablePanel { padding-top: calc(env(safe-area-inset-top) + 72px); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+		.more-title { font-size: 34px; font-weight: 700; color: #000; margin: 8px 4px 16px; }
+		html.dark .more-title { color: #fff; }
+		.more-appcard { display: flex; align-items: center; gap: 14px; background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 24px; }
+		html.dark .more-appcard { background: #1c1c1e; }
 		.more-appicon { width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0; }
-		.more-appname { font-size: 18px; font-weight: 700; color: #111; }
-		html.dark .more-appname { color: #f0f2f8; }
+		.more-appname { font-size: 18px; font-weight: 700; color: #000; }
+		html.dark .more-appname { color: #fff; }
 		.more-appver { font-size: 14px; color: #888; margin-top: 2px; }
 		html.dark .more-appver { color: #aaa; }
-		.more-section { font-size: 13px; font-weight: 600; color: #888; margin: 0 4px 8px; }
-		html.dark .more-section { color: #aaa; }
-		.more-card { background: #f2f2f7; border-radius: 20px; padding: 4px 16px; margin-bottom: 24px; overflow: hidden; }
-		html.dark .more-card { background: rgba(255,255,255,0.08); }
-		.more-city-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; font-size: 16px; font-weight: 600; color: #111; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.06); }
+		.more-section { font-size: 13px; font-weight: 400; color: #6d6d72; margin: 0 4px 8px; }
+		html.dark .more-section { color: #8e8e93; }
+		.more-card { background: #ffffff; border-radius: 10px; padding: 4px 16px; margin-bottom: 24px; overflow: hidden; }
+		html.dark .more-card { background: #1c1c1e; }
+		.more-city-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; font-size: 17px; font-weight: 400; color: #000; cursor: pointer; border-bottom: 1px solid rgba(60,60,67,0.12); }
 		.more-city-row:last-child { border-bottom: none; }
-		html.dark .more-city-row { color: #f0f2f8; border-bottom-color: rgba(255,255,255,0.08); }
+		html.dark .more-city-row { color: #fff; border-bottom-color: rgba(84,84,88,0.36); }
 		.more-city-name { display: flex; align-items: center; gap: 10px; }
 		.more-city-logo { width: 26px; height: 26px; border-radius: 50%; object-fit: contain; flex: none; }
 		/* 'More cities' chip grid (build 65): supported cities are tappable
@@ -617,6 +619,15 @@
 		html.dark .more-city-chip.soon { border-color: rgba(255,255,255,0.12); color: #666; background: rgba(255,255,255,0.04); }
 		html.dark .more-soon-note { color: #999; }
 		.more-check { color: #003380; font-weight: 800; }
+		.more-chev { color: #c7c7cc; font-size: 20px; font-weight: 400; line-height: 1; flex: none; }
+		.more-row-value { font-size: 15px; font-weight: 400; color: #8e8e93; }
+		.more-row > span:first-of-type { flex: 1; }
+		.more-city-row .more-city-name { flex: 1; }
+		.more-city-row .more-check { margin-left: 8px; }
+		.more-sub-head { display: flex; align-items: center; gap: 12px; padding: 4px 0 14px; }
+		.more-sub-back { background: none; border: none; color: #007aff; font-size: 17px; font-weight: 400; padding: 0; cursor: pointer; flex: none; }
+		.more-sub-title { font-size: 28px; font-weight: 700; color: #000; }
+		html.dark .more-sub-title { color: #fff; }
 		html.dark .more-check { color: #7db3ff; }
 		.more-credit { text-align: center; font-size: 12px; color: #aaa; padding: 8px 0 0; }
 		.more-new-row { display: flex; align-items: flex-start; gap: 8px; padding: 9px 2px; font-size: 14px; color: #333; border-bottom: 1px solid rgba(0,0,0,0.06); }
@@ -644,8 +655,8 @@
 		html.dark .more-brief-title { color: #eee; }
 		html.dark .more-brief-sum { color: #bbb; }
 		.more-brief-updated { font-size: 12px; color: #999; padding: 6px 2px 0; }
-		.more-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; font-size: 16px; font-weight: 600; color: #111; border-bottom: 1px solid rgba(0, 0, 0, 0.06); cursor: pointer; }
-		html.dark .more-row { color: #f0f2f8; border-bottom-color: rgba(255,255,255,0.08); }
+		.more-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; font-size: 17px; font-weight: 400; color: #000; border-bottom: 1px solid rgba(60, 60, 67, 0.12); cursor: pointer; }
+		html.dark .more-row { color: #fff; border-bottom-color: rgba(84, 84, 88, 0.36); }
 		.more-row:last-of-type { border-bottom: none; }
 		.more-row svg { width: 20px; height: 20px; }
 		.more-loc-status { margin-left: auto; font-size: 14px; font-weight: 400; color: #888; }
@@ -655,18 +666,15 @@
 		.more-ver { padding: 10px 12px 6px; font-size: 11px; color: rgba(0, 51, 128, 0.6); text-align: center; }
 		.more-theme { padding: 10px 0; }
 		.more-theme-label { font-size: 13px; color: rgba(0, 51, 128, 0.7); font-weight: 600; margin-bottom: 8px; }
-		.more-theme-seg { display: flex; gap: 6px; }
-		.more-theme-seg button { flex: 1; border: 1px solid rgba(0, 51, 128, 0.2); background: rgba(255, 255, 255, 0.6); color: #003380; font-size: 14px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
-		.more-theme-seg button.on { background: #003380; border-color: #003380; color: #fff; }
-		.more-lang-seg { display: flex; gap: 6px; }
-		.more-lang-seg button { flex: 1; border: 1px solid rgba(0, 51, 128, 0.2); background: rgba(255, 255, 255, 0.6); color: #003380; font-size: 14px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
-		.more-lang-seg button.on { background: #003380; border-color: #003380; color: #fff; }
-		.sy-theme .more-lang-seg button { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
-		.sy-theme .more-lang-seg button.on { background: #b08d57; border-color: #b08d57; color: #fff; }
-		.sh-theme .more-lang-seg button { color: #a8000c; border-color: rgba(230,0,18,0.35); }
-		.sh-theme .more-lang-seg button.on { background: #e60012; border-color: #e60012; color: #fff; }
-		html.dark .more-lang-seg button { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.08); color: #cfe0ff; }
-		html.dark .more-lang-seg button.on { background: #9cc2ff; border-color: #9cc2ff; color: #10203f; }
+		/* iOS UISegmentedControl (Settings > Display & Brightness): one unified
+		   control, system-fill container, the selected segment lifted on a
+		   white/grey pill with a soft shadow. Neutral iOS system colours. */
+		.more-theme-seg { display: flex; background: rgba(120, 120, 128, 0.12); border-radius: 9px; padding: 2px; }
+		.more-theme-seg button { flex: 1; border: none; background: transparent; color: #000; font-size: 13px; font-weight: 400; padding: 6px 0; border-radius: 7px; }
+		.more-theme-seg button.on { background: #fff; color: #000; font-weight: 500; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.06); }
+		html.dark .more-theme-seg { background: rgba(120, 120, 128, 0.32); }
+		html.dark .more-theme-seg button { color: #fff; }
+		html.dark .more-theme-seg button.on { background: #636366; color: #fff; }
 
 		/* --- transfer (换乘) page --- */
 		#transferPanel {
@@ -746,15 +754,7 @@
 		html.dark .tr-transit { color: #7db3ff; }
 		html.dark .sy-theme .tr-transit { color: #d4b686; }
 		html.dark .sh-theme .tr-transit { color: #ff8a95; }
-		/* 乘车码 (build 63): same row style as the transit-app row, one mini-program for all cities. */
-		.tr-ridecode { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
-		.tr-ridecode svg { width: 28px; height: 28px; border-radius: 7px; flex: none; display: block; }
-		.sy-theme .tr-ridecode { color: #8a6d2b !important; }
-		.sh-theme .tr-ridecode { color: #a8000c !important; }
-		html.dark .tr-ridecode { color: #7db3ff; }
-		html.dark .sy-theme .tr-ridecode { color: #d4b686; }
-		html.dark .sh-theme .tr-ridecode { color: #ff8a95; }
-		/* 附近车站 (build 63): row + nearest-station list, same style as the transit rows. */
+				/* 附近车站 (build 63): row + nearest-station list, same style as the transit rows. */
 		.tr-nearby-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
 		.sy-theme .tr-nearby-row { color: #8a6d2b !important; }
 		.sh-theme .tr-nearby-row { color: #a8000c !important; }
@@ -875,8 +875,6 @@
 		html.dark .more-row { color: #cfe0ff; border-bottom-color: rgba(255, 255, 255, 0.08); }
 		html.dark .more-ver { color: rgba(255, 255, 255, 0.55); }
 		html.dark .more-theme-label { color: rgba(255, 255, 255, 0.7); }
-		html.dark .more-theme-seg button { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.08); color: #cfe0ff; }
-		html.dark .more-theme-seg button.on { background: #9cc2ff; border-color: #9cc2ff; color: #10203f; }
 		html.dark .tr-city { color: #9cc2ff; }
 		html.dark .tr-summary { color: #bbb; }
 		html.dark .tr-swap { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: #9cc2ff; }
@@ -1050,8 +1048,7 @@
 				</div>
 				<button class="tr-search" @click="doSearch">{{ t('tr.search') }}</button>
 				<div class="tr-transit" @click="openTransitApp"><img v-if="transitIcon" :src="transitIcon" :alt="transitLabel"><span>{{ transitLabel }} ›</span></div>
-				<div class="tr-ridecode" @click="openRideCode"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="14" width="3" height="3" fill="currentColor"/><rect x="18" y="14" width="3" height="3" fill="currentColor"/><rect x="14" y="18" width="3" height="3" fill="currentColor"/><rect x="18" y="18" width="3" height="3" fill="currentColor"/></svg><span>{{ t('tr.ridecode') }} ›</span></div>
-				<div class="tr-nearby-row" @click="requestNearbyStations"><span>{{ t('tr.nearby') }}</span><span v-if="nearbyLoading">{{ t('tr.nearby.locating') }}</span></div>
+								<div class="tr-nearby-row" @click="requestNearbyStations"><span>{{ t('tr.nearby') }}</span><span v-if="nearbyLoading">{{ t('tr.nearby.locating') }}</span></div>
 				<div class="tr-nearby" v-if="nearbyList.length">
 					<div class="tr-nearby-item" v-for="s in nearbyList" :key="s.n" @click="pickNearby(s)"><span>{{ stNameStr(s.n) }}</span><span class="tr-nearby-dist">{{ s.distText }}</span></div>
 				</div>
@@ -1104,6 +1101,7 @@
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
 			<div id="moreSheet" class="glass" v-show="showMore">
+				<div class="more-main" v-show="!showCitySub && !showLangSub">
 				<div class="more-title">Subway tools</div>
 				<div class="more-appcard">
 					<img class="more-appicon" :src="cityLogo" alt="">
@@ -1114,15 +1112,7 @@
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
 				<div class="more-card">
-					<div class="more-city-row" v-for="c in cityList" :key="c.key" @click="switchCityKeepSettings(c.key)"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-check" v-if="city === c.key">✓</span></div>
-				</div>
-				<div class="more-section">{{ t('more.citiesSoon') }}</div>
-				<div class="more-card">
-					<div class="more-city-chips">
-						<span class="more-city-chip" :class="{ on: city === c.key }" v-for="c in cityList" :key="'ok-'+c.key" @click="switchCityKeepSettings(c.key)">{{ c.name }}<span v-if="city === c.key"> ✓</span></span>
-						<span class="more-city-chip soon" v-for="c in soonCityList" :key="'soon-'+c" @click="showSoonCity(c)">{{ c }}</span>
-					</div>
-					<div class="more-soon-note" v-if="soonNote">{{ t('more.citiesSoonNote', {c: soonNote}) }}</div>
+					<div class="more-row" @click="showCitySub = true"><img class="more-city-logo" :src="cityLogo" alt=""><span>{{ cityName }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-section">{{ t('more.theme') }}</div>
 				<div class="more-card">
@@ -1136,13 +1126,7 @@
 				</div>
 				<div class="more-section">{{ t('more.lang') }}</div>
 				<div class="more-card">
-					<div class="more-theme">
-						<div class="more-lang-seg">
-							<button :class="{ on: lang==='zh-Hans' }" @click="setLang('zh-Hans')">简体中文</button>
-							<button :class="{ on: lang==='zh-Hant' }" @click="setLang('zh-Hant')">繁體中文</button>
-							<button :class="{ on: lang==='en' }" @click="setLang('en')">English</button>
-						</div>
-					</div>
+					<div class="more-row" @click="showLangSub = true"><span>{{ t('more.lang') }}</span><span class="more-row-value">{{ langDisplayName }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-section">{{ t('more.more') }}</div>
 				<div class="more-card">
@@ -1152,15 +1136,15 @@
 					</div>
 					<div class="more-row" @click="doRepo">
 						<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"/></svg>
-						<span>{{ t('more.repo') }}</span>
+						<span>{{ t('more.repo') }}</span><span class="more-chev">›</span>
 					</div>
 					<div class="more-row" @click="doPdf">
 						<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
-						<span>{{ t('more.pdf') }}</span>
+						<span>{{ t('more.pdf') }}</span><span class="more-chev">›</span>
 					</div>
 					<div class="more-row" @click="doDouyin">
 						<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" fill="currentColor"/></svg>
-						<span>{{ t('more.douyin') }}</span>
+						<span>{{ t('more.douyin') }}</span><span class="more-chev">›</span>
 					</div>
 					<div class="more-row" @click="requestLocPerm">
 						<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
@@ -1186,6 +1170,36 @@
 					<div class="more-brief-updated">{{ t('more.briefing.updated', {d: briefingUpdated}) }}</div>
 				</div>
 				<div class="more-credit">{{ t('more.credit') }}</div>
+				</div>
+				<div class="more-sub" v-show="showCitySub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showCitySub = false">‹ {{ t('more.back') }}</button>
+						<div class="more-sub-title">{{ t('more.switchCity') }}</div>
+					</div>
+					<div class="more-section">{{ t('more.switchCity') }}</div>
+					<div class="more-card">
+						<div class="more-city-row" v-for="c in cityList" :key="c.key" @click="switchCityKeepSettings(c.key); showCitySub = false"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-check" v-if="city === c.key">✓</span></div>
+					</div>
+					<div class="more-section">{{ t('more.citiesSoon') }}</div>
+					<div class="more-card">
+						<div class="more-city-chips">
+							<span class="more-city-chip soon" v-for="c in soonCityList" :key="'soon-'+c" @click="showSoonCity(c)">{{ c }}</span>
+						</div>
+						<div class="more-soon-note" v-if="soonNote">{{ t('more.citiesSoonNote', {c: soonNote}) }}</div>
+					</div>
+				</div>
+				<div class="more-sub" v-show="showLangSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showLangSub = false">‹ {{ t('more.back') }}</button>
+						<div class="more-sub-title">{{ t('more.lang') }}</div>
+					</div>
+					<div class="more-card">
+						<div class="more-city-row" @click="setLang('system'); showLangSub = false"><span class="more-city-name">{{ t('more.lang.system') }}</span><span class="more-row-value">{{ langDisplayName }}</span><span class="more-check" v-if="langPref === 'system'">✓</span></div>
+						<div class="more-city-row" @click="setLang('zh-Hans'); showLangSub = false"><span class="more-city-name">{{ t('more.lang.hans') }}</span><span class="more-check" v-if="langPref === 'zh-Hans'">✓</span></div>
+						<div class="more-city-row" @click="setLang('zh-Hant'); showLangSub = false"><span class="more-city-name">{{ t('more.lang.hant') }}</span><span class="more-check" v-if="langPref === 'zh-Hant'">✓</span></div>
+						<div class="more-city-row" @click="setLang('en'); showLangSub = false"><span class="more-city-name">{{ t('more.lang.en') }}</span><span class="more-check" v-if="langPref === 'en'">✓</span></div>
+					</div>
+				</div>
 			</div>
 
 <span id="svgDiv" v-html="curr.svgDom"></span>
@@ -1214,7 +1228,7 @@
 // zh-Hant values generated with OpenCC s2t (verified); en is hand-written.
 var I18N = {
   'tab.transfer': ['换乘', '換乘', 'Transfer'],
-  'tab.map': ['配线图', '配線圖', 'Track Map'],
+  'tab.map': ['线路图', '線路圖', 'Line Map'],
   'tab.stations': ['搜索', '搜索', 'Search'],
   'tab.timetable': ['时刻表', '時刻表', 'Timetable'],
   'tab.more': ['设置', '設置', 'Settings'],
@@ -1308,7 +1322,6 @@ var I18N = {
   'transit.cz': ['打开常州地铁', '打開常州地鐵', 'Open Changzhou Metro'],
   'transit.cq': ['打开渝畅行', '打開渝暢行', 'Open Yuchangxing'],
   'transit.cc': ['打开长春E出行', '打開長春E出行', 'Open Changchun E-Travel'],
-  'ridecode': ['乘车码', '乘車碼', 'Ride Code'],
   'more.reset': ['重置缩放', '重置縮放', 'Reset zoom'],
   'more.repo': ['项目主页', '項目主頁', 'Project home'],
   'more.pdf': ['下载PDF', '下載PDF', 'Download PDF'],
@@ -1328,6 +1341,8 @@ var I18N = {
   'more.switchCity': ['切换城市', '切換城市', 'Switch City'],
   'more.citiesSoon': ['更多城市 · 即将支持', '更多城市 · 即將支持', 'More Cities · Coming Soon'],
   'more.citiesSoonNote': ['{c} 即将支持，敬请期待', '{c} 即將支持，敬請期待', '{c} is coming soon — stay tuned'],
+  'more.back': ['返回', '返回', 'Back'],
+  'more.lang.system': ['跟随系统', '跟隨系統', 'Follow System'],
   'more.more': ['更多', '更多', 'More'],
   'more.version': ['版本 {v}', '版本 {v}', 'Version {v}'],
   'more.credit': ['数据来源 SierraQin · CC0 1.0', '資料來源 SierraQin · CC0 1.0', 'Data: SierraQin · CC0 1.0'],
@@ -1399,7 +1414,9 @@ var I18N = {
   'loc.retry': ['定位失败，请稍后重试。', '定位失敗，請稍後再試。', 'Location failed. Please try again.'],
 };
 var LANGS = ['zh-Hans', 'zh-Hant', 'en'];
-function savedLang() { try { var l = window.localStorage.getItem('metro-lang'); return (l === 'zh-Hant' || l === 'en') ? l : 'zh-Hans'; } catch (e) { return 'zh-Hans'; } }
+function systemLangValid(l) { return l === 'zh-Hans' || l === 'zh-Hant' || l === 'en'; }
+function savedLangPref() { try { var l = window.localStorage.getItem('metro-lang'); return systemLangValid(l) ? l : 'system'; } catch (e) { return 'system'; } }
+function savedLang() { try { var l = window.localStorage.getItem('metro-lang'); if (systemLangValid(l)) return l; var s = window._metroSystemLang; if (systemLangValid(s)) return s; return 'zh-Hans'; } catch (e) { return 'zh-Hans'; } }
 var HANT_MAP = {'万':'萬', '业':'業', '东':'東', '个':'個', '丰':'豐', '临':'臨', '为':'為', '丽':'麗', '义':'義', '乌':'烏', '乐':'樂', '乡':'鄉', '书':'書', '于':'於', '云':'雲', '产':'產', '仓':'倉', '仪':'儀', '价':'價', '会':'會', '传':'傳', '伦':'倫', '体':'體', '余':'餘', '儿':'兒', '兰':'蘭', '关':'關', '兴':'興', '内':'內', '军':'軍', '农':'農', '准':'準', '凉':'涼', '凯':'凱', '刘':'劉', '创':'創', '刹':'剎', '剑':'劍', '务':'務', '动':'動', '劲':'勁', '劳':'勞', '区':'區', '医':'醫', '华':'華', '单':'單', '卫':'衛', '厂':'廠', '厦':'廈', '双':'雙', '发':'發', '台':'臺', '号':'號', '后':'後', '启':'啓', '吴':'吳', '团':'團', '园':'園', '国':'國', '图':'圖', '圆':'圓', '场':'場', '坛':'壇', '坝':'壩', '坞':'塢', '坟':'墳', '复':'復', '头':'頭', '奥':'奧', '娄':'婁', '孙':'孫', '学':'學', '宁':'寧', '宝':'寶', '宫':'宮', '宾':'賓', '寿':'壽', '将':'將', '尔':'爾', '属':'屬', '岚':'嵐', '岛':'島', '岩':'巖', '岭':'嶺', '峰':'峯', '巩':'鞏', '师':'師', '广':'廣', '庄':'莊', '应':'應', '庙':'廟', '开':'開', '张':'張', '当':'當', '征':'徵', '径':'徑', '怀':'懷', '恒':'恆', '戏':'戲', '户':'戶', '执':'執', '抚':'撫', '拟':'擬', '择':'擇', '换':'換', '据':'據', '数':'數', '无':'無', '旧':'舊', '时':'時', '暂':'暫', '术':'術', '机':'機', '权':'權', '条':'條', '来':'來', '杨':'楊', '杰':'傑', '枣':'棗', '枫':'楓', '标':'標', '栏':'欄', '树':'樹', '栗':'慄', '桥':'橋', '桦':'樺', '检':'檢', '楼':'樓', '横':'橫', '欢':'歡', '气':'氣', '汇':'匯', '汉':'漢', '沟':'溝', '没':'沒', '泽':'澤', '泾':'涇', '洼':'窪', '浅':'淺', '济':'濟', '浑':'渾', '涛':'濤', '淀':'澱', '渊':'淵', '温':'溫', '游':'遊', '湾':'灣', '滨':'濱', '滩':'灘', '澜':'瀾', '灯':'燈', '灵':'靈', '炉':'爐', '点':'點', '烟':'煙', '爱':'愛', '独':'獨', '玮':'瑋', '环':'環', '现':'現', '电':'電', '画':'畫', '盐':'鹽', '盘':'盤', '码':'碼', '确':'確', '礼':'禮', '离':'離', '积':'積', '税':'稅', '窑':'窯', '筑':'築', '简':'簡', '篮':'籃', '篱':'籬', '粤':'粵', '红':'紅', '约':'約', '纪':'紀', '纬':'緯', '线':'線', '细':'細', '终':'終', '经':'經', '结':'結', '络':'絡', '统':'統', '绣':'繡', '续':'續', '综':'綜', '绿':'綠', '缩':'縮', '网':'網', '罗':'羅', '群':'羣', '联':'聯', '肿':'腫', '胜':'勝', '艺':'藝', '节':'節', '芦':'蘆', '苏':'蘇', '苹':'蘋', '范':'範', '荐':'薦', '荣':'榮', '药':'藥', '莲':'蓮', '营':'營', '萧':'蕭', '蓝':'藍', '蓟':'薊', '虚':'虛', '裢':'褳', '观':'觀', '览':'覽', '计':'計', '议':'議', '设':'設', '试':'試', '该':'該', '语':'語', '请':'請', '谊':'誼', '贝':'貝', '贞':'貞', '财':'財', '贤':'賢', '败':'敗', '购':'購', '贸':'貿', '费':'費', '资':'資', '赛':'賽', '赵':'趙', '车':'車', '轨':'軌', '轮':'輪', '载':'載', '辉':'輝', '输':'輸', '边':'邊', '辽':'遼', '达':'達', '过':'過', '运':'運', '这':'這', '进':'進', '远':'遠', '连':'連', '选':'選', '遗':'遺', '邮':'郵', '里':'裏', '钓':'釣', '钟':'鍾', '钢':'鋼', '铁':'鐵', '铜':'銅', '银':'銀', '锣':'鑼', '锦':'錦', '镇':'鎮', '镜':'鏡', '长':'長', '门':'門', '间':'間', '闵':'閔', '闸':'閘', '阎':'閻', '阳':'陽', '际':'際', '陆':'陸', '陈':'陳', '陕':'陝', '随':'隨', '静':'靜', '韵':'韻', '页':'頁', '项':'項', '顺':'順', '顾':'顧', '预':'預', '颐':'頤', '颛':'顓', '风':'風', '饶':'饒', '馆':'館', '马':'馬', '驼':'駝', '鱼':'魚', '鲁':'魯', '鸟':'鳥', '鸿':'鴻', '鹏':'鵬', '鹤':'鶴', '黄':'黃', '龙':'龍'};
 var HANT_EXC = {'七里庄':'七里莊', '三十里堡':'三十里堡', '上海游泳馆':'上海游泳館', '九里':'九里', '二十里堡':'二十里堡', '二里沟':'二里溝', '五里河':'五里河', '八里桥':'八里橋', '六里桥':'六里橋', '六里桥东':'六里橋東', '分钟寺':'分鐘寺', '十三里':'十三里', '十八里店':'十八里店', '十里堡':'十里堡', '十里河':'十里河', '和平里北街':'和平里北街', '大钟寺':'大鐘寺', '安德里北街':'安德里北街', '平安里':'平安里', '徐家汇':'徐家彙', '沈阳北站':'瀋陽北站', '沈阳南站':'瀋陽南站', '沈阳大学':'瀋陽大學', '沈阳站':'瀋陽站', '海淀五路居':'海淀五路居', '海淀黄庄':'海淀黃莊', '灵境胡同':'靈境衚衕', '烟厂':'菸廠', '金鱼胡同':'金魚衚衕'};
 function toHant(s) {
@@ -1565,7 +1582,9 @@ function titlePy(py) {
 						query: '',
 						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
 						lang: savedLang(),
+					langPref: savedLangPref(),
 					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
+					isPad: (window._metroIsPad === true),
 						stations: (window.METRO_STATIONS || []),
 						bjLogo: (window.BJ_LOGO || ''),
 						routes: (window.METRO_ROUTES || null),
@@ -1699,6 +1718,8 @@ function titlePy(py) {
 						locPermHint: false,
 						searchHistory: (function () { try { var h = JSON.parse(window.localStorage.getItem('metro-search-history') || '[]'); return Array.isArray(h) ? h : []; } catch (e) { return []; } })(),
 						theme: 'system',
+					showCitySub: false,
+					showLangSub: false,
 						lastTab: 'map',
 
 						sideMenu: [{
@@ -1728,13 +1749,24 @@ function titlePy(py) {
 					// ---- i18n (build 64) ----
 					t(key, vars) { return fmt(i18n(key, this.lang), vars || {}); },
 					setLang(l) {
+						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.langChanged);
+						if (l === 'system') {
+							try { window.localStorage.removeItem('metro-lang'); } catch (e) {}
+							this.langPref = 'system';
+							var s = window._metroSystemLang;
+							this.lang = systemLangValid(s) ? s : savedLang();
+							if (this.fromStation) this.fromQuery = this.stName(this.fromStation);
+							if (this.toStation) this.toQuery = this.stName(this.toStation);
+							if (h) { h.postMessage({ lang: 'system', explicit: true }); }
+							return;
+						}
 						if (l !== 'zh-Hans' && l !== 'zh-Hant' && l !== 'en') l = 'zh-Hans';
+						this.langPref = l;
 						this.lang = l;
 						try { window.localStorage.setItem('metro-lang', l); } catch (e) {}
 						if (this.fromStation) this.fromQuery = this.stName(this.fromStation);
 						if (this.toStation) this.toQuery = this.stName(this.toStation);
-						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.langChanged);
-						if (h) { h.postMessage({ lang: l }); }
+						if (h) { h.postMessage({ lang: l, explicit: true }); }
 					},
 					stName(st) {
 						if (!st) return '';
@@ -2514,17 +2546,6 @@ function titlePy(py) {
 						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : (this.city === 'dl' ? '1383655806' : (this.city === 'jh' ? '6503238645' : (this.city === 'cz' ? '1474201266' : (this.city === 'cq' ? '1491110313' : (this.city === 'cc' ? '1481796811' : '1071038870')))))));
 						window.open('https://apps.apple.com/cn/app/id' + id, '_blank');
 					},
-					// 乘车码 (build 63): jump to the WeChat 乘车码 mini-program.
-					// One mini-program covers all cities, so the same user-provided
-					// link is used for every city. In the native app the shell opens
-					// it via WeChat's deep link; in a plain browser, navigate to the
-					// weixin:// URL so the browser offers to open WeChat.
-					openRideCode() {
-						var link = '#小程序://乘车码/cZxzR2rsEppAxSv';
-						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openRideCode;
-						if (h) { h.postMessage({ link: link }); return; }
-						window.location.href = 'weixin://dl/business/?t=' + encodeURIComponent(link);
-					},
 					// 附近车站 (build 63): ask the native shell for one location fix
 					// (permission prompt appears only here, never at launch), or use
 					// HTML5 geolocation in a plain browser. The native side calls
@@ -2829,14 +2850,13 @@ function titlePy(py) {
 					// segmented control (跟随系统/浅色/深色) exactly over the
 					// web row. Posts {x,y,width,height,theme}; a zero-size
 					// rect (settings panel not shown) hides the control.
+					// Theme picker is the web iOS segmented control now (user:
+					// "全部使用AppleUI"), so the native glass theme buttons stay
+					// dormant: always report a zero frame and they hide.
 					reportThemeFrame() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.themeFrame;
 						if (!h) return;
-						var el = document.querySelector(".more-theme-seg");
-						if (!el || this.tab !== "more") { h.postMessage({ x: 0, y: 0, width: 0, height: 0, theme: this.theme }); return; }
-						var r = el.getBoundingClientRect();
-						if (r.bottom < 0 || r.top > window.innerHeight) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, theme: this.theme }); return; }
-						h.postMessage({ x: r.left, y: r.top, width: r.width, height: r.height, theme: this.theme });
+						h.postMessage({ x: 0, y: 0, width: 0, height: 0, theme: this.theme });
 					},
 					pickRoute(r) {
 						// Picking a different route ends the active trip
@@ -3091,6 +3111,7 @@ function titlePy(py) {
 				},
 				computed: {
 					cityName() { return this.t('city.' + this.city); },
+					langDisplayName() { return this.lang === 'zh-Hant' ? this.t('more.lang.hant') : (this.lang === 'en' ? this.t('more.lang.en') : this.t('more.lang.hans')); },
 					// Cities for the settings switcher (build 63). Jinhua ('jh'),
 					// Changzhou ('cz') and Chongqing ('cq') joined when their
 					// wiring landed.
@@ -3259,6 +3280,12 @@ function titlePy(py) {
 						}, { passive: true });
 					}
 					this.applyTheme();
+					// iPad top tab bar (build 74): flag <html> so the panel CSS
+					// can switch to top clearance (see html.is-pad rules). Done
+					// here, not via #app :class — that binding is inert (Vue
+					// ignores attributes on the mount container; proven by a
+					// minimal Vue test).
+					document.documentElement.classList.toggle('is-pad', this.isPad);
 					// Restore the last-used city (build 37): relaunch opens
 					// on the city the user last switched to, and shows that
 					// city's splash. The swap happens behind the launch splash.
@@ -3282,7 +3309,7 @@ function titlePy(py) {
 					var _ch0 = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityChanged);
 					if (_ch0) { _ch0.postMessage({ city: this.city }); }
 					var _lh0 = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.langChanged);
-					if (_lh0) { _lh0.postMessage({ lang: this.lang }); }
+					if (_lh0) { _lh0.postMessage({ lang: this.lang, explicit: false }); }
 					// Location permission row (Settings): ask native for the
 					// current state on launch so the row shows the right
 					// state. Query only — never prompts here.

@@ -52,6 +52,9 @@ echo "== 2b. Live Activity widget extension REMOVED (user 2026-11-18) =="
 
 echo "== 3. bundle resources =="
 cp app/Info.plist build/Payload/Metro.app/Info.plist
+# Per-app language (iOS Settings > Subway tools > Language): the .lproj
+# folders make iOS offer the language choice; CFBundleLocalizations lists them.
+for _l in en zh-Hans zh-Hant; do cp -r "app/${_l}.lproj" build/Payload/Metro.app/; done
 xcrun ibtool --compile build/Payload/Metro.app/LaunchScreen.storyboardc --sdk iphoneos app/LaunchScreen.storyboard
 cp web/offline/index.html build/Payload/Metro.app/web/index.html
 cp web/offline/vue.global.prod.js web/offline/hammer.min.js web/offline/svg-pan-zoom.js build/Payload/Metro.app/web/
