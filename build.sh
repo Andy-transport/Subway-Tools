@@ -73,6 +73,10 @@ python3 -c "import base64; [open('build/Payload/Metro.app/TimetableIcon' + s + '
 
 echo "== 4. package IPA =="
 cd build
-zip -r -y Convenient-transportation-1.0.4-unsigned.ipa Payload
-ls -l Convenient-transportation-1.0.4-unsigned.ipa
-unzip -l Convenient-transportation-1.0.4-unsigned.ipa
+# NOTE: the workflow's Upload IPA step expects build/Metro-2.8.0-unsigned.ipa
+# (artifact name Metro-2.8.0-unsigned); keep this name in sync with
+# .github/workflows/build-ipa.yml. The deliverable is renamed to
+# Convenient-transportation-<version>-unsigned.ipa when handed to the user.
+zip -r -y Metro-2.8.0-unsigned.ipa Payload
+ls -l Metro-2.8.0-unsigned.ipa
+unzip -l Metro-2.8.0-unsigned.ipa
