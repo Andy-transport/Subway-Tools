@@ -39,6 +39,10 @@
 			window.CQ_ROUTES = /*__CQ_ROUTES__*/null;
 			window.CQ_MAP = /*__CQ_MAP__*/"";
 			window.CQ_LOGO = "data:image/png;base64,/*__CQ_LOGO__*/";
+			window.CC_STATIONS = /*__CC_STATIONS__*/[];
+			window.CC_ROUTES = /*__CC_ROUTES__*/null;
+			window.CC_MAP = /*__CC_MAP__*/"";
+			window.CC_LOGO = "data:image/png;base64,/*__CC_LOGO__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.SY_TRANSFERS = /*__SY_TRANSFERS__*/{};
 			window.SH_TRANSFERS = /*__SH_TRANSFERS__*/{};
@@ -57,6 +61,7 @@
 			window.RWX_ICON = "data:image/png;base64,/*__RWX_ICON__*/";
 			window.CZM_ICON = "data:image/png;base64,/*__CZM_ICON__*/";
 			window.YCX_ICON = "data:image/png;base64,/*__YCX_ICON__*/";
+			window.CCE_ICON = "data:image/png;base64,/*__CCE_ICON__*/";
 			window.BJ_SPLASH = "data:image/png;base64,/*__BJ_SPLASH__*/";
 			window.SY_SPLASH = "data:image/png;base64,/*__SY_SPLASH__*/";
 			window.SH_SPLASH = "data:image/png;base64,/*__SH_SPLASH__*/";
@@ -65,6 +70,7 @@
 			window.JH_SPLASH = "data:image/png;base64,/*__JH_SPLASH__*/";
 			window.CZ_SPLASH = "data:image/png;base64,/*__CZ_SPLASH__*/";
 			window.CQ_SPLASH = "data:image/png;base64,/*__CQ_SPLASH__*/";
+			window.CC_SPLASH = "data:image/png;base64,/*__CC_SPLASH__*/";
 			window.BJ_TIMETABLE = /*__BJ_TIMETABLE__*/{};
 			window.SY_TIMETABLE = /*__SY_TIMETABLE__*/{};
 			window.SH_TIMETABLE = /*__SH_TIMETABLE__*/{};
@@ -73,6 +79,7 @@
 			window.JH_TIMETABLE = /*__JH_TIMETABLE__*/{};
 			window.CZ_TIMETABLE = /*__CZ_TIMETABLE__*/{};
 			window.CQ_TIMETABLE = /*__CQ_TIMETABLE__*/{};
+			window.CC_TIMETABLE = /*__CC_TIMETABLE__*/{};
 			window.BRIEFING_SEED = /*__BRIEFING_SEED__*/{};
 			window.TT_ICON = "data:image/png;base64,/*__TT_ICON__*/";
 		</script>
@@ -398,6 +405,15 @@
 		.cq-theme .tr-swap { color: #076138; border-color: rgba(10,129,75,0.35); }
 		.cq-theme .tr-tabs button { color: #076138; }
 		.cq-theme .tr-tabs button.on { background: #0a814b; color: #fff; }
+		/* Changchun theme: Line 1 red #E50011 (Wikipedia Template: 长春轨道交通颜色, code 1; no separate system brand colour is published - see NOTES.md). Darker #B3000D for text accents. */
+		.cc-theme #brandChip, .cc-theme #searchPill { color: #b3000d; }
+		.cc-theme .tr-search { background: linear-gradient(180deg, rgba(229, 0, 17, 0.9), rgba(179, 0, 13, 0.9)) !important; }
+		.cc-theme .tr-pref button.on { background: #e50011; }
+		.cc-theme .sp-row .sp-line { background: #e50011; }
+		.cc-theme .tr-city { color: #b3000d !important; }
+		.cc-theme .tr-swap { color: #b3000d; border-color: rgba(229,0,17,0.35); }
+		.cc-theme .tr-tabs button { color: #b3000d; }
+		.cc-theme .tr-tabs button.on { background: #e50011; color: #fff; }
 
 		/* Native app (build 33): the route-sort tabs are a native
 		   UISegmentedControl (Apple Liquid Glass) overlaid on this row.
@@ -861,7 +877,7 @@
 
 
 	<body>
-		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'native-app': nativeApp, ['lang-' + lang]: true }">
+		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'cc-theme': city === 'cc', 'native-app': nativeApp, ['lang-' + lang]: true }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="sideMenuDiv">
 				<div class="sideMenuCard" v-for="sMenu in sideMenu" :onclick="sMenu.onclick">
@@ -971,7 +987,7 @@
 							<div class="tt-time" v-else>{{ t('tt.nodata') }}</div>
 						</div>
 					</div>
-					<div class="tt-note">{{ t('tt.note') }}<span v-if="city==='sy'">{{ t('tt.note.sy') }}</span><span v-if="city==='hb'">{{ t('tt.note.hb') }}</span><span v-if="city==='dl'">{{ t('tt.note.dl') }}</span><span v-if="city==='cq'">{{ t('tt.note.cq') }}</span></div>
+					<div class="tt-note">{{ t('tt.note') }}<span v-if="city==='sy'">{{ t('tt.note.sy') }}</span><span v-if="city==='hb'">{{ t('tt.note.hb') }}</span><span v-if="city==='dl'">{{ t('tt.note.dl') }}</span><span v-if="city==='cq'">{{ t('tt.note.cq') }}</span><span v-if="city==='cc'">{{ t('tt.note.cc') }}</span></div>
 				</div>
 			</div>
 
@@ -1207,6 +1223,7 @@ var I18N = {
   'tt.note.hb': ['哈尔滨时刻表为估算值（首末班 05:30–22:30，按站间约 2 分钟推算），请以车站公布为准。', '哈爾濱時刻表為估算值（首末班 05:30–22:30，按站間約 2 分鐘推算），請以車站公佈為準。', 'Harbin timetable is estimated (first/last 05:30–22:30, ~2 min per stop). Please follow station notices.'],
   'tt.note.dl': ['大连5号线时刻表为估算值（按站间距离推算），请以车站公布为准；3号线大连站往金石滩末班 19:30，往保税区末班 21:30。', '大連5號線時刻表為估算值（按站間距離推算），請以車站公佈為準；3號線大連站往金石灘末班 19:30，往保稅區末班 21:30。', 'Dalian Line 5 timetable is estimated (by inter-station distance). Please follow station notices. Line 3 from Dalian Station: last train to Jinshitan 19:30, to Baoshuiqu 21:30.'],
   'tt.note.cq': ['首班车时间为估算（按末班车行车时间推算），15号线/璧铜线各站时间为估算；末班车及江跳线时间为官方时刻表。', '首班車時間為估算（按末班車行車時間推算），15號線/璧銅線各站時間為估算；末班車及江跳線時間為官方時刻表。', 'First trains are estimated (from last-train travel times); Line 15 / Bitong Line times are estimated. Last trains and the Jiangtiao Line are from the official timetable.'],
+  'tt.note.cc': ['2、5号线为官方逐站时刻表；其余线路为估算值（首末班时间按官方公布，站间约 2 分钟推算；冬季时刻），请以车站公布为准。', '2、5號線為官方逐站時刻表；其餘線路為估算值（首末班時間按官方公佈，站間約 2 分鐘推算；冬季時刻），請以車站公佈為準。', 'Lines 2 and 5 use the official per-station timetable; other lines are estimated (official first/last times, ~2 min per stop; winter timetable). Please follow station notices.'],
   'tr.depart': ['出发', '出發', 'Depart'],
   'tr.arrive': ['到达', '到達', 'Arrive'],
   'tr.phFrom': ['选择出发站', '選擇出發站', 'Select departure station'],
@@ -1267,6 +1284,7 @@ var I18N = {
   'transit.jh': ['打开任我行', '打開任我行', 'Open Renwoxing'],
   'transit.cz': ['打开常州地铁', '打開常州地鐵', 'Open Changzhou Metro'],
   'transit.cq': ['打开渝畅行', '打開渝暢行', 'Open Yuchangxing'],
+  'transit.cc': ['打开长春E出行', '打開長春E出行', 'Open Changchun E-Travel'],
   'ridecode': ['乘车码', '乘車碼', 'Ride Code'],
   'more.reset': ['重置缩放', '重置縮放', 'Reset zoom'],
   'more.repo': ['项目主页', '項目主頁', 'Project home'],
@@ -1337,6 +1355,7 @@ var I18N = {
   'city.jh': ['金华', '金華', 'Jinhua'],
   'city.cz': ['常州', '常州', 'Changzhou'],
   'city.cq': ['重庆', '重慶', 'Chongqing'],
+  'city.cc': ['长春', '長春', 'Changchun'],
   'city.metro': ['{c}地铁', '{c}地鐵', '{c} Metro'],
   'native.now': ['现在出发', '現在出發', 'Depart now'],
   'native.done': ['确定', '確定', 'Done'],
@@ -1515,7 +1534,7 @@ function titlePy(py) {
 						ttLine: null,
 						showMore: false,
 						query: '',
-						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
+						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
 						lang: savedLang(),
 					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
 						stations: (window.METRO_STATIONS || []),
@@ -1576,6 +1595,13 @@ function titlePy(py) {
 						ycxIcon: (window.YCX_ICON || ''),
 						cqSplash: (window.CQ_SPLASH || ''),
 						cqTimetable: (window.CQ_TIMETABLE || {}),
+						ccStations: (window.CC_STATIONS || []),
+						ccRoutes: (window.CC_ROUTES || null),
+						ccLogo: (window.CC_LOGO || ''),
+						ccMap: (window.CC_MAP || ''),
+						cceIcon: (window.CCE_ICON || ''),
+						ccSplash: (window.CC_SPLASH || ''),
+						ccTimetable: (window.CC_TIMETABLE || {}),
 						ttIcon: (window.TT_ICON || ''),
 						// Upcoming openings (build 70): 10 lines, each with its
 						// own official colour; dates are always "expected",
@@ -1784,6 +1810,7 @@ function titlePy(py) {
 						if (c === 'jh' && (!this.jhStations.length || !this.jhMap)) return;
 						if (c === 'cz' && (!this.czStations.length || !this.czMap)) return;
 						if (c === 'cq' && (!this.cqStations.length || !this.cqMap)) return;
+						if (c === 'cc' && (!this.ccStations.length || !this.ccMap)) return;
 						// Atomic switch (build 65 flash fix): clear the old
 						// city's transfer/search state AND hide the panels
 						// FIRST, before the city changes, so no render can
@@ -1841,6 +1868,11 @@ function titlePy(py) {
 							this.routes = this.cqRoutes;
 							this.transfers = (window.CQ_TRANSFERS || {});
 							this.curr = { svgUrl: "", svgDom: this.cqMap, pdfUrl: "", success: true, json: null, verName: "CQ", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.cq'), d: '2026-11', l: 14, s: 282}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+						} else if (c === 'cc') {
+							this.stations = this.ccStations;
+							this.routes = this.ccRoutes;
+							this.transfers = (window.CC_TRANSFERS || {});
+							this.curr = { svgUrl: "", svgDom: this.ccMap, pdfUrl: "", success: true, json: null, verName: "CC", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.cc'), d: '2026-11', l: 8, s: 142}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else {
 							this.stations = (window.METRO_STATIONS || []);
 							this.routes = (window.METRO_ROUTES || null);
@@ -2172,6 +2204,14 @@ function titlePy(py) {
 								'JT': 20, 'BT': 8.97 };
 							return CQ[lineKey] || 20;
 						}
+						if (this.city === 'cc') {
+							// Changchun px/km = pixel path length / real line length (Wikipedia;
+							// see changchun/NOTES.md). The map is schematic; scale varies by
+							// line (28.7-35.8). Fare error from scale variation is typically +/-Y1.
+							var CC = { '1': 35.14, '2': 31.99, '3': 33.44, '4': 34.92,
+								'5': 32.95, '6': 34.15, '7': 35.81, '8': 28.69 };
+							return CC[lineKey] || 33.5;
+						}
 						if (this.city !== 'sh') return 44;
 						var SH_SUB = {
 							'1': 8.60, '2': 11.92, '3': 8.86, '5': 19.23, '5B': 19.23,
@@ -2347,6 +2387,26 @@ function titlePy(py) {
 						else fCq = 9 + Math.ceil((kmCq - 55) / 20);
 							return fCq;
 						}
+						// Changchun: distance-based fare (verified, Wikipedia 票价):
+						// <=7km Y2, 7-13 Y3, 13-19 Y4, 19-27 Y5, 27-35 Y6, >35km Y6 + ceil((km-35)/10).
+						// Cross-check: full L2 汽车公园-雾开河大街 (35.5 km) = Y7.
+						// Intermediate fares use the schematic map scale and are estimates.
+						if (this.city === 'cc') {
+							var kmCc = 0;
+							for (var qi = 0; qi < r.segments.length; qi++) {
+								var qd = self.segKm(r.segments[qi]);
+								if (qd == null || qd < 0) return null;
+								kmCc += qd;
+							}
+							var fCc;
+							if (kmCc <= 7) fCc = 2;
+							else if (kmCc <= 13) fCc = 3;
+							else if (kmCc <= 19) fCc = 4;
+							else if (kmCc <= 27) fCc = 5;
+							else if (kmCc <= 35) fCc = 6;
+							else fCc = 6 + Math.ceil((kmCc - 35) / 10);
+							return fCc;
+						}
 						var total = 0, legKm = 0;
 						function closeLeg() { if (legKm > 0) { total += (self.city === 'sh' ? fareForKmSh(legKm) : fareForKm(legKm)); legKm = 0; } }
 						for (var i = 0; i < r.segments.length; i++) {
@@ -2401,12 +2461,12 @@ function titlePy(py) {
 					// (tap 打开 there if installed); plain browser opens the
 					// same App Store link. App Store ids verified via the
 					// iTunes Search API 2026-11-15: Yikatong 1071038870, Dalian 交通e出行 1383655806,
-					// 任我行 6503238645, 常州地铁Metro 1474201266, 渝畅行 1491110313.
+					// 任我行 6503238645, 常州地铁Metro 1474201266, 渝畅行 1491110313, 长春E出行 1481796811.
 					// Shengjing Tong 1441271928, Metro大都会 1202750238.
 					openTransitApp() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openTransitApp;
 						if (h) { h.postMessage({}); return; }
-						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : (this.city === 'dl' ? '1383655806' : (this.city === 'jh' ? '6503238645' : (this.city === 'cz' ? '1474201266' : (this.city === 'cq' ? '1491110313' : '1071038870'))))));
+						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : (this.city === 'dl' ? '1383655806' : (this.city === 'jh' ? '6503238645' : (this.city === 'cz' ? '1474201266' : (this.city === 'cq' ? '1491110313' : (this.city === 'cc' ? '1481796811' : '1071038870')))))));
 						window.open('https://apps.apple.com/cn/app/id' + id, '_blank');
 					},
 					// 乘车码 (build 63): jump to the WeChat 乘车码 mini-program.
@@ -2511,7 +2571,7 @@ function titlePy(py) {
 					// Logo for the city switcher rows (build 65): the official
 					// metro logo already inlined for the city pill, shown
 					// circular via CSS. Jinhua joins when its wiring lands.
-					cityLogoFor(k) { return k === 'sy' ? this.syLogo : (k === 'sh' ? this.shLogo : (k === 'hb' ? this.hbLogo : (k === 'dl' ? this.dlLogo : (k === 'jh' ? this.jhLogo : (k === 'cz' ? this.czLogo : (k === 'cq' ? this.cqLogo : this.bjLogo)))))); },
+					cityLogoFor(k) { return k === 'sy' ? this.syLogo : (k === 'sh' ? this.shLogo : (k === 'hb' ? this.hbLogo : (k === 'dl' ? this.dlLogo : (k === 'jh' ? this.jhLogo : (k === 'cz' ? this.czLogo : (k === 'cq' ? this.cqLogo : (k === 'cc' ? this.ccLogo : this.bjLogo))))))); },
 					// Operating-hours prompt (build 63). Timetable data is NOT changed
 					// here — this only reads first/last times and says whether the line
 					// is running at a given moment. A last train after midnight (00:00)
@@ -2919,19 +2979,19 @@ function titlePy(py) {
 					// Changzhou ('cz') and Chongqing ('cq') joined when their
 					// wiring landed.
 					cityList() {
-						return [{ key: 'bj', name: this.t('city.bj') }, { key: 'sy', name: this.t('city.sy') }, { key: 'sh', name: this.t('city.sh') }, { key: 'hb', name: this.t('city.hb') }, { key: 'dl', name: this.t('city.dl') }, { key: 'jh', name: this.t('city.jh') }, { key: 'cz', name: this.t('city.cz') }, { key: 'cq', name: this.t('city.cq') }];
+						return [{ key: 'bj', name: this.t('city.bj') }, { key: 'sy', name: this.t('city.sy') }, { key: 'sh', name: this.t('city.sh') }, { key: 'hb', name: this.t('city.hb') }, { key: 'dl', name: this.t('city.dl') }, { key: 'jh', name: this.t('city.jh') }, { key: 'cz', name: this.t('city.cz') }, { key: 'cq', name: this.t('city.cq') }, { key: 'cc', name: this.t('city.cc') }];
 					},
 					// 'More cities' directory (build 65): every other mainland city
 					// with operating urban rail transit, per CAMET 2026-Q3 (58 cities
-					// total, as of 2026-09-30; no new city in Q4 2026). The 8
+					// total, as of 2026-09-30; no new city in Q4 2026). The 9
 					// supported cities are excluded here.
 					soonCityList() {
-						return ['天津', '广州', '深圳', '武汉', '南京', '长春', '成都', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '无锡', '南昌', '兰州', '青岛', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '石家庄', '贵阳', '厦门', '温州', '济南', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '洛阳', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌'];
+						return ['天津', '广州', '深圳', '武汉', '南京', '成都', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '无锡', '南昌', '兰州', '青岛', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '石家庄', '贵阳', '厦门', '温州', '济南', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '洛阳', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌'];
 					},
-					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : this.bjLogo)))))); },
+					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : this.bjLogo))))))); },
 					transitLabel() { return this.t('transit.' + this.city); },
-					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : this.yktIcon)))))); },
-					splashImg() { return this.city === 'sy' ? this.sySplash : (this.city === 'sh' ? this.shSplash : (this.city === 'hb' ? this.hbSplash : (this.city === 'dl' ? this.dlSplash : (this.city === 'jh' ? this.jhSplash : (this.city === 'cz' ? this.czSplash : (this.city === 'cq' ? this.cqSplash : this.bjSplash)))))); },
+					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : this.yktIcon))))))); },
+					splashImg() { return this.city === 'sy' ? this.sySplash : (this.city === 'sh' ? this.shSplash : (this.city === 'hb' ? this.hbSplash : (this.city === 'dl' ? this.dlSplash : (this.city === 'jh' ? this.jhSplash : (this.city === 'cz' ? this.czSplash : (this.city === 'cq' ? this.cqSplash : (this.city === 'cc' ? this.ccSplash : this.bjSplash))))))); },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						if (!q) return this.stations;
@@ -2947,6 +3007,7 @@ function titlePy(py) {
 						if (this.city === 'jh') return this.jhTimetable;
 						if (this.city === 'cz') return this.czTimetable;
 						if (this.city === 'cq') return this.cqTimetable;
+						if (this.city === 'cc') return this.ccTimetable;
 						return this.bjTimetable;
 					},
 					// All lines for the current city, in routes order, plus the
@@ -3096,7 +3157,7 @@ function titlePy(py) {
 						// switch for any valid non-Beijing city so its map,
 						// stations and routes are actually applied; for
 						// 'bj' the Beijing defaults are already correct.
-						if (_savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb' || _savedCity === 'dl' || _savedCity === 'jh' || _savedCity === 'cz' || _savedCity === 'cq') {
+						if (_savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb' || _savedCity === 'dl' || _savedCity === 'jh' || _savedCity === 'cz' || _savedCity === 'cq' || _savedCity === 'cc') {
 							this.switchCity(_savedCity, true);
 						}
 					} catch (e) {}

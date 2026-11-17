@@ -181,6 +181,7 @@ dljt_b64 = (BASE / "dalianjiaotong-icon.b64").read_text(encoding="utf-8").strip(
 rwx_b64 = (BASE / "renwoxing-icon.b64").read_text(encoding="utf-8").strip()
 czm_b64 = (BASE / "czmetro-icon.b64").read_text(encoding="utf-8").strip()
 ycx_b64 = (BASE / "yuchangxing-icon.b64").read_text(encoding="utf-8").strip()
+cce_b64 = (BASE / "ccmetro-icon.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__YKT_ICON__\*/', lambda _: ykt_b64, html, "yikatong icon")
 html = sub_once(r'/\*__SJT_ICON__\*/', lambda _: sjt_b64, html, "shengjingtong icon")
 html = sub_once(r'/\*__MDDH_ICON__\*/', lambda _: mddh_b64, html, "metrodaduhui icon")
@@ -189,6 +190,7 @@ html = sub_once(r'/\*__DLJT_ICON__\*/', lambda _: dljt_b64, html, "dalian traffi
 html = sub_once(r'/\*__RWX_ICON__\*/', lambda _: rwx_b64, html, "renwoxing icon")
 html = sub_once(r'/\*__CZM_ICON__\*/', lambda _: czm_b64, html, "changzhou metro icon")
 html = sub_once(r'/\*__YCX_ICON__\*/', lambda _: ycx_b64, html, "yuchangxing icon")
+html = sub_once(r'/\*__CCE_ICON__\*/', lambda _: cce_b64, html, "changchun e-travel icon")
 
 # O. inline the Shanghai Metro data (22 operating lines, 413 stations).
 # Same pattern as Shenyang (step K): precomputed stations/routes from
@@ -305,6 +307,25 @@ html = sub_once(r'/\*__CQ_MAP__\*/""', lambda _: _json.dumps(cq_map), html, "cq 
 html = sub_once(r'/\*__CQ_LOGO__\*/', lambda _: cq_logo_b64, html, "cq logo")
 html = sub_once(r'/\*__CQ_SPLASH__\*/', lambda _: cq_splash_b64, html, "cq splash")
 
+# S4. inline the Changchun Rail Transit data (8 operating lines, 142 stations).
+# Same pattern as Harbin/Dalian/Jinhua/Changzhou/Chongqing: precomputed
+# stations/routes from the user's schematic map (see changchun/NOTES.md);
+# Line 9, the L3 天泽大路 extension, the L1 southern extension and the
+# closed 辽宁路 are drawn on the map but are NOT in the data files.
+cc_stations = (BASE / "changchun" / "stations.json").read_text(encoding="utf-8")
+cc_routes = (BASE / "changchun" / "routes.json").read_text(encoding="utf-8")
+cc_map = (BASE / "changchun" / "map.svg").read_text(encoding="utf-8")
+cc_logo_b64 = (BASE / "changchun" / "logo.b64").read_text(encoding="utf-8").strip()
+cc_splash_b64 = (BASE / "changchun" / "splash.b64").read_text(encoding="utf-8").strip()
+assert "</script" not in cc_stations, "cc stations json must not contain </script"
+assert "</script" not in cc_routes, "cc routes json must not contain </script"
+assert "</script" not in cc_map, "cc map svg must not contain </script"
+html = sub_once(r'/\*__CC_STATIONS__\*/\[\]', lambda _: cc_stations, html, "cc stations json")
+html = sub_once(r'/\*__CC_ROUTES__\*/null', lambda _: cc_routes, html, "cc routes json")
+html = sub_once(r'/\*__CC_MAP__\*/""', lambda _: _json.dumps(cc_map), html, "cc map svg")
+html = sub_once(r'/\*__CC_LOGO__\*/', lambda _: cc_logo_b64, html, "cc logo")
+html = sub_once(r'/\*__CC_SPLASH__\*/', lambda _: cc_splash_b64, html, "cc splash")
+
 # P. inline the first/last-train timetable data (web/timetable/*.json,
 # Sun-Thu standard timetable) + the user's calendar-clock tab icon.
 bj_tt = (BASE / "timetable" / "bj.json").read_text(encoding="utf-8")
@@ -315,6 +336,7 @@ dl_tt = (BASE / "timetable" / "dl.json").read_text(encoding="utf-8")
 jh_tt = (BASE / "timetable" / "jh.json").read_text(encoding="utf-8")
 cz_tt = (BASE / "timetable" / "cz.json").read_text(encoding="utf-8")
 cq_tt = (BASE / "timetable" / "cq.json").read_text(encoding="utf-8")
+cc_tt = (BASE / "timetable" / "cc.json").read_text(encoding="utf-8")
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
@@ -324,6 +346,7 @@ assert "</script" not in dl_tt, "dl timetable json must not contain </script"
 assert "</script" not in jh_tt, "jh timetable json must not contain </script"
 assert "</script" not in cz_tt, "cz timetable json must not contain </script"
 assert "</script" not in cq_tt, "cq timetable json must not contain </script"
+assert "</script" not in cc_tt, "cc timetable json must not contain </script"
 html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
 html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
 html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
@@ -332,6 +355,7 @@ html = sub_once(r'/\*__DL_TIMETABLE__\*/\{\}', lambda _: dl_tt, html, "dl timeta
 html = sub_once(r'/\*__JH_TIMETABLE__\*/\{\}', lambda _: jh_tt, html, "jh timetable json")
 html = sub_once(r'/\*__CZ_TIMETABLE__\*/\{\}', lambda _: cz_tt, html, "cz timetable json")
 html = sub_once(r'/\*__CQ_TIMETABLE__\*/\{\}', lambda _: cq_tt, html, "cq timetable json")
+html = sub_once(r'/\*__CC_TIMETABLE__\*/\{\}', lambda _: cc_tt, html, "cc timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 # T. inline the transit briefing seed (web/briefing.json): the 10 upcoming

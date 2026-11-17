@@ -135,6 +135,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // Darker #076138 for selected states/text.
     let chongqingGreen = UIColor(red: 10.0 / 255.0, green: 129.0 / 255.0, blue: 75.0 / 255.0, alpha: 1)
     let chongqingGreenDark = UIColor(red: 7.0 / 255.0, green: 97.0 / 255.0, blue: 56.0 / 255.0, alpha: 1)
+    // Changchun Line 1 red #E50011 (Wikipedia Template: 长春轨道交通颜色,
+    // code 1; no separate system brand colour is published - see NOTES.md).
+    // Darker #B3000D for selected states/text.
+    let changchunRed = UIColor(red: 229.0 / 255.0, green: 0.0 / 255.0, blue: 17.0 / 255.0, alpha: 1)
+    let changchunRedDark = UIColor(red: 179.0 / 255.0, green: 0.0 / 255.0, blue: 13.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -183,6 +188,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "city.jh": ["金华", "金華", "Jinhua"],
         "city.cz": ["常州", "常州", "Changzhou"],
         "city.cq": ["重庆", "重慶", "Chongqing"],
+        "city.cc": ["长春", "長春", "Changchun"],
         "native.cancel": ["取消", "取消", "Cancel"],
         "tr.tab.rec": ["推荐", "推薦", "Recommended"],
         "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
@@ -262,7 +268,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = UIColor(red: 12.0 / 255.0, green: 15.0 / 255.0, blue: 22.0 / 255.0, alpha: 1) // #0c0f16, the web's dark background (build 63): nothing white shows through while the page loads or at the edges.
@@ -416,6 +422,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "jh": splashName = "SplashJH"
         case "cz": splashName = "SplashCZ"
         case "cq": splashName = "SplashCQ"
+        case "cc": splashName = "SplashCC"
         default: splashName = "Splash"
         }
         splashImageView = UIImageView(image: UIImage(named: splashName))
@@ -511,6 +518,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "jh" { return jinhuaRed }
         if currentCity == "cz" { return changzhouRed }
         if currentCity == "cq" { return chongqingGreen }
+        if currentCity == "cc" { return changchunRed }
         return subwayBlue
     }
 
@@ -524,6 +532,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "jh" { return jinhuaRedDark }
         if currentCity == "cz" { return changzhouRedDark }
         if currentCity == "cq" { return chongqingGreenDark }
+        if currentCity == "cc" { return changchunRedDark }
         return subwayBlue
     }
 
@@ -540,6 +549,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "jh" { return jinhuaRed }
         if currentCity == "cz" { return changzhouRed }
         if currentCity == "cq" { return chongqingGreen }
+        if currentCity == "cc" { return changchunRed }
         return accentColor()
     }
 
@@ -561,6 +571,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "jh": name = "JinhuaLogo"
         case "cz": name = "ChangzhouLogo"
         case "cq": name = "ChongqingLogo"
+        case "cc": name = "ChangchunLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -660,7 +671,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let cq = UIAction(title: L("city.cq"), image: cityLogoImage(for: "cq")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "cq" ? .on : .off) { [weak self] _ in
             self?.pickCity("cq")
         }
-        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq])
+        let cc = UIAction(title: L("city.cc"), image: cityLogoImage(for: "cc")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "cc" ? .on : .off) { [weak self] _ in
+            self?.pickCity("cc")
+        }
+        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -688,6 +702,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         sheet.addAction(cityAction("jh"))
         sheet.addAction(cityAction("cz"))
         sheet.addAction(cityAction("cq"))
+        sheet.addAction(cityAction("cc"))
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
@@ -1425,7 +1440,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // there if it is installed). App Store ids verified via the iTunes
     // Search API 2026-11-15: Beijing Yikatong 1071038870, Shenyang
     // Shengjing Tong 1441271928, Shanghai Metro大都会 1202750238, Dalian
-    // 交通e出行 1383655806. There
+    // 交通e出行 1383655806, Changchun 长春E出行 1481796811. There
     // is no confirmed URL scheme for any of these apps, so the App Store
     // page (not a guessed scheme) is the link.
     func openTransitApp() {
@@ -1438,6 +1453,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "jh": id = "6503238645"
         case "cz": id = "1474201266"
         case "cq": id = "1491110313"
+        case "cc": id = "1481796811"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
@@ -1853,7 +1869,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
-                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq"].contains(city) {
+                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc"].contains(city) {
             // The web switched cities (user switch or the startup
             // restore). Mirror it natively; the web already switched,
             // so do NOT call switchCity here (that would loop).

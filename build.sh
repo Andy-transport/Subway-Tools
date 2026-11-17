@@ -41,13 +41,14 @@ xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library \
   -framework UIKit -framework WebKit -Xlinker -weak_framework -Xlinker ActivityKit \
   -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/LiveActivity/TripAttributes.swift
 
-echo "== 2b. compile Live Activity widget extension =="
-mkdir -p build/Payload/Metro.app/PlugIns/LiveActivityWidget.appex
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.1 -O -parse-as-library \
-  -framework SwiftUI -framework WidgetKit -framework ActivityKit \
-  -o build/Payload/Metro.app/PlugIns/LiveActivityWidget.appex/LiveActivityWidget \
-  app/LiveActivity/TripAttributes.swift app/LiveActivity/LiveActivityWidget.swift
-cp app/LiveActivity/LiveActivity-Info.plist build/Payload/Metro.app/PlugIns/LiveActivityWidget.appex/Info.plist
+echo "== 2b. Live Activity widget extension REMOVED (user 2026-11-18) =="
+# The Live Activity widget extension (LiveActivityWidget.appex) is
+# skipped: 全能签 cannot sign an app that contains an app extension,
+# so installs of 1.0.4 failed with "无法安装" while 1.0.3 (no extension)
+# installed fine. The AppDelegate Live Activity code stays and fails
+# silently without the extension (Activity.request() throws, caught),
+# so the "开始行程" button simply does nothing. Re-enable this step
+# if a signing method that handles extensions is used.
 
 echo "== 3. bundle resources =="
 cp app/Info.plist build/Payload/Metro.app/Info.plist
@@ -72,12 +73,15 @@ python3 -c "import base64; open('build/Payload/Metro.app/SplashJH.jpg','wb').wri
 python3 -c "import base64; open('build/Payload/Metro.app/SplashCZ.jpg','wb').write(base64.b64decode(open('web/changzhou/splash.b64').read()))"
 # Chongqing splash (user-supplied real splash, edited — TRACK LAYOUT LOOKUP removed).
 python3 -c "import base64; open('build/Payload/Metro.app/SplashCQ.jpg','wb').write(base64.b64decode(open('web/chongqing/splash.b64').read()))"
+# Changchun splash (real user splash, web/changchun/splash.b64).
+python3 -c "import base64; open('build/Payload/Metro.app/SplashCC.jpg','wb').write(base64.b64decode(open('web/changchun/splash.b64').read()))"
 cp app/BeijingLogo.png app/ShenyangLogo.png app/ShanghaiLogo.png build/Payload/Metro.app/
 python3 -c "import base64; open('build/Payload/Metro.app/HarbinLogo.png','wb').write(base64.b64decode(open('web/harbin/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/DalianLogo.png','wb').write(base64.b64decode(open('web/dalian/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/JinhuaLogo.png','wb').write(base64.b64decode(open('web/jinhua/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/ChangzhouLogo.png','wb').write(base64.b64decode(open('web/changzhou/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/ChongqingLogo.png','wb').write(base64.b64decode(open('web/chongqing/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/ChangchunLogo.png','wb').write(base64.b64decode(open('web/changchun/logo.b64').read()))"
 python3 -c "import base64; [open('build/Payload/Metro.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 
 echo "== 4. package IPA =="
