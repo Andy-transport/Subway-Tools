@@ -82,7 +82,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // suggestion dropdown stays web and appears below the card.
     var transferCard: UIView!
     var transferEffectView: UIVisualEffectView!
-    var transferTintView: UIView!
     var transferSwapButton: UIButton!
     var transferSearchButton: UIButton!
     var fromField: UITextField!
@@ -841,12 +840,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // their frames, like the sort tabs). The suggestion dropdown stays
     // web: it renders below the hidden fields card, i.e. directly
     // below this native card. The card is a UIVisualEffectView with
-    // UIGlassEffect .clear on iOS 26+ (thinnest material below) — a
-    // solid-colour transparent glass (user 2026-11-17 "改为纯色透明玻璃"):
-    // the clear glass lets the background show through, and the card's
-    // single solid colour is the uniform accent tint overlay (Beijing
-    // blue / Shenyang gold / Shanghai red). The search button uses
-    // UIButton.Configuration.glass() like the top pills.
+    // UIGlassEffect .clear on iOS 26+ (thinnest material below) — pure
+    // transparent glass, no colour tint at all (user 2026-11-17
+    // "不要渲染颜色 就要透明"): the background shows straight through.
+    // The search button uses UIButton.Configuration.glass() like the
+    // top pills.
     func setupTransferControls() {
         // Card container (frame-positioned from the web .tr-fields rect).
         transferCard = UIView()
@@ -866,17 +864,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         ])
 
         let content = transferEffectView.contentView
-        transferTintView = UIView()
-        transferTintView.backgroundColor = accentColor().withAlphaComponent(0.15)
-        transferTintView.isUserInteractionEnabled = false
-        transferTintView.translatesAutoresizingMaskIntoConstraints = false
-        content.addSubview(transferTintView)
-        NSLayoutConstraint.activate([
-            transferTintView.leadingAnchor.constraint(equalTo: content.leadingAnchor),
-            transferTintView.trailingAnchor.constraint(equalTo: content.trailingAnchor),
-            transferTintView.topAnchor.constraint(equalTo: content.topAnchor),
-            transferTintView.bottomAnchor.constraint(equalTo: content.bottomAnchor),
-        ])
 
         // Two rows: dot + label + text field + line badge + clear.
         fromField = makeTransferField(tag: 0, placeholder: L("tr.phFrom"))
@@ -1118,7 +1105,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updateTransferTint() {
-        transferTintView.backgroundColor = accentColor().withAlphaComponent(0.15)
         transferSwapButton.layer.borderColor = accentDark().cgColor
         transferSwapButton.tintColor = accentDark()
         updateTransferSearchStyle()
