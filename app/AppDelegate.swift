@@ -240,7 +240,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var currentLang: String = {
         if UserDefaults.standard.bool(forKey: "metro-lang-explicit"),
            let saved = UserDefaults.standard.string(forKey: "metro-lang") { return saved }
-        return Self.systemLang()
+        return MapViewController.systemLang()
     }()
     func L(_ key: String) -> String {
         let arr = Self.LANG[key] ?? [key, key, key]
