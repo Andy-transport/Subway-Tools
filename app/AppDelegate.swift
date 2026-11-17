@@ -1685,11 +1685,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // MARK: - Live Activity (build 65)
 
-    // The running Live Activity for the current trip, if any. Only
-    // touched inside `if #available(iOS 16.1, *)` — ActivityKit does
-    // not exist on iOS 16.0 (the app's deployment target), and the
-    // framework is weak-linked in build.sh for that reason.
-    var tripActivity: Activity<TripAttributes>?
+    // The running Live Activity for the current trip, if any. Stored
+    // type-erased as Any: Activity<TripAttributes> is iOS 16.1+ only,
+    // so it cannot be a stored-property type on this iOS 16.0 class.
+    // Cast back inside `if #available(iOS 16.2, *)` wherever it is
+    // used. ActivityKit is weak-linked in build.sh.
+    var tripActivity: Any?
 
     // Handle the web's liveActivity posts:
     // {action: 'start'|'update'|'end', from, to, line, themeHex,
@@ -1725,7 +1726,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func startTripActivity(_ dict: [String: Any]) {
-        guard #available(iOS 16.1, *) else { return }
+        guard #available(iOS 16.2, *) else { return }
         guard let from = dict["from"] as? String, !from.isEmpty,
               let to = dict["to"] as? String, !to.isEmpty,
               let next = dict["nextStation"] as? String,
@@ -1736,7 +1737,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let theme = dict["themeHex"] as? String ?? themeHex()
         let arrival = Date(timeIntervalSince1970: arrivalMs / 1000)
         // End any running activity first (never two at once).
-        if let old = tripActivity {
+        if let old = tripActivity as? Activity<TripAttributes> {
             Task { await old.end(nil, dismissalPolicy: .immediate) }
             tripActivity = nil
         }
@@ -1767,8 +1768,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updateTripActivity(_ dict: [String: Any]) {
-        guard #available(iOS 16.1, *) else { return }
-        guard let activity = tripActivity,
+        guard #available(iOS 16.2, *) else { return }
+        guard let activity = tripActivity as? Activity<TripAttributes>,
               let next = dict["nextStation"] as? String,
               let remaining = dict["remainingStops"] as? Int,
               let arrivalMs = dict["arrivalMs"] as? Double else { return }
@@ -1781,8 +1782,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func endTripActivity() {
-        guard #available(iOS 16.1, *) else { return }
-        guard let activity = tripActivity else { return }
+        guard #available(iOS 16.2, *) else { return }
+        guard let activity = tripActivity as? Activity<TripAttributes> else { return }
         tripActivity = nil
         Task { await activity.end(nil, dismissalPolicy: .immediate) }
     }
