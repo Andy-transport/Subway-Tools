@@ -142,15 +142,17 @@ html = sub_once(r'/\*__FARE_ICON__\*/', lambda _: fare_b64, html, "fare icon")
 
 # L2. inline the per-city virtual-transfer data (same format as Beijing's
 # transfers.json; each file is hand-maintained — see TRANSFERS-NOTES.md).
-# Empty {} when a city has no verified virtual transfer. Chongqing is
-# NOT inlined yet (data prep still in progress; wire it when stable).
+# Empty {} when a city has no verified virtual transfer. Chongqing's
+# researched pairs (歇台子/玉带山/观音桥/杨家坪） are NOT wired yet
+# (玉带山 passage expiry risk — re-check before wiring); its file is {}. 
 sy_transfers = (BASE / "shenyang" / "transfers.json").read_text(encoding="utf-8")
 sh_transfers = (BASE / "shanghai" / "transfers.json").read_text(encoding="utf-8")
 hb_transfers = (BASE / "harbin" / "transfers.json").read_text(encoding="utf-8")
 dl_transfers = (BASE / "dalian" / "transfers.json").read_text(encoding="utf-8")
 jh_transfers = (BASE / "jinhua" / "transfers.json").read_text(encoding="utf-8")
 cz_transfers = (BASE / "changzhou" / "transfers.json").read_text(encoding="utf-8")
-for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers):
+cq_transfers = (BASE / "chongqing" / "transfers.json").read_text(encoding="utf-8")
+for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers, cq_transfers):
     assert "</script" not in _t, "per-city transfers json must not contain </script"
 html = sub_once(r'/\*__SY_TRANSFERS__\*/\{\}', lambda _: sy_transfers, html, "sy transfers json")
 html = sub_once(r'/\*__SH_TRANSFERS__\*/\{\}', lambda _: sh_transfers, html, "sh transfers json")
@@ -158,6 +160,7 @@ html = sub_once(r'/\*__HB_TRANSFERS__\*/\{\}', lambda _: hb_transfers, html, "hb
 html = sub_once(r'/\*__DL_TRANSFERS__\*/\{\}', lambda _: dl_transfers, html, "dl transfers json")
 html = sub_once(r'/\*__JH_TRANSFERS__\*/\{\}', lambda _: jh_transfers, html, "jh transfers json")
 html = sub_once(r'/\*__CZ_TRANSFERS__\*/\{\}', lambda _: cz_transfers, html, "cz transfers json")
+html = sub_once(r'/\*__CQ_TRANSFERS__\*/\{\}', lambda _: cq_transfers, html, "cq transfers json")
 
 # M. inline the per-city splash (launch) images.
 # BJ splash = the native LaunchScreen image (app/splash.b64, Beijing 北京/配线查询);
@@ -175,11 +178,17 @@ sjt_b64 = (BASE / "shengjingtong-icon.b64").read_text(encoding="utf-8").strip()
 mddh_b64 = (BASE / "metrodaduhui-icon.b64").read_text(encoding="utf-8").strip()
 hbct_b64 = (BASE / "harbinchengshitong-icon.b64").read_text(encoding="utf-8").strip()
 dljt_b64 = (BASE / "dalianjiaotong-icon.b64").read_text(encoding="utf-8").strip()
+rwx_b64 = (BASE / "renwoxing-icon.b64").read_text(encoding="utf-8").strip()
+czm_b64 = (BASE / "czmetro-icon.b64").read_text(encoding="utf-8").strip()
+ycx_b64 = (BASE / "yuchangxing-icon.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__YKT_ICON__\*/', lambda _: ykt_b64, html, "yikatong icon")
 html = sub_once(r'/\*__SJT_ICON__\*/', lambda _: sjt_b64, html, "shengjingtong icon")
 html = sub_once(r'/\*__MDDH_ICON__\*/', lambda _: mddh_b64, html, "metrodaduhui icon")
 html = sub_once(r'/\*__HBCT_ICON__\*/', lambda _: hbct_b64, html, "harbin city pass icon")
 html = sub_once(r'/\*__DLJT_ICON__\*/', lambda _: dljt_b64, html, "dalian traffic icon")
+html = sub_once(r'/\*__RWX_ICON__\*/', lambda _: rwx_b64, html, "renwoxing icon")
+html = sub_once(r'/\*__CZM_ICON__\*/', lambda _: czm_b64, html, "changzhou metro icon")
+html = sub_once(r'/\*__YCX_ICON__\*/', lambda _: ycx_b64, html, "yuchangxing icon")
 
 # O. inline the Shanghai Metro data (22 operating lines, 413 stations).
 # Same pattern as Shenyang (step K): precomputed stations/routes from
@@ -242,6 +251,60 @@ html = sub_once(r'/\*__DL_MAP__\*/""', lambda _: _json.dumps(dl_map), html, "dl 
 html = sub_once(r'/\*__DL_LOGO__\*/', lambda _: dl_logo_b64, html, "dl logo")
 html = sub_once(r'/\*__DL_SPLASH__\*/', lambda _: dl_splash_b64, html, "dl splash")
 
+# S. inline the Jinhua Rail Transit data (Jinyi East Line, 2 routes, 29 stations).
+# Same pattern as Harbin/Dalian: precomputed stations/routes from the user's
+# ink-wash map (see jinhua/NOTES.md); the logo is the official mark
+# (Wikimedia); the splash is the user's real image (web/jinhua/splash.b64).
+jh_stations = (BASE / "jinhua" / "stations.json").read_text(encoding="utf-8")
+jh_routes = (BASE / "jinhua" / "routes.json").read_text(encoding="utf-8")
+jh_map = (BASE / "jinhua" / "map.svg").read_text(encoding="utf-8")
+jh_logo_b64 = (BASE / "jinhua" / "logo.b64").read_text(encoding="utf-8").strip()
+jh_splash_b64 = (BASE / "jinhua" / "splash.b64").read_text(encoding="utf-8").strip()
+assert "</script" not in jh_stations, "jh stations json must not contain </script"
+assert "</script" not in jh_routes, "jh routes json must not contain </script"
+assert "</script" not in jh_map, "jh map svg must not contain </script"
+html = sub_once(r'/\*__JH_STATIONS__\*/\[\]', lambda _: jh_stations, html, "jh stations json")
+html = sub_once(r'/\*__JH_ROUTES__\*/null', lambda _: jh_routes, html, "jh routes json")
+html = sub_once(r'/\*__JH_MAP__\*/""', lambda _: _json.dumps(jh_map), html, "jh map svg")
+html = sub_once(r'/\*__JH_LOGO__\*/', lambda _: jh_logo_b64, html, "jh logo")
+html = sub_once(r'/\*__JH_SPLASH__\*/', lambda _: jh_splash_b64, html, "jh splash")
+
+# S2. inline the Changzhou Metro data (2 operating lines, 43 stations).
+# Same pattern as Jinhua: precomputed stations/routes from the user's
+# schematic map (see changzhou/NOTES.md); Lines 5/6 are drawn on the map
+# but under construction and are NOT in the data files.
+cz_stations = (BASE / "changzhou" / "stations.json").read_text(encoding="utf-8")
+cz_routes = (BASE / "changzhou" / "routes.json").read_text(encoding="utf-8")
+cz_map = (BASE / "changzhou" / "map.svg").read_text(encoding="utf-8")
+cz_logo_b64 = (BASE / "changzhou" / "logo.b64").read_text(encoding="utf-8").strip()
+cz_splash_b64 = (BASE / "changzhou" / "splash.b64").read_text(encoding="utf-8").strip()
+assert "</script" not in cz_stations, "cz stations json must not contain </script"
+assert "</script" not in cz_routes, "cz routes json must not contain </script"
+assert "</script" not in cz_map, "cz map svg must not contain </script"
+html = sub_once(r'/\*__CZ_STATIONS__\*/\[\]', lambda _: cz_stations, html, "cz stations json")
+html = sub_once(r'/\*__CZ_ROUTES__\*/null', lambda _: cz_routes, html, "cz routes json")
+html = sub_once(r'/\*__CZ_MAP__\*/""', lambda _: _json.dumps(cz_map), html, "cz map svg")
+html = sub_once(r'/\*__CZ_LOGO__\*/', lambda _: cz_logo_b64, html, "cz logo")
+html = sub_once(r'/\*__CZ_SPLASH__\*/', lambda _: cz_splash_b64, html, "cz splash")
+
+# S3. inline the Chongqing Rail Transit data (14 lines, 282 stations).
+# Same pattern as Jinhua/Changzhou: precomputed stations/routes from the
+# user's system-plan map (see chongqing/NOTES.md); the logo is cropped
+# from the map; the splash is the user's real image, edited (see NOTES.md).
+cq_stations = (BASE / "chongqing" / "stations.json").read_text(encoding="utf-8")
+cq_routes = (BASE / "chongqing" / "routes.json").read_text(encoding="utf-8")
+cq_map = (BASE / "chongqing" / "map.svg").read_text(encoding="utf-8")
+cq_logo_b64 = (BASE / "chongqing" / "logo.b64").read_text(encoding="utf-8").strip()
+cq_splash_b64 = (BASE / "chongqing" / "splash.b64").read_text(encoding="utf-8").strip()
+assert "</script" not in cq_stations, "cq stations json must not contain </script"
+assert "</script" not in cq_routes, "cq routes json must not contain </script"
+assert "</script" not in cq_map, "cq map svg must not contain </script"
+html = sub_once(r'/\*__CQ_STATIONS__\*/\[\]', lambda _: cq_stations, html, "cq stations json")
+html = sub_once(r'/\*__CQ_ROUTES__\*/null', lambda _: cq_routes, html, "cq routes json")
+html = sub_once(r'/\*__CQ_MAP__\*/""', lambda _: _json.dumps(cq_map), html, "cq map svg")
+html = sub_once(r'/\*__CQ_LOGO__\*/', lambda _: cq_logo_b64, html, "cq logo")
+html = sub_once(r'/\*__CQ_SPLASH__\*/', lambda _: cq_splash_b64, html, "cq splash")
+
 # P. inline the first/last-train timetable data (web/timetable/*.json,
 # Sun-Thu standard timetable) + the user's calendar-clock tab icon.
 bj_tt = (BASE / "timetable" / "bj.json").read_text(encoding="utf-8")
@@ -249,17 +312,26 @@ sy_tt = (BASE / "timetable" / "sy.json").read_text(encoding="utf-8")
 sh_tt = (BASE / "timetable" / "sh.json").read_text(encoding="utf-8")
 hb_tt = (BASE / "timetable" / "hb.json").read_text(encoding="utf-8")
 dl_tt = (BASE / "timetable" / "dl.json").read_text(encoding="utf-8")
+jh_tt = (BASE / "timetable" / "jh.json").read_text(encoding="utf-8")
+cz_tt = (BASE / "timetable" / "cz.json").read_text(encoding="utf-8")
+cq_tt = (BASE / "timetable" / "cq.json").read_text(encoding="utf-8")
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
 assert "</script" not in sh_tt, "sh timetable json must not contain </script"
 assert "</script" not in hb_tt, "hb timetable json must not contain </script"
 assert "</script" not in dl_tt, "dl timetable json must not contain </script"
+assert "</script" not in jh_tt, "jh timetable json must not contain </script"
+assert "</script" not in cz_tt, "cz timetable json must not contain </script"
+assert "</script" not in cq_tt, "cq timetable json must not contain </script"
 html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
 html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
 html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
 html = sub_once(r'/\*__HB_TIMETABLE__\*/\{\}', lambda _: hb_tt, html, "hb timetable json")
 html = sub_once(r'/\*__DL_TIMETABLE__\*/\{\}', lambda _: dl_tt, html, "dl timetable json")
+html = sub_once(r'/\*__JH_TIMETABLE__\*/\{\}', lambda _: jh_tt, html, "jh timetable json")
+html = sub_once(r'/\*__CZ_TIMETABLE__\*/\{\}', lambda _: cz_tt, html, "cz timetable json")
+html = sub_once(r'/\*__CQ_TIMETABLE__\*/\{\}', lambda _: cq_tt, html, "cq timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 out = OUT / "index.html"
