@@ -13,8 +13,10 @@ import Foundation
 // handler, and SubwayToolsShortcuts exposes the same 6 intents to Siri
 // and the Shortcuts app.
 //
-// AppIntents is available from iOS 16.0 (the app's deployment target),
-// so no availability gating is needed here.
+// AppIntents itself is available from iOS 16.0, but OpenURLIntent (used
+// to open the subwaymotion:// deep link) needs iOS 18.0+, so the 6
+// intents and the provider are gated to iOS 18.0+. On iOS 16/17 the app
+// works normally, just without Siri shortcuts.
 
 // The 6 shortcut ids (do not change — the web side posts these exact
 // strings to the "addShortcut" message handler).
@@ -28,6 +30,7 @@ enum SubwayShortcutID: String, CaseIterable {
 
     /// A fresh instance of the AppIntent for this shortcut, used for
     /// donation from the "addShortcut" handler.
+    @available(iOS 18.0, *)
     func makeIntent() -> any AppIntent {
         switch self {
         case .openApp: return OpenSubwayToolsIntent()
@@ -55,6 +58,7 @@ enum SubwayDeepLink {
     }
 }
 
+@available(iOS 18.0, *)
 struct OpenSubwayToolsIntent: AppIntent {
     static var title: LocalizedStringResource = "打开 Subway tools"
     static var description = IntentDescription("打开 Subway tools")
@@ -65,13 +69,14 @@ struct OpenSubwayToolsIntent: AppIntent {
     }
 }
 
+@available(iOS 18.0, *)
 struct FirstTrainIntent: AppIntent {
     static var title: LocalizedStringResource = "查询首班车"
     static var description = IntentDescription("查询所选车站的首班车时间")
     static var openAppWhenRun: Bool = true
 
     @Parameter(title: "车站")
-    var station: String? = nil
+    var station: String?
 
     func perform() async throws -> some IntentResult & OpensIntent {
         var query: [String: String] = [:]
@@ -80,13 +85,14 @@ struct FirstTrainIntent: AppIntent {
     }
 }
 
+@available(iOS 18.0, *)
 struct LastTrainIntent: AppIntent {
     static var title: LocalizedStringResource = "查询末班车"
     static var description = IntentDescription("查询所选车站的末班车时间")
     static var openAppWhenRun: Bool = true
 
     @Parameter(title: "车站")
-    var station: String? = nil
+    var station: String?
 
     func perform() async throws -> some IntentResult & OpensIntent {
         var query: [String: String] = [:]
@@ -95,6 +101,7 @@ struct LastTrainIntent: AppIntent {
     }
 }
 
+@available(iOS 18.0, *)
 struct PlanRouteIntent: AppIntent {
     static var title: LocalizedStringResource = "规划路线"
     static var description = IntentDescription("规划从出发站到到达站的地铁路线")
@@ -112,6 +119,7 @@ struct PlanRouteIntent: AppIntent {
     }
 }
 
+@available(iOS 18.0, *)
 struct NearestStationIntent: AppIntent {
     static var title: LocalizedStringResource = "最近的车站"
     static var description = IntentDescription("查找离你最近的地铁站")
@@ -122,13 +130,14 @@ struct NearestStationIntent: AppIntent {
     }
 }
 
+@available(iOS 18.0, *)
 struct TimetableIntent: AppIntent {
     static var title: LocalizedStringResource = "查看时刻表"
     static var description = IntentDescription("查看线路时刻表")
     static var openAppWhenRun: Bool = true
 
     @Parameter(title: "线路")
-    var line: String? = nil
+    var line: String?
 
     func perform() async throws -> some IntentResult & OpensIntent {
         var query: [String: String] = [:]
@@ -140,6 +149,7 @@ struct TimetableIntent: AppIntent {
 // Exposes the 6 intents to Siri and the Shortcuts app. No donation is
 // needed for these to appear: AppShortcutsProvider entries are listed
 // under Subway tools in the Shortcuts app automatically.
+@available(iOS 18.0, *)
 struct SubwayToolsShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(

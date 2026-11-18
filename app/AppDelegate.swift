@@ -2286,8 +2286,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // here (the message branch validates the id first).
     func presentShortcutSetup(for id: String) {
         guard let shortcut = SubwayShortcutID(rawValue: id) else { return }
-        Task {
-            try? await shortcut.makeIntent().donate()
+        // The intents need iOS 18+ (OpenURLIntent); on older iOS just
+        // open the Shortcuts app without donating.
+        if #available(iOS 18.0, *) {
+            Task {
+                try? await shortcut.makeIntent().donate()
+            }
         }
         if let url = URL(string: "shortcuts://") {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
