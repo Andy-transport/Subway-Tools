@@ -49,6 +49,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         win.rootViewController = MapViewController()
         win.makeKeyAndVisible()
         window = win
+        // Cold launch via a subwaymotion:// deep link (Siri / Shortcuts):
+        // the page is not loaded yet, so MapViewController stashes it
+        // and applies it once the page finishes loading.
+        if let url = connectionOptions.urlContexts.first?.url {
+            (win.rootViewController as? MapViewController)?.handleDeepLink(url)
+        }
+    }
+
+    // Warm open via a subwaymotion:// deep link while the app is
+    // already running (Siri / Shortcuts / another app).
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        (window?.rootViewController as? MapViewController)?.handleDeepLink(url)
     }
 }
 
@@ -105,6 +118,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var toLineInfo: [String: Any]?
     // Web tab keys, in the same order as the native tab bar items.
     let tabKeys = ["transfer", "map", "stations", "timetable", "more"]
+    // Siri / deep-link routing (user 2026-11-18, Siri Shortcuts): a
+    // subwaymotion:// link that arrives before the offline page has
+    // finished loading is stashed here and applied from
+    // webView(_:didFinish:) once window.metroApp exists.
+    var pendingDeepLinkURL: URL?
+    var webPageReady = false
     // Beijing Subway blue (Beijing theme, unchanged); Shenyang gold,
     // sampled from the user's gold image: #D4B686 (champagne gold);
     // Shanghai brand red #E60012 (user has not chosen a Shanghai color
@@ -209,6 +228,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "tr.departNow": ["现在出发", "現在出發", "Depart now"],
         "time.confirm": ["确定", "確定", "Done"],
         "time.done": ["完成", "完成", "Done"],
+        "search.title": ["搜索条件", "搜索條件", "Search Conditions"],
+        "search.first": ["首班车", "首班車", "First train"],
+        "search.last": ["末班车", "末班車", "Last train"],
+        "search.card": ["交通卡", "交通卡", "Transit card"],
+        "search.cash": ["现金", "現金", "Cash"],
+        "search.applepay": ["Apple Pay", "Apple Pay", "Apple Pay"],
+        "search.applepay.unavailable.title": ["无法打开钱包", "無法打開錢包", "Wallet unavailable"],
+        "search.applepay.unavailable.message": ["无法打开 Apple Pay / 钱包，请确认钱包应用已安装。", "無法打開 Apple Pay / 錢包，請確認錢包應用已安裝。", "Apple Pay / Wallet could not be opened. Please make sure the Wallet app is installed."],
         "map.searchStation": ["搜车站", "搜車站", "Search Stations"],
         "native.switchCity": ["切换城市", "切換城市", "Switch City"],
         "tr.phFrom": ["选择出发站", "選擇出發站", "Choose departure station"],
@@ -327,10 +354,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "openRideCode")
         config.userContentController.add(self, name: "requestLocation")
         config.userContentController.add(self, name: "requestLocationPermission")
+        config.userContentController.add(self, name: "openURL")
         config.userContentController.add(self, name: "cityChanged")
         config.userContentController.add(self, name: "langChanged")
         config.userContentController.add(self, name: "splashDone")
         config.userContentController.add(self, name: "liveActivity")
+        config.userContentController.add(self, name: "clearCache")
+        config.userContentController.add(self, name: "addShortcut")
         // Inject the iOS per-app language + device idiom before the page's
         // scripts run, so the web's savedLang() can follow the system
         // language when the user has no explicit in-app choice (see
@@ -364,13 +394,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // — a single layer. Build 50 added a UIVisualEffectView glass
         // subview on top of the bar's own glass, so the glass showed
         // TWICE (user 2026-11-15 "为啥有玻璃重复"). Do NOT add a glass
-        // view here; the default appearance already is Liquid Glass.
+        // view here.
         tabBar.layer.cornerRadius = 25
         tabBar.layer.masksToBounds = true
+        tabBar.isTranslucent = true
         if #available(iOS 26.0, *) {
+            // Light-mode fix (user 2026-11-18): configureWithDefaultBackground()
+            // rendered as a flat medium-grey capsule in light mode, with
+            // white unselected icons. Use a transparent background with the
+            // adaptive system material instead: light mode is a light
+            // translucent glass, dark mode the dark glass. Unselected items
+            // use .secondaryLabel so they stay legible in both modes; the
+            // selected item keeps the city accent via tabBar.tintColor
+            // (updated per city in refreshCityUI).
             let appearance = UITabBarAppearance()
-            appearance.configureWithDefaultBackground()
+            appearance.configureWithTransparentBackground()
+            appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
+            appearance.backgroundColor = .clear
             appearance.shadowColor = .clear
+            appearance.stackedLayoutAppearance.normal.iconColor = .secondaryLabel
+            appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.secondaryLabel]
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
         }
@@ -1458,81 +1501,87 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
     }
 
-    // MARK: - Departure time picker (build 34)
+    // MARK: - Search Conditions screen (build 65; wired in place
+    // of the build-34 time picker, build 77)
 
-    // The top-right 现在出发 label (web) asks the native shell for a
-    // time picker: a sheet with Apple's UIDatePicker in wheel style
-    // (preferredDatePickerStyle .wheels, SDK 26.5), plus 现在出发
-    // (back to "now") and 确定. The chosen time is sent back to the
-    // web page, which recomputes every route's depart/arrive times
-    // from it (durations are unchanged estimates).
-    func presentTimePicker(current: String?) {
-        let vc = UIViewController()
-        vc.view.backgroundColor = .systemBackground
-        let picker = UIDatePicker()
-        picker.datePickerMode = .time
-        if #available(iOS 13.4, *) { picker.preferredDatePickerStyle = .wheels }
-        picker.locale = Locale(identifier: currentLang == "en" ? "en_US" : (currentLang == "zh-Hant" ? "zh_TW" : "zh_CN"))
-        if let t = current {
-            let fmt = DateFormatter()
-            fmt.dateFormat = "HH:mm"
-            if let d = fmt.date(from: t) { picker.date = d }
+    // The top-right 现在出发 label (web) asks the native shell for the
+    // search-conditions screen: a full-screen native Apple UI page
+    // (SearchConditionsViewController) with 出发 / 到达 / 首班车 /
+    // 末班车, a date+time picker, a 交通卡 / 现金 row, and 现在出发 /
+    // 完成. It replaces the old simple time-picker sheet (build 34),
+    // whose code is removed entirely below — there is now only one
+    // picker reachable.
+    // The chosen mode/date/time/payment comes back through onDone.
+    // NOTE: window.metroApp.applySearchConditions(...) exists on the
+    // web side (build 77) and handles now/depart/arrive/first/last
+    // plus payment and date. The old setDepartTime(t) fallback was
+    // removed — it would have treated an arrive-by time as a
+    // departure time. The payment choice never changes fares (no
+    // verified card-vs-cash discount rule) and is remembered locally.
+    func presentSearchConditions(current: String?) {
+        let vc = SearchConditionsViewController()
+        vc.labels = [
+            "search.title": L("search.title"),
+            "tr.depart": L("tr.depart"),
+            "tr.arrive": L("tr.arrive"),
+            "search.first": L("search.first"),
+            "search.last": L("search.last"),
+            "search.card": L("search.card"),
+            "search.cash": L("search.cash"),
+            "search.applepay": L("search.applepay"),
+            "search.applepay.unavailable.title": L("search.applepay.unavailable.title"),
+            "search.applepay.unavailable.message": L("search.applepay.unavailable.message"),
+            "tr.departNow": L("tr.departNow"),
+            "time.done": L("time.done"),
+        ]
+        vc.accent = accentColor()
+        if let savedMode = UserDefaults.standard.string(forKey: "metro-search-mode"),
+           ["depart", "arrive", "first", "last"].contains(savedMode) {
+            vc.initialMode = savedMode
         }
-        picker.translatesAutoresizingMaskIntoConstraints = false
-        vc.view.addSubview(picker)
-
-        let nowButton = UIButton(type: .system)
-        nowButton.setTitle(L("tr.departNow"), for: .normal)
-        nowButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
-        nowButton.setTitleColor(accentDark(), for: .normal)
-        nowButton.addTarget(self, action: #selector(timePickerNow), for: .touchUpInside)
-        nowButton.translatesAutoresizingMaskIntoConstraints = false
-        vc.view.addSubview(nowButton)
-
-        let doneButton = UIButton(type: .system)
-        doneButton.setTitle(L("time.confirm"), for: .normal)
-        doneButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
-        doneButton.setTitleColor(accentDark(), for: .normal)
-        doneButton.addTarget(self, action: #selector(timePickerDone(_:)), for: .touchUpInside)
-        doneButton.translatesAutoresizingMaskIntoConstraints = false
-        vc.view.addSubview(doneButton)
-        // The picker is found by tag when 确定 is tapped.
-        picker.tag = 7701
-
-        NSLayoutConstraint.activate([
-            nowButton.leadingAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
-            nowButton.topAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            doneButton.trailingAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            doneButton.topAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            picker.leadingAnchor.constraint(equalTo: vc.view.leadingAnchor),
-            picker.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor),
-            picker.topAnchor.constraint(equalTo: nowButton.bottomAnchor, constant: 8),
-            picker.bottomAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
-        ])
-
-        if let sheet = vc.sheetPresentationController {
-            sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
+        vc.initialDate = dateFromDepartTime(current) ?? Date()
+        if let savedPay = UserDefaults.standard.string(forKey: "metro-payment"),
+           ["card", "cash", "applepay"].contains(savedPay) {
+            vc.initialPayment = savedPay
         }
+        vc.localeIdentifier = currentLang == "en" ? "en_US" : (currentLang == "zh-Hant" ? "zh_TW" : "zh_CN")
+        vc.onDone = { [weak self] dict in
+            guard let self = self else { return }
+            if let mode = dict["mode"] as? String {
+                UserDefaults.standard.set(mode, forKey: "metro-search-mode")
+            }
+            if let payment = dict["payment"] as? String {
+                UserDefaults.standard.set(payment, forKey: "metro-payment")
+            }
+            // Forward the full conditions (incl. payment) to the web
+            // through applySearchConditions, guarded so this is a
+            // no-op until the web receiver lands (same guard pattern
+            // as applyDeepLink). The web stores c.payment; payment
+            // never changes fares.
+            if let mode = dict["mode"] as? String,
+               let date = dict["date"] as? String,
+               let time = dict["time"] as? String,
+               let payment = dict["payment"] as? String {
+                let now = dict["now"] as? Bool == true
+                let js = "if(window.metroApp && window.metroApp.applySearchConditions){window.metroApp.applySearchConditions({mode:\(self.jsString(mode)),date:\(self.jsString(date)),time:\(self.jsString(time)),payment:\(self.jsString(payment)),now:\(now)})}"
+                self.webView.evaluateJavaScript(js, completionHandler: nil)
+            }
+        }
+        vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)
     }
 
-    @objc func timePickerNow() {
-        dismiss(animated: true)
-        webView.evaluateJavaScript("window.metroApp && window.metroApp.setDepartTime(null)", completionHandler: nil)
-    }
-
-    @objc func timePickerDone(_ sender: UIButton) {
-        guard let vc = presentedViewController,
-              let picker = vc.view.viewWithTag(7701) as? UIDatePicker else {
-            dismiss(animated: true)
-            return
-        }
+    // Parse the web's departTime ("HH:mm") into today's date at that
+    // time, for the Search Conditions picker's initial date.
+    private func dateFromDepartTime(_ t: String?) -> Date? {
+        guard let t = t, !t.isEmpty else { return nil }
         let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "en_US_POSIX")
         fmt.dateFormat = "HH:mm"
-        let t = fmt.string(from: picker.date)
-        dismiss(animated: true)
-        webView.evaluateJavaScript("window.metroApp && window.metroApp.setDepartTime('\(t)')", completionHandler: nil)
+        guard let time = fmt.date(from: t) else { return nil }
+        let cal = Calendar.current
+        let parts = cal.dateComponents([.hour, .minute], from: time)
+        return cal.date(bySettingHour: parts.hour ?? 0, minute: parts.minute ?? 0, second: 0, of: Date())
     }
 
     // MARK: - Transit app link (build 35)
@@ -1581,6 +1630,34 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         if let wx = URL(string: "weixin://"), UIApplication.shared.canOpenURL(wx) {
             UIApplication.shared.open(wx, options: [:], completionHandler: nil)
+        }
+    }
+
+    // openURL (build 77): web posts {url, fallback} via
+    // window.webkit.messageHandlers.openURL. WKWebView cannot open
+    // window.open() or custom schemes on its own, so the native side
+    // opens them. url == "app-settings" opens this app's iOS
+    // Settings page (used when location permission is denied).
+    func openExternalURL(dict: [String: Any]) {
+        let urlStr = dict["url"] as? String ?? ""
+        let fallbackStr = dict["fallback"] as? String
+        if urlStr == "app-settings" {
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+            return
+        }
+        if let url = URL(string: urlStr),
+           url.scheme == "http" || url.scheme == "https" {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            return
+        }
+        if let url = URL(string: urlStr), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            return
+        }
+        if let fb = fallbackStr, let url = URL(string: fb) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }
 
@@ -2058,7 +2135,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "timePicker",
                   let dict = message.body as? [String: Any] {
             let current = dict["departTime"] as? String
-            presentTimePicker(current: current)
+            presentSearchConditions(current: current)
         } else if message.name == "openTransitApp" {
             openTransitApp()
         } else if message.name == "openRideCode",
@@ -2072,9 +2149,148 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             } else {
                 requestLocationPermission()
             }
+        } else if message.name == "openURL",
+                  let dict = message.body as? [String: Any] {
+            openExternalURL(dict: dict)
         } else if message.name == "liveActivity",
                   let dict = message.body as? [String: Any] {
             handleLiveActivity(dict)
+        } else if message.name == "clearCache" {
+            clearWebCache()
+        } else if message.name == "addShortcut",
+                  let dict = message.body as? [String: Any],
+                  let sid = dict["id"] as? String,
+                  SubwayShortcutID(rawValue: sid) != nil {
+            // Siri Shortcuts (user 2026-11-18, Settings -> Siri 快捷指令):
+            // the web posts {id} when the user taps a shortcut row.
+            // An unknown id falls through here and is ignored.
+            presentShortcutSetup(for: sid)
+        }
+    }
+
+    // Clear cache (user 2026-11-18, Settings General -> Clear cache):
+    // the web posts to the "clearCache" message handler. Clears the web
+    // view's HTTP disk/memory cache and the cached briefing (localStorage
+    // 'metro-briefing') only. It does NOT touch UserDefaults preferences
+    // (city, language, theme, search mode/payment), the web localStorage
+    // search history ('metro-search-history'), city/language mirrors, or
+    // the bundled offline files. A full
+    // WKWebsiteDataStore.allWebsiteDataTypes() wipe is deliberately NOT
+    // used: it would also erase localStorage, including search history.
+    // No web callback is wired: no cacheCleared receiver exists in
+    // web/template.html (checked 2026-11-18), so the web shows its own
+    // confirmation after posting. The briefing re-seeds from the inlined
+    // BRIEFING_SEED and re-fetches on next load.
+    func clearWebCache() {
+        // HTTP disk + memory cache.
+        WKWebsiteDataStore.default().removeData(
+            ofTypes: [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache],
+            modifiedSince: .distantPast,
+            completionHandler: {})
+        // Briefing cache only (localStorage 'metro-briefing'); leave
+        // metro-city / metro-lang / metro-search-history untouched.
+        webView.evaluateJavaScript("try{localStorage.removeItem('metro-briefing');}catch(e){}", completionHandler: nil)
+    }
+
+    // MARK: - Siri Shortcuts + subwaymotion:// deep links
+    // (user 2026-11-18, Settings -> Siri 快捷指令). The 6 intents in
+    // AppIntents.swift open the app at a subwaymotion:// URL; the URLs
+    // arrive here from SceneDelegate (warm open) or from the cold-launch
+    // urlContexts (stashed until the page loads). Routing reuses the
+    // existing native/web entry points only — no new navigation path.
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        webPageReady = true
+        flushPendingDeepLink()
+    }
+
+    func handleDeepLink(_ url: URL) {
+        guard url.scheme == "subwaymotion" else { return }
+        guard webPageReady else { pendingDeepLinkURL = url; return }
+        applyDeepLink(url)
+    }
+
+    // Apply a stashed deep link once the page is ready. The Vue app
+    // mounts during page parse, so window.metroApp is normally present
+    // at didFinish; retry briefly if it is not there yet.
+    func flushPendingDeepLink(attempt: Int = 0) {
+        guard let url = pendingDeepLinkURL else { return }
+        webView.evaluateJavaScript("!!(window.metroApp && window.metroApp.setTab)") { [weak self] result, _ in
+            guard let self = self else { return }
+            if (result as? Bool) == true {
+                self.pendingDeepLinkURL = nil
+                self.applyDeepLink(url)
+            } else if attempt < 10 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                    self?.flushPendingDeepLink(attempt: attempt + 1)
+                }
+            } else {
+                // Give up silently; the app still opens normally.
+                self.pendingDeepLinkURL = nil
+            }
+        }
+    }
+
+    func applyDeepLink(_ url: URL) {
+        guard url.scheme == "subwaymotion", let host = url.host else { return }
+        let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        func q(_ name: String) -> String? { query.first(where: { $0.name == name })?.value }
+        switch host {
+        case "open":
+            setWebTab(index: 0)
+        case "first-train", "last-train":
+            setWebTab(index: 3)
+            // The web's applySearchConditions receiver (added by the
+            // template agent for the Search Conditions screen) shows
+            // first/last trains; guarded so this is a no-op until it
+            // lands — the timetable tab is still shown. Date is left
+            // out: the receiver defaults it to today.
+            let mode = host == "first-train" ? "first" : "last"
+            var js = "if(window.metroApp && window.metroApp.applySearchConditions){window.metroApp.applySearchConditions({mode:'\(mode)'"
+            if let station = q("station"), !station.isEmpty { js += ",station:\(jsString(station))" }
+            js += "})}"
+            webView.evaluateJavaScript(js, completionHandler: nil)
+        case "route":
+            setWebTab(index: 0)
+            if let from = q("from"), !from.isEmpty {
+                webView.evaluateJavaScript("window.metroApp && window.metroApp.setNativeQuery('from', \(jsString(from)))", completionHandler: nil)
+            }
+            if let to = q("to"), !to.isEmpty {
+                webView.evaluateJavaScript("window.metroApp && window.metroApp.setNativeQuery('to', \(jsString(to)))", completionHandler: nil)
+            }
+            // doSearch() resolves the names via resolveStation(); if a
+            // name does not match a station the web shows its own error.
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.doSearch()", completionHandler: nil)
+        case "nearby":
+            setWebTab(index: 0)
+            requestNearbyLocation()
+        case "timetable":
+            setWebTab(index: 3)
+            if let line = q("line"), !line.isEmpty {
+                // Filter the timetable line list to the named line.
+                webView.evaluateJavaScript("window.metroApp && (window.metroApp.ttQuery = \(jsString(line)))", completionHandler: nil)
+            }
+        default:
+            break
+        }
+    }
+
+    // Siri Shortcuts setup (Settings -> Siri 快捷指令 -> tap a row).
+    // NOTE on the system Add-to-Siri sheet: INUIAddVoiceShortcutViewController
+    // (IntentsUI) only accepts an INShortcut built from an INIntent or an
+    // NSUserActivity — an AppIntent cannot be wrapped in one, so that sheet
+    // cannot present these shortcuts. Instead, donate the intent (so Siri /
+    // Spotlight can suggest it) and open the Shortcuts app, where the app's
+    // shortcuts are listed under Subway tools (AppShortcutsProvider) and the
+    // user can add one and record a voice phrase. Unknown ids never reach
+    // here (the message branch validates the id first).
+    func presentShortcutSetup(for id: String) {
+        guard let shortcut = SubwayShortcutID(rawValue: id) else { return }
+        Task {
+            try? await shortcut.makeIntent().donate()
+        }
+        if let url = URL(string: "shortcuts://") {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }
 

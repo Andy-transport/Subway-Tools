@@ -37,9 +37,13 @@ mkdir -p build/Payload/Metro.app/web
 # deployment target), and every use is guarded `if #available(iOS 16.1, *)`.
 # TripAttributes.swift is compiled into the app too, so AppDelegate can
 # start/update the Live Activity.
+# AppIntents.swift is compiled into the app too, so the 6 Siri Shortcuts
+# (AppIntents.swift, user 2026-11-18) are in the binary and the
+# AppShortcutsProvider is discovered. AppIntents exists on iOS 16.0+,
+# so it is linked normally, not weak.
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library \
-  -framework UIKit -framework WebKit -Xlinker -weak_framework -Xlinker ActivityKit \
-  -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/LiveActivity/TripAttributes.swift
+  -framework UIKit -framework WebKit -framework AppIntents -Xlinker -weak_framework -Xlinker ActivityKit \
+  -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/AppIntents.swift app/LiveActivity/TripAttributes.swift
 
 echo "== 2b. Live Activity widget extension REMOVED (user 2026-11-18) =="
 # The Live Activity widget extension (LiveActivityWidget.appex) is

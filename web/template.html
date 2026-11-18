@@ -90,6 +90,7 @@
 			window.CQ_LATLNG = /*__CQ_LATLNG__*/{};
 			window.CC_LATLNG = /*__CC_LATLNG__*/{};
 			window.BRIEFING_SEED = /*__BRIEFING_SEED__*/{};
+			window.TRAINS_SEED = /*__TRAINS_SEED__*/{};
 			window.TT_ICON = "data:image/png;base64,/*__TT_ICON__*/";
 		</script>
 	</head>
@@ -164,7 +165,7 @@
 		}
 
 		.sideMenuTxt {
-			color: #003380;
+			color: #000;
 			font-size: 16px;
 			text-align: center;
 			font-weight: bold;
@@ -296,9 +297,9 @@
 			padding: 5px 12px 5px 5px;
 			border-radius: 999px;
 		}
-		#brandChip img { width: 26px; height: 26px; border-radius: 50%; display: block; }
-		#brandChip .bj-city { font-size: 15px; font-weight: 700; color: #003380; }
-		#brandChip .bj-chev { width: 14px; height: 14px; color: #003380; opacity: 0.7; }
+		#brandChip img { width: 26px; height: 26px; border-radius: 50%; display: block; object-fit: contain; }
+		#brandChip .bj-city { font-size: 15px; font-weight: 700; color: #000; }
+		#brandChip .bj-chev { width: 14px; height: 14px; color: #000; opacity: 0.7; }
 
 		#searchPill {
 			position: fixed;
@@ -310,7 +311,7 @@
 			gap: 6px;
 			padding: 9px 14px;
 			border-radius: 999px;
-			color: #003380;
+			color: #000;
 			font-size: 14px;
 			font-weight: 600;
 		}
@@ -321,21 +322,21 @@
 		   behind into a pink tint. Real Liquid Glass is frosted near-opaque
 		   white, strong blur, low saturation boost, crisp specular rim. */
 		/* Shenyang theme: gold #D4B686 (user's gold). Beijing keeps blue. */
-		.sy-theme #brandChip, .sy-theme #searchPill { color: #8a6d2b; }
+
 		.sy-theme .tr-search { background: linear-gradient(180deg, rgba(212, 182, 134, 0.9), rgba(180, 148, 90, 0.9)) !important; }
 		.sy-theme .tr-pref button.on { background: #b08d57; }
 		.sy-theme .sp-row .sp-line { background: #d4b686; }
 		/* Shanghai theme: brand red #E60012 (user has not chosen a color
 		   yet - red is Shanghai Metro's brand color, matching the red
 		   logo). Beijing keeps blue, Shenyang keeps gold. */
-		.sh-theme #brandChip, .sh-theme #searchPill { color: #a8000c; }
+
 		.sh-theme .tr-search { background: linear-gradient(180deg, rgba(230, 0, 18, 0.9), rgba(168, 0, 12, 0.9)) !important; }
 		.sh-theme .tr-pref button.on { background: #e60012; }
 		.sh-theme .sp-row .sp-line { background: #e60012; }
 		/* Multi-route options: 4 tabs + route cards */
 		.tr-tabs { display: flex; gap: 4px; margin: 12px 16px 0; background: rgba(0,0,0,0.06); border-radius: 999px; padding: 4px; }
-		.tr-tabs button { flex: 1; border: none; background: transparent; color: #333; font-size: 15px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
-		.tr-tabs button.on { background: #fff; color: #111; box-shadow: 0 1px 4px rgba(0,0,0,0.18); }
+		.tr-tabs button { flex: 1; border: none; background: transparent; color: #000; font-size: 15px; font-weight: 600; padding: 8px 0; border-radius: 999px; }
+		.tr-tabs button.on { background: #fff; color: #000; box-shadow: 0 1px 4px rgba(0,0,0,0.18); }
 		.ropt { display: flex; gap: 10px; padding: 14px 12px; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; }
 		.ropt.sel { background: rgba(0,51,128,0.05); }
 		.ropt-num { font-size: 26px; color: #bbb; font-weight: 300; width: 26px; flex: none; padding-top: 4px; }
@@ -344,6 +345,17 @@
 		.ropt-time span { font-size: 14px; font-weight: 500; color: #555; margin-left: 6px; }
 		.ropt-meta { font-size: 14px; color: #333; margin-top: 3px; }
 		.ropt-chain { display: flex; align-items: center; gap: 5px; margin-top: 7px; flex-wrap: wrap; font-size: 13px; color: #555; }
+		.ropt-transfer { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+		.ropt-walk { font-size: 11px; color: #b26a00; background: rgba(178,106,0,0.08); border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
+		html.dark .ropt-walk { color: #e8a33d; background: rgba(232,163,61,0.12); }
+		.tr-transfer-detail { background: rgba(0,51,128,0.05); border-radius: 10px; padding: 10px 12px; margin: 6px 0; }
+		html.dark .tr-transfer-detail { background: rgba(255,255,255,0.06); }
+		.tr-td-head { font-size: 15px; font-weight: 700; color: #000; margin-bottom: 6px; }
+		html.dark .tr-td-head { color: #fff; }
+		.tr-td-lines { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+		.tr-td-arrow { color: #888; font-size: 14px; }
+		.tr-td-walk { font-size: 13px; color: #b26a00; font-weight: 600; }
+		html.dark .tr-td-walk { color: #e8a33d; }
 		.ropt-line { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 5px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; }
 		.ropt-arrow { color: #bbb; font-size: 11px; }
 		.ropt-badges { display: flex; gap: 5px; flex: none; padding-top: 6px; }
@@ -355,73 +367,73 @@
 		.tr-sug-line { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; }
 		.tr-line-pick { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; flex: none; cursor: pointer; }
 		html.dark .tr-tabs { background: rgba(255,255,255,0.08); }
-		html.dark .tr-tabs button { color: #ccc; }
+		html.dark .tr-tabs button { color: #fff; }
 		html.dark .tr-tabs button.on { background: rgba(255,255,255,0.16); color: #fff; }
 		html.dark .ropt-time { color: #f0f2f8; }
 		html.dark .ropt-meta { color: #ccc; }
 		html.dark .ropt-chain { color: #aaa; }
 		html.dark .ropt.sel { background: rgba(255,255,255,0.06); }
 		/* Shenyang gold theme: every blue accent -> gold (Beijing stays blue) */
-		.sy-theme .tr-city { color: #8a6d2b !important; }
-		.sy-theme .tr-swap { color: #8a6d2b; border-color: rgba(180,148,90,0.35); }
-		.sy-theme .tr-tabs button { color: #8a6d2b; }
+
+		.sy-theme .tr-swap { border-color: rgba(180,148,90,0.35); }
+
 		.sy-theme .tr-tabs button.on { background: #b08d57; color: #fff; }
 		/* Shanghai red theme: every blue accent -> red (Beijing stays blue) */
-		.sh-theme .tr-city { color: #a8000c !important; }
-		.sh-theme .tr-swap { color: #a8000c; border-color: rgba(230,0,18,0.35); }
-		.sh-theme .tr-tabs button { color: #a8000c; }
+
+		.sh-theme .tr-swap { border-color: rgba(230,0,18,0.35); }
+
 		.sh-theme .tr-tabs button.on { background: #e60012; color: #fff; }
 		/* Harbin red theme: every blue accent -> Harbin brand red #C00030 (user: 主题色也是红色) */
-		.hb-theme .tr-city { color: #8a0020 !important; }
-		.hb-theme .tr-swap { color: #8a0020; border-color: rgba(192,0,48,0.35); }
-		.hb-theme .tr-tabs button { color: #8a0020; }
+
+		.hb-theme .tr-swap { border-color: rgba(192,0,48,0.35); }
+
 		.hb-theme .tr-tabs button.on { background: #c00030; color: #fff; }
 		/* Dalian theme: Dalian Metro brand blue #0D579A (sampled from the
 		   official logo). Darker #0a4273 for text accents. Beijing keeps blue,
 		   Shenyang keeps gold, Shanghai keeps red, Harbin keeps red. */
-		.dl-theme #brandChip, .dl-theme #searchPill { color: #0a4273; }
+
 		.dl-theme .tr-search { background: linear-gradient(180deg, rgba(13, 87, 154, 0.9), rgba(10, 66, 115, 0.9)) !important; }
 		.dl-theme .tr-pref button.on { background: #0d579a; }
 		.dl-theme .sp-row .sp-line { background: #0d579a; }
-		.dl-theme .tr-city { color: #0a4273 !important; }
-		.dl-theme .tr-swap { color: #0a4273; border-color: rgba(13,87,154,0.35); }
-		.dl-theme .tr-tabs button { color: #0a4273; }
+
+		.dl-theme .tr-swap { border-color: rgba(13,87,154,0.35); }
+
 		.dl-theme .tr-tabs button.on { background: #0d579a; color: #fff; }
 		/* Jinhua theme: brand dark red #D8273D (Wikipedia Template:金华轨道交通颜色, code JYD). Darker #A81E30 for text accents. */
-		.jh-theme #brandChip, .jh-theme #searchPill { color: #a81e30; }
+
 		.jh-theme .tr-search { background: linear-gradient(180deg, rgba(216, 39, 61, 0.9), rgba(168, 30, 48, 0.9)) !important; }
 		.jh-theme .tr-pref button.on { background: #d8273d; }
 		.jh-theme .sp-row .sp-line { background: #d8273d; }
-		.jh-theme .tr-city { color: #a81e30 !important; }
-		.jh-theme .tr-swap { color: #a81e30; border-color: rgba(216,39,61,0.35); }
-		.jh-theme .tr-tabs button { color: #a81e30; }
+
+		.jh-theme .tr-swap { border-color: rgba(216,39,61,0.35); }
+
 		.jh-theme .tr-tabs button.on { background: #d8273d; color: #fff; }
 		/* Changzhou theme: brand red #CD5C5C (Wikipedia Template:常州地铁颜色, code 1). Darker #A04848 for text accents. */
-		.cz-theme #brandChip, .cz-theme #searchPill { color: #a04848; }
+
 		.cz-theme .tr-search { background: linear-gradient(180deg, rgba(205, 92, 92, 0.9), rgba(160, 72, 72, 0.9)) !important; }
 		.cz-theme .tr-pref button.on { background: #cd5c5c; }
 		.cz-theme .sp-row .sp-line { background: #cd5c5c; }
-		.cz-theme .tr-city { color: #a04848 !important; }
-		.cz-theme .tr-swap { color: #a04848; border-color: rgba(205,92,92,0.35); }
-		.cz-theme .tr-tabs button { color: #a04848; }
+
+		.cz-theme .tr-swap { border-color: rgba(205,92,92,0.35); }
+
 		.cz-theme .tr-tabs button.on { background: #cd5c5c; color: #fff; }
 		/* Chongqing theme: CRT green #0A814B (logo green; median #0F7F4C). Darker #076138 for text accents. */
-		.cq-theme #brandChip, .cq-theme #searchPill { color: #076138; }
+
 		.cq-theme .tr-search { background: linear-gradient(180deg, rgba(10, 129, 75, 0.9), rgba(7, 97, 56, 0.9)) !important; }
 		.cq-theme .tr-pref button.on { background: #0a814b; }
 		.cq-theme .sp-row .sp-line { background: #0a814b; }
-		.cq-theme .tr-city { color: #076138 !important; }
-		.cq-theme .tr-swap { color: #076138; border-color: rgba(10,129,75,0.35); }
-		.cq-theme .tr-tabs button { color: #076138; }
+
+		.cq-theme .tr-swap { border-color: rgba(10,129,75,0.35); }
+
 		.cq-theme .tr-tabs button.on { background: #0a814b; color: #fff; }
 		/* Changchun theme: Line 1 red #E50011 (Wikipedia Template: 长春轨道交通颜色, code 1; no separate system brand colour is published - see NOTES.md). Darker #B3000D for text accents. */
-		.cc-theme #brandChip, .cc-theme #searchPill { color: #b3000d; }
+
 		.cc-theme .tr-search { background: linear-gradient(180deg, rgba(229, 0, 17, 0.9), rgba(179, 0, 13, 0.9)) !important; }
 		.cc-theme .tr-pref button.on { background: #e50011; }
 		.cc-theme .sp-row .sp-line { background: #e50011; }
-		.cc-theme .tr-city { color: #b3000d !important; }
-		.cc-theme .tr-swap { color: #b3000d; border-color: rgba(229,0,17,0.35); }
-		.cc-theme .tr-tabs button { color: #b3000d; }
+
+		.cc-theme .tr-swap { border-color: rgba(229,0,17,0.35); }
+
 		.cc-theme .tr-tabs button.on { background: #e50011; color: #fff; }
 
 		/* Native app (build 33): the route-sort tabs are a native
@@ -441,18 +453,18 @@
 		   (.tr-suggest) stays web and appears below the native card. */
 		.native-app .tr-fields, .native-app .tr-search { visibility: hidden !important; border-color: transparent !important; box-shadow: none !important; background: transparent !important; }
 		.native-app .tr-tabs { visibility: hidden !important; }
-		.sy-theme .sp-cancel { color: #8a6d2b; }
-		.sy-theme .more-row { color: #8a6d2b; }
-		.sy-theme .sp-pick { color: #8a6d2b; }
-		.sy-theme .tab.active { color: #8a6d2b; }
-		.sy-theme #verInfoDiv { color: #8a6d2b; }
+
+
+
+
+
 		.sy-theme .ropt.sel { background: rgba(212,182,134,0.12); }
 		.sy-theme .ropt-badge.few { background: #fdf3d7; color: #8a6d2b; }
-		.sh-theme .sp-cancel { color: #a8000c; }
-		.sh-theme .more-row { color: #a8000c; }
-		.sh-theme .sp-pick { color: #a8000c; }
-		.sh-theme .tab.active { color: #a8000c; }
-		.sh-theme #verInfoDiv { color: #a8000c; }
+
+
+
+
+
 		.sh-theme .ropt.sel { background: rgba(230,0,18,0.08); }
 		.sh-theme .ropt-badge.few { background: #fde8ea; color: #a8000c; }
 		#brandChip, #searchPill {
@@ -461,9 +473,21 @@
 			backdrop-filter: blur(28px) saturate(140%);
 			border: 1px solid rgba(255, 255, 255, 0.85);
 			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.4), inset 0 0 0 0.5px rgba(255, 255, 255, 0.6);
-			color: #003380;
+			color: #000;
 		}
 
+		.map-strip { position: fixed; left: 12px; right: 12px; bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 99900; }
+		.map-strip-row { display: flex; gap: 8px; overflow-x: auto; padding: 6px 2px; scrollbar-width: none; }
+		.map-strip-row::-webkit-scrollbar { display: none; }
+		.map-strip-chip { flex: none; background: rgba(255,255,255,0.92); color: #000; border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.15); white-space: nowrap; cursor: pointer; }
+		html.dark .map-strip-chip { background: rgba(44,44,46,0.92); color: #fff; }
+		.map-strip-none { background: rgba(255,255,255,0.92); color: #000; border-radius: 12px; padding: 10px 14px; font-size: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+		html.dark .map-strip-none { background: rgba(44,44,46,0.92); color: #fff; }
+		.map-loc-msg { position: fixed; left: 12px; right: 12px; bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 99900; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.95); color: #000; border-radius: 12px; padding: 10px 12px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
+		html.dark .map-loc-msg { background: rgba(44,44,46,0.95); color: #fff; }
+		.map-loc-msg span { flex: 1; }
+		.map-loc-msg button { border: none; background: #007aff; color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; }
+		.map-loc-msg button.map-loc-x { background: transparent; color: #888; padding: 4px 6px; }
 		#tabBar {
 			position: fixed;
 			left: 0;
@@ -494,7 +518,7 @@
 			font-size: 10px;
 			font-weight: 500;
 		}
-		.tab.active { color: #003380; }
+		.tab.active { color: #000; }
 		.tab svg { width: 25px; height: 25px; }
 
 		#stationPanel {
@@ -535,10 +559,10 @@
 			-webkit-user-select: text;
 		}
 		.sp-clear { border: none; background: rgba(0,0,0,0.08); color: #666; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; line-height: 1; padding: 0; flex: none; }
-		.sp-cancel { border: none; background: transparent; color: #003380; font-size: 16px; padding: 8px 4px; flex: none; }
+		.sp-cancel { border: none; background: transparent; color: #000; font-size: 16px; padding: 8px 4px; flex: none; }
 		.sp-count { padding: 6px 20px 2px; font-size: 12px; color: #888; }
 		.lang-en .sp-py, .lang-en .tr-sug-py { display: none; }
-		.sp-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 12px 12px; }
+		.sp-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 12px 120px; }
 		.sp-row { padding: 12px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
 		.sp-name { font-size: 17px; color: #111; }
 		.sp-py { font-size: 13px; color: #888; text-transform: capitalize; margin-top: 2px; }
@@ -591,49 +615,70 @@
 		html.dark .more-city-row { color: #fff; border-bottom-color: rgba(84,84,88,0.36); }
 		.more-city-name { display: flex; align-items: center; gap: 10px; }
 		.more-city-logo { width: 26px; height: 26px; border-radius: 50%; object-fit: contain; flex: none; }
+		.more-row-icon { width: 28px; height: 28px; border-radius: 7px; flex: none; margin-right: 10px; }
 		/* 'More cities' chip grid (build 65): supported cities are tappable
 		   chips in the theme colour; not-yet-supported cities are greyed out. */
 		.more-city-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 2px 6px; }
-		.more-city-chip { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(0,51,128,0.4); color: #003380; font-size: 14px; cursor: pointer; }
+		.more-city-chip { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(0,51,128,0.4); color: #000; font-size: 14px; cursor: pointer; }
 		.more-city-chip.on { background: #003380; border-color: #003380; color: #fff; font-weight: 700; }
-		.sy-theme .more-city-chip { border-color: rgba(176,141,87,0.55); color: #8a6d2b; }
+		.sy-theme .more-city-chip { border-color: rgba(176,141,87,0.55); }
 		.sy-theme .more-city-chip.on { background: #b08d57; border-color: #b08d57; color: #fff; }
-		.sh-theme .more-city-chip { border-color: rgba(230,0,18,0.45); color: #e60012; }
+		.sh-theme .more-city-chip { border-color: rgba(230,0,18,0.45); }
 		.sh-theme .more-city-chip.on { background: #e60012; border-color: #e60012; color: #fff; }
-		.hb-theme .more-city-chip { border-color: rgba(192,0,48,0.45); color: #c00030; }
+		.hb-theme .more-city-chip { border-color: rgba(192,0,48,0.45); }
 		.hb-theme .more-city-chip.on { background: #c00030; border-color: #c00030; color: #fff; }
-		.dl-theme .more-city-chip { border-color: rgba(13,87,154,0.45); color: #0d579a; }
+		.dl-theme .more-city-chip { border-color: rgba(13,87,154,0.45); }
 		.dl-theme .more-city-chip.on { background: #0d579a; border-color: #0d579a; color: #fff; }
-		.more-city-chip.soon { border-color: rgba(0,0,0,0.12); color: #9a9a9a; background: rgba(0,0,0,0.04); }
+		.more-city-chip.soon { border-color: rgba(0,0,0,0.12); color: #9a9a9a; background: rgba(0,0,0,0.04); display: inline-flex; align-items: center; gap: 6px; }
+		.more-soon-logo { width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.10); color: #8e8e93; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+		html.dark .more-city-chip.soon { border-color: rgba(255,255,255,0.14); color: #8e8e93; background: rgba(255,255,255,0.05); }
+		html.dark .more-soon-logo { background: rgba(255,255,255,0.14); color: #8e8e93; }
 		.more-soon-note { padding: 6px 2px 8px; font-size: 13px; color: #888; }
-		html.dark .more-city-chip { border-color: rgba(255,255,255,0.3); color: #9cc2ff; }
+		html.dark .more-city-chip { border-color: rgba(255,255,255,0.3); color: #fff; }
 		html.dark .more-city-chip.on { background: #9cc2ff; border-color: #9cc2ff; color: #10203f; }
-		html.dark .sy-theme .more-city-chip { border-color: rgba(212,182,134,0.5); color: #d4b686; }
+		html.dark .sy-theme .more-city-chip { border-color: rgba(212,182,134,0.5); }
 		html.dark .sy-theme .more-city-chip.on { background: #b08d57; border-color: #b08d57; color: #fff; }
-		html.dark .sh-theme .more-city-chip { border-color: rgba(255,138,149,0.5); color: #ff8a95; }
+		html.dark .sh-theme .more-city-chip { border-color: rgba(255,138,149,0.5); }
 		html.dark .sh-theme .more-city-chip.on { background: #e60012; border-color: #e60012; color: #fff; }
-		html.dark .hb-theme .more-city-chip { border-color: rgba(255,138,149,0.5); color: #ff8a95; }
+		html.dark .hb-theme .more-city-chip { border-color: rgba(255,138,149,0.5); }
 		html.dark .hb-theme .more-city-chip.on { background: #c00030; border-color: #c00030; color: #fff; }
-		html.dark .dl-theme .more-city-chip { border-color: rgba(156,194,255,0.5); color: #9cc2ff; }
+		html.dark .dl-theme .more-city-chip { border-color: rgba(156,194,255,0.5); }
 		html.dark .dl-theme .more-city-chip.on { background: #0d579a; border-color: #0d579a; color: #fff; }
 		html.dark .more-city-chip.soon { border-color: rgba(255,255,255,0.12); color: #666; background: rgba(255,255,255,0.04); }
 		html.dark .more-soon-note { color: #999; }
-		.more-check { color: #003380; font-weight: 800; }
+		.more-check { color: #000; font-weight: 800; }
 		.more-chev { color: #c7c7cc; font-size: 20px; font-weight: 400; line-height: 1; flex: none; }
 		.more-row-value { font-size: 15px; font-weight: 400; color: #8e8e93; }
 		.more-row > span:first-of-type { flex: 1; }
 		.more-city-row .more-city-name { flex: 1; }
 		.more-city-row .more-check { margin-left: 8px; }
 		.more-sub-head { display: flex; align-items: center; gap: 12px; padding: 4px 0 14px; }
-		.more-sub-back { background: none; border: none; color: #007aff; font-size: 17px; font-weight: 400; padding: 0; cursor: pointer; flex: none; }
+		.more-sub-back { width: 34px; height: 34px; border-radius: 50%; background: rgba(120, 120, 128, 0.24); border: none; color: #000; font-size: 22px; font-weight: 600; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; flex: none; }
+		html.dark .more-sub-back { background: rgba(255, 255, 255, 0.16); color: #fff; }
 		.more-sub-title { font-size: 28px; font-weight: 700; color: #000; }
 		html.dark .more-sub-title { color: #fff; }
-		html.dark .more-check { color: #7db3ff; }
+		.more-sub { padding-bottom: 120px; }
+		/* Settings sub-view enter animation (iOS push feel, build 77):
+		   the new view slides in from the right + fades each time it
+		   appears (v-show re-runs the keyframe). The main view slides
+		   in from the left when returning from a sub-view. */
+		.more-sub { animation: moreSubIn .35s cubic-bezier(.32,.72,0,1); }
+		@keyframes moreSubIn { from { transform: translateX(48px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+		.more-main { animation: moreMainIn .35s cubic-bezier(.32,.72,0,1); }
+		@keyframes moreMainIn { from { transform: translateX(-24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+		/* Row press feedback (iOS table-cell highlight). */
+		.more-row:active, .more-city-row:active { background: rgba(0,0,0,0.06); }
+		html.dark .more-row:active, html.dark .more-city-row:active { background: rgba(255,255,255,0.08); }
+		html.dark .more-check { color: #fff; }
 		.more-credit { text-align: center; font-size: 12px; color: #aaa; padding: 8px 0 0; }
 		.more-new-row { display: flex; align-items: flex-start; gap: 8px; padding: 9px 2px; font-size: 14px; color: #333; border-bottom: 1px solid rgba(0,0,0,0.06); }
 		.more-new-row:last-child { border-bottom: none; }
 		.more-new-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: #003380; margin-top: 6px; }
 		.more-new-sub { font-weight: 700; margin: 10px 0 2px; }
+		.more-new-head { display: flex; align-items: baseline; gap: 10px; padding: 6px 2px 2px; }
+		.more-new-ver { font-size: 22px; font-weight: 700; color: #000; }
+		.more-new-date { font-size: 13px; color: #8e8e93; }
+		html.dark .more-new-ver { color: #fff; }
 		html.dark .more-new-sub { color: #eee; }
 		html.dark .more-new-row { color: #ddd; border-color: rgba(255,255,255,0.08); }
 		.more-up-row { display: flex; align-items: center; gap: 10px; padding: 10px 2px; font-size: 15px; border-bottom: 1px solid rgba(0,0,0,0.06); }
@@ -644,6 +689,7 @@
 		html.dark .more-up-row { border-color: rgba(255,255,255,0.08); }
 		html.dark .more-up-name { color: #eee; }
 		.more-up-note { font-size: 12px; color: #999; line-height: 1.55; padding: 8px 2px 0; }
+		.more-section-sub { font-size: 12px; margin-top: 10px; padding-left: 4px; }
 		.more-brief-card { padding: 10px 2px; border-bottom: 1px solid rgba(0,0,0,0.06); }
 		.more-brief-card:last-child { border-bottom: none; }
 		.more-brief-head { display: flex; align-items: center; gap: 8px; }
@@ -651,6 +697,24 @@
 		.more-brief-title { font-size: 15px; font-weight: 700; color: #222; }
 		.more-brief-sum { font-size: 13px; color: #666; line-height: 1.55; margin-top: 4px; }
 		.more-brief-date { font-size: 12px; color: #aaa; margin-top: 4px; }
+		.more-brief-src { font-size: 12px; color: #aaa; margin-top: 4px; }
+		.more-search { padding: 4px 2px 10px; }
+		.more-search-input { width: 100%; box-sizing: border-box; border: 1px solid rgba(120,120,128,0.3); border-radius: 10px; background: #fff; color: #000; font-size: 15px; padding: 9px 12px; outline: none; }
+		html.dark .more-search-input { background: #1c1c1e; color: #fff; border-color: rgba(255,255,255,0.2); }
+		.more-train-row { padding: 10px 2px; border-bottom: 1px solid rgba(120,120,128,0.18); }
+		.more-train-row:last-child { border-bottom: none; }
+		.more-train-model { font-size: 15px; font-weight: 700; color: #000; }
+		html.dark .more-train-model { color: #fff; }
+		.more-train-meta { font-size: 13px; color: #666; margin-top: 2px; }
+		html.dark .more-train-meta { color: #aaa; }
+		.more-train-spec { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+		.more-siri-text { flex: 1; min-width: 0; }
+		.more-siri-name { font-size: 15px; font-weight: 600; color: #000; }
+		html.dark .more-siri-name { color: #fff; }
+		.more-siri-desc { font-size: 13px; color: #666; margin-top: 2px; }
+		html.dark .more-siri-desc { color: #aaa; }
+		.more-siri-voice { font-size: 13px; color: #007aff; margin-top: 2px; }
+		html.dark .more-siri-voice { color: #0a84ff; }
 		html.dark .more-brief-card { border-color: rgba(255,255,255,0.08); }
 		html.dark .more-brief-title { color: #eee; }
 		html.dark .more-brief-sum { color: #bbb; }
@@ -686,14 +750,14 @@
 			display: flex;
 			flex-direction: column;
 			padding-top: max(10px, env(safe-area-inset-top));
-			padding-bottom: calc(57px + env(safe-area-inset-bottom));
+			padding-bottom: calc(120px + env(safe-area-inset-bottom));
 			padding-left: env(safe-area-inset-left);
 			padding-right: env(safe-area-inset-right);
 			overflow-y: auto;
 			-webkit-overflow-scrolling: touch;
 		}
 		.tr-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 4px; }
-		.tr-city { display: flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 700; color: #003380; }
+		.tr-city { display: flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 700; color: #000; }
 		.tr-city img { width: 26px; height: 26px; border-radius: 50%; display: block; }
 		.tr-city svg { width: 14px; height: 14px; opacity: 0.7; }
 		.tr-time { font-size: 14px; color: #888; cursor: pointer; }
@@ -715,10 +779,10 @@
 		.tr-sug-name { font-size: 16px; font-weight: 600; color: #111; }
 		.tr-sug-py { font-size: 13px; color: #888; }
 		.tr-sug-hint { padding: 12px 16px; font-size: 14px; color: #888; }
-		.tr-swap { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(0, 51, 128, 0.15); background: rgba(255, 255, 255, 0.8); color: #003380; display: flex; align-items: center; justify-content: center; padding: 0; }
+		.tr-swap { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(0, 51, 128, 0.15); background: rgba(255, 255, 255, 0.8); color: #000; display: flex; align-items: center; justify-content: center; padding: 0; }
 		.tr-swap svg { width: 20px; height: 20px; }
 		.tr-pref { display: flex; gap: 8px; margin: 12px 16px 0; }
-		.tr-pref button { flex: 1; border: 1px solid rgba(0, 51, 128, 0.25); border-radius: 999px; background: rgba(255, 255, 255, 0.65); color: #003380; font-size: 15px; font-weight: 600; padding: 9px 0; }
+		.tr-pref button { flex: 1; border: 1px solid rgba(0, 51, 128, 0.25); border-radius: 999px; background: rgba(255, 255, 255, 0.65); color: #000; font-size: 15px; font-weight: 600; padding: 9px 0; }
 		.tr-pref button.on { background: #003380; border-color: #003380; color: #fff; }
 		.tr-search { margin: 14px 16px 0; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 999px; background: radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 55%), linear-gradient(180deg, rgba(0, 90, 180, 0.55), rgba(0, 51, 128, 0.55)); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); color: #fff; font-size: 17px; font-weight: 700; padding: 14px 0; box-shadow: 0 10px 28px rgba(0, 40, 100, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.65), inset 0 -1px 0 rgba(255, 255, 255, 0.25); }
 		.tr-summary { padding: 16px 20px 4px; font-size: 14px; color: #555; }
@@ -747,20 +811,27 @@
 		html.dark .tr-trip.active { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
 		.tr-virtual { display: flex; align-items: center; gap: 6px; padding: 10px 10px 0; font-size: 13px; color: #b26a00; font-weight: 600; }
 		.tr-fare { display: flex; align-items: center; gap: 6px; padding: 8px 20px 0; font-size: 13px; color: #555; font-weight: 600; }
-		.tr-transit { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 12px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
+		.tr-transit { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 12px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #000; cursor: pointer; }
 		.tr-transit img { width: 28px; height: 28px; border-radius: 7px; flex: none; display: block; }
-		.sy-theme .tr-transit { color: #8a6d2b !important; }
-		.sh-theme .tr-transit { color: #a8000c !important; }
-		html.dark .tr-transit { color: #7db3ff; }
-		html.dark .sy-theme .tr-transit { color: #d4b686; }
-		html.dark .sh-theme .tr-transit { color: #ff8a95; }
+
+
+		html.dark .tr-transit { color: #fff; }
+
+
 				/* 附近车站 (build 63): row + nearest-station list, same style as the transit rows. */
-		.tr-nearby-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #003380; cursor: pointer; }
-		.sy-theme .tr-nearby-row { color: #8a6d2b !important; }
-		.sh-theme .tr-nearby-row { color: #a8000c !important; }
-		html.dark .tr-nearby-row { color: #7db3ff; }
-		html.dark .sy-theme .tr-nearby-row { color: #d4b686; }
-		html.dark .sh-theme .tr-nearby-row { color: #ff8a95; }
+		.tr-smart { margin: 8px 0; padding: 10px 12px; background: rgba(0,51,128,0.04); border-radius: 10px; }
+		html.dark .tr-smart { background: rgba(255,255,255,0.05); }
+		.tr-smart-head { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #000; margin-bottom: 6px; }
+		.tr-smart-head img { width: 22px; height: 22px; border-radius: 6px; }
+		html.dark .tr-smart-head { color: #fff; }
+		.tr-smart-empty, .tr-smart-far, .tr-smart-noloc { font-size: 13px; color: #666; line-height: 1.5; }
+		html.dark .tr-smart-empty, html.dark .tr-smart-far, html.dark .tr-smart-noloc { color: #aaa; }
+		.tr-nearby-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 16px 0; padding: 10px 0; font-size: 14px; font-weight: 600; color: #000; cursor: pointer; }
+
+
+		html.dark .tr-nearby-row { color: #fff; }
+
+
 		.tr-nearby { margin: 8px 16px 0; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.65); }
 		html.dark .tr-nearby { background: rgba(255,255,255,0.08); }
 		.tr-nearby-item { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; font-size: 15px; font-weight: 600; color: #222; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.06); }
@@ -776,8 +847,8 @@
 		html.dark .tr-history { background: rgba(255,255,255,0.08); }
 		.tr-history-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 6px; font-size: 13px; font-weight: 700; color: #888; }
 		html.dark .tr-history-head { color: #aaa; }
-		.tr-history-head button { border: none; background: none; font-size: 13px; color: #003380; cursor: pointer; padding: 0; }
-		html.dark .tr-history-head button { color: #7db3ff; }
+		.tr-history-head button { border: none; background: none; font-size: 13px; color: #000; cursor: pointer; padding: 0; }
+		html.dark .tr-history-head button { color: #fff; }
 		.tr-history-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 15px; font-weight: 600; color: #222; cursor: pointer; border-top: 1px solid rgba(0,0,0,0.06); }
 		html.dark .tr-history-item { color: #f0f2f8; border-top-color: rgba(255,255,255,0.08); }
 		.tr-history-route { flex: 1; }
@@ -792,9 +863,7 @@
 			position: fixed;
 			inset: 0;
 			z-index: 99925;
-			background: rgba(255, 255, 255, 0.7);
-			-webkit-backdrop-filter: blur(18px) saturate(180%);
-			backdrop-filter: blur(18px) saturate(180%);
+			background: #ffffff;
 			display: flex;
 			flex-direction: column;
 			padding-top: max(10px, env(safe-area-inset-top));
@@ -804,14 +873,26 @@
 		}
 		.tab img.tt-tab-icon { width: 25px; height: 25px; opacity: .55; }
 		.tab.active img.tt-tab-icon { opacity: 1; }
-		.tt-view { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 16px; }
+		.tt-view { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 120px; }
 		.tt-list-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 		.tt-title { display: flex; align-items: center; gap: 10px; padding: 8px 0 12px; }
-		.tt-back { border: none; background: none; color: #003380; font-size: 16px; font-weight: 600; padding: 4px 0; }
+		.tt-back { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(120,120,128,0.24); color: #000; font-size: 22px; font-weight: 600; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; flex: none; }
 		.tt-station { font-size: 20px; font-weight: 700; color: #111; }
 		.tt-line { margin-bottom: 16px; }
 		.tt-line-head { margin-bottom: 6px; }
 		.tt-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 14px; font-weight: 700; }
+		/* Line badge (Beijing Line 2 station-sign reference): wide rounded
+		   rectangle in the line's own colour, number large on the left,
+		   号线 / Line X stacked on the right. Background + text colour
+		   come from the line data (inline :style); text is white except
+		   on very light line colours, where the data gives dark text. */
+		.ln-badge { display: inline-flex; align-items: center; gap: 5px; height: auto; min-width: 0; padding: 3px 8px 3px 7px; border-radius: 8px; line-height: 1.1; }
+		.ln-num { font-size: 16px; font-weight: 800; line-height: 1; }
+		.ln-txt { display: flex; flex-direction: column; line-height: 1.15; }
+		.ln-zh { font-size: 10px; font-weight: 700; }
+		.ln-en { font-size: 8px; font-weight: 600; opacity: 0.92; }
+		.tt-badge.ln-badge { padding: 4px 10px 4px 9px; border-radius: 9px; }
+		.tt-badge.ln-badge .ln-num { font-size: 18px; }
 		.tt-dir { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 15px; }
 		.tt-dir-name { flex: 1; color: #222; }
 		.tt-time { color: #555; white-space: nowrap; }
@@ -830,11 +911,11 @@
 		.tt-st-name { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 4px; }
 		html.dark .tt-st-name { color: #eee; }
 		html.dark .tt-count { color: #777; }
-		html.dark #timetablePanel { background: rgba(16, 20, 32, 0.88); }
+		html.dark #timetablePanel { background: #000000; }
 		html.dark .tt-station, html.dark .tt-dir-name, html.dark .tt-time b { color: #eee; }
 		html.dark .tt-time { color: #aaa; }
 		html.dark .tt-note { color: #777; }
-		html.dark .tt-back { color: #7aa5e8; }
+		html.dark .tt-back { background: rgba(255,255,255,0.16); color: #fff; }
 		@media (min-width: 700px) {
 			#transferPanel, #stationPanel { align-items: center; }
 			#transferPanel > *, #stationPanel > * { width: 100%; max-width: 640px; }
@@ -843,7 +924,7 @@
 		.tr-fare.warn { color: #b26a00; }
 		.tr-fare img { width: 18px; height: 18px; flex: none; }
 		.tr-virtual img { width: 18px; height: 18px; flex: none; }
-		.sp-pick { padding: 4px 20px 0; font-size: 13px; color: #003380; font-weight: 600; }
+		.sp-pick { padding: 4px 20px 0; font-size: 13px; color: #000; font-weight: 600; }
 
 		/* --- dark mode (html.dark, set by JS from system setting or the 更多 toggle) --- */
 		html.dark, html.dark body { background: #0c0f16; }
@@ -854,14 +935,14 @@
 		html.dark .glass { background: linear-gradient(180deg, rgba(38, 44, 62, 0.6), rgba(22, 27, 42, 0.42)); border-color: rgba(255, 255, 255, 0.22); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
 		html.dark #tabBar { background: rgba(28, 28, 30, 0.78); border-top-color: rgba(255, 255, 255, 0.12); }
 		html.dark .tab { color: rgba(255, 255, 255, 0.55); }
-		html.dark .tab.active { color: #9cc2ff; }
+		html.dark .tab.active { color: #fff; }
 		html.dark #brandChip, html.dark #searchPill {
 			background: linear-gradient(180deg, rgba(45, 50, 68, 0.72), rgba(28, 33, 50, 0.6));
 			border-color: rgba(255, 255, 255, 0.28);
 			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 -1px 0 rgba(255, 255, 255, 0.08);
 		}
-		html.dark #brandChip .bj-city, html.dark #brandChip .bj-chev { color: #9cc2ff; }
-		html.dark #searchPill { color: #9cc2ff; }
+
+
 		html.dark #stationPanel, html.dark #transferPanel { background: #101420; }
 		html.dark .sp-search { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
 		html.dark .sp-search input { color: #f0f2f8; }
@@ -870,14 +951,14 @@
 		html.dark .tr-value.empty { color: #888; }
 		html.dark .tr-label, html.dark .tr-time { color: #999; }
 		html.dark .sp-row, html.dark .tr-field + .tr-field, html.dark .tr-seg { border-bottom-color: rgba(255, 255, 255, 0.08); }
-		html.dark .sp-cancel { color: #9cc2ff; }
+		html.dark .sp-cancel { color: #fff; }
 		html.dark .sp-count, html.dark .sp-py, html.dark .tr-seg-n, html.dark .tr-hint { color: #999; }
-		html.dark .more-row { color: #cfe0ff; border-bottom-color: rgba(255, 255, 255, 0.08); }
+		html.dark .more-row { border-bottom-color: rgba(255, 255, 255, 0.08); }
 		html.dark .more-ver { color: rgba(255, 255, 255, 0.55); }
 		html.dark .more-theme-label { color: rgba(255, 255, 255, 0.7); }
-		html.dark .tr-city { color: #9cc2ff; }
+		html.dark .tr-city { color: #fff; }
 		html.dark .tr-summary { color: #bbb; }
-		html.dark .tr-swap { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: #9cc2ff; }
+		html.dark .tr-swap { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: #fff; }
 		html.dark .tr-seg-txt { color: #f0f2f8; }
 		html.dark .tr-input { color: #f0f2f8; }
 		html.dark .tr-input::placeholder { color: #888; }
@@ -885,7 +966,7 @@
 		html.dark .tr-sug-row + .tr-sug-row { border-top-color: rgba(255, 255, 255, 0.08); }
 		html.dark .tr-sug-name { color: #f0f2f8; }
 		html.dark .tr-sug-py, html.dark .tr-sug-hint { color: #999; }
-		html.dark .sp-pick { color: #9cc2ff; }
+		html.dark .sp-pick { color: #fff; }
 	</style>
 
 
@@ -918,6 +999,17 @@
 				<span>{{ t('map.searchStation') }}</span>
 			</div>
 
+			<div class="map-strip" v-if="tab==='map' && userLat != null">
+				<div class="map-strip-row" v-if="stripList.length">
+					<span class="map-strip-chip" v-for="s in stripList" :key="'strip' + s.n" @click="centerMapStation(s)">{{ stNameStr(s.n) }} · {{ s.distText }}</span>
+				</div>
+				<div class="map-strip-none" v-else>{{ t('map.strip.none') }}</div>
+			</div>
+			<div class="map-loc-msg" v-if="tab==='map' && userLat == null && mapLocMsg">
+				<span>{{ mapLocMsg }}</span>
+				<button @click="openExternal('app-settings')">{{ t('map.loc.settings') }}</button>
+				<button class="map-loc-x" @click="mapLocMsg = ''">✕</button>
+			</div>
 			<div id="tabBar">
 				<div class="tab" :class="{ active: tab==='transfer' }" @click="setTab('transfer')">
 					<svg viewBox="0 0 24 24" width="25" height="25"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" fill="currentColor"/></svg>
@@ -974,7 +1066,7 @@
 					<div class="sp-count">{{ ttQuery ? t('tt.foundLines', {n: ttLineFiltered.length}) : t('tt.totalLines', {n: ttLineList.length}) }}</div>
 					<div class="sp-list">
 						<div class="sp-row" v-for="ln in ttLineFiltered" :key="ln.key" @click="pickTtLine(ln.key)">
-							<div class="sp-name"><span class="tt-badge" :style="{ background: '#' + ln.color, color: ln.text }">{{ lineName(ln.name, ln.key) }}</span></div>
+							<div class="sp-name"><span class="tt-badge ln-badge" :style="{ background: '#' + ln.color, color: ln.text }"><span class="ln-num">{{ ln.key }}</span><span class="ln-txt"><span class="ln-zh">号线</span><span class="ln-en">Line {{ ln.key }}</span></span></span></div>
 							<div class="sp-py">{{ ln.loop ? t('tt.loop') : (stNameStr(ln.stations[0]) + ' — ' + stNameStr(ln.stations[ln.stations.length - 1])) }}</div>
 						</div>
 						<div class="sp-empty" v-if="ttLineFiltered.length === 0">{{ t('tt.noLines') }}</div>
@@ -982,8 +1074,8 @@
 				</div>
 				<div v-else class="tt-view">
 					<div class="tt-title">
-						<button class="tt-back" @click="ttLine=null; ttQuery=''">‹ {{ t('tt.back') }}</button>
-						<span class="tt-badge" :style="{ background: '#' + ttLineInfo.color, color: ttLineInfo.text }">{{ lineName(ttLineInfo.name, ttLineInfo.key) }}</span>
+						<button class="tt-back" @click="ttLine=null; ttQuery=''">‹</button>
+						<span class="tt-badge ln-badge" :style="{ background: '#' + ttLineInfo.color, color: ttLineInfo.text }"><span class="ln-num">{{ ttLineInfo.key }}</span><span class="ln-txt"><span class="ln-zh">号线</span><span class="ln-en">Line {{ ttLineInfo.key }}</span></span></span>
 						<span class="tt-count">{{ t('tt.stations', {n: ttLineStationFiltered.length}) }}</span>
 					</div>
 					<div class="tt-lines">
@@ -1018,14 +1110,14 @@
 						<span class="tr-dot from"></span>
 						<span class="tr-label" @click="openPick('from')">{{ t('tr.depart') }}</span>
 						<input class="tr-input" type="text" v-model="fromQuery" @focus="suggestFor = 'from'" @input="onQueryInput('from')" @blur="hideSuggest" :placeholder="t('tr.phFrom')" autocomplete="off" autocapitalize="off" spellcheck="false">
-						<span class="tr-line-pick" v-if="fromLine" :style="{ background: '#' + fromLine.color, color: fromLine.text }" @click="clearLine('from')">{{ fromLine.name }}</span>
+						<span class="tr-line-pick ln-badge" :style="{ background: '#' + fromLine.color, color: fromLine.text }" v-if="fromLine" @click="clearLine('from')"><span class="ln-num">{{ fromLine.key }}</span><span class="ln-txt"><span class="ln-zh">号线</span><span class="ln-en">Line {{ fromLine.key }}</span></span></span>
 						<button class="tr-clear" v-if="fromQuery" @click="clearStation('from')">✕</button>
 					</div>
 					<div class="tr-field">
 						<span class="tr-dot to"></span>
 						<span class="tr-label" @click="openPick('to')">{{ t('tr.arrive') }}</span>
 						<input class="tr-input" type="text" v-model="toQuery" @focus="suggestFor = 'to'" @input="onQueryInput('to')" @blur="hideSuggest" :placeholder="t('tr.phTo')" autocomplete="off" autocapitalize="off" spellcheck="false">
-						<span class="tr-line-pick" v-if="toLine" :style="{ background: '#' + toLine.color, color: toLine.text }" @click="clearLine('to')">{{ toLine.name }}</span>
+						<span class="tr-line-pick ln-badge" :style="{ background: '#' + toLine.color, color: toLine.text }" v-if="toLine" @click="clearLine('to')"><span class="ln-num">{{ toLine.key }}</span><span class="ln-txt"><span class="ln-zh">号线</span><span class="ln-en">Line {{ toLine.key }}</span></span></span>
 						<button class="tr-clear" v-if="toQuery" @click="clearStation('to')">✕</button>
 					</div>
 					<button class="tr-swap" @click="swapStations" :aria-label="t('tr.swap')">
@@ -1035,7 +1127,7 @@
 				<div class="tr-suggest glass" v-if="suggestFor">
 					<div class="tr-sug-row" v-for="opt in suggestList" :key="opt.st.n + '|' + opt.line.key" @click="pickSuggest(opt)">
 						<span class="tr-sug-name">{{ stName(opt.st) }}</span>
-						<span class="tr-sug-lines"><span class="tr-sug-line" :style="{ background: '#' + opt.line.color, color: opt.line.text }">{{ lineName(opt.line.name, opt.line.key) }}</span></span>
+						<span class="tr-sug-lines"><span class="tr-sug-line ln-badge" :style="{ background: '#' + opt.line.color, color: opt.line.text }"><span class="ln-num">{{ opt.line.key }}</span><span class="ln-txt"><span class="ln-zh">号线</span><span class="ln-en">Line {{ opt.line.key }}</span></span></span></span>
 						<span class="tr-sug-py">{{ opt.st.py }}</span>
 					</div>
 					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? fromQuery : toQuery) ? t('tr.noStation') : t('tr.typeHint') }}</div>
@@ -1049,6 +1141,15 @@
 				<button class="tr-search" @click="doSearch">{{ t('tr.search') }}</button>
 				<div class="tr-transit" @click="openTransitApp"><img v-if="transitIcon" :src="transitIcon" :alt="transitLabel"><span>{{ transitLabel }} ›</span></div>
 								<div class="tr-nearby-row" @click="requestNearbyStations"><span>{{ t('tr.nearby') }}</span><span v-if="nearbyLoading">{{ t('tr.nearby.locating') }}</span></div>
+				<div class="tr-smart" v-if="nearbyList.length || nearbyMsg">
+					<div class="tr-smart-head"><img v-if="smartIcon" :src="smartIcon" alt=""><span>{{ t('tr.smart.title') }}</span></div>
+					<div v-if="userLat != null && smartList.length">
+						<div class="tr-nearby-item" v-for="s in smartList" :key="'sm' + s.n" @click="pickNearby(s)"><span>{{ stNameStr(s.n) }}</span><span class="tr-nearby-dist">{{ s.distText }}</span></div>
+					</div>
+					<div class="tr-smart-empty" v-else-if="userLat != null">{{ t('tr.smart.none') }}</div>
+					<div class="tr-smart-far" v-if="userLat != null && !smartList.length && nearbyList.length">{{ t('tr.smart.far', {n: stNameStr(nearbyList[0].n), d: nearbyList[0].distText}) }}</div>
+					<div class="tr-smart-noloc" v-if="userLat == null">{{ t('tr.smart.noloc') }}</div>
+				</div>
 				<div class="tr-nearby" v-if="nearbyList.length">
 					<div class="tr-nearby-item" v-for="s in nearbyList" :key="s.n" @click="pickNearby(s)"><span>{{ stNameStr(s.n) }}</span><span class="tr-nearby-dist">{{ s.distText }}</span></div>
 				</div>
@@ -1066,7 +1167,7 @@
 							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ t('tr.minutes', {n: r.minutes}) }}</span></div>
 							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>{{ t('tr.transfers', {n: r.transfers}) }} · {{ t('tr.km', {n: r.km}) }}</div>
 							<div class="ropt-opwarn" v-if="routeOpWarning(r)">⚠ {{ routeOpWarning(r) }}</div>
-							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line" :style="{ background: '#' + seg.color, color: seg.text }">{{ lineName(seg.name, seg.line) }}</span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ {{ stNameStr(seg.to) }}</span></template></div>
+							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ seg.line }}</span><span class="ln-txt"><span class="ln-zh">号线</span><span class="ln-en">Line {{ seg.line }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span></span></template></div>
 						</div>
 						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="r.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="r.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 					</div>
@@ -1081,8 +1182,14 @@
 							<img :src="walkIcon" alt="">
 							<span>{{ virtualInfo(i) }}</span>
 						</div>
+						<div class="tr-transfer-detail" v-if="transferFocus === i">
+							<div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div>
+							<div class="tr-td-lines"><span class="tr-chip ln-badge" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ routeResult.segments[i-1].line }}</span><span class="ln-txt"><span class="ln-zh">号线</span><span class="ln-en">Line {{ routeResult.segments[i-1].line }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ seg.line }}</span><span class="ln-txt"><span class="ln-zh">号线</span><span class="ln-en">Line {{ seg.line }}</span></span></span></div>
+							<div class="tr-td-walk" v-if="virtualDistFor(routeResult, i)">{{ t('tr.transferWalk', {dist: virtualDistFor(routeResult, i)}) }}</div>
+							<div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div>
+						</div>
 						<div class="tr-seg" @click="goSegment(seg)">
-							<span class="tr-chip" :style="{ background: '#' + seg.color, color: seg.text }">{{ lineName(seg.name, seg.line) }}</span>
+							<span class="tr-chip ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ seg.line }}</span><span class="ln-txt"><span class="ln-zh">号线</span><span class="ln-en">Line {{ seg.line }}</span></span></span>
 							<span class="tr-seg-txt">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</span>
 							<span class="tr-seg-n">{{ t('tr.stops', {n: seg.stops}) }}</span>
 						</div>
@@ -1101,10 +1208,10 @@
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
 			<div id="moreSheet" class="glass" v-show="showMore">
-				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub">
+				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub">
 				<div class="more-title">Subway tools</div>
 				<div class="more-appcard">
-					<img class="more-appicon" :src="cityLogo" alt="">
+					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">Subway tools</div>
 						<div class="more-appver">{{ t('more.version', {v: '1.0.4'}) }}</div>
@@ -1114,15 +1221,8 @@
 				<div class="more-card">
 					<div class="more-row" @click="showCitySub = true"><img class="more-city-logo" :src="cityLogo" alt=""><span>{{ cityName }}</span><span class="more-chev">›</span></div>
 				</div>
-				<div class="more-section">{{ t('more.theme') }}</div>
 				<div class="more-card">
-					<div class="more-theme">
-						<div class="more-theme-seg">
-							<button :class="{ on: theme==='system' }" @click="setTheme('system')">{{ t('more.theme.system') }}</button>
-							<button :class="{ on: theme==='light' }" @click="setTheme('light')">{{ t('more.theme.light') }}</button>
-							<button :class="{ on: theme==='dark' }" @click="setTheme('dark')">{{ t('more.theme.dark') }}</button>
-						</div>
-					</div>
+					<div class="more-row" @click="showAppearanceSub = true"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-section">{{ t('more.lang') }}</div>
 				<div class="more-card">
@@ -1157,12 +1257,15 @@
 					<div class="more-row" @click="showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.0.4</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: upcomingLines.length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showTrainSub = true; loadTrains()"><img class="more-row-icon" :src="trainIcon" alt=""><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="siriIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-credit">{{ t('more.credit') }}</div>
 				</div>
 				<div class="more-sub" v-show="showCitySub">
 					<div class="more-sub-head">
-						<button class="more-sub-back" @click="showCitySub = false">‹ {{ t('more.back') }}</button>
+						<button class="more-sub-back" @click="showCitySub = false">‹</button>
 						<div class="more-sub-title">{{ t('more.switchCity') }}</div>
 					</div>
 					<div class="more-section">{{ t('more.switchCity') }}</div>
@@ -1172,14 +1275,14 @@
 					<div class="more-section">{{ t('more.citiesSoon') }}</div>
 					<div class="more-card">
 						<div class="more-city-chips">
-							<span class="more-city-chip soon" v-for="c in soonCityList" :key="'soon-'+c" @click="showSoonCity(c)">{{ c }}</span>
+							<span class="more-city-chip soon" v-for="c in soonCityList" :key="'soon-'+c" @click="showSoonCity(c)"><span class="more-soon-logo">{{ c.charAt(0) }}</span>{{ c }}</span>
 						</div>
 						<div class="more-soon-note" v-if="soonNote">{{ t('more.citiesSoonNote', {c: soonNote}) }}</div>
 					</div>
 				</div>
 				<div class="more-sub" v-show="showLangSub">
 					<div class="more-sub-head">
-						<button class="more-sub-back" @click="showLangSub = false">‹ {{ t('more.back') }}</button>
+						<button class="more-sub-back" @click="showLangSub = false">‹</button>
 						<div class="more-sub-title">{{ t('more.lang') }}</div>
 					</div>
 					<div class="more-card">
@@ -1191,32 +1294,111 @@
 				</div>
 				<div class="more-sub" v-show="showWhatsNewSub">
 					<div class="more-sub-head">
-						<button class="more-sub-back" @click="showWhatsNewSub = false">‹ {{ t('more.back') }}</button>
+						<button class="more-sub-back" @click="showWhatsNewSub = false">‹</button>
 						<div class="more-sub-title">{{ t('more.whatsnew', {v: '1.0.4'}) }}</div>
 					</div>
+					<div class="more-new-head"><span class="more-new-ver">1.0.4</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
+					<div class="more-section">{{ t('more.new.features') }}</div>
 					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.3','more.new.4','more.new.5','more.new.6','more.new.7','more.new.8','more.new.9','more.new.10','more.new.11','more.new.12','more.new.13','more.new.14']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
-						<div class="more-new-sub">{{ t('more.bugfix') }}</div>
+						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+					</div>
+					<div class="more-section">{{ t('more.new.improvements') }}</div>
+					<div class="more-card">
+						<div class="more-new-row" v-for="k in ['more.new.3','more.new.8','more.new.11','more.new.12']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+					</div>
+					<div class="more-section">{{ t('more.bugfix') }}</div>
+					<div class="more-card">
 						<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 					</div>
 				</div>
 				<div class="more-sub" v-show="showUpcomingSub">
 					<div class="more-sub-head">
-						<button class="more-sub-back" @click="showUpcomingSub = false">‹ {{ t('more.back') }}</button>
+						<button class="more-sub-back" @click="showUpcomingSub = false">‹</button>
 						<div class="more-sub-title">{{ t('more.upcoming') }}</div>
 					</div>
+					<div class="more-section">{{ cityName }}</div>
 					<div class="more-card">
-						<div class="more-up-row" v-for="u in upcomingLines" :key="u.key"><span class="more-up-badge" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }">{{ u.badge }}</span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
-						<div class="more-up-note">{{ t('upcoming.note.sh22') }}</div>
+						<div class="more-up-row" v-for="u in currentCityUpcoming()" :key="u.key"><span class="more-up-badge" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }">{{ u.badge }}</span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
+						<div class="more-up-note" v-if="!currentCityUpcoming().length">{{ t('more.upcoming.none') }}</div>
 					</div>
+					<div class="more-section">{{ t('more.upcoming.other') }}</div>
+					<template v-for="g in otherCityUpcomingGroups()" :key="g.city">
+						<div class="more-section more-section-sub">{{ cityNameFor(g.city) }}</div>
+						<div class="more-card">
+							<div class="more-up-row" v-for="u in g.lines" :key="u.key"><span class="more-up-badge" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }">{{ u.badge }}</span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
+						</div>
+					</template>
+					<div class="more-up-note">{{ t('upcoming.note.sh22') }}</div>
+				</div>
+				<div class="more-sub" v-show="showAppearanceSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showAppearanceSub = false">‹</button>
+						<div class="more-sub-title">{{ t('more.appearance') }}</div>
+					</div>
+					<div class="more-section">{{ t('more.theme') }}</div>
+					<div class="more-card">
+						<div class="more-theme">
+							<div class="more-theme-seg">
+								<button :class="{ on: theme==='system' }" @click="setTheme('system')">{{ t('more.theme.system') }}</button>
+								<button :class="{ on: theme==='light' }" @click="setTheme('light')">{{ t('more.theme.light') }}</button>
+								<button :class="{ on: theme==='dark' }" @click="setTheme('dark')">{{ t('more.theme.dark') }}</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="more-sub" v-show="showSiriSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showSiriSub = false">‹</button>
+						<div class="more-sub-title">{{ t('more.siri') }}</div>
+					</div>
+					<div class="more-up-note">{{ t('more.siri.note') }}</div>
+					<div class="more-card">
+						<div class="more-row" v-for="s in siriShortcuts" :key="s.id" @click="addShortcut(s.id)">
+							<div class="more-siri-text"><div class="more-siri-name">{{ t(s.nameKey) }}</div><div class="more-siri-desc">{{ t(s.descKey) }}</div><div class="more-siri-voice">{{ t(s.voiceKey) }}</div></div>
+							<span class="more-chev">›</span>
+						</div>
+					</div>
+				</div>
+				<div class="more-sub" v-show="showTrainSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showTrainSub = false">‹</button>
+						<div class="more-sub-title">{{ t('more.trains') }}</div>
+					</div>
+					<div class="more-search"><input class="more-search-input" type="text" v-model="trainQuery" :placeholder="t('more.trains.ph')" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+					<template v-if="trainQuery.trim()">
+						<template v-for="g in trainResults()" :key="g.key">
+							<div class="more-section">{{ g.name }}</div>
+							<div class="more-card">
+								<div class="more-train-row" v-for="tr in g.trains" :key="tr.model + '|' + tr.line">
+									<div class="more-train-model">{{ tr.model }}</div>
+									<div class="more-train-meta">{{ tr.maker }} · {{ tr.line }}</div>
+									<div class="more-train-spec" v-if="tr.spec">{{ tr.spec }}</div>
+								</div>
+							</div>
+						</template>
+						<div class="more-up-note" v-if="!trainResults().length">{{ t('more.trains.none') }}</div>
+					</template>
+					<div class="more-up-note" v-else>{{ t('more.trains.hint') }}</div>
+					<div class="more-up-note">{{ t('more.trains.source') }}</div>
+				</div>
+				<div class="more-sub" v-show="showGeneralSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showGeneralSub = false">‹</button>
+						<div class="more-sub-title">{{ t('more.general') }}</div>
+					</div>
+					<div class="more-section">{{ t('more.general') }}</div>
+					<div class="more-card">
+						<div class="more-row" @click="clearCache"><span>{{ t('more.cache') }}</span><span class="more-row-value" v-if="cacheCleared">{{ t('more.cache.cleared') }}</span><span class="more-chev">›</span></div>
+					</div>
+					<div class="more-up-note">{{ t('more.cache.note') }}</div>
 				</div>
 				<div class="more-sub" v-show="showBriefingSub">
 					<div class="more-sub-head">
-						<button class="more-sub-back" @click="showBriefingSub = false">‹ {{ t('more.back') }}</button>
+						<button class="more-sub-back" @click="showBriefingSub = false">‹</button>
 						<div class="more-sub-title">{{ t('more.briefing') }}</div>
 					</div>
 					<div class="more-card">
-						<div class="more-brief-card" v-for="b in briefingItems" :key="b.id"><div class="more-brief-head"><span class="more-brief-dot" :style="{ background: b.color }"></span><span class="more-brief-title">{{ briefingText(b, 'title') }}</span></div><div class="more-brief-sum">{{ briefingText(b, 'summary') }}</div><div class="more-brief-date">{{ briefingText(b, 'date') }}</div></div>
+						<div class="more-brief-card" v-for="b in briefingItems" :key="b.id"><div class="more-brief-head"><span class="more-brief-dot" :style="{ background: b.color }"></span><span class="more-brief-title">{{ briefingText(b, 'title') }}</span></div><div class="more-brief-sum">{{ briefingText(b, 'summary') }}</div><div class="more-brief-src" v-if="briefingText(b, 'source')">{{ t('more.briefing.source', {s: briefingText(b, 'source')}) }}</div><div class="more-brief-date">{{ briefingText(b, 'date') }}</div></div>
 						<div class="more-brief-updated">{{ t('more.briefing.updated', {d: briefingUpdated}) }}</div>
 					</div>
 				</div>
@@ -1307,6 +1489,9 @@ var I18N = {
   'tr.fare.virtual': ['虚拟换乘需出站', '虛擬換乘需出站', 'Virtual transfer: exit station'],
   'tr.fare.airport': ['机场线需单独购票', '機場線需單獨購票', 'Airport line: separate ticket'],
   'tr.virtual': ['虚拟换乘 · 出站步行{dist}', '虛擬換乘 · 出站步行{dist}', 'Virtual transfer · exit and walk {dist}'],
+  'tr.transferWalk': ['换乘步行{dist}', '換乘步行{dist}', 'Transfer walk {dist}'],
+  'tr.transferAt': ['在{st}换乘', '在{st}換乘', 'Transfer at {st}'],
+  'tr.inStation': ['站内换乘', '站內換乘', 'In-station transfer'],
   'tr.hint': ['点一段可在图上查看', '點一段可在圖上查看', 'Tap a segment to view it on the map'],
   'tr.history': ['搜索记录', '搜索記錄', 'Search History'],
   'tr.history.clear': ['清除', '清除', 'Clear'],
@@ -1320,6 +1505,12 @@ var I18N = {
   'tr.nearby.nodata': ['该城市暂无车站坐标数据，附近车站功能即将上线。', '該城市暫無車站座標資料，附近車站功能即將上線。', 'No station coordinates for this city yet — nearby stations coming soon.'],
   'tr.nearby.failed': ['定位失败，请稍后重试。', '定位失敗，請稍後再試。', 'Location failed. Please try again.'],
   'tr.nearby.m': ['{n} 米', '{n} 米', '{n} m'],
+  'map.strip.none': ['⚠️ 附近1.5公里内没有车站', '⚠️ 附近1.5公里內沒有車站', '⚠️ No station within 1.5 km'],
+  'map.loc.settings': ['去设置', '去設定', 'Settings'],
+  'tr.smart.title': ['智能显示 · 1 公里内最近车站', '智能顯示 · 1 公里內最近車站', 'Smart display · stations within 1 km'],
+  'tr.smart.none': ['1 公里内暂无车站', '1 公里內暫無車站', 'No station within 1 km'],
+  'tr.smart.far': ['最近的车站是 {n}，约 {d}', '最近的車站是 {n}，約 {d}', 'Nearest station is {n}, about {d} away'],
+  'tr.smart.noloc': ['需要定位权限才能显示附近车站', '需要定位權限才能顯示附近車站', 'Location permission is needed to show nearby stations'],
   'tr.nearby.km': ['{n} 公里', '{n} 公里', '{n} km'],
   'tr.nearby.partial': ['仅包含已核实坐标的车站（{have}/{total} 个）', '僅包含已核實座標的車站（{have}/{total} 個）', 'Only stations with verified coordinates are listed ({have}/{total})'],
   'live.start': ['开始行程', '開始行程', 'Start trip'],
@@ -1354,6 +1545,7 @@ var I18N = {
   'more.loc.hint': ['已拒绝定位权限，请在 iPhone 设置 → 隐私与安全性 → 定位服务中为本 App 开启。', '已拒絕定位權限，請在 iPhone 設定 → 隱私權與安全性 → 定位服務中為本 App 開啟。', 'Location permission is denied. Enable it in iPhone Settings → Privacy & Security → Location Services for this app.'],
   'more.dev': ['查看开发版', '查看開發版', 'View dev version'],
   'more.theme': ['深色模式', '深色模式', 'Dark mode'],
+  'more.appearance': ['外观', '外觀', 'Appearance'],
   'more.theme.system': ['跟随系统', '跟隨系統', 'Follow system'],
   'more.theme.light': ['浅色', '淺色', 'Light'],
   'more.theme.dark': ['深色', '深色', 'Dark'],
@@ -1368,31 +1560,64 @@ var I18N = {
   'more.credit': ['数据来源 SierraQin · CC0 1.0', '資料來源 SierraQin · CC0 1.0', 'Data: SierraQin · CC0 1.0'],
   'more.whatsnew': ['更新内容 · {v}', '更新內容 · {v}', "What's New · {v}"],
   'more.whatsnew.title': ['更新内容', '更新內容', "What's New"],
-  'more.new.1': ['iPhone Duo 右侧边栏', 'iPhone Duo 右側邊欄', 'iPhone Duo right sidebar'],
-  'more.new.2': ['iPad 悬浮底栏', 'iPad 懸浮底欄', 'iPad floating bottom bar'],
-  'more.new.3': ['切换城市后重进保持当前城市', '切換城市後重進保持當前城市', 'Reopening keeps your current city'],
-  'more.new.4': ['乘车码', '乘車碼', 'Ride Code'],
-  'more.new.5': ['搜索记录', '搜索記錄', 'Search history'],
-  'more.new.6': ['定位找最近车站（车站坐标已上线，9 个城市）', '定位找最近車站（車站座標已上線，9 個城市）', 'Nearby stations by location (coordinates live, 9 cities)'],
-  'more.new.7': ['运营时间提示', '營運時間提示', 'Operating-hours prompts'],
-  'more.new.8': ['设置页按浮光风格重做，加入切换城市', '設定頁按浮光風格重做，加入切換城市', 'Settings redesigned in Floating light style, with city switcher'],
-  'more.new.9': ['英文与繁体中文', '英文與繁體中文', 'English and Traditional Chinese'],
-  'more.new.10': ['实时活动：锁屏与灵动岛显示行程', '即時活動：鎖屏與動態島顯示行程', 'Live Activities: trip on Lock Screen and Dynamic Island'],
-  'more.new.11': ['城市标志改为圆形', '城市標誌改為圓形', 'City logos are now round'],
-  'more.new.12': ['切换城市不再闪现旧界面', '切換城市不再閃現舊介面', 'City switch no longer flashes the old UI'],
-  'more.new.13': ['更多城市目录：全国 58 个开通轨道交通的城市，未支持的显示为灰色', '更多城市目錄：全國 58 個開通軌道交通的城市，未支援的顯示為灰色', 'City directory: all 58 mainland cities with rail transit, unsupported ones greyed out'],
-  'more.new.14': ['切换城市列表加上各城市轨道交通标志', '切換城市列表加上各城市軌道交通標誌', 'City switcher now shows each city\'s rail transit logo'],
-  'more.bugfix': ['Bug 修复', 'Bug 修復', 'Bug Fixes'],
-  'more.fix.1': ['搜索按钮颜色不再溢出胶囊两端', '搜尋按鈕顏色不再溢出膠囊兩端', 'Search button colour no longer bleeds past the capsule ends'],
-  'more.fix.2': ['切换城市后重进不再默认回到北京', '切換城市後重進不再預設回到北京', 'Reopening no longer resets the city to Beijing'],
-  'more.fix.3': ['切换城市不再闪现旧界面', '切換城市不再閃現舊介面', 'City switch no longer flashes the old interface'],
-  'more.fix.4': ['换乘/搜索面板底板改为纯色，地图不再透出', '換乘/搜尋面板底板改為純色，地圖不再透出', 'Transfer/search panels now have solid backgrounds — the map no longer shows through'],
-  'more.fix.5': ['启动图期间隐藏状态栏和时间', '啟動圖期間隱藏狀態列和時間', 'Status bar and time hidden during the splash screen'],
-  'more.fix.6': ['iPad 顶部大白条已去掉，改为悬浮底栏', 'iPad 頂部大白條已去掉，改為懸浮底欄', 'iPad top strip removed in favour of a floating bottom bar'],
+  'more.new.1': ['iPhone Duo 折叠屏：展开后显示右侧边栏', 'iPhone Duo 摺疊螢幕：展開後顯示右側邊欄', 'iPhone Duo foldable: right sidebar when unfolded'],
+  'more.new.2': ['iPad 悬浮底栏，大屏操作更顺手', 'iPad 懸浮底欄，大螢幕操作更順手', 'iPad floating bottom bar for easier large-screen use'],
+  'more.new.3': ['重进 App 后保持上次选择的城市', '重進 App 後保持上次選擇的城市', 'Reopening keeps your last selected city'],
+  'more.new.5': ['搜索记录：最近的路线一键重搜', '搜尋記錄：最近的路線一鍵重搜', 'Search history: re-run a recent route in one tap'],
+  'more.new.6': ['定位找最近车站：9 个城市的车站坐标已上线', '定位找最近車站：9 個城市的車站座標已上線', 'Nearby stations by location: station coordinates live for all 9 cities'],
+  'more.new.7': ['运营时间提示：非运营时段主动提醒', '營運時間提示：非營運時段主動提醒', 'Operating-hours prompts when a line is not running'],
+  'more.new.8': ['设置页全新设计（浮光风格），加入切换城市', '設定頁全新設計（浮光風格），加入切換城市', 'Settings redesigned in the Floating light style, with a city switcher'],
+  'more.new.9': ['新增英文与繁体中文', '新增英文與繁體中文', 'English and Traditional Chinese added'],
+  'more.new.11': ['城市标志统一为圆形', '城市標誌統一為圓形', 'City logos unified as circles'],
+  'more.new.12': ['切换城市过渡更平滑，不再闪现旧界面', '切換城市過渡更平滑，不再閃現舊介面', 'Smoother city switching — the old interface no longer flashes'],
+  'more.new.13': ['城市目录：全国 58 个开通轨道交通的城市，未支持的显示为灰色', '城市目錄：全國 58 個開通軌道交通的城市，未支援的顯示為灰色', 'City directory: all 58 mainland cities with rail transit; unsupported ones greyed out'],
+  'more.new.14': ['切换城市列表加入各城市轨道交通标志', '切換城市列表加入各城市軌道交通標誌', 'City switcher now shows each city’s rail transit logo'],
+  'more.bugfix': ['问题修复', '問題修復', 'Bug Fixes'],
+  'more.new.features': ['新功能', '新功能', 'New Features'],
+  'more.new.improvements': ['改进', '改進', 'Improvements'],
+  'more.whatsnew.date': ['2026年11月18日', '2026年11月18日', '18 Nov 2026'],
+  'more.fix.1': ['搜索按钮颜色不再溢出胶囊', '搜尋按鈕顏色不再溢出膠囊', 'Search button colour no longer bleeds past the capsule'],
+  'more.fix.2': ['重进 App 后不再默认回到北京', '重進 App 後不再預設回到北京', 'Reopening no longer resets the city to Beijing'],
+  'more.fix.3': ['修复切换城市时闪现旧界面的问题', '修復切換城市時閃現舊介面的問題', 'Fixed the old interface flashing during a city switch'],
+  'more.fix.4': ['换乘/搜索面板改为纯色底板，地图不再透出', '換乘/搜尋面板改為純色底板，地圖不再透出', 'Transfer/search panels now use solid backgrounds — the map no longer shows through'],
+  'more.fix.5': ['启动图期间隐藏状态栏与时间', '啟動圖期間隱藏狀態列與時間', 'Status bar and clock hidden during the splash screen'],
+  'more.fix.6': ['iPad 顶部白条已移除，改为悬浮底栏', 'iPad 頂部白條已移除，改為懸浮底欄', 'iPad top strip removed in favour of a floating bottom bar'],
   'more.upcoming': ['即将开通', '即將開通', 'Opening Soon'],
   'more.upcoming.count': ['{n}条线路', '{n}條線路', '{n} lines'],
+  'more.upcoming.none': ['本市暂无已公布的即将开通线路', '本市暫無已公布的即將開通線路', 'No upcoming lines announced for this city'],
+  'more.upcoming.other': ['其他城市', '其他城市', 'Other cities'],
   'more.briefing': ['轨道交通信息简报', '軌道交通資訊簡報', 'Transit Briefing'],
   'more.briefing.updated': ['更新于 {d}', '更新於 {d}', 'Updated {d}'],
+  'more.siri': ['Siri 快捷指令', 'Siri 快捷指令', 'Siri Shortcuts'],
+  'more.siri.note': ['在 Siri 里说出下面的口令即可使用。点按一条可将其添加到 Siri。', '在 Siri 裡說出下面的口令即可使用。點按一條可將其加入 Siri。', 'Say the phrase below to Siri to use it. Tap an item to add it to Siri.'],
+  'siri.openApp': ['打开 Subway tools', '打開 Subway tools', 'Open Subway tools'],
+  'siri.openApp.desc': ['打开 App，查看线路图', '打開 App，查看線路圖', 'Open the app and view the map'],
+  'siri.openApp.voice': ['“打开 Subway tools”', '“打開 Subway tools”', '“Open Subway tools”'],
+  'siri.firstTrain': ['查询首班车', '查詢首班車', 'First train'],
+  'siri.firstTrain.desc': ['查询车站的首班车时间', '查詢車站的首班車時間', 'Check a station’s first train time'],
+  'siri.firstTrain.voice': ['“首班车几点”', '“首班車幾點”', '“When is the first train?”'],
+  'siri.lastTrain': ['查询末班车', '查詢末班車', 'Last train'],
+  'siri.lastTrain.desc': ['查询车站的末班车时间', '查詢車站的末班車時間', 'Check a station’s last train time'],
+  'siri.lastTrain.voice': ['“末班车几点”', '“末班車幾點”', '“When is the last train?”'],
+  'siri.planRoute': ['规划路线', '規劃路線', 'Plan a route'],
+  'siri.planRoute.desc': ['从出发站到到达站规划换乘', '從出發站到到達站規劃換乘', 'Plan a transfer route from one station to another'],
+  'siri.planRoute.voice': ['“规划路线”', '“規劃路線”', '“Plan a route”'],
+  'siri.nearestStation': ['最近的车站', '最近的車站', 'Nearest station'],
+  'siri.nearestStation.desc': ['显示离我最近的车站', '顯示離我最近的車站', 'Show the station nearest to me'],
+  'siri.nearestStation.voice': ['“最近的地铁站”', '“最近的地鐵站”', '“Nearest metro station”'],
+  'siri.timetable': ['查看时刻表', '查看時刻表', 'View timetable'],
+  'siri.timetable.desc': ['查看线路的时刻表', '查看線路的時刻表', 'View a line’s timetable'],
+  'siri.timetable.voice': ['“查看时刻表”', '“查看時刻表”', '“Show the timetable”'],
+  'more.trains': ['搜索城市轨道交通列车', '搜尋城市軌道交通列車', 'Search Urban Rail Trains'],
+  'more.trains.ph': ['输入城市名或列车型号', '輸入城市名或列車型號', 'Enter a city name or train model'],
+  'more.trains.hint': ['输入城市名（如北京）或列车型号（如 DKZ4）进行搜索。', '輸入城市名（如北京）或列車型號（如 DKZ4）進行搜尋。', 'Enter a city name (e.g. Beijing) or a train model (e.g. DKZ4) to search.'],
+  'more.trains.none': ['未找到相关列车。仅支持北京、沈阳、上海、哈尔滨、大连、金华、常州、重庆、长春 9 个城市。', '未找到相關列車。僅支援北京、瀋陽、上海、哈爾濱、大連、金華、常州、重慶、長春 9 個城市。', 'No matching train. Only Beijing, Shenyang, Shanghai, Harbin, Dalian, Jinhua, Changzhou, Chongqing and Changchun are covered.'],
+  'more.trains.source': ['数据来源：china-emu.cn，型号及参数仅供参考，非官方数据。', '資料來源：china-emu.cn，型號及參數僅供參考，非官方資料。', 'Source: china-emu.cn. Models and parameters are for reference only, not official data.'],
+  'more.briefing.source': ['来源：{s}', '來源：{s}', 'Source: {s}'],
+  'more.general': ['通用', '通用', 'General'],
+  'more.cache': ['清除缓存', '清除快取', 'Clear Cache'],
+  'more.cache.cleared': ['已清除', '已清除', 'Cleared'],
+  'more.cache.note': ['清除网页缓存与已缓存的简报数据，不会删除城市、语言、主题设置或搜索记录。', '清除網頁快取與已快取的簡報資料，不會刪除城市、語言、主題設定或搜尋記錄。', 'Clears the web cache and cached briefing data. Your city, language, theme and search history are kept.'],
   'upcoming.bj22': ['北京22号线', '北京22號線', 'Beijing Line 22'],
   'upcoming.sh22': ['上海22号线', '上海22號線', 'Shanghai Line 22'],
   'upcoming.gz12': ['广州12号线中段', '廣州12號線中段', 'Guangzhou Line 12 (middle section)'],
@@ -1422,6 +1647,10 @@ var I18N = {
   'city.cz': ['常州', '常州', 'Changzhou'],
   'city.cq': ['重庆', '重慶', 'Chongqing'],
   'city.cc': ['长春', '長春', 'Changchun'],
+  'city.gz': ['广州', '廣州', 'Guangzhou'],
+  'city.sz': ['深圳', '深圳', 'Shenzhen'],
+  'city.cd': ['成都', '成都', 'Chengdu'],
+  'city.tj': ['天津', '天津', 'Tianjin'],
   'city.metro': ['{c}地铁', '{c}地鐵', '{c} Metro'],
   'native.now': ['现在出发', '現在出發', 'Depart now'],
   'native.done': ['确定', '確定', 'Done'],
@@ -1609,6 +1838,11 @@ function titlePy(py) {
 					isPad: (window._metroIsPad === true),
 						stations: (window.METRO_STATIONS || []),
 						bjLogo: (window.BJ_LOGO || ''),
+						appIcon: 'data:image/png;base64,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',
+						appearanceIcon: 'data:image/jpeg;base64,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',
+						trainIcon: 'data:image/jpeg;base64,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ND+LWipbTaxYeRq2ms4miDSJsljDoSCPvYYNu246Gvxv/wCH2dn/ANE2f/wbD/5ErvPhb/wWI8GeNviBpPhHxh4Pbw9p+pXC28uotqInS3L8I7p5EfyZ25O/5V57UKwH4y/tVfs965+zP8ZtT+Guqb5bND9o066b/lvZyE+W/wBRhkf/AG1PavnOv6qP+CmH7O+i/Gb9nu/8cQ7INa8FQTalbzt8u+2RN9xET6Ogyv8AtqPU1/KvSasAUUUUgCiiigAooooAKKKKAP/Q/mvooorQAooooAKKKKACuw8G/EHx98Ob2TVPh7rt/oNzMmx5dPuZLV3TrgmNgSP9muPooA6DxR4s8VeNtYk8ReNNUutWv5FCvdXsz3EzKvTLyEscfWufoooAKKKKACiiigD07VPjZ8Zta8L/APCE6x4t1u60XYIvsE9/O9psToPKLsmB2GK8xoooAKKKKACiiigAooooAKKKKAP/0f5r6KKK0AKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//S/mvooorQAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/9k=',
+						smartIcon: 'data:image/jpeg;base64,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',
+						siriIcon: 'data:image/jpeg;base64,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',
 						routes: (window.METRO_ROUTES || null),
 						syStations: (window.SY_STATIONS || []),
 						syRoutes: (window.SY_ROUTES || null),
@@ -1730,8 +1964,12 @@ function titlePy(py) {
 						soonNote: '',
 						tripTimer: null,
 						departTime: null,
+						searchDate: null, payMethod: 'cash', arriveTarget: null, pendingCond: null,
+						transferFocus: -1,
 						fromLine: null,
 						toLine: null,
+						smartList: [], userLat: null, userLng: null,
+						stripList: [], mapLocMsg: '',
 						nearbyList: [],
 						nearbyMsg: '',
 						nearbyLoading: false,
@@ -1744,7 +1982,19 @@ function titlePy(py) {
 					showLangSub: false,
 					showWhatsNewSub: false,
 					showUpcomingSub: false,
-					showBriefingSub: false,
+								showBriefingSub: false,
+					showSiriSub: false,
+						siriShortcuts: [
+							{ id: 'openApp', nameKey: 'siri.openApp', descKey: 'siri.openApp.desc', voiceKey: 'siri.openApp.voice' },
+							{ id: 'firstTrain', nameKey: 'siri.firstTrain', descKey: 'siri.firstTrain.desc', voiceKey: 'siri.firstTrain.voice' },
+							{ id: 'lastTrain', nameKey: 'siri.lastTrain', descKey: 'siri.lastTrain.desc', voiceKey: 'siri.lastTrain.voice' },
+							{ id: 'planRoute', nameKey: 'siri.planRoute', descKey: 'siri.planRoute.desc', voiceKey: 'siri.planRoute.voice' },
+							{ id: 'nearestStation', nameKey: 'siri.nearestStation', descKey: 'siri.nearestStation.desc', voiceKey: 'siri.nearestStation.voice' },
+							{ id: 'timetable', nameKey: 'siri.timetable', descKey: 'siri.timetable.desc', voiceKey: 'siri.timetable.voice' },
+						],
+					showTrainSub: false, trainQuery: '', trainItems: [],
+					showAppearanceSub: false,
+					showGeneralSub: false, cacheCleared: false,
 						lastTab: 'map',
 
 						sideMenu: [{
@@ -2047,6 +2297,69 @@ function titlePy(py) {
 						this.showMore = false;
 						this.setTab(this.lastTab && this.lastTab !== 'more' ? this.lastTab : 'map');
 					},
+					// Clear cache only: drop the cached briefing (the one
+					// cache entry in localStorage) and ask the native side
+					// to clear the WKWebView cache. Never touches the city,
+					// language, theme or search-history preferences, and
+					// never touches bundled offline data (the app stays
+					// fully usable offline afterwards).
+					// Load the train data (web/trains.json): inlined seed first
+					// (offline build), then a relative fetch, then GitHub.
+					// Only the app's 9 cities are in the file, so no other
+					// city can ever match.
+					loadTrains() {
+						if (this.trainItems && this.trainItems.length) return;
+						var self = this;
+						var seed = window.TRAINS_SEED;
+						if (seed && seed.cities && seed.cities.length) { self.trainItems = seed.cities; return; }
+						var done = function (d) { if (d && d.cities) self.trainItems = d.cities; };
+						fetch('trains.json').then(function (r) { return r.json(); }).then(done).catch(function () {
+							fetch('https://raw.githubusercontent.com/Andy-transport/Subway-motion/main/web/trains.json').then(function (r) { return r.json(); }).then(done).catch(function () {});
+						});
+					},
+					// Train search results, grouped by city. A city-name
+					// match returns that city's whole list; otherwise only
+					// trains whose model / maker / line match. Empty query
+					// returns no groups (the hint is shown instead).
+					trainResults() {
+						var q = (this.trainQuery || '').trim().toLowerCase();
+						if (!q) return [];
+						var groups = [];
+						var items = this.trainItems || [];
+						for (var i = 0; i < items.length; i++) {
+							var c = items[i];
+							var cn = (c.name || '').toLowerCase(), en = (c.name_en || '').toLowerCase();
+							var cityHit = cn.indexOf(q) >= 0 || en.indexOf(q) >= 0;
+							var trains = [];
+							if (cityHit) { trains = c.trains || []; }
+							else {
+								for (var j = 0; j < (c.trains || []).length; j++) {
+									var tr = c.trains[j];
+									var hay = ((tr.model || '') + ' ' + (tr.maker || '') + ' ' + (tr.line || '')).toLowerCase();
+									if (hay.indexOf(q) >= 0) trains.push(tr);
+								}
+							}
+							if (trains.length) groups.push({ key: c.key, name: c.name, name_en: c.name_en, trains: trains });
+						}
+						return groups;
+					},
+					// Siri shortcut: ask the native side to present the
+					// system Add to Siri sheet for this intent id. This is
+					// the iPhone's own Siri (App Intents) — no in-app AI.
+					addShortcut(id) {
+						try {
+							var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.addShortcut;
+							if (h) h.postMessage({ id: id });
+						} catch (e) {}
+					},
+					clearCache() {
+						try { localStorage.removeItem('metro-briefing'); } catch (e) {}
+						try {
+							var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.clearCache;
+							if (h) h.postMessage({});
+						} catch (e) {}
+						this.cacheCleared = true;
+					},
 					clearQuery() { this.query = ''; },
 					stationLines(name) {
 						var out = [];
@@ -2164,6 +2477,25 @@ function titlePy(py) {
 					applyTheme() {
 						var dark = this.theme === 'dark' || (this.theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
 						document.documentElement.classList.toggle('dark', dark);
+					},
+					// Sync <html> classes (build 77): the #app :class binding is
+					// INERT in Vue 3 in-DOM templates (proven by a minimal Vue
+					// test — see the is-pad comment in mounted()), so native-app,
+					// the per-city theme classes and lang-* never applied. That
+					// left the web .tr-fields visible under the native transfer
+					// card in the native app (the 'old search base' ghost text at
+					// the card's top/bottom edges) and broke per-city colours.
+					// Toggle them on <html> directly, like dark / is-pad.
+					syncHtmlClasses() {
+						var h = document.documentElement;
+						h.classList.toggle('native-app', !!this.nativeApp);
+						var themes = ['sy-theme', 'sh-theme', 'hb-theme', 'dl-theme', 'jh-theme', 'cz-theme', 'cq-theme', 'cc-theme'];
+						for (var i = 0; i < themes.length; i++) h.classList.remove(themes[i]);
+						var tc = { sy: 'sy-theme', sh: 'sh-theme', hb: 'hb-theme', dl: 'dl-theme', jh: 'jh-theme', cz: 'cz-theme', cq: 'cq-theme', cc: 'cc-theme' }[this.city];
+						if (tc) h.classList.add(tc);
+						var langs = ['lang-zh-Hans', 'lang-zh-Hant', 'lang-en'];
+						for (var j = 0; j < langs.length; j++) h.classList.remove(langs[j]);
+						if (this.lang) h.classList.add('lang-' + this.lang);
 					},
 					setTheme(t) {
 						this.theme = t;
@@ -2552,6 +2884,42 @@ function titlePy(py) {
 						}
 						return this.t('tr.virtual', { dist: info.dist });
 					},
+					// Walking distance for a virtual (out-of-station)
+					// transfer at the boundary before segment i, or ''.
+					// Returns the raw dist string from transfers.json
+					// (e.g. '约500米') when the line pair matches; '' for
+					// in-station (same-name) transfers, which have no
+					// walking distance in the data (never invented).
+					virtualDistFor(r, i) {
+						if (!i || !r || !r.segments) return '';
+						var segs = r.segments;
+						if (i >= segs.length) return '';
+						var st = segs[i].from;
+						var info = this.transfers && this.transfers[st];
+						if (!info || !info.dist) return '';
+						var prev = segs[i - 1].line, cur = segs[i].line;
+						if (info.pairs) {
+							var _ok = false;
+							for (var _k = 0; _k < info.pairs.length; _k++) {
+								var _p = info.pairs[_k];
+								if ((_p[0] === prev && _p[1] === cur) || (_p[0] === cur && _p[1] === prev)) { _ok = true; break; }
+							}
+							if (!_ok) return '';
+						} else {
+							if (!info.lines) return '';
+							if (info.lines.indexOf(prev) < 0 || info.lines.indexOf(cur) < 0) return '';
+						}
+						return info.dist;
+					},
+					// Tap a transfer station in a route option: select the
+					// route and focus its transfer detail (the boundary
+					// after segment si). Tap again to dismiss.
+					showTransferAt(r, si) {
+						var idx = si + 1;
+						if (this.routeResult === r && this.transferFocus === idx) { this.transferFocus = -1; return; }
+						this.pickRoute(r);
+						this.transferFocus = idx;
+					},
 					setRouteTab(t) { this.routeTab = t; },
 					// Departure time (build 34): null = depart now; otherwise
 					// 'HH:MM'. Tapping the top-right 现在出发 label asks the
@@ -2604,6 +2972,13 @@ function titlePy(py) {
 							list.push({ st: s, n: s.n, dist: d, distText: d < 1 ? this.t('tr.nearby.m', {n: Math.round(d * 1000)}) : this.t('tr.nearby.km', {n: d.toFixed(1)}) });
 						}
 						list.sort(function (a, b) { return a.dist - b.dist; });
+						this.userLat = lat; this.userLng = lng;
+						this.smartList = list.filter(function (x) { return x.dist <= 1; });
+						this.stripList = list.filter(function (x) { return x.dist <= 1.5; });
+						if (this.tab === 'map' && list.length) {
+							var _nr = list[0];
+							if (_nr && _nr.st && _nr.st.x && _nr.st.y) locateStation(_nr.st);
+						}
 						this.nearbyList = list.slice(0, 5);
 						if (!this.nearbyList.length) { this.nearbyMsg = this.t('tr.nearby.nodata'); this.nearbyNote = ''; }
 						else if (have < sts.length) { this.nearbyNote = this.t('tr.nearby.partial', {have: have, total: sts.length}); }
@@ -2612,6 +2987,14 @@ function titlePy(py) {
 					nearbyError(msg) {
 						this.nearbyLoading = false;
 						this.nearbyMsg = msg || this.t('tr.nearby.failed');
+						this.mapLocMsg = msg || this.t('tr.nearby.failed');
+					},
+					// Tap a station chip in the 1.5 km strip: centre the map
+					// on that station (same locateStation the station list
+					// and route segments already use).
+					centerMapStation(item) {
+						if (!item || !item.st) return;
+						locateStation(item.st);
 					},
 					pickNearby(item) {
 						var st = item.st;
@@ -2657,7 +3040,7 @@ function titlePy(py) {
 					// instead of re-prompting. Never crashes or hangs when the
 					// permission is undetermined: it just asks.
 					requestLocPerm() {
-						if (this.locPerm === 'denied' || this.locPerm === 'restricted') { this.locPermHint = true; return; }
+						if (this.locPerm === 'denied' || this.locPerm === 'restricted') { this.locPermHint = true; var _h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openURL; if (_h) _h.postMessage({ url: 'app-settings', fallback: '' }); return; }
 						this.locPermHint = false;
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.requestLocationPermission;
 						if (h) { h.postMessage({}); return; }
@@ -2730,6 +3113,31 @@ function titlePy(py) {
 						try { window.localStorage.setItem('metro-search-history', JSON.stringify(this.searchHistory)); } catch (e) {}
 					},
 					cityNameFor(c) { return this.t('city.' + c); },
+					// City key for an upcoming-line key (bj22->bj, gz12->gz…).
+					upcomingCityKey(key) {
+						var m = { bj22: 'bj', sh22: 'sh', gz12: 'gz', gz13: 'gz', sy6: 'sy', sy9: 'sy', sz13: 'sz', cq27: 'cq', cdS5: 'cd', tjZ2: 'tj' };
+						return m[key] || '';
+					},
+					currentCityUpcoming() {
+						var out = [];
+						for (var i = 0; i < this.upcomingLines.length; i++) {
+							if (this.upcomingCityKey(this.upcomingLines[i].key) === this.city) out.push(this.upcomingLines[i]);
+						}
+						return out;
+					},
+					otherCityUpcomingGroups() {
+						var order = [], byCity = {};
+						for (var i = 0; i < this.upcomingLines.length; i++) {
+							var u = this.upcomingLines[i];
+							var c = this.upcomingCityKey(u.key);
+							if (!c || c === this.city) continue;
+							if (!byCity[c]) { byCity[c] = []; order.push(c); }
+							byCity[c].push(u);
+						}
+						var groups = [];
+						for (var j = 0; j < order.length; j++) groups.push({ city: order[j], lines: byCity[order[j]] });
+						return groups;
+					},
 					// Logo for the city switcher rows (build 65): the official
 					// metro logo already inlined for the city pill, shown
 					// circular via CSS. Jinhua joins when its wiring lands.
@@ -2821,10 +3229,110 @@ function titlePy(py) {
 					setNativeFocus(which) { this.suggestFor = which; },
 					setNativeBlur() { this.hideSuggest(); },
 					// Base departure moment: today at departTime, or right now.
+					// Native Search Conditions screen receiver. The native
+					// side posts {mode, date, time, payment, now}; fields
+					// may be missing — never throw. Modes: 'depart' (set
+					// departTime for today), 'arrive' (target arrival; the
+					// departure is computed backwards from the route's
+					// travel time once a route exists), 'first'/'last'
+					// (timetable first/last train as the departure basis).
+					// payment/date are stored only; fares never change
+					// (no verified card-vs-cash rule).
+					applySearchConditions(c) {
+						if (!c || typeof c !== 'object') return;
+						var okDate = function (s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s); };
+						var okTime = function (s) { return typeof s === 'string' && /^\d{2}:\d{2}$/.test(s); };
+						if (c.payment === 'card' || c.payment === 'cash' || c.payment === 'applepay') this.payMethod = c.payment;
+						if (okDate(c.date)) this.searchDate = c.date;
+						if (c.now === true) {
+							this.departTime = null; this.searchDate = null; this.arriveTarget = null; this.pendingCond = null;
+							if (this.fromStation && this.toStation) this.doSearch();
+							return;
+						}
+						var mode = c.mode || 'depart';
+						if (mode === 'depart' && okTime(c.time)) {
+							this.departTime = c.time; this.arriveTarget = null; this.pendingCond = null;
+							if (this.fromStation && this.toStation) this.doSearch();
+						} else if (mode === 'arrive' && okTime(c.time)) {
+							this.arriveTarget = { date: okDate(c.date) ? c.date : null, time: c.time };
+							this.pendingCond = null;
+							if (this.fromStation && this.toStation) this.doSearch();
+						} else if ((mode === 'first' || mode === 'last')) {
+							this.pendingCond = { mode: mode, date: okDate(c.date) ? c.date : null };
+							this.arriveTarget = null;
+							if (this.fromStation && this.toStation) this.doSearch();
+						}
+					},
+					// Apply a stored arrival target once a route exists:
+					// departure = arrival - route travel time.
+					applyArriveTarget() {
+						var at = this.arriveTarget;
+						if (!at || !at.time) return false;
+						var r = this.routeResult;
+						if (!r || typeof r.minutes !== 'number') return false;
+						var d = this.parseDateTime(at.date, at.time);
+						if (!d) return false;
+						d = new Date(d.getTime() - r.minutes * 60000);
+						this.searchDate = this.fmtDate(d);
+						this.departTime = this.fmtTime(d);
+						this.arriveTarget = null;
+						return true;
+					},
+					// Apply a stored first/last-train condition once a route
+					// exists: use the first/last train of the first segment.
+					applyFirstLast() {
+						var pc = this.pendingCond;
+						if (!pc) return false;
+						var r = this.routeResult;
+						if (!r || !r.segments || !r.segments.length) return false;
+						var seg = r.segments[0];
+						var t = this.firstLastAt(seg.from, seg.line, seg.to, pc.mode);
+						if (!t) return false;
+						if (pc.date) this.searchDate = pc.date;
+						this.departTime = t;
+						this.pendingCond = null;
+						return true;
+					},
+					// First/last train ('HH:MM') at station `from` on line
+					// `line` heading toward `to` (same lookup as
+					// routeOpWarning), or ''.
+					firstLastAt(from, line, to, mode) {
+						var tt = this.timetableData;
+						if (!tt || !tt[from] || !tt[from][line]) return '';
+						var rows = tt[from][line];
+						var dirName = '';
+						var R = this.routes || {};
+						var L = R.lines && R.lines[line];
+						if (L && L.stations) {
+							var fi = L.stations.indexOf(from), ti = L.stations.indexOf(to);
+							if (fi >= 0 && ti >= 0) dirName = L.stations[ti > fi ? L.stations.length - 1 : 0];
+						}
+						for (var i = 0; i < rows.length; i++) {
+							if (!dirName || rows[i].dir === dirName || rows[i].dir === to) {
+								return mode === 'first' ? (rows[i].first || '') : (rows[i].last || '');
+							}
+						}
+						return rows.length ? (mode === 'first' ? (rows[0].first || '') : (rows[0].last || '')) : '';
+					},
+					parseDateTime(dateStr, timeStr) {
+						if (!dateStr || !timeStr) return null;
+						var p = dateStr.split('-'), q = timeStr.split(':');
+						if (p.length !== 3 || q.length !== 2) return null;
+						var d = new Date(+p[0], +p[1] - 1, +p[2], +q[0], +q[1], 0);
+						return isNaN(d.getTime()) ? null : d;
+					},
+					fmtDate(d) {
+						var m = d.getMonth() + 1, day = d.getDate();
+						return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+					},
+					fmtTime(d) {
+						var hh = d.getHours(), mm = d.getMinutes();
+						return (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+					},
 					departBase() {
 						if (!this.departTime) return new Date();
 						var p = this.departTime.split(':');
-						var d = new Date();
+						var d = this.searchDate ? (this.parseDateTime(this.searchDate, '00:00') || new Date()) : new Date();
 						d.setHours(parseInt(p[0], 10), parseInt(p[1], 10), 0, 0);
 						return d;
 					},
@@ -2888,6 +3396,7 @@ function titlePy(py) {
 						// (it tracked the old route).
 						if (this.tripActive && this.tripRoute !== r) this.endTrip();
 						this.routeResult = r;
+						this.transferFocus = -1;
 					},
 					// ---- Live Activity trip (build 65) ----
 					// City theme colour for the Live Activity (matches the
@@ -3000,6 +3509,8 @@ function titlePy(py) {
 						}
 						this.routeList = list;
 						this.routeResult = list[0];
+						if (this.arriveTarget && this.applyArriveTarget()) { this.doSearch(); return; }
+						if (this.pendingCond && this.applyFirstLast()) { this.doSearch(); return; }
 					},
 					goSegment(seg) {
 						var st = null;
@@ -3250,6 +3761,7 @@ function titlePy(py) {
 					}
 				},
 				updated: function() {
+					this.syncHtmlClasses();
 					var el = document.getElementById('svg8');
 					if (el && window._metroSvgEl !== el) {
 						window._metroSvgEl = el;
@@ -3311,6 +3823,7 @@ function titlePy(py) {
 					// ignores attributes on the mount container; proven by a
 					// minimal Vue test).
 					document.documentElement.classList.toggle('is-pad', this.isPad);
+					this.syncHtmlClasses();
 					// Restore the last-used city (build 37): relaunch opens
 					// on the city the user last switched to, and shows that
 					// city's splash. The swap happens behind the launch splash.
@@ -3632,30 +4145,31 @@ function titlePy(py) {
 			};
 
 
+			function openExternal(url, fallback) {
+				var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openURL;
+				if (h) { h.postMessage({ url: url, fallback: fallback || '' }); return; }
+				var isWeb = url.indexOf('http://') === 0 || url.indexOf('https://') === 0;
+				window.open(isWeb ? url : (fallback || url));
+			};
+
+
 			function openRepo() {
-				window.open("https://github.com/SierraQin/metro");
+				openExternal("https://github.com/SierraQin/metro");
 			};
 
 
 			function openDouyin() {
-				// Author's Douyin homepage (ID 351453703): open the Douyin app
-				// if installed, otherwise fall back to a web search for the ID.
-				var appOpened = false;
-				function onHide() { appOpened = true; }
-				document.addEventListener('visibilitychange', onHide);
-				window.location.href = "snssdk1128://user/profile/351453703";
-				setTimeout(function () {
-					document.removeEventListener('visibilitychange', onHide);
-					if (!appOpened && !document.hidden) {
-						window.open("https://www.douyin.com/search/351453703");
-					}
-				}, 1500);
+				// Author's Douyin homepage (ID 351453703). The native
+				// shell opens the Douyin app via its URL scheme and falls
+				// back to the web search page when it is not installed
+				// (window.open / location.href cannot do this in WKWebView).
+				openExternal("snssdk1128://user/profile/351453703", "https://www.douyin.com/search/351453703");
 			};
 
 
 			function pdfDownload() {
 				if (!vm.curr.pdfUrl) return;
-				window.open(vm.curr.pdfUrl);
+				openExternal(vm.curr.pdfUrl);
 			};
 
 

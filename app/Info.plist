@@ -41,10 +41,22 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>69</string>
+	<string>70</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.andytransport.metro</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>subwaymotion</string>
+			</array>
+		</dict>
+	</array>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>weixin</string>
+		<string>snssdk1128</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

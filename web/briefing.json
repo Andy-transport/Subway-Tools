@@ -1,1 +1,137 @@
-{"items":[{"color":"#F4C1CA","date":"预计2026年底","date_en":"Expected end of 2026","id":"bj22","summary":"全线车站主体结构封顶，区间贯通，附属结构完成96%，设备安装及装修完成90%，现处于空载试运行阶段，年底基本具备开通条件。","summary_en":"All stations topped out and intervals connected, ancillary works 96% complete, equipment and finishing 90% complete; now in no-load trial operation, basically ready for opening by year-end.","title":"北京22号线预计2026年底开通","title_en":"Beijing Line 22 expected to open by end of 2026"},{"color":"#401AA6","date":"预计2026年底","date_en":"Expected end of 2026","id":"sh22","summary":"在建，预计2026年底开通；另有消息称2029年开通，日期尚未确认。","summary_en":"Under construction, expected to open by end of 2026; another source gives 2029, unconfirmed.","title":"上海22号线预计2026年底开通","title_en":"Shanghai Line 22 expected to open by end of 2026"},{"color":"#59621D","date":"预计2026年底","date_en":"Expected end of 2026","id":"gz12","summary":"在建，预计2026年底开通。","summary_en":"Under construction, expected to open by end of 2026.","title":"广州12号线中段预计2026年底开通","title_en":"Guangzhou Line 12 (middle section) expected to open by end of 2026"},{"color":"#888600","date":"预计2026年底","date_en":"Expected end of 2026","id":"gz13","summary":"在建，预计2026年底开通。","summary_en":"Under construction, expected to open by end of 2026.","title":"广州13号线二期西段预计2026年底开通","title_en":"Guangzhou Line 13 Phase 2 (west section) expected to open by end of 2026"},{"color":"#FEDC00","date":"预计2027","date_en":"Expected 2027","id":"sy6","summary":"在建，预计2027年开通。","summary_en":"Under construction, expected to open in 2027.","title":"沈阳6号线预计2027年开通","title_en":"Shenyang Line 6 expected to open in 2027"},{"color":"#0095D2","date":"预计2027","date_en":"Expected 2027","id":"sy9","summary":"在建，预计2027年开通。","summary_en":"Under construction, expected to open in 2027.","title":"沈阳9号线二期预计2027年开通","title_en":"Shenyang Line 9 Phase 2 expected to open in 2027"},{"color":"#DE7C00","date":"预计2027","date_en":"Expected 2027","id":"sz13","summary":"在建，预计2027年开通。","summary_en":"Under construction, expected to open in 2027.","title":"深圳13号线南延预计2027年开通","title_en":"Shenzhen Line 13 (south extension) expected to open in 2027"},{"color":"#0057B8","date":"预计2027","date_en":"Expected 2027","id":"cq27","summary":"在建，预计2027年开通。","summary_en":"Under construction, expected to open in 2027.","title":"重庆27号线一期预计2027年开通","title_en":"Chongqing Line 27 Phase 1 expected to open in 2027"},{"color":"#A7C6ED","date":"预计2027","date_en":"Expected 2027","id":"cdS5","summary":"在建，预计2027年开通。","summary_en":"Under construction, expected to open in 2027.","title":"成都S5线预计2027年开通","title_en":"Chengdu Line S5 expected to open in 2027"},{"color":"#006BA6","date":"预计2027","date_en":"Expected 2027","id":"tjZ2","summary":"在建，预计2027年开通。","summary_en":"Under construction, expected to open in 2027.","title":"天津Z2线预计2027年开通","title_en":"Tianjin Line Z2 expected to open in 2027"},{"color":"#888888","date":"在建 · 延期","date_en":"Under construction · Delayed","id":"dl4","summary":"大连4号线建设延期，开通时间未定。","summary_en":"Dalian Line 4 construction is delayed; no opening date announced.","title":"大连4号线建设延期","title_en":"Dalian Line 4 construction delayed"}],"updated":"2026-11-18"}
+{
+ "items": [
+  {
+   "color": "#F4C1CA",
+   "date": "预计2026年底",
+   "date_en": "Expected end of 2026",
+   "id": "bj22",
+   "summary": "全线车站主体结构封顶，区间贯通，附属结构完成96%，设备安装及装修完成90%，现处于空载试运行阶段，年底基本具备开通条件。",
+   "summary_en": "All stations topped out and intervals connected, ancillary works 96% complete, equipment and finishing 90% complete; now in no-load trial operation, basically ready for opening by year-end.",
+   "title": "北京22号线预计2026年底开通",
+   "title_en": "Beijing Line 22 expected to open by end of 2026",
+   "source": "北京轨道交通",
+   "source_en": "Beijing Rail Transit"
+  },
+  {
+   "color": "#401AA6",
+   "date": "预计2026年底",
+   "date_en": "Expected end of 2026",
+   "id": "sh22",
+   "summary": "在建，预计2026年底开通；另有消息称2029年开通，日期尚未确认。",
+   "summary_en": "Under construction, expected to open by end of 2026; another source gives 2029, unconfirmed.",
+   "title": "上海22号线预计2026年底开通",
+   "title_en": "Shanghai Line 22 expected to open by end of 2026",
+   "source": "上海轨道交通",
+   "source_en": "Shanghai Metro"
+  },
+  {
+   "color": "#59621D",
+   "date": "预计2026年底",
+   "date_en": "Expected end of 2026",
+   "id": "gz12",
+   "summary": "在建，预计2026年底开通。",
+   "summary_en": "Under construction, expected to open by end of 2026.",
+   "title": "广州12号线中段预计2026年底开通",
+   "title_en": "Guangzhou Line 12 (middle section) expected to open by end of 2026",
+   "source": "广州轨道交通",
+   "source_en": "Guangzhou Metro"
+  },
+  {
+   "color": "#888600",
+   "date": "预计2026年底",
+   "date_en": "Expected end of 2026",
+   "id": "gz13",
+   "summary": "在建，预计2026年底开通。",
+   "summary_en": "Under construction, expected to open by end of 2026.",
+   "title": "广州13号线二期西段预计2026年底开通",
+   "title_en": "Guangzhou Line 13 Phase 2 (west section) expected to open by end of 2026",
+   "source": "广州轨道交通",
+   "source_en": "Guangzhou Metro"
+  },
+  {
+   "color": "#FEDC00",
+   "date": "预计2027",
+   "date_en": "Expected 2027",
+   "id": "sy6",
+   "summary": "在建，预计2027年开通。",
+   "summary_en": "Under construction, expected to open in 2027.",
+   "title": "沈阳6号线预计2027年开通",
+   "title_en": "Shenyang Line 6 expected to open in 2027",
+   "source": "沈阳轨道交通",
+   "source_en": "Shenyang Metro"
+  },
+  {
+   "color": "#0095D2",
+   "date": "预计2027",
+   "date_en": "Expected 2027",
+   "id": "sy9",
+   "summary": "在建，预计2027年开通。",
+   "summary_en": "Under construction, expected to open in 2027.",
+   "title": "沈阳9号线二期预计2027年开通",
+   "title_en": "Shenyang Line 9 Phase 2 expected to open in 2027",
+   "source": "沈阳轨道交通",
+   "source_en": "Shenyang Metro"
+  },
+  {
+   "color": "#DE7C00",
+   "date": "预计2027",
+   "date_en": "Expected 2027",
+   "id": "sz13",
+   "summary": "在建，预计2027年开通。",
+   "summary_en": "Under construction, expected to open in 2027.",
+   "title": "深圳13号线南延预计2027年开通",
+   "title_en": "Shenzhen Line 13 (south extension) expected to open in 2027",
+   "source": "深圳轨道交通",
+   "source_en": "Shenzhen Metro"
+  },
+  {
+   "color": "#0057B8",
+   "date": "预计2027",
+   "date_en": "Expected 2027",
+   "id": "cq27",
+   "summary": "在建，预计2027年开通。",
+   "summary_en": "Under construction, expected to open in 2027.",
+   "title": "重庆27号线一期预计2027年开通",
+   "title_en": "Chongqing Line 27 Phase 1 expected to open in 2027",
+   "source": "重庆轨道交通",
+   "source_en": "Chongqing Rail Transit"
+  },
+  {
+   "color": "#A7C6ED",
+   "date": "预计2027",
+   "date_en": "Expected 2027",
+   "id": "cdS5",
+   "summary": "在建，预计2027年开通。",
+   "summary_en": "Under construction, expected to open in 2027.",
+   "title": "成都S5线预计2027年开通",
+   "title_en": "Chengdu Line S5 expected to open in 2027",
+   "source": "成都轨道交通",
+   "source_en": "Chengdu Metro"
+  },
+  {
+   "color": "#006BA6",
+   "date": "预计2027",
+   "date_en": "Expected 2027",
+   "id": "tjZ2",
+   "summary": "在建，预计2027年开通。",
+   "summary_en": "Under construction, expected to open in 2027.",
+   "title": "天津Z2线预计2027年开通",
+   "title_en": "Tianjin Line Z2 expected to open in 2027",
+   "source": "天津轨道交通",
+   "source_en": "Tianjin Metro"
+  },
+  {
+   "color": "#888888",
+   "date": "在建 · 延期",
+   "date_en": "Under construction · Delayed",
+   "id": "dl4",
+   "summary": "大连4号线建设延期，开通时间未定。",
+   "summary_en": "Dalian Line 4 construction is delayed; no opening date announced.",
+   "title": "大连4号线建设延期",
+   "title_en": "Dalian Line 4 construction delayed",
+   "source": "大连轨道交通",
+   "source_en": "Dalian Metro"
+  }
+ ],
+ "updated": "2026-11-18"
+}
