@@ -2,6 +2,7 @@ import UIKit
 import WebKit
 import CoreLocation
 import ActivityKit
+import UserNotifications
 
 // 北京市轨道交通线路配置图 (SierraQin/metro, CC0 1.0)
 // Shell: a full-screen WKWebView loading the bundled offline page,
@@ -68,6 +69,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegate, WKScriptMessageHandler, UITextFieldDelegate, CLLocationManagerDelegate {
     var webView: WKWebView!
     var backButton: UIButton!
+    // Native sub-view back button (user 2026-11-18: all sub-view back
+    // buttons must be native Apple UI SDK 27.2, not the web's CSS circle
+    // with a "‹" glyph): a 34pt circular glass button with an SF Symbol
+    // chevron.backward, shown only while a Settings sub-view or a
+    // timetable line detail is open (web posts "subView" {open: Bool}).
+    // Distinct from backButton above, which is the bottom-anchored
+    // "‹ 返回" web-history button driven by webView.canGoBack.
+    var subViewBackButton: UIButton!
+    // Native Appearance picker (user 2026-11-19, 外观 → Apple UI SDK 27.2):
+    // a full-screen native view (two Light/Dark preview cards + 自动 switch),
+    // opened by the web's "openAppearance" post. Nil while closed.
+    var appearanceView: AppearanceView?
     var tabBar: UITabBar!
     var cityPill: UIButton!
     // Map tools pill (top-right, build 74): a single Liquid Glass capsule
@@ -164,6 +177,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // Darker #B3000D for selected states/text.
     let changchunRed = UIColor(red: 229.0 / 255.0, green: 0.0 / 255.0, blue: 17.0 / 255.0, alpha: 1)
     let changchunRedDark = UIColor(red: 179.0 / 255.0, green: 0.0 / 255.0, blue: 13.0 / 255.0, alpha: 1)
+    // Chengdu Line 1 #0F0F96 (official line colour, Chengdu DB510100/T
+    // 083-2012 wayfinding standard; no single official system brand colour
+    // is published). Darker #0A0A6E is derived (Line 1 darkened ~30%), not
+    // an official published value.
+    let chengduBlue = UIColor(red: 15.0 / 255.0, green: 15.0 / 255.0, blue: 150.0 / 255.0, alpha: 1)
+    let chengduBlueDark = UIColor(red: 10.0 / 255.0, green: 10.0 / 255.0, blue: 110.0 / 255.0, alpha: 1)
+    // Shenzhen Metro system colour #00A051 (Shenzhen Metro brand
+    // green). Darker #007039 is derived (darkened ~30%), not an
+    // official published value.
+    let shenzhenGreen = UIColor(red: 0, green: 160.0 / 255.0, blue: 81.0 / 255.0, alpha: 1)
+    let shenzhenGreenDark = UIColor(red: 0, green: 112.0 / 255.0, blue: 57.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -216,6 +240,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "city.cz": ["常州", "常州", "Changzhou"],
         "city.cq": ["重庆", "重慶", "Chongqing"],
         "city.cc": ["长春", "長春", "Changchun"],
+        "city.sz": ["深圳", "深圳", "Shenzhen"],
+        "city.cd": ["成都", "成都", "Chengdu"],
         "native.cancel": ["取消", "取消", "Cancel"],
         "tr.tab.rec": ["推荐", "推薦", "Recommended"],
         "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
@@ -224,6 +250,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "more.theme.system": ["跟随系统", "跟隨系統", "System"],
         "more.theme.light": ["浅色", "淺色", "Light"],
         "more.theme.dark": ["深色", "深色", "Dark"],
+        "more.theme.auto": ["自动", "自動", "Automatic"],
+        "more.appearance": ["外观", "外觀", "Appearance"],
+        "siri.add.title": ["添加到 Siri 快捷指令", "添加到 Siri 快捷指令", "Add to Siri Shortcuts"],
+        "siri.add.open": ["打开快捷指令", "打開快捷指令", "Open Shortcuts"],
+        "siri.add.message": ["「{name}」已就绪。在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可添加。添加后可对 Siri 说出对应短语使用。", "「{name}」已就緒。在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可添加。添加後可對 Siri 說出對應短語使用。", "“{name}” is ready. In the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”. Once added, use it by speaking its phrase to Siri."],
+        "siri.add.message.nodonate": ["未能自动准备「{name}」，但仍可手动添加：在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可。", "未能自動準備「{name}」，但仍可手動添加：在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可。", "“{name}” could not be prepared automatically, but you can still add it manually: in the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”."],
         "tr.search": ["搜索", "搜索", "Search"],
         "tr.departNow": ["现在出发", "現在出發", "Depart now"],
         "time.confirm": ["确定", "確定", "Done"],
@@ -249,8 +281,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "live.stopsLeft": ["还剩 {n} 站", "還剩 {n} 站", "{n} stops left"],
         "live.trip": ["行程", "行程", "Trip"],
         "live.arrived": ["已到达", "已到達", "Arrived"],
+        "live.notifyBody": ["{from} → {to}，下一站 {next}", "{from} → {to}，下一站 {next}", "{from} → {to} — next stop {next}"],
     ]
-    // System per-app language (iOS Settings > Subway tools > Language).
+    // System per-app language (iOS Settings > Subway Tools > Language).
     // Bundle.main.preferredLocalizations reflects the per-app choice when
     // the bundle has .lproj localizations; otherwise the device language.
     static func systemLang() -> String {
@@ -337,7 +370,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = UIColor(red: 12.0 / 255.0, green: 15.0 / 255.0, blue: 22.0 / 255.0, alpha: 1) // #0c0f16, the web's dark background (build 63): nothing white shows through while the page loads or at the edges.
@@ -361,6 +394,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "liveActivity")
         config.userContentController.add(self, name: "clearCache")
         config.userContentController.add(self, name: "addShortcut")
+        config.userContentController.add(self, name: "subView")
+        config.userContentController.add(self, name: "openAppearance")
         // Inject the iOS per-app language + device idiom before the page's
         // scripts run, so the web's savedLang() can follow the system
         // language when the user has no explicit in-app choice (see
@@ -495,6 +530,51 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
         ])
 
+        // Native sub-view back button (user 2026-11-18): a real Apple UI
+        // 34pt circular glass button (SF Symbol chevron.backward) at the
+        // top-left, shown only while a web sub-view is open. It overlays
+        // the web's .more-sub-back / .tt-back button at the same spot, so
+        // if it fails to show, the web button is still there as fallback.
+        // Glass matches the native tab bar via makeGlassEffectView()
+        // (UIGlassEffect .regular on iOS 26+, .systemMaterial blur below).
+        // The chevron uses the adaptive label colour (.label: black in
+        // light mode, white in dark mode).
+        subViewBackButton = UIButton(type: .system)
+        subViewBackButton.translatesAutoresizingMaskIntoConstraints = false
+        subViewBackButton.backgroundColor = .clear
+        subViewBackButton.layer.cornerRadius = 17
+        subViewBackButton.clipsToBounds = true
+        subViewBackButton.tintColor = .label
+        let subViewBackGlass = makeGlassEffectView()
+        subViewBackGlass.translatesAutoresizingMaskIntoConstraints = false
+        subViewBackGlass.layer.cornerRadius = 17
+        subViewBackGlass.clipsToBounds = true
+        subViewBackGlass.isUserInteractionEnabled = false
+        subViewBackButton.insertSubview(subViewBackGlass, at: 0)
+        NSLayoutConstraint.activate([
+            subViewBackGlass.leadingAnchor.constraint(equalTo: subViewBackButton.leadingAnchor),
+            subViewBackGlass.trailingAnchor.constraint(equalTo: subViewBackButton.trailingAnchor),
+            subViewBackGlass.topAnchor.constraint(equalTo: subViewBackButton.topAnchor),
+            subViewBackGlass.bottomAnchor.constraint(equalTo: subViewBackButton.bottomAnchor),
+        ])
+        let subViewBackChevron = UIImage(systemName: "chevron.backward")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold))
+        subViewBackButton.setImage(subViewBackChevron, for: .normal)
+        subViewBackButton.addTarget(self, action: #selector(subViewBackTapped), for: .touchUpInside)
+        subViewBackButton.isHidden = true
+        view.addSubview(subViewBackButton)
+        // Top-left of the visible content area. On iPhone the top safe
+        // area; on iPad the tab bar floats at the top, so sit below it
+        // (same anchor as the native top pills) — otherwise the button
+        // would land on top of the tab bar.
+        let subViewBackTopAnchor: NSLayoutYAxisAnchor = (UIDevice.current.userInterfaceIdiom == .pad) ? tabBar.bottomAnchor : view.safeAreaLayoutGuide.topAnchor
+        let subViewBackTopConstant: CGFloat = (UIDevice.current.userInterfaceIdiom == .pad) ? 10 : 8
+        NSLayoutConstraint.activate([
+            subViewBackButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            subViewBackButton.topAnchor.constraint(equalTo: subViewBackTopAnchor, constant: subViewBackTopConstant),
+            subViewBackButton.widthAnchor.constraint(equalToConstant: 34),
+            subViewBackButton.heightAnchor.constraint(equalToConstant: 34),
+        ])
+
         setupNativePills()
         // Splash fallback: if the web never posts splashDone, reveal the
         // controls after 4s anyway.
@@ -522,6 +602,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cz": splashName = "SplashCZ"
         case "cq": splashName = "SplashCQ"
         case "cc": splashName = "SplashCC"
+        case "sz": splashName = "SplashSZ"
+        case "cd": splashName = "SplashCD"
         default: splashName = "Splash"
         }
         splashImageView = UIImageView(image: UIImage(named: splashName))
@@ -579,6 +661,87 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     @objc func goBack() {
         if webView.canGoBack { webView.goBack() }
+    }
+
+    // Native sub-view back button tap (user 2026-11-18): the web owns
+    // sub-view state, so this only asks the web to go back. The guarded
+    // form never throws if window.metroApp or goBack() is absent (e.g. an
+    // older cached page); the result is ignored.
+    @objc func subViewBackTapped() {
+        // Native Appearance picker: the web has no sub-view open while
+        // the native picker is showing (it posted "openAppearance"
+        // instead), so goBack() alone would do nothing — dismiss the
+        // native view too. goBack() is still evaluated: it is a safe
+        // no-op when the web has nothing open, and it closes a web
+        // sub-view if one somehow is open.
+        if appearanceView != nil { dismissAppearance() }
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.goBack()", completionHandler: nil)
+    }
+
+    // Show/hide the native sub-view back button. Called from the "subView"
+    // message handler. If the button was never created, there is nothing
+    // to show — the web back button remains the fallback.
+    func setSubViewBackButtonVisible(_ visible: Bool) {
+        guard let button = subViewBackButton else { return }
+        button.isHidden = !visible
+        if visible { view.bringSubviewToFront(button) }
+    }
+
+    // MARK: - Native Appearance picker (user 2026-11-19)
+
+    // Present the native 外观 picker. Reads the current theme from the
+    // web first so the picker shows the correct initial selection (which
+    // card is checked, whether 自动 is ON); falls back to "system" if the
+    // web is not ready. No-op if the picker is already showing.
+    func presentAppearance() {
+        guard appearanceView == nil else { return }
+        webView.evaluateJavaScript("window.metroApp ? window.metroApp.theme : null") { [weak self] result, _ in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                guard self.appearanceView == nil else { return }
+                let theme = (result as? String).flatMap { ["system", "light", "dark"].contains($0) ? $0 : nil } ?? "system"
+                let effectiveDark = self.traitCollection.userInterfaceStyle == .dark
+                let picker = AppearanceView(
+                    lightTitle: self.L("more.theme.light"),
+                    darkTitle: self.L("more.theme.dark"),
+                    autoTitle: self.L("more.theme.auto"),
+                    appearanceTitle: self.L("more.appearance")
+                )
+                picker.onThemeChange = { [weak self] key in
+                    self?.applyAppearanceTheme(key)
+                }
+                picker.configure(theme: theme, effectiveDark: effectiveDark)
+                picker.translatesAutoresizingMaskIntoConstraints = false
+                // Fade in (the picker is a full-screen native sub-view).
+                picker.alpha = 0
+                self.view.addSubview(picker)
+                NSLayoutConstraint.activate([
+                    picker.topAnchor.constraint(equalTo: self.view.topAnchor),
+                    picker.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+                    picker.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+                    picker.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+                ])
+                self.appearanceView = picker
+                // The native back button must stay on top of the picker
+                // (the picker covers the web view, tab bar and pills).
+                self.setSubViewBackButtonVisible(true)
+                UIView.animate(withDuration: 0.25) { picker.alpha = 1 }
+            }
+        }
+    }
+
+    func dismissAppearance() {
+        guard let picker = appearanceView else { return }
+        appearanceView = nil
+        picker.removeFromSuperview()
+        setSubViewBackButtonVisible(false)
+    }
+
+    // Apply a theme picked in the native picker. Reuses the web's
+    // setTheme()/applyTheme() (guarded form, same as themeButtonTapped),
+    // so web and native stay in sync. No local theme state is kept.
+    func applyAppearanceTheme(_ key: String) {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setTheme('\(key)')", completionHandler: nil)
     }
 
     // MARK: - Native Liquid Glass top pills
@@ -649,6 +812,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cz" { return changzhouRed }
         if currentCity == "cq" { return chongqingGreen }
         if currentCity == "cc" { return changchunRed }
+        if currentCity == "sz" { return shenzhenGreen }
+        if currentCity == "cd" { return chengduBlue }
         return subwayBlue
     }
 
@@ -663,6 +828,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cz" { return changzhouRedDark }
         if currentCity == "cq" { return chongqingGreenDark }
         if currentCity == "cc" { return changchunRedDark }
+        if currentCity == "sz" { return shenzhenGreenDark }
+        if currentCity == "cd" { return chengduBlueDark }
         return subwayBlue
     }
 
@@ -680,6 +847,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cz" { return changzhouRed }
         if currentCity == "cq" { return chongqingGreen }
         if currentCity == "cc" { return changchunRed }
+        if currentCity == "sz" { return shenzhenGreen }
+        if currentCity == "cd" { return chengduBlue }
         return accentColor()
     }
 
@@ -702,6 +871,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cz": name = "ChangzhouLogo"
         case "cq": name = "ChongqingLogo"
         case "cc": name = "ChangchunLogo"
+        case "sz": name = "ShenzhenLogo"
+        case "cd": name = "ChengduLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -806,7 +977,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let cc = UIAction(title: L("city.cc"), image: cityLogoImage(for: "cc")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "cc" ? .on : .off) { [weak self] _ in
             self?.pickCity("cc")
         }
-        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc])
+        let sz = UIAction(title: L("city.sz"), image: cityLogoImage(for: "sz")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sz" ? .on : .off) { [weak self] _ in
+            self?.pickCity("sz")
+        }
+        let cd = UIAction(title: L("city.cd"), image: cityLogoImage(for: "cd")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "cd" ? .on : .off) { [weak self] _ in
+            self?.pickCity("cd")
+        }
+        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -835,6 +1012,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         sheet.addAction(cityAction("cz"))
         sheet.addAction(cityAction("cq"))
         sheet.addAction(cityAction("cc"))
+        sheet.addAction(cityAction("sz"))
+        sheet.addAction(cityAction("cd"))
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
@@ -1567,8 +1746,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 self.webView.evaluateJavaScript(js, completionHandler: nil)
             }
         }
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
+        // Presented inside a UINavigationController so the screen
+        // gets a proper navigation bar with the standard back chevron
+        // (user 2026-11-19: rebuild as Apple UI SDK 27.2 — no custom
+        // dark-circle back button).
+        let nav = UINavigationController(rootViewController: vc)
+        nav.navigationBar.prefersLargeTitles = false
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
     }
 
     // Parse the web's departTime ("HH:mm") into today's date at that
@@ -1591,7 +1776,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // there if it is installed). App Store ids verified via the iTunes
     // Search API 2026-11-15: Beijing Yikatong 1071038870, Shenyang
     // Shengjing Tong 1441271928, Shanghai Metro大都会 1202750238, Dalian
-    // 交通e出行 1383655806, Changchun 长春E出行 1481796811. There
+    // 交通e出行 1383655806, Changchun 长春E出行 1481796811, Chengdu 成都地铁-官方APP 1303414976, Shenzhen 深圳地铁-官方APP 848926994. There
     // is no confirmed URL scheme for any of these apps, so the App Store
     // page (not a guessed scheme) is the link.
     func openTransitApp() {
@@ -1605,6 +1790,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cz": id = "1474201266"
         case "cq": id = "1491110313"
         case "cc": id = "1481796811"
+        case "sz": id = "848926994"
+        case "cd": id = "1303414976"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
@@ -2043,10 +2230,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // refused: fail silently (the in-app trip UI still works).
             tripActivity = nil
         }
+        // Notifications replace the Live Activity UI (the widget
+        // extension is removed, so the activity above has no Dynamic
+        // Island / lock-screen UI): ask once, then alert at arrival
+        // even when the activity request just failed.
+        requestTripNotificationPermission()
+        scheduleTripArrivalNotification(from: from, to: to, next: next, arrival: arrival)
     }
 
     func updateTripActivity(_ dict: [String: Any]) {
         guard #available(iOS 16.2, *) else { return }
+        // Keep the arrival alert in step with the trip, even when there
+        // is no Live Activity (extension removed, so tripActivity is nil).
+        if let from = dict["from"] as? String, !from.isEmpty,
+           let to = dict["to"] as? String, !to.isEmpty,
+           let next = dict["nextStation"] as? String,
+           let arrivalMs = dict["arrivalMs"] as? Double {
+            let arrival = Date(timeIntervalSince1970: arrivalMs / 1000)
+            scheduleTripArrivalNotification(from: from, to: to, next: next, arrival: arrival)
+        }
         guard let activity = tripActivity as? Activity<TripAttributes>,
               let next = dict["nextStation"] as? String,
               let remaining = dict["remainingStops"] as? Int,
@@ -2061,9 +2263,58 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     func endTripActivity() {
         guard #available(iOS 16.2, *) else { return }
+        // Cancel the arrival alert so it never fires after the trip ends.
+        cancelTripArrivalNotification()
         guard let activity = tripActivity as? Activity<TripAttributes> else { return }
         tripActivity = nil
         Task { await activity.end(nil, dismissalPolicy: .immediate) }
+    }
+
+    // MARK: - Trip arrival notification (local only, 1.0.5)
+
+    // Local notifications replace the Live Activity UI now that the
+    // widget extension is removed (全能签 cannot sign an appex, user
+    // 2026-11-19). Once the user grants permission, iOS adds a
+    // "Notifications" entry in Settings > Subway Tools, and the user
+    // can turn alerts off there; the system then suppresses the
+    // scheduled alert automatically. No remote push, no entitlements
+    // file, no new .swift file. The Live Activity code above is
+    // untouched and still fails silently without the extension.
+    private let tripNotificationID = "metro-trip-arrival"
+
+    // Ask for notification permission once, at trip start. Only prompts
+    // when the user has not decided yet; a prior allow/deny is respected
+    // and never re-prompted.
+    func requestTripNotificationPermission() {
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { settings in
+            guard settings.authorizationStatus == .notDetermined else { return }
+            center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+        }
+    }
+
+    // Schedule (or reschedule) the arrival alert for this trip. Cancels
+    // any previous arrival alert first, so only one is ever pending.
+    // Skips when the arrival time is already past.
+    func scheduleTripArrivalNotification(from: String, to: String, next: String, arrival: Date) {
+        cancelTripArrivalNotification()
+        let interval = arrival.timeIntervalSinceNow
+        guard interval > 0 else { return }
+        let content = UNMutableNotificationContent()
+        content.title = L("live.arrived")
+        content.body = L("live.notifyBody")
+            .replacingOccurrences(of: "{from}", with: from)
+            .replacingOccurrences(of: "{to}", with: to)
+            .replacingOccurrences(of: "{next}", with: next)
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
+        let request = UNNotificationRequest(identifier: tripNotificationID, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    // Remove the pending arrival alert (trip ended or superseded).
+    func cancelTripArrivalNotification() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [tripNotificationID])
     }
 
     // MARK: - Web page -> native tab bar
@@ -2087,7 +2338,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
-                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc"].contains(city) {
+                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd"].contains(city) {
             // The web switched cities (user switch or the startup
             // restore). Mirror it natively; the web already switched,
             // so do NOT call switchCity here (that would loop).
@@ -2165,6 +2416,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // the web posts {id} when the user taps a shortcut row.
             // An unknown id falls through here and is ignored.
             presentShortcutSetup(for: sid)
+        } else if message.name == "subView" {
+            // Native sub-view back button (user 2026-11-18): the web posts
+            // {open: Bool} whenever sub-view open-state changes — open is
+            // true while any Settings sub-view or a timetable line detail
+            // is open, false otherwise. Malformed bodies are ignored.
+            if let dict = message.body as? [String: Any],
+               let open = dict["open"] as? Bool {
+                setSubViewBackButtonVisible(open)
+            }
+        } else if message.name == "openAppearance" {
+            // Native Appearance picker (user 2026-11-19): the web posts
+            // here instead of opening its own 外观 sub-view (the template
+            // agent falls back to the web sub-view if this handler is
+            // absent). No body is needed.
+            presentAppearance()
         }
     }
 
@@ -2252,15 +2518,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             webView.evaluateJavaScript(js, completionHandler: nil)
         case "route":
             setWebTab(index: 0)
-            if let from = q("from"), !from.isEmpty {
+            let from = q("from") ?? ""
+            let to = q("to") ?? ""
+            if !from.isEmpty {
                 webView.evaluateJavaScript("window.metroApp && window.metroApp.setNativeQuery('from', \(jsString(from)))", completionHandler: nil)
             }
-            if let to = q("to"), !to.isEmpty {
+            if !to.isEmpty {
                 webView.evaluateJavaScript("window.metroApp && window.metroApp.setNativeQuery('to', \(jsString(to)))", completionHandler: nil)
             }
+            // doSearch() only when BOTH stations are given. With a
+            // missing station it would run on empty fields; leave the
+            // transfer tab open instead so the user can pick the
+            // stations. (PlanRoute's from/to are required parameters,
+            // so Siri / the Shortcuts editor prompts for them; this
+            // guard is for a deep link opened without parameters.)
             // doSearch() resolves the names via resolveStation(); if a
             // name does not match a station the web shows its own error.
-            webView.evaluateJavaScript("window.metroApp && window.metroApp.doSearch()", completionHandler: nil)
+            if !from.isEmpty && !to.isEmpty {
+                webView.evaluateJavaScript("window.metroApp && window.metroApp.doSearch()", completionHandler: nil)
+            }
         case "nearby":
             setWebTab(index: 0)
             requestNearbyLocation()
@@ -2279,22 +2555,66 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // NOTE on the system Add-to-Siri sheet: INUIAddVoiceShortcutViewController
     // (IntentsUI) only accepts an INShortcut built from an INIntent or an
     // NSUserActivity — an AppIntent cannot be wrapped in one, so that sheet
-    // cannot present these shortcuts. Instead, donate the intent (so Siri /
-    // Spotlight can suggest it) and open the Shortcuts app, where the app's
-    // shortcuts are listed under Subway tools (AppShortcutsProvider) and the
-    // user can add one and record a voice phrase. Unknown ids never reach
-    // here (the message branch validates the id first).
+    // cannot present these shortcuts. The old flow (donate fire-and-forget
+    // with try?, then open shortcuts:// home) left the user on the
+    // Shortcuts home with no next step — donation is invisible, and the
+    // home screen does not show the app's shortcuts. So now: donate and
+    // AWAIT the result (a failed donation is reported, not swallowed),
+    // then show a native alert that names the shortcut and gives the exact
+    // steps, with a button that opens the Shortcuts app's new-shortcut
+    // editor (shortcuts://create-shortcut), where the user taps Add
+    // Action, searches "Subway Tools" and picks the shortcut. There is
+    // no URL that opens a specific app's shortcut list, so the editor is
+    // the closest real add destination. Unknown ids never reach here (the
+    // message branch validates the id first).
     func presentShortcutSetup(for id: String) {
         guard let shortcut = SubwayShortcutID(rawValue: id) else { return }
-        // The intents need iOS 18+ (OpenURLIntent); on older iOS just
-        // open the Shortcuts app without donating.
-        if #available(iOS 18.0, *) {
-            Task {
-                try? await shortcut.makeIntent().donate()
+        let name = shortcut.displayTitle
+        // The intents need iOS 18+ (OpenURLIntent); on older iOS there
+        // is nothing to donate — the alert still offers the manual
+        // add path.
+        Task { [weak self] in
+            var donated = false
+            if #available(iOS 18.0, *) {
+                do {
+                    try await shortcut.makeIntent().donate()
+                    donated = true
+                } catch {
+                    donated = false
+                }
+            }
+            let wasDonated = donated
+            DispatchQueue.main.async { [weak self] in
+                self?.showShortcutAddAlert(name: name, donated: wasDonated)
             }
         }
-        if let url = URL(string: "shortcuts://") {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
+
+    // Alert after tapping a Siri row: names the shortcut, gives the exact
+    // add steps, and offers to open the Shortcuts app. The message says
+    // plainly whether the donation worked; either way the manual add
+    // path is available (AppShortcutsProvider entries are listed under
+    // Subway Tools in the Shortcuts app with or without a donation).
+    func showShortcutAddAlert(name: String, donated: Bool) {
+        let key = donated ? "siri.add.message" : "siri.add.message.nodonate"
+        let message = L(key).replacingOccurrences(of: "{name}", with: name)
+        let alert = UIAlertController(title: L("siri.add.title"), message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: L("siri.add.open"), style: .default, handler: { [weak self] _ in
+            self?.openShortcutsAppForAdding()
+        }))
+        present(alert, animated: true, completion: nil)
+    }
+
+    // Open the Shortcuts app at the new-shortcut editor, where the user
+    // taps Add Action, searches "Subway Tools" and picks the shortcut.
+    // Falls back to the Shortcuts home if the editor URL fails.
+    func openShortcutsAppForAdding() {
+        guard let editorURL = URL(string: "shortcuts://create-shortcut") else { return }
+        UIApplication.shared.open(editorURL, options: [:]) { success in
+            if !success, let homeURL = URL(string: "shortcuts://") {
+                UIApplication.shared.open(homeURL, options: [:], completionHandler: nil)
+            }
         }
     }
 

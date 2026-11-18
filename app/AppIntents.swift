@@ -41,6 +41,19 @@ enum SubwayShortcutID: String, CaseIterable {
         case .timetable: return TimetableIntent()
         }
     }
+
+    /// Display name for the in-app "add to Siri" alert. Matches the
+    /// shortTitles in SubwayToolsShortcuts below.
+    var displayTitle: String {
+        switch self {
+        case .openApp: return "打开 Subway tools"
+        case .firstTrain: return "查询首班车"
+        case .lastTrain: return "查询末班车"
+        case .planRoute: return "规划路线"
+        case .nearestStation: return "最近的车站"
+        case .timetable: return "查看时刻表"
+        }
+    }
 }
 
 // Builds a subwaymotion:// deep link. Query values are percent-encoded

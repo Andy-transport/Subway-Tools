@@ -1,24 +1,25 @@
 import UIKit
 
-// Search Conditions screen (build 65): native Apple UI (SDK 27.2).
-// The user asked for the "搜索条件" screen from the reference app,
-// built NATIVELY — not a web page. It replaces the old simple time
-// picker sheet (build 34): tapping the transfer panel's time control
-// now opens this screen.
-//
-// Layout (matches the reference):
-//   - circular back button (top-left) + title "搜索条件"
-//   - 4-option pill row: 出发 / 到达 / 首班车 / 末班车
-//     (4 separate Liquid Glass buttons, no sliding — same pattern as
-//     the dark-mode picker; selected = accent-tinted glass)
+// Search Conditions screen (build 65; rebuilt as standard Apple UI
+// SDK 27.2, user 2026-11-19): a full-screen native page presented
+// inside a UINavigationController. The user circled the old custom
+// dark-circle back button and asked for proper Apple UI, so every
+// custom-styled control is replaced with a standard UIKit component:
+//   - UINavigationBar with the standard back chevron (a plain
+//     UIBarButtonItem with the chevron.backward SF Symbol — no
+//     custom circle, no custom background) + the title "搜索条件"
+//   - UISegmentedControl for 出发 / 到达 / 首班车 / 末班车
 //   - UIDatePicker, wheels style, date + time (date only for
 //     首班车 / 末班车, where the time comes from the timetable)
-//   - payment row: card icon + current payment label + 3-option pill
-//     交通卡 / 现金 / Apple Pay (Apple Pay jumps to the Wallet app;
-//     no real payment sheet — the app processes no payments)
-//   - bottom: 现在出发 (dark) and 完成 (city-theme accent)
-// Behaviour: 完成 passes {mode, date, time, payment} back to the
-// AppDelegate, which forwards it to the web via
+//   - payment: a creditcard icon + current-payment label, then a
+//     UISegmentedControl for 交通卡 / 现金 only. (Apple Pay was
+//     removed from this screen, user 2026-11-19 — it lives as a
+//     button on the Transfer tab instead, not here.)
+//   - bottom: 现在出发 (standard system-grey button) and 完成
+//     (standard filled button in the city-theme accent — the
+//     primary action)
+// Behaviour is unchanged: 完成 passes {mode, date, time, payment}
+// back to the AppDelegate, which forwards it to the web via
 // window.metroApp.applySearchConditions(...). 现在出发 applies
 // "depart now" (same dict plus now: true, so the shell clears the
 // chosen time instead of setting a fixed time). Back dismisses
@@ -26,8 +27,8 @@ import UIKit
 // The payment choice is recorded and passed through; fares are NOT
 // changed — no per-city card-vs-cash subway discount rule has been
 // verified, so no discount is invented (standard fare stays).
-// All .glass() calls sit inside `if #available(iOS 26.0, *)`
-// (deployment target is iOS 16.0).
+// All colours and fonts are system values, so the screen follows
+// light and dark mode automatically, on iPhone and iPad.
 final class SearchConditionsViewController: UIViewController {
 
     // Inputs, set by AppDelegate before presenting.
@@ -35,53 +36,60 @@ final class SearchConditionsViewController: UIViewController {
     var accent: UIColor = .systemBlue
     var initialMode: String = "depart"   // depart | arrive | first | last
     var initialDate: Date = Date()
-    var initialPayment: String = "cash"  // card | cash | applepay
+    var initialPayment: String = "cash"  // card | cash
     var localeIdentifier: String = "zh_CN"
     var onDone: (([String: Any]) -> Void)?
 
     private var mode: String = "depart"
     private var payment: String = "cash"
     private var picker: UIDatePicker!
-    private var modeButtons: [UIButton] = []
-    private var payButtons: [UIButton] = []
+    private var modeControl: UISegmentedControl!
+    private var payControl: UISegmentedControl!
     private var payLabel: UILabel!
 
     private let modeKeys = ["depart", "arrive", "first", "last"]
-    private let payKeys = ["card", "cash", "applepay"]
+    private let payKeys = ["card", "cash"]
 
     private func L(_ key: String) -> String {
         return labels[key] ?? key
     }
 
-    // Glass button config, mirroring AppDelegate.themeButtonConfig():
-    // Liquid Glass on iOS 26+, filled capsule below.
-    private func glassConfig(fontSize: CGFloat) -> UIButton.Configuration {
-        var cfg: UIButton.Configuration
-        if #available(iOS 26.0, *) {
-            cfg = UIButton.Configuration.glass()
-        } else {
-            cfg = UIButton.Configuration.filled()
+    // Light-mode legibility (user 2026-11-19 "适配一下浅色模式").
+    // The city accent is a FIXED colour in both modes, so anything
+    // drawn on it (or tinted with it) must be judged from the
+    // accent's own luminance, not from the interface style.
+    // Relative luminance (WCAG) of a colour.
+    private static func luminance(of color: UIColor) -> CGFloat {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard color.getRed(&r, green: &g, blue: &b, alpha: &a) else { return 0 }
+        func lin(_ c: CGFloat) -> CGFloat {
+            return c <= 0.03928 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4)
         }
-        cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
-            var a = attrs
-            a.font = UIFont.systemFont(ofSize: fontSize, weight: .semibold)
-            return a
-        }
-        cfg.cornerStyle = .capsule
-        return cfg
+        return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
     }
 
-    private func styleOptionButtons(_ buttons: [UIButton], selected idx: Int) {
-        for (i, btn) in buttons.enumerated() {
-            var cfg = btn.configuration ?? glassConfig(fontSize: 15)
-            if i == idx {
-                cfg.baseForegroundColor = accent
-                cfg.baseBackgroundColor = accent.withAlphaComponent(0.15)
-            } else {
-                cfg.baseForegroundColor = .label
-                cfg.baseBackgroundColor = nil
-            }
-            btn.configuration = cfg
+    // Text colour for the 完成 button: white text on Shenyang gold
+    // #D4B686 is ~1.9:1 and illegible, so light accents get black
+    // text; every other city accent is dark enough for white text.
+    // Fixed black/white (not .label) because the accent background
+    // is the same in both modes.
+    private func doneButtonTitleColor() -> UIColor {
+        return Self.luminance(of: accent) > 0.35 ? .black : .white
+    }
+
+    // Accent tint for the payment icon: a light accent is too pale
+    // on a white background, so in light mode it is darkened; in
+    // dark mode the raw accent reads fine on black. A dynamic colour
+    // re-evaluates when the trait changes. The provider captures
+    // only the accent value (no self), so there is no retain cycle.
+    private func adaptiveAccentTint() -> UIColor {
+        UIColor { [accent] trait in
+            let base = accent.resolvedColor(with: trait)
+            guard trait.userInterfaceStyle == .light else { return base }
+            guard Self.luminance(of: base) > 0.35 else { return base }
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            guard base.getRed(&r, green: &g, blue: &b, alpha: &a) else { return base }
+            return UIColor(red: r * 0.55, green: g * 0.55, blue: b * 0.55, alpha: a)
         }
     }
 
@@ -91,45 +99,22 @@ final class SearchConditionsViewController: UIViewController {
         mode = modeKeys.contains(initialMode) ? initialMode : "depart"
         payment = payKeys.contains(initialPayment) ? initialPayment : "cash"
 
-        // Top row: circular back button (left) + centred title.
-        let back = UIButton(type: .system)
-        back.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        back.tintColor = .label
-        back.backgroundColor = .secondarySystemBackground
-        back.layer.cornerRadius = 18
-        back.clipsToBounds = true
-        back.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
-        back.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(back)
+        // Standard navigation bar: title + the standard back chevron
+        // (a plain bar button item — no custom circle, no custom
+        // background). This VC is presented inside a
+        // UINavigationController by AppDelegate.presentSearchConditions.
+        navigationItem.title = L("search.title")
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.backward"),
+            style: .plain, target: self, action: #selector(backTapped))
 
-        let title = UILabel()
-        title.text = L("search.title")
-        title.font = UIFont.systemFont(ofSize: 20, weight: .bold)
-        title.textColor = .label
-        title.textAlignment = .center
-        title.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(title)
-
-        // 4-option mode pill row.
+        // Mode: standard segmented control (出发 / 到达 / 首班车 / 末班车).
         let modeTitles = [L("tr.depart"), L("tr.arrive"), L("search.first"), L("search.last")]
-        let modeStack = UIStackView()
-        modeStack.axis = .horizontal
-        modeStack.distribution = .fillEqually
-        modeStack.spacing = 8
-        modeStack.translatesAutoresizingMaskIntoConstraints = false
-        for (i, t) in modeTitles.enumerated() {
-            let btn = UIButton(type: .system)
-            var cfg = glassConfig(fontSize: 15)
-            cfg.title = t
-            btn.configuration = cfg
-            btn.tag = i
-            btn.addTarget(self, action: #selector(modeTapped(_:)), for: .touchUpInside)
-            btn.translatesAutoresizingMaskIntoConstraints = false
-            btn.heightAnchor.constraint(equalToConstant: 46).isActive = true
-            modeStack.addArrangedSubview(btn)
-            modeButtons.append(btn)
-        }
-        view.addSubview(modeStack)
+        modeControl = UISegmentedControl(items: modeTitles)
+        modeControl.selectedSegmentIndex = modeKeys.firstIndex(of: mode) ?? 0
+        modeControl.addTarget(self, action: #selector(modeChanged(_:)), for: .valueChanged)
+        modeControl.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(modeControl)
 
         // Date/time picker (wheels). Date only for first/last train,
         // where the time comes from the timetable.
@@ -142,69 +127,66 @@ final class SearchConditionsViewController: UIViewController {
         picker.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(picker)
 
-        // Payment row: card icon + current payment label + 2-option pill.
-        let payRow = UIStackView()
-        payRow.axis = .horizontal
-        payRow.alignment = .center
-        payRow.spacing = 10
-        payRow.translatesAutoresizingMaskIntoConstraints = false
+        // Payment header: card icon + current payment label.
+        let payHeader = UIStackView()
+        payHeader.axis = .horizontal
+        payHeader.alignment = .center
+        payHeader.spacing = 10
+        payHeader.translatesAutoresizingMaskIntoConstraints = false
         let icon = UIImageView(image: UIImage(systemName: "creditcard"))
-        icon.tintColor = accent
+        icon.tintColor = adaptiveAccentTint()
         icon.contentMode = .scaleAspectFit
         icon.translatesAutoresizingMaskIntoConstraints = false
         icon.widthAnchor.constraint(equalToConstant: 26).isActive = true
         icon.heightAnchor.constraint(equalToConstant: 26).isActive = true
-        payRow.addArrangedSubview(icon)
+        payHeader.addArrangedSubview(icon)
         payLabel = UILabel()
         payLabel.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         payLabel.textColor = .label
-        payRow.addArrangedSubview(payLabel)
-        let payStack = UIStackView()
-        payStack.axis = .horizontal
-        payStack.distribution = .fillEqually
-        payStack.spacing = 8
-        let payTitles = [L("search.card"), L("search.cash"), L("search.applepay")]
-        for (i, t) in payTitles.enumerated() {
-            let btn = UIButton(type: .system)
-            var cfg = glassConfig(fontSize: 13)
-            cfg.title = t
-            // "Apple Pay" is wider than 交通卡 / 现金: keep the 76pt
-            // button but tighten the insets so the label is not clipped.
-            cfg.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 6)
-            btn.configuration = cfg
-            btn.tag = i
-            btn.addTarget(self, action: #selector(payTapped(_:)), for: .touchUpInside)
-            btn.translatesAutoresizingMaskIntoConstraints = false
-            btn.heightAnchor.constraint(equalToConstant: 40).isActive = true
-            btn.widthAnchor.constraint(equalToConstant: 76).isActive = true
-            payStack.addArrangedSubview(btn)
-            payButtons.append(btn)
-        }
-        payRow.addArrangedSubview(payStack)
-        view.addSubview(payRow)
+        payHeader.addArrangedSubview(payLabel)
+        view.addSubview(payHeader)
 
-        // Bottom: 现在出发 (dark) + 完成 (city-theme accent).
+        // Payment: standard segmented control (交通卡 / 现金 only).
+        let payTitles = [L("search.card"), L("search.cash")]
+        payControl = UISegmentedControl(items: payTitles)
+        payControl.selectedSegmentIndex = payKeys.firstIndex(of: payment) ?? 1
+        payControl.addTarget(self, action: #selector(payChanged(_:)), for: .valueChanged)
+        payControl.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(payControl)
+
+        // Bottom: 现在出发 (standard system-grey button) + 完成
+        // (standard filled button in the city accent — the primary action).
         let bottomStack = UIStackView()
         bottomStack.axis = .horizontal
         bottomStack.distribution = .fillEqually
         bottomStack.spacing = 12
         bottomStack.translatesAutoresizingMaskIntoConstraints = false
         let nowButton = UIButton(type: .system)
-        nowButton.setTitle(L("tr.departNow"), for: .normal)
-        nowButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        nowButton.setTitleColor(.white, for: .normal)
-        nowButton.backgroundColor = UIColor(white: 0.13, alpha: 1)
-        nowButton.layer.cornerRadius = 14
+        var nowCfg = UIButton.Configuration.gray()
+        nowCfg.title = L("tr.departNow")
+        nowCfg.cornerStyle = .large
+        nowCfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+            var a = attrs
+            a.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+            return a
+        }
+        nowButton.configuration = nowCfg
         nowButton.addTarget(self, action: #selector(nowTapped), for: .touchUpInside)
         nowButton.translatesAutoresizingMaskIntoConstraints = false
         nowButton.heightAnchor.constraint(equalToConstant: 52).isActive = true
         bottomStack.addArrangedSubview(nowButton)
         let doneButton = UIButton(type: .system)
-        doneButton.setTitle(L("time.done"), for: .normal)
-        doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        doneButton.setTitleColor(.white, for: .normal)
-        doneButton.backgroundColor = accent
-        doneButton.layer.cornerRadius = 14
+        var doneCfg = UIButton.Configuration.filled()
+        doneCfg.title = L("time.done")
+        doneCfg.baseBackgroundColor = accent
+        doneCfg.baseForegroundColor = doneButtonTitleColor()
+        doneCfg.cornerStyle = .large
+        doneCfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+            var a = attrs
+            a.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+            return a
+        }
+        doneButton.configuration = doneCfg
         doneButton.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         doneButton.heightAnchor.constraint(equalToConstant: 52).isActive = true
@@ -213,21 +195,18 @@ final class SearchConditionsViewController: UIViewController {
 
         let g = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            back.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 16),
-            back.topAnchor.constraint(equalTo: g.topAnchor, constant: 8),
-            back.widthAnchor.constraint(equalToConstant: 36),
-            back.heightAnchor.constraint(equalToConstant: 36),
-            title.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            title.centerYAnchor.constraint(equalTo: back.centerYAnchor),
-            modeStack.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 16),
-            modeStack.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -16),
-            modeStack.topAnchor.constraint(equalTo: back.bottomAnchor, constant: 20),
+            modeControl.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 16),
+            modeControl.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -16),
+            modeControl.topAnchor.constraint(equalTo: g.topAnchor, constant: 16),
             picker.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             picker.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            picker.topAnchor.constraint(equalTo: modeStack.bottomAnchor, constant: 12),
-            payRow.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 16),
-            payRow.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -16),
-            payRow.topAnchor.constraint(equalTo: picker.bottomAnchor, constant: 16),
+            picker.topAnchor.constraint(equalTo: modeControl.bottomAnchor, constant: 12),
+            payHeader.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 16),
+            payHeader.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -16),
+            payHeader.topAnchor.constraint(equalTo: picker.bottomAnchor, constant: 16),
+            payControl.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 16),
+            payControl.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -16),
+            payControl.topAnchor.constraint(equalTo: payHeader.bottomAnchor, constant: 10),
             bottomStack.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 16),
             bottomStack.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -16),
             bottomStack.bottomAnchor.constraint(equalTo: g.bottomAnchor, constant: -12),
@@ -237,59 +216,24 @@ final class SearchConditionsViewController: UIViewController {
     }
 
     private func refreshSelection() {
-        if let idx = modeKeys.firstIndex(of: mode) {
-            styleOptionButtons(modeButtons, selected: idx)
-        }
-        if let idx = payKeys.firstIndex(of: payment) {
-            styleOptionButtons(payButtons, selected: idx)
-        }
-        payLabel.text = payment == "card" ? L("search.card") : (payment == "applepay" ? L("search.applepay") : L("search.cash"))
+        modeControl.selectedSegmentIndex = modeKeys.firstIndex(of: mode) ?? 0
+        payControl.selectedSegmentIndex = payKeys.firstIndex(of: payment) ?? 1
+        payLabel.text = payment == "card" ? L("search.card") : L("search.cash")
         // First/last train: the date matters, the time comes from the
         // timetable, so the picker shows date only.
         picker.datePickerMode = (mode == "first" || mode == "last") ? .date : .dateAndTime
     }
 
-    @objc private func modeTapped(_ sender: UIButton) {
-        guard sender.tag >= 0 && sender.tag < modeKeys.count else { return }
-        mode = modeKeys[sender.tag]
+    @objc private func modeChanged(_ sender: UISegmentedControl) {
+        guard sender.selectedSegmentIndex >= 0 && sender.selectedSegmentIndex < modeKeys.count else { return }
+        mode = modeKeys[sender.selectedSegmentIndex]
         refreshSelection()
     }
 
-    @objc private func payTapped(_ sender: UIButton) {
-        guard sender.tag >= 0 && sender.tag < payKeys.count else { return }
-        payment = payKeys[sender.tag]
+    @objc private func payChanged(_ sender: UISegmentedControl) {
+        guard sender.selectedSegmentIndex >= 0 && sender.selectedSegmentIndex < payKeys.count else { return }
+        payment = payKeys[sender.selectedSegmentIndex]
         refreshSelection()
-        // Apple Pay: jump to the Wallet app so the user can use/manage
-        // Apple Pay. The app processes no real payments, so there is no
-        // PKPaymentAuthorizationViewController sheet — this is a jump
-        // to Wallet, not a checkout.
-        if payment == "applepay" {
-            openWallet()
-        }
-    }
-
-    // Jump to the Wallet app (wallet://). Uses open() directly, not
-    // canOpenURL (which would need the scheme in
-    // LSApplicationQueriesSchemes); if Wallet cannot be opened the
-    // completion reports failure and we show a short message instead
-    // of failing silently.
-    private func openWallet() {
-        guard let url = URL(string: "wallet://") else { return }
-        UIApplication.shared.open(url, options: [:]) { [weak self] success in
-            guard let self = self else { return }
-            if !success {
-                self.showWalletUnavailable()
-            }
-        }
-    }
-
-    private func showWalletUnavailable() {
-        let alert = UIAlertController(
-            title: L("search.applepay.unavailable.title"),
-            message: L("search.applepay.unavailable.message"),
-            preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: L("time.done"), style: .default))
-        present(alert, animated: true)
     }
 
     @objc private func backTapped() {

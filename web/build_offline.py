@@ -112,6 +112,21 @@ routes = (BASE / "routes.json").read_text(encoding="utf-8")
 assert "</script" not in routes, "routes json must not contain </script"
 html = sub_once(r'/\*__METRO_ROUTES__\*/null', lambda _: routes, html, "routes json")
 
+# J2. inline the Beijing schematic line map (线路图, RMP Gallery Beijing,
+# rendered with the RMP app; see beijing/NOTES.md). This is the SECOND
+# Beijing map: beijing/map.svg stays the 配线图 (track layout). The
+# 417 stations in stations-line.json are the 418 app stations minus
+# 红庙 (drawn on neither map and in no route). The 3 Line 18 stations
+# are drawn on the SVG but are NOT in stations-line.json (not in the
+# shared routes.json Line 18 route — searchable-but-unroutable otherwise).
+import json as _json
+bj_line_map = (BASE / "beijing" / "map-line.svg").read_text(encoding="utf-8")
+bj_line_stations = (BASE / "beijing" / "stations-line.json").read_text(encoding="utf-8")
+assert "</script" not in bj_line_map, "bj line map svg must not contain </script"
+assert "</script" not in bj_line_stations, "bj line stations json must not contain </script"
+html = sub_once(r'/\*__BJ_LINE_MAP__\*/""', lambda _: _json.dumps(bj_line_map), html, "bj line map svg")
+html = sub_once(r'/\*__BJ_LINE_STATIONS__\*/\[\]', lambda _: bj_line_stations, html, "bj line stations json")
+
 # K. inline the Shenyang Metro data (6 operating lines, no Line 6).
 # stations/routes are precomputed from Wikipedia line tables (see
 # shenyang/NOTES.md); the map is the user's JPG wrapped in an SVG so
@@ -161,6 +176,9 @@ html = sub_once(r'/\*__DL_TRANSFERS__\*/\{\}', lambda _: dl_transfers, html, "dl
 html = sub_once(r'/\*__JH_TRANSFERS__\*/\{\}', lambda _: jh_transfers, html, "jh transfers json")
 html = sub_once(r'/\*__CZ_TRANSFERS__\*/\{\}', lambda _: cz_transfers, html, "cz transfers json")
 html = sub_once(r'/\*__CQ_TRANSFERS__\*/\{\}', lambda _: cq_transfers, html, "cq transfers json")
+# Shenzhen virtual transfers are NOT yet built (湖贝 / 福田口岸 /
+# 红岭南 counterparts + distances unverified) — SZ_TRANSFERS is empty.
+html = sub_once(r'/\*__SZ_TRANSFERS__\*/\{\}', lambda _: '{}', html, "sz transfers json")
 
 # M. inline the per-city splash (launch) images.
 # BJ splash = the native LaunchScreen image (app/splash.b64, Beijing 北京/配线查询);
@@ -289,6 +307,56 @@ html = sub_once(r'/\*__CZ_MAP__\*/""', lambda _: _json.dumps(cz_map), html, "cz 
 html = sub_once(r'/\*__CZ_LOGO__\*/', lambda _: cz_logo_b64, html, "cz logo")
 html = sub_once(r'/\*__CZ_SPLASH__\*/', lambda _: cz_splash_b64, html, "cz splash")
 
+# S5. inline the Shenzhen Metro data (17 lines, 351 stations).
+# Same pattern as Changzhou: precomputed stations/routes from the RMP
+# Gallery map (see shenzhen/NETWORK.md); 20 unopened lines/segments
+# are NOT in the data files.
+sz_stations = (BASE / "shenzhen" / "stations.json").read_text(encoding="utf-8")
+sz_routes = (BASE / "shenzhen" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in sz_stations, "sz stations json must not contain </script"
+assert "</script" not in sz_routes, "sz routes json must not contain </script"
+html = sub_once(r'/\*__SZ_STATIONS__\*/\[\]', lambda _: sz_stations, html, "sz stations json")
+html = sub_once(r'/\*__SZ_ROUTES__\*/null', lambda _: sz_routes, html, "sz routes json")
+# map.svg is exported by a browser task and may land after wiring;
+# warn and leave the marker empty rather than failing the build.
+sz_map_path = BASE / "shenzhen" / "map.svg"
+if sz_map_path.exists():
+    sz_map = sz_map_path.read_text(encoding="utf-8")
+    assert "</script" not in sz_map, "sz map svg must not contain </script"
+    html = sub_once(r'/\*__SZ_MAP__\*/""', lambda _: _json.dumps(sz_map), html, "sz map svg")
+else:
+    print("WARNING: web/shenzhen/map.svg missing; Shenzhen map will be empty")
+# Shenzhen splash (user-supplied 深圳/配线查询 image, web/shenzhen/splash.b64,
+# JPEG). The template uses the empty-string comment pattern
+# (window.SZ_SPLASH = /*__SZ_SPLASH__*/''), so match the marker + '' and
+# replace with a quoted JPEG data URL. Logo still not delivered — leave
+# /*__SZ_LOGO__*/ as '' (fallback).
+sz_splash_path = BASE / "shenzhen" / "splash.b64"
+if sz_splash_path.exists():
+    sz_splash_b64 = sz_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__SZ_SPLASH__\*/''", lambda _: "'data:image/jpeg;base64," + sz_splash_b64 + "'", html, "sz splash")
+else:
+    print("WARNING: web/shenzhen/splash.b64 missing; Shenzhen splash will be empty")
+
+# S6. inline the Chengdu Metro data (17 operating lines, 364 stations).
+# Same pattern as Changchun: precomputed stations/routes from the RMP
+# Gallery map (see chengdu/NOTES.md); the T2 tram, the 6 built-but-
+# unopened stations (白仁店, 玉虹路, 分水, 天府机场3号4号航站楼, 合江,
+# 芦葭), the Line 10 third-phase platforms, 18号线三期 and S5/S11 are
+# drawn on the map or under construction but are NOT in the data files.
+cd_stations = (BASE / "chengdu" / "stations.json").read_text(encoding="utf-8")
+cd_routes = (BASE / "chengdu" / "routes.json").read_text(encoding="utf-8")
+cd_map = (BASE / "chengdu" / "map.svg").read_text(encoding="utf-8")
+assert "</script" not in cd_stations, "cd stations json must not contain </script"
+assert "</script" not in cd_routes, "cd routes json must not contain </script"
+assert "</script" not in cd_map, "cd map svg must not contain </script"
+html = sub_once(r'/\*__CD_STATIONS__\*/\[\]', lambda _: cd_stations, html, "cd stations json")
+html = sub_once(r'/\*__CD_ROUTES__\*/null', lambda _: cd_routes, html, "cd routes json")
+html = sub_once(r'/\*__CD_MAP__\*/""', lambda _: _json.dumps(cd_map), html, "cd map svg")
+# logo.b64 / splash.b64 / cdmetro-icon.b64 are NOT yet sourced (see
+# chengdu/WIRING.md "Not yet prepared") — the corresponding sub_once
+# lines wait for those files; do not inline a placeholder here.
+
 # S3. inline the Chongqing Rail Transit data (14 lines, 282 stations).
 # Same pattern as Jinhua/Changzhou: precomputed stations/routes from the
 # user's system-plan map (see chongqing/NOTES.md); the logo is cropped
@@ -337,6 +405,8 @@ jh_tt = (BASE / "timetable" / "jh.json").read_text(encoding="utf-8")
 cz_tt = (BASE / "timetable" / "cz.json").read_text(encoding="utf-8")
 cq_tt = (BASE / "timetable" / "cq.json").read_text(encoding="utf-8")
 cc_tt = (BASE / "timetable" / "cc.json").read_text(encoding="utf-8")
+sz_tt = (BASE / "timetable" / "sz.json").read_text(encoding="utf-8")
+cd_tt = (BASE / "timetable" / "cd.json").read_text(encoding="utf-8")
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
@@ -347,6 +417,8 @@ assert "</script" not in jh_tt, "jh timetable json must not contain </script"
 assert "</script" not in cz_tt, "cz timetable json must not contain </script"
 assert "</script" not in cq_tt, "cq timetable json must not contain </script"
 assert "</script" not in cc_tt, "cc timetable json must not contain </script"
+assert "</script" not in sz_tt, "sz timetable json must not contain </script"
+assert "</script" not in cd_tt, "cd timetable json must not contain </script"
 html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
 html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
 html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
@@ -356,6 +428,8 @@ html = sub_once(r'/\*__JH_TIMETABLE__\*/\{\}', lambda _: jh_tt, html, "jh timeta
 html = sub_once(r'/\*__CZ_TIMETABLE__\*/\{\}', lambda _: cz_tt, html, "cz timetable json")
 html = sub_once(r'/\*__CQ_TIMETABLE__\*/\{\}', lambda _: cq_tt, html, "cq timetable json")
 html = sub_once(r'/\*__CC_TIMETABLE__\*/\{\}', lambda _: cc_tt, html, "cc timetable json")
+html = sub_once(r'/\*__SZ_TIMETABLE__\*/\{\}', lambda _: sz_tt, html, "sz timetable json")
+html = sub_once(r'/\*__CD_TIMETABLE__\*/\{\}', lambda _: cd_tt, html, "cd timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 # U. inline verified station lat/lng (web/latlng/latlng-{city}.json,
@@ -373,6 +447,8 @@ jh_ll = (BASE / "latlng" / "latlng-jh.json").read_text(encoding="utf-8")
 cz_ll = (BASE / "latlng" / "latlng-cz.json").read_text(encoding="utf-8")
 cq_ll = (BASE / "latlng" / "latlng-cq.json").read_text(encoding="utf-8")
 cc_ll = (BASE / "latlng" / "latlng-cc.json").read_text(encoding="utf-8")
+sz_ll = (BASE / "latlng" / "latlng-sz.json").read_text(encoding="utf-8")
+cd_ll = (BASE / "latlng" / "latlng-cd.json").read_text(encoding="utf-8")
 assert "</script" not in bj_ll, "bj latlng json must not contain </script"
 assert "</script" not in sy_ll, "sy latlng json must not contain </script"
 assert "</script" not in sh_ll, "sh latlng json must not contain </script"
@@ -382,6 +458,8 @@ assert "</script" not in jh_ll, "jh latlng json must not contain </script"
 assert "</script" not in cz_ll, "cz latlng json must not contain </script"
 assert "</script" not in cq_ll, "cq latlng json must not contain </script"
 assert "</script" not in cc_ll, "cc latlng json must not contain </script"
+assert "</script" not in sz_ll, "sz latlng json must not contain </script"
+assert "</script" not in cd_ll, "cd latlng json must not contain </script"
 html = sub_once(r'/\*__BJ_LATLNG__\*/\{\}', lambda _: bj_ll, html, "bj latlng json")
 html = sub_once(r'/\*__SY_LATLNG__\*/\{\}', lambda _: sy_ll, html, "sy latlng json")
 html = sub_once(r'/\*__SH_LATLNG__\*/\{\}', lambda _: sh_ll, html, "sh latlng json")
@@ -391,6 +469,8 @@ html = sub_once(r'/\*__JH_LATLNG__\*/\{\}', lambda _: jh_ll, html, "jh latlng js
 html = sub_once(r'/\*__CZ_LATLNG__\*/\{\}', lambda _: cz_ll, html, "cz latlng json")
 html = sub_once(r'/\*__CQ_LATLNG__\*/\{\}', lambda _: cq_ll, html, "cq latlng json")
 html = sub_once(r'/\*__CC_LATLNG__\*/\{\}', lambda _: cc_ll, html, "cc latlng json")
+html = sub_once(r'/\*__SZ_LATLNG__\*/\{\}', lambda _: sz_ll, html, "sz latlng json")
+html = sub_once(r'/\*__CD_LATLNG__\*/\{\}', lambda _: cd_ll, html, "cd latlng json")
 
 # T. inline the transit briefing seed (web/briefing.json): the 10 upcoming
 # lines + the Dalian Line 4 delay. The page renders from this seed when
