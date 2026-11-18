@@ -43,7 +43,7 @@ mkdir -p build/Payload/Metro.app/web
 # so it is linked normally, not weak.
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library \
   -framework UIKit -framework WebKit -framework AppIntents -Xlinker -weak_framework -Xlinker ActivityKit \
-  -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/AppIntents.swift app/LiveActivity/TripAttributes.swift
+  -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/LiveActivity/TripAttributes.swift
 
 echo "== 2b. Live Activity widget extension REMOVED (user 2026-11-18) =="
 # The Live Activity widget extension (LiveActivityWidget.appex) is
