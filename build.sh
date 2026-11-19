@@ -58,6 +58,7 @@ xcrun appintentsmetadataprocessor \
   --deployment-target 16.0 \
   --bundle-identifier com.andytransport.metro \
   --target-triple arm64-apple-ios16.0 \
+  --xcode-version "$(xcodebuild -version | tail -1 | awk '{print $NF}')" \
   --sdk-root "$(xcrun -sdk iphoneos --show-sdk-path)" \
   --binary-file build/Payload/Metro.app/Metro \
   --source-files app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift \
@@ -69,6 +70,7 @@ xcrun appintentsmetadataprocessor \
 # --module-name / --bundle-identifier flags are unknown options to it).
 xcrun appintentsnltrainingprocessor \
   --extracted-metadata-path build/Payload/Metro.app/Metadata.appintents \
+  --infoplist-path app/Info.plist \
   --output build/Payload/Metro.app/Metadata.appintents \
   || echo "WARNING: appintentsnltrainingprocessor failed - Siri phrases will not train"
 ls -la build/Payload/Metro.app/Metadata.appintents || true
