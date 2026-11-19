@@ -41,7 +41,12 @@ mkdir -p build/Payload/Metro.app/web
 # (AppIntents.swift, user 2026-11-18) are in the binary and the
 # AppShortcutsProvider is discovered. AppIntents exists on iOS 16.0+,
 # so it is linked normally, not weak.
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library \
+# -emit-const-values (Xcode's SWIFT_ENABLE_EMIT_CONST_VALUES=YES):
+# without it the binary carries no swiftconstvalues and
+# appintentsmetadataprocessor extracts nothing (run #85 log:
+# "No swiftconstvalues found" -> "Extracted no relevant App Intents
+# symbols"), so Metadata.appintents is never written.
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift
 
