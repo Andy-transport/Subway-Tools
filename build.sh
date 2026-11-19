@@ -60,12 +60,15 @@ xcrun appintentsmetadataprocessor \
   --target-triple arm64-apple-ios16.0 \
   --sdk-root "$(xcrun -sdk iphoneos --show-sdk-path)" \
   --binary-file build/Payload/Metro.app/Metro \
+  --source-files app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift \
   --output build/Payload/Metro.app/Metadata.appintents \
   || echo "WARNING: appintentsmetadataprocessor failed - Siri shortcuts will not register"
+# NL training only tunes phrase recognition; shortcut registration comes
+# from Metadata.appintents above. This processor requires
+# --extracted-metadata-path (run #81 log: the old --metadata-file /
+# --module-name / --bundle-identifier flags are unknown options to it).
 xcrun appintentsnltrainingprocessor \
-  --module-name Metro \
-  --bundle-identifier com.andytransport.metro \
-  --metadata-file build/Payload/Metro.app/Metadata.appintents \
+  --extracted-metadata-path build/Payload/Metro.app/Metadata.appintents \
   --output build/Payload/Metro.app/Metadata.appintents \
   || echo "WARNING: appintentsnltrainingprocessor failed - Siri phrases will not train"
 ls -la build/Payload/Metro.app/Metadata.appintents || true
