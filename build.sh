@@ -53,6 +53,7 @@ echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
 # the app still builds; the delivered IPA is checked for
 # Metadata.appintents.
 xcrun appintentsmetadataprocessor \
+  --toolchain-dir "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain" \
   --module-name Metro \
   --platform-family iOS \
   --deployment-target 16.0 \
@@ -68,9 +69,11 @@ xcrun appintentsmetadataprocessor \
 # from Metadata.appintents above. This processor requires
 # --extracted-metadata-path (run #81 log: the old --metadata-file /
 # --module-name / --bundle-identifier flags are unknown options to it).
+mkdir -p build/nl-training-temp
 xcrun appintentsnltrainingprocessor \
   --extracted-metadata-path build/Payload/Metro.app/Metadata.appintents \
   --infoplist-path app/Info.plist \
+  --temp-dir-path build/nl-training-temp \
   --output build/Payload/Metro.app/Metadata.appintents \
   || echo "WARNING: appintentsnltrainingprocessor failed - Siri phrases will not train"
 ls -la build/Payload/Metro.app/Metadata.appintents || true
