@@ -68,6 +68,7 @@
 			window.CQ_TRANSFERS = /*__CQ_TRANSFERS__*/{};
 			window.SZ_TRANSFERS = /*__SZ_TRANSFERS__*/{};
 			window.WALK_ICON = "data:image/png;base64,/*__WALK_ICON__*/";
+			window.WALK_ICON_INK = "data:image/png;base64,/*__WALK_ICON_INK__*/";
 			window.FARE_ICON = "data:image/png;base64,/*__FARE_ICON__*/";
 			window.YKT_ICON = "data:image/png;base64,/*__YKT_ICON__*/";
 			window.SJT_ICON = "data:image/png;base64,/*__SJT_ICON__*/";
@@ -853,6 +854,7 @@
 			overflow-y: auto;
 			-webkit-overflow-scrolling: touch;
 		}
+		#transferPanel::after { content: ''; flex: none; height: calc(104px + env(safe-area-inset-bottom)); }
 		.tr-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 4px; }
 		.tr-city { display: flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 700; color: #000; }
 		.tr-city img { width: 26px; height: 26px; border-radius: 50%; display: block; }
@@ -989,8 +991,14 @@
 		.ln-txt { display: flex; flex-direction: column; line-height: 1.15; }
 		.ln-zh { font-size: 20px; font-weight: 700; }
 		.ln-en { font-size: 11px; font-weight: 600; opacity: 0.92; }
-		.tt-badge.ln-badge { padding: 10px 18px 10px 16px; border-radius: 12px; }
-		.tt-badge.ln-badge .ln-num { font-size: 54px; }
+		.tt-badge.ln-badge { padding: 6px 12px 6px 10px; border-radius: 10px; gap: 7px; }
+		.tt-badge.ln-badge .ln-num { font-size: 34px; }
+		.tt-badge.ln-badge .ln-zh { font-size: 15px; }
+		.tt-badge.ln-badge .ln-en { font-size: 9px; }
+		.ropt-line.ln-badge, .tr-chip.ln-badge { padding: 4px 9px; gap: 6px; border-radius: 8px; height: auto; }
+		.ropt-line.ln-badge .ln-num, .tr-chip.ln-badge .ln-num { font-size: 19px; }
+		.ropt-line.ln-badge .ln-zh, .tr-chip.ln-badge .ln-zh { font-size: 10.5px; }
+		.ropt-line.ln-badge .ln-en, .tr-chip.ln-badge .ln-en { font-size: 7.5px; }
 		.tt-dir { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 15px; }
 		.tt-dir-name { flex: 1; color: #222; }
 		.tt-time { color: #555; white-space: nowrap; }
@@ -1002,6 +1010,9 @@
 		.tt-op.op-off { background: #fdecea; color: #c00; }
 		html.dark .tt-op.op-run { background: rgba(46,160,67,0.25); color: #7ee2a0; }
 		html.dark .tt-op.op-off { background: rgba(220,60,60,0.25); color: #ff8a95; }
+		.tt-op.op-last { background: #fff1de; color: #b25e00; }
+		html.dark .tt-op.op-last { background: rgba(255,159,10,0.28); color: #ffb340; }
+		.ropt-walk img, .tr-td-walk img { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; }
 		.ropt-opwarn { margin-top: 4px; font-size: 13px; font-weight: 700; color: #c00; }
 		html.dark .ropt-opwarn { color: #ff8a95; }
 		.tt-count { font-size: 13px; color: #888; }
@@ -1247,7 +1258,7 @@
 				<button class="tr-search" @click="doSearch">{{ t('tr.search') }}</button>
 				<div class="tr-actions">
 					<button class="tr-action-btn" @click="openTransitApp"><img v-if="transitIcon" :src="transitIcon" :alt="transitLabel"><span>{{ transitLabel }}</span></button>
-					<button class="tr-action-btn" @click="requestNearbyStations"><span>{{ t('tr.nearby') }}</span><span v-if="nearbyLoading">{{ t('tr.nearby.locating') }}</span></button>
+					<button class="tr-action-btn" @click="requestNearbyStations"><img :src="walkIconThemed" alt=""><span>{{ t('tr.nearby') }}</span><span v-if="nearbyLoading">{{ t('tr.nearby.locating') }}</span></button>
 					<button class="tr-action-btn" @click="openApplePay"><span>{{ t('tr.applepay') }}</span></button>
 				</div>
 				<div class="tr-smart" v-if="nearbyList.length || nearbyMsg">
@@ -1276,7 +1287,7 @@
 							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ t('tr.minutes', {n: r.minutes}) }}</span></div>
 							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>{{ t('tr.transfers', {n: r.transfers}) }} · {{ t('tr.km', {n: r.km}) }}</div>
 							<div class="ropt-opwarn" v-if="routeOpWarning(r)">⚠ {{ routeOpWarning(r) }}</div>
-							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span></span></template></div>
+							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span></span></template></div>
 						</div>
 						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="r.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="r.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 					</div>
@@ -1288,13 +1299,13 @@
 				<div class="tr-list" v-if="routeResult">
 					<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
 						<div class="tr-virtual" v-if="virtualInfo(i)">
-							<img :src="walkIcon" alt="">
+							<img :src="walkIconThemed" alt="">
 							<span>{{ virtualInfo(i) }}</span>
 						</div>
 						<div class="tr-transfer-detail" v-if="transferFocus === i">
 							<div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div>
 							<div class="tr-td-lines"><span class="tr-chip ln-badge" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div>
-							<div class="tr-td-walk" v-if="virtualDistFor(routeResult, i)">{{ t('tr.transferWalk', {dist: virtualDistFor(routeResult, i)}) }}</div>
+							<div class="tr-td-walk" v-if="virtualDistFor(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(routeResult, i)}) }}</div>
 							<div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div>
 						</div>
 						<div class="tr-seg" @click="goSegment(seg)">
@@ -1643,8 +1654,9 @@ var I18N = {
   'tr.history.clear': ['清除', '清除', 'Clear'],
   'tr.op.notyet': ['未运营 · 首班车 {t}', '未營運 · 首班車 {t}', 'Not running · First train {t}'],
   'tr.op.running': ['运营中', '營運中', 'Running'],
+  'tr.op.last': ['末班车', '末班車', 'Last train'],
   'tr.op.over': ['末班车已过', '末班車已過', 'Last train has passed'],
-  'tr.nearby': ['📍 附近车站', '📍 附近車站', '📍 Nearby Stations'],
+  'tr.nearby': ['附近车站', '附近車站', 'Nearby Stations'],
   'tr.nearby.locating': ['定位中…', '定位中…', 'Locating…'],
   'tr.nearby.noloc': ['无法获取定位，请检查定位权限。', '無法獲取定位，請檢查定位權限。', 'Couldn\'t get your location. Check location permission.'],
   'tr.nearby.unsupported': ['当前设备不支持定位。', '當前裝置不支援定位。', 'Location is not supported on this device.'],
@@ -2016,6 +2028,7 @@ function titlePy(py) {
 						hbMap: (window.HB_MAP || ''),
 						transfers: (window.METRO_TRANSFERS || {}),
 						walkIcon: (window.WALK_ICON || ''),
+						walkIconInk: (window.WALK_ICON_INK || ''),
 						fareIcon: (window.FARE_ICON || ''),
 						yktIcon: (window.YKT_ICON || ''),
 						sjtIcon: (window.SJT_ICON || ''),
@@ -2272,7 +2285,9 @@ function titlePy(py) {
 						return name;
 					},
 					badgeParts(line) {
-						var name = (line && line.name) || '', key = (line && line.key) || '';
+						var name = '', key = '';
+						if (typeof line === 'string') { key = line; name = this.lineNameByKey(line); }
+						else if (line) { name = line.name || ''; key = line.key || ''; if (!name && key) name = this.lineNameByKey(key); if (!key && name) key = this.lineKeyByName(name); }
 						var m = name.match(/^(\d+)号线(.*)$/);
 						var left, top, bottom;
 						if (m) {
@@ -2298,6 +2313,13 @@ function titlePy(py) {
 						var ln = lines[key];
 						if (ln) return ln.name || ln.text || key;
 						return key;
+					},
+					lineKeyByName(name) {
+						var list = this.ttLineList || [];
+						for (var i = 0; i < list.length; i++) if (list[i].name === name) return list[i].key;
+						var lines = (this.routes && this.routes.lines) || {};
+						for (var k in lines) if (lines[k] && lines[k].name === name) return k;
+						return '';
 					},
 					lineMatches(rest, line) {
 						var r = (rest || '').toLowerCase();
@@ -2616,7 +2638,19 @@ function titlePy(py) {
 					notifySubView(open) {
 						try {
 							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.subView);
-							if (h) h.postMessage({ open: !!open });
+							if (!h) return;
+							if (!open) { h.postMessage({ open: false }); return; }
+							this.$nextTick(function() {
+								var msg = { open: true };
+								try {
+									var btns = document.querySelectorAll('.more-sub-back, .tt-back');
+									for (var i = 0; i < btns.length; i++) {
+										var r = btns[i].getBoundingClientRect();
+										if (r.width > 0 && r.height > 0) { msg.cx = Math.round(r.left + r.width / 2); msg.cy = Math.round(r.top + r.height / 2); break; }
+									}
+								} catch (e) {}
+								h.postMessage(msg);
+							});
 						} catch (e) {}
 					},
 					// Clear cache only: drop the cached briefing (the one
@@ -3597,13 +3631,17 @@ function titlePy(py) {
 						var running;
 						if (l < f) running = (nowMin >= f) || (nowMin <= l);
 						else running = nowMin >= f && nowMin <= l;
-						if (running) return { running: true, label: this.t('tr.op.running') };
+						if (running) {
+							var untilLast = (l < f) ? (nowMin <= l ? l - nowMin : (l + 1440) - nowMin) : (l - nowMin);
+							if (untilLast <= 30) return { running: true, last: true, label: this.t('tr.op.last') };
+							return { running: true, label: this.t('tr.op.running') };
+						}
 						if (l < f) return { running: false, label: this.t('tr.op.notyet', {t: d.first}) };
 						if (nowMin < f) return { running: false, label: this.t('tr.op.notyet', {t: d.first}) };
 						return { running: false, label: this.t('tr.op.over') };
 					},
 					opLabel(d) { return this.opStatus(d).label; },
-					opClass(d) { var s = this.opStatus(d); return s.running === true ? 'op-run' : (s.running === false ? 'op-off' : ''); },
+					opClass(d) { var s = this.opStatus(d); return s.last ? 'op-last' : (s.running === true ? 'op-run' : (s.running === false ? 'op-off' : '')); },
 					// Flag on a route result (build 63): checks the departure line at the
 					// departure time. If that time is before the first train or after the
 					// last train for the line+direction at the departure station, return
@@ -4108,7 +4146,10 @@ function titlePy(py) {
 						});
 					},
 					anySubViewOpen() {
-						return !!(this.showCitySub || this.showLangSub || this.showWhatsNewSub || this.showUpcomingSub || this.showAppearanceSub || this.showSiriSub || this.showTrainSub || this.showGeneralSub || this.showBriefingSub || this.showAboutSub || this.ttLine != null);
+						var settingsSub = this.showCitySub || this.showLangSub || this.showWhatsNewSub || this.showUpcomingSub || this.showAppearanceSub || this.showSiriSub || this.showTrainSub || this.showGeneralSub || this.showBriefingSub || this.showAboutSub;
+						if (this.tab === 'more' && settingsSub) return true;
+						if (this.tab === 'timetable' && this.ttLine != null) return true;
+						return false;
 					},
 					langDisplayName() { return this.lang === 'zh-Hant' ? this.t('more.lang.hant') : (this.lang === 'en' ? this.t('more.lang.en') : this.t('more.lang.hans')); },
 					// Cities for the settings switcher (build 63). Jinhua ('jh'),
@@ -4137,6 +4178,7 @@ function titlePy(py) {
 					// light swirl on a dark tile (suits dark mode), siriIcon is the
 					// colour swirl on white (suits light mode) — swap by theme.
 					aiIcon() { return this.darkNow ? this.smartIcon : this.siriIcon; },
+					walkIconThemed() { return this.darkNow ? this.walkIcon : this.walkIconInk; },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						if (!q) return this.stations;

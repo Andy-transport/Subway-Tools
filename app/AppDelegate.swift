@@ -77,6 +77,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // Distinct from backButton above, which is the bottom-anchored
     // "‹ 返回" web-history button driven by webView.canGoBack.
     var subViewBackButton: UIButton!
+    var subBackLeadingConstraint: NSLayoutConstraint?
+    var subBackTopConstraint: NSLayoutConstraint?
     // Native Appearance picker (user 2026-11-19, 外观 → Apple UI SDK 27.2):
     // a full-screen native view (two Light/Dark preview cards + 自动 switch),
     // opened by the web's "openAppearance" post. Nil while closed.
@@ -567,7 +569,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         subViewBackButton = UIButton(type: .system)
         subViewBackButton.translatesAutoresizingMaskIntoConstraints = false
         subViewBackButton.tintColor = .label
-        let subViewBackChevron = UIImage(systemName: "chevron.backward")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold))
+        let subViewBackChevron = UIImage(systemName: "chevron.backward")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 22, weight: .bold))
         if #available(iOS 26.0, *) {
             var subViewBackConfig = UIButton.Configuration.glass()
             subViewBackConfig.image = subViewBackChevron
@@ -601,9 +603,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // would land on top of the tab bar.
         let subViewBackTopAnchor: NSLayoutYAxisAnchor = (UIDevice.current.userInterfaceIdiom == .pad) ? tabBar.bottomAnchor : view.safeAreaLayoutGuide.topAnchor
         let subViewBackTopConstant: CGFloat = (UIDevice.current.userInterfaceIdiom == .pad) ? 10 : 8
+        subBackLeadingConstraint = subViewBackButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16)
+        subBackTopConstraint = subViewBackButton.topAnchor.constraint(equalTo: subViewBackTopAnchor, constant: subViewBackTopConstant)
         NSLayoutConstraint.activate([
-            subViewBackButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            subViewBackButton.topAnchor.constraint(equalTo: subViewBackTopAnchor, constant: subViewBackTopConstant),
+            subBackLeadingConstraint!,
+            subBackTopConstraint!,
             subViewBackButton.widthAnchor.constraint(equalToConstant: 50),
             subViewBackButton.heightAnchor.constraint(equalToConstant: 50),
         ])
@@ -733,6 +737,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard let button = subViewBackButton else { return }
         button.isHidden = !visible
         if visible { view.bringSubviewToFront(button) }
+    }
+
+    // Position the native back button exactly over the web back
+    // button's centre (the web posts the centre with its "subView"
+    // open message; the web button itself is visibility:hidden in the
+    // native app, so the two can never show side by side or drift
+    // apart — Settings sub-view heads and the timetable detail head
+    // sit at different heights, which is why a fixed position was
+    // wrong). The 50pt button is centred on the web button's centre.
+    func positionSubViewBackButton(centerX: CGFloat, centerY: CGFloat) {
+        guard let leading = subBackLeadingConstraint, let top = subBackTopConstraint else { return }
+        let topBase: CGFloat = (UIDevice.current.userInterfaceIdiom == .pad) ? tabBar.frame.maxY : view.safeAreaInsets.top
+        leading.constant = (centerX - 25) - view.safeAreaInsets.left
+        top.constant = (centerY - 25) - topBase
+    }
+
+    func resetSubViewBackButtonPosition() {
+        subBackLeadingConstraint?.constant = 16
+        subBackTopConstraint?.constant = (UIDevice.current.userInterfaceIdiom == .pad) ? 10 : 8
     }
 
     // MARK: - Native Appearance picker (user 2026-11-19)
@@ -2574,6 +2597,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // is open, false otherwise. Malformed bodies are ignored.
             if let dict = message.body as? [String: Any],
                let open = dict["open"] as? Bool {
+                if open, let cx = dict["cx"] as? NSNumber, let cy = dict["cy"] as? NSNumber {
+                    positionSubViewBackButton(centerX: CGFloat(cx.doubleValue), centerY: CGFloat(cy.doubleValue))
+                } else if open {
+                    resetSubViewBackButtonPosition()
+                }
                 setSubViewBackButtonVisible(open)
             }
         } else if message.name == "openLanguage" {
