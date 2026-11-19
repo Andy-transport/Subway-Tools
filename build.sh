@@ -43,7 +43,32 @@ mkdir -p build/Payload/Metro.app/web
 # so it is linked normally, not weak.
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LiveActivity/TripAttributes.swift
+  -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift
+
+echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
+# A raw swiftc build skips Xcode's AppIntents metadata extraction, so
+# without this step iOS never registers SubwayToolsShortcuts and the
+# Siri shortcuts do not exist on device (user 2026-11-19: still cannot
+# use them). Non-fatal on purpose: failures show in the build log and
+# the app still builds; the delivered IPA is checked for
+# Metadata.appintents.
+xcrun appintentsmetadataprocessor \
+  --module-name Metro \
+  --platform-family iOS \
+  --deployment-target 16.0 \
+  --bundle-identifier com.andytransport.metro \
+  --target-triple arm64-apple-ios16.0 \
+  --sdk-root "$(xcrun -sdk iphoneos --show-sdk-path)" \
+  --binary-file build/Payload/Metro.app/Metro \
+  --output build/Payload/Metro.app/Metadata.appintents \
+  || echo "WARNING: appintentsmetadataprocessor failed - Siri shortcuts will not register"
+xcrun appintentsnltrainingprocessor \
+  --module-name Metro \
+  --bundle-identifier com.andytransport.metro \
+  --metadata-file build/Payload/Metro.app/Metadata.appintents \
+  --output build/Payload/Metro.app/Metadata.appintents \
+  || echo "WARNING: appintentsnltrainingprocessor failed - Siri phrases will not train"
+ls -la build/Payload/Metro.app/Metadata.appintents || true
 
 echo "== 2b. Live Activity widget extension REMOVED (user 2026-11-18) =="
 # The Live Activity widget extension (LiveActivityWidget.appex) is
@@ -65,25 +90,40 @@ cp web/offline/vue.global.prod.js web/offline/hammer.min.js web/offline/svg-pan-
 cp web/offline/MTR2.8.0.pdf build/Payload/Metro.app/web/MTR2.8.0.pdf
 python3 app/decode_icons.py build/Payload/Metro.app
 python3 -c "import base64; open('build/Payload/Metro.app/Splash.png','wb').write(base64.b64decode(open('app/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashDark.jpg','wb').write(base64.b64decode(open('app/splash-dark.b64').read()))"
 # Native launch splash (build 53): the Shenyang + Shanghai per-city splash
 # images, so the native splash view can show the right city's splash from
 # launch (same images as the web per-city splash, inlined from these .b64).
 python3 -c "import base64; open('build/Payload/Metro.app/SplashSY.jpg','wb').write(base64.b64decode(open('web/shenyang/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashSYDark.jpg','wb').write(base64.b64decode(open('web/shenyang/splash-dark.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/SplashSH.jpg','wb').write(base64.b64decode(open('web/shanghai/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashSHDark.jpg','wb').write(base64.b64decode(open('web/shanghai/splash-dark.b64').read()))"
 # Harbin splash (user-supplied 哈尔滨/配线查询 image, web/harbin/splash.b64).
 python3 -c "import base64; open('build/Payload/Metro.app/SplashHB.jpg','wb').write(base64.b64decode(open('web/harbin/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashHBDark.jpg','wb').write(base64.b64decode(open('web/harbin/splash-dark.b64').read()))"
 # Dalian splash (user-supplied 大连/配线查询 image, web/dalian/splash.b64).
 python3 -c "import base64; open('build/Payload/Metro.app/SplashDL.jpg','wb').write(base64.b64decode(open('web/dalian/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashDLDark.jpg','wb').write(base64.b64decode(open('web/dalian/splash-dark.b64').read()))"
 # Jinhua splash (user-supplied real splash, web/jinhua/splash.b64).
 python3 -c "import base64; open('build/Payload/Metro.app/SplashJH.jpg','wb').write(base64.b64decode(open('web/jinhua/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashJHDark.jpg','wb').write(base64.b64decode(open('web/jinhua/splash-dark.b64').read()))"
 # Changzhou splash (user-supplied real splash, web/changzhou/splash.b64).
 python3 -c "import base64; open('build/Payload/Metro.app/SplashCZ.jpg','wb').write(base64.b64decode(open('web/changzhou/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashCZDark.jpg','wb').write(base64.b64decode(open('web/changzhou/splash-dark.b64').read()))"
 # Chongqing splash (user-supplied real splash, edited — TRACK LAYOUT LOOKUP removed).
 python3 -c "import base64; open('build/Payload/Metro.app/SplashCQ.jpg','wb').write(base64.b64decode(open('web/chongqing/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashCQDark.jpg','wb').write(base64.b64decode(open('web/chongqing/splash-dark.b64').read()))"
 # Changchun splash (real user splash, web/changchun/splash.b64).
 python3 -c "import base64; open('build/Payload/Metro.app/SplashCC.jpg','wb').write(base64.b64decode(open('web/changchun/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashCCDark.jpg','wb').write(base64.b64decode(open('web/changchun/splash-dark.b64').read()))"
 # Shenzhen splash (user-supplied real splash, web/shenzhen/splash.b64).
 python3 -c "import base64; open('build/Payload/Metro.app/SplashSZ.jpg','wb').write(base64.b64decode(open('web/shenzhen/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashSZDark.jpg','wb').write(base64.b64decode(open('web/shenzhen/splash-dark.b64').read()))"
+# Chengdu splash (user-supplied real splash, web/chengdu/splash.b64).
+python3 -c "import base64; open('build/Payload/Metro.app/SplashCD.jpg','wb').write(base64.b64decode(open('web/chengdu/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashCDDark.jpg','wb').write(base64.b64decode(open('web/chengdu/splash-dark.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashQD.jpg','wb').write(base64.b64decode(open('web/qingdao/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashQDDark.jpg','wb').write(base64.b64decode(open('web/qingdao/splash-dark.b64').read()))"
 cp app/BeijingLogo.png app/ShenyangLogo.png app/ShanghaiLogo.png build/Payload/Metro.app/
 python3 -c "import base64; open('build/Payload/Metro.app/HarbinLogo.png','wb').write(base64.b64decode(open('web/harbin/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/DalianLogo.png','wb').write(base64.b64decode(open('web/dalian/logo.b64').read()))"
@@ -91,6 +131,9 @@ python3 -c "import base64; open('build/Payload/Metro.app/JinhuaLogo.png','wb').w
 python3 -c "import base64; open('build/Payload/Metro.app/ChangzhouLogo.png','wb').write(base64.b64decode(open('web/changzhou/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/ChongqingLogo.png','wb').write(base64.b64decode(open('web/chongqing/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/ChangchunLogo.png','wb').write(base64.b64decode(open('web/changchun/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/ShenzhenLogo.png','wb').write(base64.b64decode(open('web/shenzhen/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/ChengduLogo.png','wb').write(base64.b64decode(open('web/chengdu/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/QingdaoLogo.png','wb').write(base64.b64decode(open('web/qingdao/logo.b64').read()))"
 python3 -c "import base64; [open('build/Payload/Metro.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 
 echo "== 4. package IPA =="

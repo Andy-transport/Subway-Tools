@@ -50,9 +50,13 @@
 			window.SZ_MAP = /*__SZ_MAP__*/"";
 			window.SZ_LOGO = /*__SZ_LOGO__*/'';
 			window.CD_STATIONS = /*__CD_STATIONS__*/[];
+			window.QD_STATIONS = /*__QD_STATIONS__*/[];
 			window.CD_ROUTES = /*__CD_ROUTES__*/null;
+			window.QD_ROUTES = /*__QD_ROUTES__*/null;
 			window.CD_MAP = /*__CD_MAP__*/"";
+			window.QD_MAP = /*__QD_MAP__*/"";
 			window.CD_LOGO = "data:image/png;base64,/*__CD_LOGO__*/";
+			window.QD_LOGO = "data:image/png;base64,/*__QD_LOGO__*/";
 			window.CDM_ICON = "data:image/png;base64,/*__CDM_ICON__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.SY_TRANSFERS = /*__SY_TRANSFERS__*/{};
@@ -85,6 +89,19 @@
 			window.CC_SPLASH = "data:image/png;base64,/*__CC_SPLASH__*/";
 			window.SZ_SPLASH = /*__SZ_SPLASH__*/'';
 			window.CD_SPLASH = "data:image/png;base64,/*__CD_SPLASH__*/";
+			window.QD_SPLASH = "data:image/png;base64,/*__QD_SPLASH__*/";
+			window.BJ_SPLASH_DARK = "data:image/jpeg;base64,/*__BJ_SPLASH_DARK__*/";
+			window.SY_SPLASH_DARK = "data:image/jpeg;base64,/*__SY_SPLASH_DARK__*/";
+			window.SH_SPLASH_DARK = "data:image/jpeg;base64,/*__SH_SPLASH_DARK__*/";
+			window.HB_SPLASH_DARK = "data:image/jpeg;base64,/*__HB_SPLASH_DARK__*/";
+			window.DL_SPLASH_DARK = "data:image/jpeg;base64,/*__DL_SPLASH_DARK__*/";
+			window.JH_SPLASH_DARK = "data:image/jpeg;base64,/*__JH_SPLASH_DARK__*/";
+			window.CZ_SPLASH_DARK = "data:image/jpeg;base64,/*__CZ_SPLASH_DARK__*/";
+			window.CQ_SPLASH_DARK = "data:image/jpeg;base64,/*__CQ_SPLASH_DARK__*/";
+			window.CC_SPLASH_DARK = "data:image/jpeg;base64,/*__CC_SPLASH_DARK__*/";
+			window.SZ_SPLASH_DARK = /*__SZ_SPLASH_DARK__*/'';
+			window.CD_SPLASH_DARK = "data:image/jpeg;base64,/*__CD_SPLASH_DARK__*/";
+			window.QD_SPLASH_DARK = "data:image/jpeg;base64,/*__QD_SPLASH_DARK__*/";
 			window.BJ_TIMETABLE = /*__BJ_TIMETABLE__*/{};
 			window.SY_TIMETABLE = /*__SY_TIMETABLE__*/{};
 			window.SH_TIMETABLE = /*__SH_TIMETABLE__*/{};
@@ -96,6 +113,7 @@
 			window.CC_TIMETABLE = /*__CC_TIMETABLE__*/{};
 			window.SZ_TIMETABLE = /*__SZ_TIMETABLE__*/{};
 			window.CD_TIMETABLE = /*__CD_TIMETABLE__*/{};
+			window.QD_TIMETABLE = /*__QD_TIMETABLE__*/{};
 			window.BJ_LATLNG = /*__BJ_LATLNG__*/{};
 			window.SY_LATLNG = /*__SY_LATLNG__*/{};
 			window.SH_LATLNG = /*__SH_LATLNG__*/{};
@@ -107,6 +125,8 @@
 			window.CC_LATLNG = /*__CC_LATLNG__*/{};
 			window.SZ_LATLNG = /*__SZ_LATLNG__*/{};
 			window.CD_LATLNG = /*__CD_LATLNG__*/{};
+			window.QD_LATLNG = /*__QD_LATLNG__*/{};
+			window.SOON_LOGOS = /*__SOON_LOGOS__*/{};
 			window.BRIEFING_SEED = /*__BRIEFING_SEED__*/{};
 			window.TRAINS_SEED = /*__TRAINS_SEED__*/{};
 			window.TT_ICON = "data:image/png;base64,/*__TT_ICON__*/";
@@ -479,6 +499,14 @@
 
 		.sz-theme .tr-tabs button.on { background: #00a051; color: #fff; }
 
+		/* Qingdao theme: brand green #317C5B (official app icon colour,
+		   sampled). Darker #276349 (derived) for text accents. */
+		.qd-theme .tr-search { background: linear-gradient(180deg, rgba(49, 124, 91, 0.9), rgba(39, 99, 73, 0.9)) !important; }
+		.qd-theme .tr-pref button.on { background: #317c5b; }
+		.qd-theme .sp-row .sp-line { background: #317c5b; }
+		.qd-theme .tr-swap { border-color: rgba(49,124,91,0.35); }
+		.qd-theme .tr-tabs button.on { background: #317c5b; color: #fff; }
+
 		/* Chengdu theme: Line 1 #0F0F96 (official line colour, Chengdu
 		   DB510100/T 083-2012 wayfinding standard; no single official system
 		   brand colour is published). Darker #0A0A6E (derived) for text accents. */
@@ -678,6 +706,7 @@
 		html.dark .more-city-row.soon { color: #8e8e93; }
 		.more-soon-icon { width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,0.08); color: #8e8e93; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 		.more-soon-icon svg { width: 16px; height: 16px; display: block; }
+		.more-soon-logo { height: 26px; width: auto; max-width: 84px; object-fit: contain; flex: none; }
 		html.dark .more-soon-icon { background: rgba(255,255,255,0.12); color: #8e8e93; }
 		.more-row-icon { width: 28px; height: 28px; border-radius: 7px; flex: none; margin-right: 10px; }
 		/* 'More cities' chip grid (build 65): supported cities are tappable
@@ -985,6 +1014,12 @@
 		html.dark .tt-time { color: #aaa; }
 		html.dark .tt-note { color: #777; }
 		html.dark .tt-back { background: rgba(255,255,255,0.16); color: #fff; }
+		/* Native app: the native LARGE glass back button (AppDelegate
+		   subViewBackButton, SDK 27.2 Configuration.glass) is the only back
+		   button — hide the web's own circles but keep their layout space so
+		   sub-view headers don't shift. visibility:hidden is not clickable,
+		   so no invisible tap target remains. */
+		html.native-app .more-sub-back, html.native-app .tt-back { visibility: hidden; }
 		.more-sub-back svg, .tt-back svg { width: 20px; height: 20px; flex: none; }
 		@media (min-width: 700px) {
 			#transferPanel, #stationPanel { align-items: center; }
@@ -1041,7 +1076,7 @@
 
 
 	<body>
-		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'cc-theme': city === 'cc', 'sz-theme': city === 'sz', 'cd-theme': city === 'cd', 'native-app': nativeApp, ['lang-' + lang]: true }">
+		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'cc-theme': city === 'cc', 'sz-theme': city === 'sz', 'cd-theme': city === 'cd', 'qd-theme': city === 'qd', 'native-app': nativeApp, ['lang-' + lang]: true }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="mapLoadingOverlay" :class="{ hidden: !mapLoading }"><div class="map-loading-box"><div class="map-loading-spin"></div><div class="map-loading-city">{{ cityName }}</div></div></div>
 			<div id="sideMenuDiv">
@@ -1163,7 +1198,7 @@
 							<div class="tt-time" v-else>{{ t('tt.nodata') }}</div>
 						</div>
 					</div>
-					<div class="tt-note">{{ t('tt.note') }}<span v-if="city==='sy'">{{ t('tt.note.sy') }}</span><span v-if="city==='hb'">{{ t('tt.note.hb') }}</span><span v-if="city==='dl'">{{ t('tt.note.dl') }}</span><span v-if="city==='cq'">{{ t('tt.note.cq') }}</span><span v-if="city==='cc'">{{ t('tt.note.cc') }}</span><span v-if="city==='cd'">{{ t('tt.note.cd') }}</span></div>
+					<div class="tt-note">{{ t('tt.note') }}<span v-if="city==='sy'">{{ t('tt.note.sy') }}</span><span v-if="city==='hb'">{{ t('tt.note.hb') }}</span><span v-if="city==='dl'">{{ t('tt.note.dl') }}</span><span v-if="city==='cq'">{{ t('tt.note.cq') }}</span><span v-if="city==='cc'">{{ t('tt.note.cc') }}</span><span v-if="city==='cd'">{{ t('tt.note.cd') }}</span><span v-if="city==='qd'">{{ t('tt.note.qd') }}</span></div>
 				</div>
 			</div>
 
@@ -1216,7 +1251,7 @@
 					<button class="tr-action-btn" @click="openApplePay"><span>{{ t('tr.applepay') }}</span></button>
 				</div>
 				<div class="tr-smart" v-if="nearbyList.length || nearbyMsg">
-					<div class="tr-smart-head"><img v-if="smartIcon" :src="smartIcon" alt=""><span>{{ t('tr.smart.title') }}</span></div>
+					<div class="tr-smart-head"><img v-if="aiIcon" :src="aiIcon" alt=""><span>{{ t('tr.smart.title') }}</span></div>
 					<div v-if="userLat != null && smartList.length">
 						<div class="tr-nearby-item" v-for="s in smartList" :key="'sm' + s.n" @click="pickNearby(s)"><span>{{ stNameStr(s.n) }}</span><span class="tr-nearby-dist">{{ s.distText }}</span></div>
 					</div>
@@ -1300,7 +1335,7 @@
 				</div>
 				<div class="more-section">{{ t('more.lang') }}</div>
 				<div class="more-card">
-					<div class="more-row" @click="showLangSub = true"><span>{{ t('more.lang') }}</span><span class="more-row-value">{{ langDisplayName }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="openLanguage"><span>{{ t('more.lang') }}</span><span class="more-row-value">{{ langDisplayName }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-section">{{ t('more.more') }}</div>
 				<div class="more-card">
@@ -1311,10 +1346,6 @@
 					<div class="more-row" @click="doRepo">
 						<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"/></svg>
 						<span>{{ t('more.repo') }}</span><span class="more-chev">›</span>
-					</div>
-					<div class="more-row" @click="doPdf">
-						<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
-						<span>{{ t('more.pdf') }}</span><span class="more-chev">›</span>
 					</div>
 					<div class="more-row" @click="showAboutSub = true">
 						<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>
@@ -1333,7 +1364,7 @@
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showTrainSub = true; loadTrains()"><img class="more-row-icon" :src="trainIcon" alt=""><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
-					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="siriIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="aiIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-credit">{{ t('more.credit') }}</div>
 				</div>
@@ -1355,7 +1386,7 @@
 					</div>
 					<div class="more-section">{{ t('more.citiesSoon') }}</div>
 					<div class="more-card">
-						<div class="more-city-row soon" v-for="c in soonCityList" :key="'soon-'+c" @click="showSoonCity(c)"><span class="more-city-name"><span class="more-soon-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18 V7 L12 13 L18 7 V18"/></svg></span><span>{{ c }}</span></span></div>
+						<div class="more-city-row soon" v-for="c in soonCityList" :key="'soon-'+c" @click="showSoonCity(c)"><span class="more-city-name"><img class="more-soon-logo" v-if="soonLogos[c]" :src="soonLogos[c]" alt=""><span class="more-soon-icon" v-else><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18 V7 L12 13 L18 7 V18"/></svg></span><span>{{ c }}</span></span></div>
 						<div class="more-soon-note" v-if="soonNote">{{ t('more.citiesSoonNote', {c: soonNote}) }}</div>
 					</div>
 				</div>
@@ -1576,6 +1607,7 @@ var I18N = {
   'tt.note.cq': ['首班车时间为估算（按末班车行车时间推算），15号线/璧铜线各站时间为估算；末班车及江跳线时间为官方时刻表。', '首班車時間為估算（按末班車行車時間推算），15號線/璧銅線各站時間為估算；末班車及江跳線時間為官方時刻表。', 'First trains are estimated (from last-train travel times); Line 15 / Bitong Line times are estimated. Last trains and the Jiangtiao Line are from the official timetable.'],
   'tt.note.cc': ['2、5号线为官方逐站时刻表；其余线路为估算值（首末班时间按官方公布，站间约 2 分钟推算；冬季时刻），请以车站公布为准。', '2、5號線為官方逐站時刻表；其餘線路為估算值（首末班時間按官方公佈，站間約 2 分鐘推算；冬季時刻），請以車站公佈為準。', 'Lines 2 and 5 use the official per-station timetable; other lines are estimated (official first/last times, ~2 min per stop; winter timetable). Please follow station notices.'],
   'tt.note.cd': ['全线时刻表为估算值（按官方公布的首末班时间，站间约 2 分钟推算；快线 18/19 号线与市域线 S3 的站间用时偏长，误差较大），请以车站公布为准。', '全線時刻表為估算值（按官方公佈的首末班時間，站間約 2 分鐘推算；快線 18/19 號線與市域線 S3 的站間用時偏長，誤差較大），請以車站公佈為準。', 'All times are estimated (official first/last times, ~2 min per stop; express Lines 18/19 and intercity Line S3 take longer per stop, so error is larger). Please follow station notices.'],
+  'tt.note.qd': ['青岛逐站首末班车时刻正在按官方发布采集，暂未收录；线路与站点信息为官方线网（2026-11）。', '青島逐站首末班車時刻正在按官方發佈採集，暫未收錄；線路與站點資訊為官方線網（2026-11）。', 'Qingdao per-station first/last times are being collected from official sources and are not included yet; lines and stations follow the official network (2026-11).'],
   'tr.depart': ['出发', '出發', 'Depart'],
   'tr.arrive': ['到达', '到達', 'Arrive'],
   'tr.phFrom': ['选择出发站', '選擇出發站', 'Select departure station'],
@@ -1649,6 +1681,7 @@ var I18N = {
   'transit.cc': ['打开长春E出行', '打開長春E出行', 'Open Changchun E-Travel'],
   'transit.sz': ['打开深圳地铁', '打開深圳地鐵', 'Open Shenzhen Metro'],
   'transit.cd': ['打开成都地铁', '打開成都地鐵', 'Open Chengdu Metro'],
+  'transit.qd': ['打开青岛地铁', '打開青島地鐵', 'Open Qingdao Metro'],
   'more.reset': ['重置缩放', '重置縮放', 'Reset zoom'],
   'more.repo': ['项目主页', '項目主頁', 'Project home'],
   'more.pdf': ['下载PDF', '下載PDF', 'Download PDF'],
@@ -1772,6 +1805,7 @@ var I18N = {
   'city.gz': ['广州', '廣州', 'Guangzhou'],
   'city.sz': ['深圳', '深圳', 'Shenzhen'],
   'city.cd': ['成都', '成都', 'Chengdu'],
+  'city.qd': ['青岛', '青島', 'Qingdao'],
   'city.tj': ['天津', '天津', 'Tianjin'],
   'city.metro': ['{c}地铁', '{c}地鐵', '{c} Metro'],
   'native.now': ['现在出发', '現在出發', 'Depart now'],
@@ -1953,7 +1987,7 @@ function titlePy(py) {
 						ttLine: null,
 						showMore: false,
 						query: '',
-						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
+						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
 						lang: savedLang(),
 					langPref: savedLangPref(),
 					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
@@ -1988,9 +2022,13 @@ function titlePy(py) {
 						mddhIcon: (window.MDDH_ICON || ''),
 						hbctIcon: (window.HBCT_ICON || ''),
 						bjSplash: (window.BJ_SPLASH || ''),
+					bjSplashDark: (window.BJ_SPLASH_DARK || ''),
 						sySplash: (window.SY_SPLASH || ''),
+					sySplashDark: (window.SY_SPLASH_DARK || ''),
 						shSplash: (window.SH_SPLASH || ''),
+					shSplashDark: (window.SH_SPLASH_DARK || ''),
 						hbSplash: (window.HB_SPLASH || ''),
+					hbSplashDark: (window.HB_SPLASH_DARK || ''),
 						bjTimetable: (window.BJ_TIMETABLE || {}),
 						bjLatLng: (window.BJ_LATLNG || {}),
 						syTimetable: (window.SY_TIMETABLE || {}),
@@ -2005,6 +2043,7 @@ function titlePy(py) {
 						dlMap: (window.DL_MAP || ''),
 						dljtIcon: (window.DLJT_ICON || ''),
 						dlSplash: (window.DL_SPLASH || ''),
+					dlSplashDark: (window.DL_SPLASH_DARK || ''),
 						dlTimetable: (window.DL_TIMETABLE || {}),
 						dlLatLng: (window.DL_LATLNG || {}),
 						jhStations: (window.JH_STATIONS || []),
@@ -2013,6 +2052,7 @@ function titlePy(py) {
 						jhMap: (window.JH_MAP || ''),
 						rwxIcon: (window.RWX_ICON || ''),
 						jhSplash: (window.JH_SPLASH || ''),
+					jhSplashDark: (window.JH_SPLASH_DARK || ''),
 						jhTimetable: (window.JH_TIMETABLE || {}),
 						jhLatLng: (window.JH_LATLNG || {}),
 						czStations: (window.CZ_STATIONS || []),
@@ -2021,6 +2061,7 @@ function titlePy(py) {
 						czMap: (window.CZ_MAP || ''),
 						czmIcon: (window.CZM_ICON || ''),
 						czSplash: (window.CZ_SPLASH || ''),
+					czSplashDark: (window.CZ_SPLASH_DARK || ''),
 						czTimetable: (window.CZ_TIMETABLE || {}),
 						czLatLng: (window.CZ_LATLNG || {}),
 						cqStations: (window.CQ_STATIONS || []),
@@ -2029,6 +2070,7 @@ function titlePy(py) {
 						cqMap: (window.CQ_MAP || ''),
 						ycxIcon: (window.YCX_ICON || ''),
 						cqSplash: (window.CQ_SPLASH || ''),
+					cqSplashDark: (window.CQ_SPLASH_DARK || ''),
 						cqTimetable: (window.CQ_TIMETABLE || {}),
 						cqLatLng: (window.CQ_LATLNG || {}),
 						ccStations: (window.CC_STATIONS || []),
@@ -2037,6 +2079,7 @@ function titlePy(py) {
 						ccMap: (window.CC_MAP || ''),
 						cceIcon: (window.CCE_ICON || ''),
 						ccSplash: (window.CC_SPLASH || ''),
+					ccSplashDark: (window.CC_SPLASH_DARK || ''),
 						ccTimetable: (window.CC_TIMETABLE || {}),
 						ccLatLng: (window.CC_LATLNG || {}),
 						szStations: (window.SZ_STATIONS || []),
@@ -2044,6 +2087,7 @@ function titlePy(py) {
 						szLogo: (window.SZ_LOGO || ''),
 						szMap: (window.SZ_MAP || ''),
 						szSplash: (window.SZ_SPLASH || ''),
+					szSplashDark: (window.SZ_SPLASH_DARK || ''),
 						szTimetable: (window.SZ_TIMETABLE || {}),
 						szLatLng: (window.SZ_LATLNG || {}),
 						cdStations: (window.CD_STATIONS || []),
@@ -2052,8 +2096,18 @@ function titlePy(py) {
 						cdMap: (window.CD_MAP || ''),
 						cdmIcon: (window.CDM_ICON || ''),
 						cdSplash: (window.CD_SPLASH || ''),
+					cdSplashDark: (window.CD_SPLASH_DARK || ''),
+					qdSplash: (window.QD_SPLASH || ''),
+					qdSplashDark: (window.QD_SPLASH_DARK || ''),
 						cdTimetable: (window.CD_TIMETABLE || {}),
 						cdLatLng: (window.CD_LATLNG || {}),
+						qdStations: (window.QD_STATIONS || []),
+						qdRoutes: (window.QD_ROUTES || null),
+						qdLogo: (window.QD_LOGO || ''),
+						qdMap: (window.QD_MAP || ''),
+						qdTimetable: (window.QD_TIMETABLE || {}),
+						qdLatLng: (window.QD_LATLNG || {}),
+					soonLogos: (window.SOON_LOGOS || {}),
 						ttIcon: (window.TT_ICON || ''),
 						// Upcoming openings (build 70): 10 lines, each with its
 						// own official colour; dates are always "expected",
@@ -2120,6 +2174,7 @@ function titlePy(py) {
 						locPermHint: false,
 						searchHistory: (function () { try { var h = JSON.parse(window.localStorage.getItem('metro-search-history') || '[]'); return Array.isArray(h) ? h : []; } catch (e) { return []; } })(),
 						theme: 'system',
+						darkNow: false,
 					showCitySub: false,
 					bjMapType: (function() { try { var m = window.localStorage.getItem('metro-bj-maptype'); return m === 'line' ? 'line' : 'track'; } catch (e) { return 'track'; } })(),
 					bjMapExpanded: false,
@@ -2370,6 +2425,7 @@ function titlePy(py) {
 						if (c === 'cc' && (!this.ccStations.length || !this.ccMap)) return;
 						if (c === 'sz' && (!this.szStations.length || !this.szMap)) return;
 						if (c === 'cd' && (!this.cdStations.length || !this.cdMap)) return;
+						if (c === 'qd' && (!this.qdStations.length || !this.qdMap)) return;
 						// Atomic switch (build 65 flash fix): clear the old
 						// city's transfer/search state AND hide the panels
 						// FIRST, before the city changes, so no render can
@@ -2450,6 +2506,11 @@ function titlePy(py) {
 							this.routes = this.cdRoutes;
 							this.transfers = (window.CD_TRANSFERS || {});
 							this.curr = { svgUrl: "", svgDom: this.cdMap, pdfUrl: "", success: true, json: null, verName: "CD", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.cd'), d: '2026-11', l: 17, s: 364}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+						} else if (c === 'qd') {
+							this.stations = this.qdStations;
+							this.routes = this.qdRoutes;
+							this.transfers = (window.QD_TRANSFERS || {});
+							this.curr = { svgUrl: "", svgDom: this.qdMap, pdfUrl: "", success: true, json: null, verName: "QD", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.qd'), d: '2026-11', l: 8, s: 176}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else {
 							// Beijing: two map types (build 78). 'line' = RMP
 							// schematic 线路图 (bjLineMap/bjLineStations);
@@ -2752,6 +2813,12 @@ function titlePy(py) {
 					applyTheme() {
 						var dark = this.theme === 'dark' || (this.theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
 						document.documentElement.classList.toggle('dark', dark);
+						this.darkNow = dark;
+						// Tell native the effective appearance (user 2026-11-19):
+						// the native launch splash picks its light/dark poster
+						// variant from the persisted value on the next launch.
+						var th = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.themeState);
+						if (th) th.postMessage({ dark: dark });
 					},
 					// Sync <html> classes (build 77): the #app :class binding is
 					// INERT in Vue 3 in-DOM templates (proven by a minimal Vue
@@ -2764,9 +2831,9 @@ function titlePy(py) {
 					syncHtmlClasses() {
 						var h = document.documentElement;
 						h.classList.toggle('native-app', !!this.nativeApp);
-						var themes = ['sy-theme', 'sh-theme', 'hb-theme', 'dl-theme', 'jh-theme', 'cz-theme', 'cq-theme', 'cc-theme', 'sz-theme', 'cd-theme'];
+						var themes = ['sy-theme', 'sh-theme', 'hb-theme', 'dl-theme', 'jh-theme', 'cz-theme', 'cq-theme', 'cc-theme', 'sz-theme', 'cd-theme', 'qd-theme'];
 						for (var i = 0; i < themes.length; i++) h.classList.remove(themes[i]);
-						var tc = { sy: 'sy-theme', sh: 'sh-theme', hb: 'hb-theme', dl: 'dl-theme', jh: 'jh-theme', cz: 'cz-theme', cq: 'cq-theme', cc: 'cc-theme', sz: 'sz-theme', cd: 'cd-theme' }[this.city];
+						var tc = { sy: 'sy-theme', sh: 'sh-theme', hb: 'hb-theme', dl: 'dl-theme', jh: 'jh-theme', cz: 'cz-theme', cq: 'cq-theme', cc: 'cc-theme', sz: 'sz-theme', cd: 'cd-theme', qd: 'qd-theme' }[this.city];
 						if (tc) h.classList.add(tc);
 						var langs = ['lang-zh-Hans', 'lang-zh-Hant', 'lang-en'];
 						for (var j = 0; j < langs.length; j++) h.classList.remove(langs[j]);
@@ -2941,6 +3008,13 @@ function titlePy(py) {
 											 '18': 13.10, '19': 25.23, '27': 36.92, '30': 47.19,
 											 'S3': 7.66 };
 							return CD[lineKey] || 31.32;
+						}
+						if (this.city === 'qd') {
+							// Qingdao px/km (build 79): median 18.8 units/km from
+							// the verified lat/lng (haversine over the 187 edges;
+							// IQR 13.1-28.7 — the RMP schematic distorts distances,
+							// so this is APPROXIMATE and fares are estimates.
+							return 18.8;
 						}
 						if (this.city !== 'sh') return 44;
 						var SH_SUB = {
@@ -3184,6 +3258,25 @@ function titlePy(py) {
 							else fCd = 9 + Math.ceil((kmCd - 50) / 20);
 							return Math.min(fCd, 13);
 						}
+						// Qingdao: distance-based fare (verified, official
+						// 票务规则）: <=5 km Y2; <=10 km Y3; <=17 km Y4;
+						// <=27 km Y5; <=38 km Y6; beyond 38 km +Y1 per
+						// 20 km. Distance from the map (segKm with the
+						// Qingdao scale, approx — see the scale function).
+						if (this.city === 'qd') {
+							var kmQd = 0;
+							for (var qi = 0; qi < r.segments.length; qi++) {
+								var qd2 = self.segKm(r.segments[qi]);
+								if (qd2 == null || qd2 < 0) return null;
+								kmQd += qd2;
+							}
+							if (kmQd <= 5) return 2;
+							if (kmQd <= 10) return 3;
+							if (kmQd <= 17) return 4;
+							if (kmQd <= 27) return 5;
+							if (kmQd <= 38) return 6;
+							return 6 + Math.ceil((kmQd - 38) / 20);
+						}
 						var total = 0, legKm = 0;
 						function closeLeg() { if (legKm > 0) { total += (self.city === 'sh' ? fareForKmSh(legKm) : fareForKm(legKm)); legKm = 0; } }
 						for (var i = 0; i < r.segments.length; i++) {
@@ -3279,7 +3372,7 @@ function titlePy(py) {
 					openTransitApp() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openTransitApp;
 						if (h) { h.postMessage({}); return; }
-						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : (this.city === 'dl' ? '1383655806' : (this.city === 'jh' ? '6503238645' : (this.city === 'cz' ? '1474201266' : (this.city === 'cq' ? '1491110313' : (this.city === 'cc' ? '1481796811' : (this.city === 'sz' ? '848926994' : (this.city === 'cd' ? '1303414976' : '1071038870')))))))));
+						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : (this.city === 'dl' ? '1383655806' : (this.city === 'jh' ? '6503238645' : (this.city === 'cz' ? '1474201266' : (this.city === 'cq' ? '1491110313' : (this.city === 'cc' ? '1481796811' : (this.city === 'sz' ? '848926994' : (this.city === 'cd' ? '1303414976' : (this.city === 'qd' ? '1373547573' : '1071038870'))))))))));
 						window.open('https://apps.apple.com/cn/app/id' + id, '_blank');
 					},
 					openApplePay() {
@@ -3383,6 +3476,7 @@ function titlePy(py) {
 						if (c === 'cc') return this.ccLatLng;
 						if (c === 'sz') return this.szLatLng;
 						if (c === 'cd') return this.cdLatLng;
+						if (c === 'qd') return this.qdLatLng;
 						return this.bjLatLng;
 					},
 					// Location permission (Settings row): on tap, ask the native
@@ -3480,7 +3574,7 @@ function titlePy(py) {
 					// Logo for the city switcher rows (build 65): the official
 					// metro logo already inlined for the city pill, shown
 					// circular via CSS. Jinhua joins when its wiring lands.
-					cityLogoFor(k) { return k === 'sy' ? this.syLogo : (k === 'sh' ? this.shLogo : (k === 'hb' ? this.hbLogo : (k === 'dl' ? this.dlLogo : (k === 'jh' ? this.jhLogo : (k === 'cz' ? this.czLogo : (k === 'cq' ? this.cqLogo : (k === 'cc' ? this.ccLogo : (k === 'sz' ? this.szLogo : (k === 'cd' ? this.cdLogo : this.bjLogo))))))))); },
+					cityLogoFor(k) { return k === 'sy' ? this.syLogo : (k === 'sh' ? this.shLogo : (k === 'hb' ? this.hbLogo : (k === 'dl' ? this.dlLogo : (k === 'jh' ? this.jhLogo : (k === 'cz' ? this.czLogo : (k === 'cq' ? this.cqLogo : (k === 'cc' ? this.ccLogo : (k === 'sz' ? this.szLogo : (k === 'cd' ? this.cdLogo : (k === 'qd' ? this.qdLogo : this.bjLogo)))))))))); },
 					// Operating-hours prompt (build 63). Timetable data is NOT changed
 					// here — this only reads first/last times and says whether the line
 					// is running at a given moment. A last train after midnight (00:00)
@@ -3998,6 +4092,11 @@ function titlePy(py) {
 						if (h) { h.postMessage({}); return; }
 						this.showAppearanceSub = true;
 					},
+					openLanguage() {
+						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openLanguage);
+						if (h) { h.postMessage({}); return; }
+						this.showLangSub = true;
+					},
 				},
 				computed: {
 					cityName() { return this.t('city.' + this.city); },
@@ -4016,19 +4115,28 @@ function titlePy(py) {
 					// Changzhou ('cz') and Chongqing ('cq') joined when their
 					// wiring landed.
 					cityList() {
-						return [{ key: 'bj', name: this.t('city.bj') }, { key: 'sy', name: this.t('city.sy') }, { key: 'sh', name: this.t('city.sh') }, { key: 'hb', name: this.t('city.hb') }, { key: 'dl', name: this.t('city.dl') }, { key: 'jh', name: this.t('city.jh') }, { key: 'cz', name: this.t('city.cz') }, { key: 'cq', name: this.t('city.cq') }, { key: 'cc', name: this.t('city.cc') }, { key: 'sz', name: this.t('city.sz') }, { key: 'cd', name: this.t('city.cd') }];
+						return [{ key: 'bj', name: this.t('city.bj') }, { key: 'sy', name: this.t('city.sy') }, { key: 'sh', name: this.t('city.sh') }, { key: 'hb', name: this.t('city.hb') }, { key: 'dl', name: this.t('city.dl') }, { key: 'jh', name: this.t('city.jh') }, { key: 'cz', name: this.t('city.cz') }, { key: 'cq', name: this.t('city.cq') }, { key: 'cc', name: this.t('city.cc') }, { key: 'sz', name: this.t('city.sz') }, { key: 'cd', name: this.t('city.cd') }, { key: 'qd', name: this.t('city.qd') }];
 					},
 					// 'More cities' directory (build 65): every other mainland city
 					// with operating urban rail transit, per CAMET 2026-Q3 (58 cities
 					// total, as of 2026-09-30; no new city in Q4 2026). The 9
 					// supported cities are excluded here.
 					soonCityList() {
-						return ['天津', '广州', '武汉', '南京', '成都', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '无锡', '南昌', '兰州', '青岛', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '石家庄', '贵阳', '厦门', '温州', '济南', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '洛阳', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌'];
+						return ['天津', '广州', '武汉', '南京', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '无锡', '南昌', '兰州', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '石家庄', '贵阳', '厦门', '温州', '济南', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '洛阳', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌'];
 					},
-					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : (this.city === 'sz' ? this.szLogo : (this.city === 'cd' ? this.cdLogo : this.bjLogo))))))))); },
+					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : (this.city === 'sz' ? this.szLogo : (this.city === 'cd' ? this.cdLogo : (this.city === 'qd' ? this.qdLogo : this.bjLogo)))))))))); },
 					transitLabel() { return this.t('transit.' + this.city); },
-					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? '' : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : this.yktIcon))))))))); },
-					splashImg() { return this.city === 'sy' ? this.sySplash : (this.city === 'sh' ? this.shSplash : (this.city === 'hb' ? this.hbSplash : (this.city === 'dl' ? this.dlSplash : (this.city === 'jh' ? this.jhSplash : (this.city === 'cz' ? this.czSplash : (this.city === 'cq' ? this.cqSplash : (this.city === 'cc' ? this.ccSplash : (this.city === 'sz' ? this.szSplash : (this.city === 'cd' ? this.cdSplash : this.bjSplash))))))))); },
+					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? '' : (this.city === 'qd' ? '' : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : this.yktIcon)))))))))); },
+					splashImg() {
+						var light = { bj: this.bjSplash, sy: this.sySplash, sh: this.shSplash, hb: this.hbSplash, dl: this.dlSplash, jh: this.jhSplash, cz: this.czSplash, cq: this.cqSplash, cc: this.ccSplash, sz: this.szSplash, cd: this.cdSplash, qd: this.qdSplash };
+						var dark = { bj: this.bjSplashDark, sy: this.sySplashDark, sh: this.shSplashDark, hb: this.hbSplashDark, dl: this.dlSplashDark, jh: this.jhSplashDark, cz: this.czSplashDark, cq: this.cqSplashDark, cc: this.ccSplashDark, sz: this.szSplashDark, cd: this.cdSplashDark, qd: this.qdSplashDark };
+						if (this.darkNow && dark[this.city]) return dark[this.city];
+						return light[this.city] || this.bjSplash;
+					},
+					// Apple Intelligence icon (user 2026-11-19): smartIcon is the
+					// light swirl on a dark tile (suits dark mode), siriIcon is the
+					// colour swirl on white (suits light mode) — swap by theme.
+					aiIcon() { return this.darkNow ? this.smartIcon : this.siriIcon; },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						if (!q) return this.stations;
@@ -4047,6 +4155,7 @@ function titlePy(py) {
 						if (this.city === 'cc') return this.ccTimetable;
 						if (this.city === 'sz') return this.szTimetable;
 						if (this.city === 'cd') return this.cdTimetable;
+						if (this.city === 'qd') return this.qdTimetable;
 						return this.bjTimetable;
 					},
 					// All lines for the current city, in routes order, plus the
@@ -4212,7 +4321,7 @@ function titlePy(py) {
 						// switch for any valid non-Beijing city so its map,
 						// stations and routes are actually applied; for
 						// 'bj' the Beijing defaults are already correct.
-						if (_savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb' || _savedCity === 'dl' || _savedCity === 'jh' || _savedCity === 'cz' || _savedCity === 'cq' || _savedCity === 'cc' || _savedCity === 'sz' || _savedCity === 'cd') {
+						if (_savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb' || _savedCity === 'dl' || _savedCity === 'jh' || _savedCity === 'cz' || _savedCity === 'cq' || _savedCity === 'cc' || _savedCity === 'sz' || _savedCity === 'cd' || _savedCity === 'qd') {
 							this.switchCity(_savedCity, true);
 						}
 					} catch (e) {}

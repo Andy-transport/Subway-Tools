@@ -167,37 +167,37 @@ struct SubwayToolsShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: OpenSubwayToolsIntent(),
-            phrases: ["打开 Subway tools", "打开地铁工具"],
+            phrases: ["打开 \(.applicationName)", "打开 Subway tools", "打开地铁工具"],
             shortTitle: "打开 Subway tools",
             systemImageName: "app"
         )
         AppShortcut(
             intent: FirstTrainIntent(),
-            phrases: ["首班车几点", "查询首班车", "首班车时间"],
+            phrases: ["\(.applicationName)首班车几点", "首班车几点", "查询首班车", "首班车时间"],
             shortTitle: "查询首班车",
             systemImageName: "clock"
         )
         AppShortcut(
             intent: LastTrainIntent(),
-            phrases: ["末班车几点", "查询末班车", "末班车时间"],
+            phrases: ["\(.applicationName)末班车几点", "末班车几点", "查询末班车", "末班车时间"],
             shortTitle: "查询末班车",
             systemImageName: "clock.fill"
         )
         AppShortcut(
             intent: PlanRouteIntent(),
-            phrases: ["规划路线", "规划地铁路线"],
+            phrases: ["用 \(.applicationName) 规划路线", "规划路线", "规划地铁路线"],
             shortTitle: "规划路线",
             systemImageName: "arrow.triangle.2.circlepath"
         )
         AppShortcut(
             intent: NearestStationIntent(),
-            phrases: ["最近的地铁站", "离我最近的地铁站", "最近的车站"],
+            phrases: ["\(.applicationName)最近的地铁站", "最近的地铁站", "离我最近的地铁站", "最近的车站"],
             shortTitle: "最近的车站",
             systemImageName: "location"
         )
         AppShortcut(
             intent: TimetableIntent(),
-            phrases: ["查看时刻表", "时刻表"],
+            phrases: ["\(.applicationName)查看时刻表", "查看时刻表", "时刻表"],
             shortTitle: "查看时刻表",
             systemImageName: "calendar"
         )

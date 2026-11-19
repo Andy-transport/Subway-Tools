@@ -81,6 +81,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // a full-screen native view (two Light/Dark preview cards + 自动 switch),
     // opened by the web's "openAppearance" post. Nil while closed.
     var appearanceView: AppearanceView?
+    // Native Language picker (user 2026-11-19, 语言 → Apple UI SDK 27.2):
+    // a full-screen native grouped list, opened by the web's
+    // "openLanguage" post. Nil while closed.
+    var languageView: LanguageView?
     var tabBar: UITabBar!
     var cityPill: UIButton!
     // Map tools pill (top-right, build 74): a single Liquid Glass capsule
@@ -188,6 +192,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // official published value.
     let shenzhenGreen = UIColor(red: 0, green: 160.0 / 255.0, blue: 81.0 / 255.0, alpha: 1)
     let shenzhenGreenDark = UIColor(red: 0, green: 112.0 / 255.0, blue: 57.0 / 255.0, alpha: 1)
+    // Qingdao Metro brand green #317C5B (sampled from the official
+    // app icon). Darker #276349 is derived (darkened ~20%), not an
+    // official published value.
+    let qingdaoGreen = UIColor(red: 49.0 / 255.0, green: 124.0 / 255.0, blue: 91.0 / 255.0, alpha: 1)
+    let qingdaoGreenDark = UIColor(red: 39.0 / 255.0, green: 99.0 / 255.0, blue: 73.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -242,6 +251,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "city.cc": ["长春", "長春", "Changchun"],
         "city.sz": ["深圳", "深圳", "Shenzhen"],
         "city.cd": ["成都", "成都", "Chengdu"],
+        "city.qd": ["青岛", "青島", "Qingdao"],
         "native.cancel": ["取消", "取消", "Cancel"],
         "tr.tab.rec": ["推荐", "推薦", "Recommended"],
         "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
@@ -252,6 +262,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "more.theme.dark": ["深色", "深色", "Dark"],
         "more.theme.auto": ["自动", "自動", "Automatic"],
         "more.appearance": ["外观", "外觀", "Appearance"],
+        "more.lang": ["语言", "語言", "Language"],
+        "more.lang.system": ["跟随系统", "跟隨系統", "Follow System"],
+        "more.lang.hans": ["简体中文", "簡體中文", "Simplified Chinese"],
+        "more.lang.hant": ["繁體中文", "繁體中文", "Traditional Chinese"],
+        "more.lang.en": ["English", "English", "English"],
         "siri.add.title": ["添加到 Siri 快捷指令", "添加到 Siri 快捷指令", "Add to Siri Shortcuts"],
         "siri.add.open": ["打开快捷指令", "打開快捷指令", "Open Shortcuts"],
         "siri.add.message": ["「{name}」已就绪。在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可添加。添加后可对 Siri 说出对应短语使用。", "「{name}」已就緒。在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可添加。添加後可對 Siri 說出對應短語使用。", "“{name}” is ready. In the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”. Once added, use it by speaking its phrase to Siri."],
@@ -361,6 +376,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         fromLabelBtn?.setTitle(L("tr.depart"), for: .normal)
         toLabelBtn?.setTitle(L("tr.arrive"), for: .normal)
         updateSideBarSelection()
+        if let lv = languageView {
+            lv.relocalize(pageTitle: L("more.lang"), systemTitle: L("more.lang.system"), hansTitle: L("more.lang.hans"), hantTitle: L("more.lang.hant"), enTitle: L("more.lang.en"), systemDetail: systemLangDisplayName())
+        }
     }
 
     override func viewDidLoad() {
@@ -370,7 +388,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = UIColor(red: 12.0 / 255.0, green: 15.0 / 255.0, blue: 22.0 / 255.0, alpha: 1) // #0c0f16, the web's dark background (build 63): nothing white shows through while the page loads or at the edges.
@@ -391,11 +409,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "cityChanged")
         config.userContentController.add(self, name: "langChanged")
         config.userContentController.add(self, name: "splashDone")
+        config.userContentController.add(self, name: "themeState")
         config.userContentController.add(self, name: "liveActivity")
         config.userContentController.add(self, name: "clearCache")
         config.userContentController.add(self, name: "addShortcut")
         config.userContentController.add(self, name: "subView")
         config.userContentController.add(self, name: "openAppearance")
+        config.userContentController.add(self, name: "openLanguage")
         // Inject the iOS per-app language + device idiom before the page's
         // scripts run, so the web's savedLang() can follow the system
         // language when the user has no explicit in-app choice (see
@@ -530,35 +550,48 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
         ])
 
-        // Native sub-view back button (user 2026-11-18): a real Apple UI
-        // 34pt circular glass button (SF Symbol chevron.backward) at the
-        // top-left, shown only while a web sub-view is open. It overlays
-        // the web's .more-sub-back / .tt-back button at the same spot, so
-        // if it fails to show, the web button is still there as fallback.
-        // Glass matches the native tab bar via makeGlassEffectView()
-        // (UIGlassEffect .regular on iOS 26+, .systemMaterial blur below).
+        // Native sub-view back button (user 2026-11-19): a real Apple UI
+        // LARGE 50pt circular glass button (SF Symbol chevron.backward)
+        // at the top-left, shown only while a web sub-view is open. It
+        // replaces the old 34pt overlay, which sat a few points off the
+        // web's own .more-sub-back / .tt-back button so both circles
+        // showed at once (the double circle in the user's screenshot).
+        // The web buttons are now hidden in the native app (template.html:
+        // html.native-app .more-sub-back / .tt-back { visibility: hidden }),
+        // so this native button is the only one. On iOS 26+ it uses the
+        // SDK 27.2 UIButton.Configuration.glass() (real Liquid Glass);
+        // below that it falls back to a makeGlassEffectView() subview
+        // (UIGlassEffect .regular / .systemMaterial), same as the tab bar.
         // The chevron uses the adaptive label colour (.label: black in
         // light mode, white in dark mode).
         subViewBackButton = UIButton(type: .system)
         subViewBackButton.translatesAutoresizingMaskIntoConstraints = false
-        subViewBackButton.backgroundColor = .clear
-        subViewBackButton.layer.cornerRadius = 17
-        subViewBackButton.clipsToBounds = true
         subViewBackButton.tintColor = .label
-        let subViewBackGlass = makeGlassEffectView()
-        subViewBackGlass.translatesAutoresizingMaskIntoConstraints = false
-        subViewBackGlass.layer.cornerRadius = 17
-        subViewBackGlass.clipsToBounds = true
-        subViewBackGlass.isUserInteractionEnabled = false
-        subViewBackButton.insertSubview(subViewBackGlass, at: 0)
-        NSLayoutConstraint.activate([
-            subViewBackGlass.leadingAnchor.constraint(equalTo: subViewBackButton.leadingAnchor),
-            subViewBackGlass.trailingAnchor.constraint(equalTo: subViewBackButton.trailingAnchor),
-            subViewBackGlass.topAnchor.constraint(equalTo: subViewBackButton.topAnchor),
-            subViewBackGlass.bottomAnchor.constraint(equalTo: subViewBackButton.bottomAnchor),
-        ])
-        let subViewBackChevron = UIImage(systemName: "chevron.backward")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold))
-        subViewBackButton.setImage(subViewBackChevron, for: .normal)
+        let subViewBackChevron = UIImage(systemName: "chevron.backward")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold))
+        if #available(iOS 26.0, *) {
+            var subViewBackConfig = UIButton.Configuration.glass()
+            subViewBackConfig.image = subViewBackChevron
+            subViewBackConfig.cornerStyle = .capsule
+            subViewBackConfig.baseForegroundColor = .label
+            subViewBackButton.configuration = subViewBackConfig
+        } else {
+            subViewBackButton.backgroundColor = .clear
+            subViewBackButton.layer.cornerRadius = 25
+            subViewBackButton.clipsToBounds = true
+            let subViewBackGlass = makeGlassEffectView()
+            subViewBackGlass.translatesAutoresizingMaskIntoConstraints = false
+            subViewBackGlass.layer.cornerRadius = 25
+            subViewBackGlass.clipsToBounds = true
+            subViewBackGlass.isUserInteractionEnabled = false
+            subViewBackButton.insertSubview(subViewBackGlass, at: 0)
+            NSLayoutConstraint.activate([
+                subViewBackGlass.leadingAnchor.constraint(equalTo: subViewBackButton.leadingAnchor),
+                subViewBackGlass.trailingAnchor.constraint(equalTo: subViewBackButton.trailingAnchor),
+                subViewBackGlass.topAnchor.constraint(equalTo: subViewBackButton.topAnchor),
+                subViewBackGlass.bottomAnchor.constraint(equalTo: subViewBackButton.bottomAnchor),
+            ])
+            subViewBackButton.setImage(subViewBackChevron, for: .normal)
+        }
         subViewBackButton.addTarget(self, action: #selector(subViewBackTapped), for: .touchUpInside)
         subViewBackButton.isHidden = true
         view.addSubview(subViewBackButton)
@@ -571,8 +604,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         NSLayoutConstraint.activate([
             subViewBackButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             subViewBackButton.topAnchor.constraint(equalTo: subViewBackTopAnchor, constant: subViewBackTopConstant),
-            subViewBackButton.widthAnchor.constraint(equalToConstant: 34),
-            subViewBackButton.heightAnchor.constraint(equalToConstant: 34),
+            subViewBackButton.widthAnchor.constraint(equalToConstant: 50),
+            subViewBackButton.heightAnchor.constraint(equalToConstant: 50),
         ])
 
         setupNativePills()
@@ -604,10 +637,24 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cc": splashName = "SplashCC"
         case "sz": splashName = "SplashSZ"
         case "cd": splashName = "SplashCD"
+        case "qd": splashName = "SplashQD"
         default: splashName = "Splash"
         }
-        splashImageView = UIImageView(image: UIImage(named: splashName))
-        splashImageView.contentMode = .scaleAspectFill
+        // Dark-mode splash (user 2026-11-19): every poster also has a
+        // generated dark variant (SplashXXDark). Pick it when the web's
+        // last-known effective appearance is dark ("metro-dark",
+        // persisted via the themeState message); before the first web
+        // report, fall back to the system style at launch.
+        let splashDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        let splashImageName = (splashDark && UIImage(named: splashName + "Dark") != nil) ? splashName + "Dark" : splashName
+        splashImageView = UIImageView(image: UIImage(named: splashImageName))
+        // Aspect-fit (not fill): the splash posters are portrait phone
+        // images; on iPad / unfolded Duo, fill crops the artwork. Fit shows
+        // the whole poster, and the white background blends with the
+        // poster's own background in the letterbox area (white for
+        // the light poster, black for the dark variant).
+        splashImageView.contentMode = .scaleAspectFit
+        splashImageView.backgroundColor = splashDark ? .black : .white
         splashImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(splashImageView)
         NSLayoutConstraint.activate([
@@ -675,6 +722,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // no-op when the web has nothing open, and it closes a web
         // sub-view if one somehow is open.
         if appearanceView != nil { dismissAppearance() }
+        if languageView != nil { dismissLanguage() }
         webView.evaluateJavaScript("window.metroApp && window.metroApp.goBack()", completionHandler: nil)
     }
 
@@ -712,8 +760,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 }
                 picker.configure(theme: theme, effectiveDark: effectiveDark)
                 picker.translatesAutoresizingMaskIntoConstraints = false
-                // Fade in (the picker is a full-screen native sub-view).
+                // Entry animation (user 2026-11-19, 进入动画优化）:
+                // slide in from the right + fade, like an iOS push.
                 picker.alpha = 0
+                picker.transform = CGAffineTransform(translationX: 24, y: 0)
                 self.view.addSubview(picker)
                 NSLayoutConstraint.activate([
                     picker.topAnchor.constraint(equalTo: self.view.topAnchor),
@@ -725,7 +775,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 // The native back button must stay on top of the picker
                 // (the picker covers the web view, tab bar and pills).
                 self.setSubViewBackButtonVisible(true)
-                UIView.animate(withDuration: 0.25) { picker.alpha = 1 }
+                UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut]) {
+                    picker.alpha = 1
+                    picker.transform = .identity
+                }
             }
         }
     }
@@ -733,8 +786,86 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func dismissAppearance() {
         guard let picker = appearanceView else { return }
         appearanceView = nil
-        picker.removeFromSuperview()
         setSubViewBackButtonVisible(false)
+        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseIn], animations: {
+            picker.alpha = 0
+            picker.transform = CGAffineTransform(translationX: 24, y: 0)
+        }, completion: { _ in picker.removeFromSuperview() })
+    }
+
+    // MARK: - Native Language picker (user 2026-11-19)
+
+    // The name of the system language, shown on the right of the
+    // 跟随系统 row (mirrors the web's langDisplayName for the system
+    // language).
+    func systemLangDisplayName() -> String {
+        switch Self.systemLang() {
+        case "zh-Hant": return L("more.lang.hant")
+        case "en": return L("more.lang.en")
+        default: return L("more.lang.hans")
+        }
+    }
+
+    // Present the native 语言 picker. Reads the web's langPref first so
+    // the checkmark starts on the current choice; falls back to
+    // "system" if the web is not ready. No-op if already showing.
+    func presentLanguage() {
+        guard languageView == nil else { return }
+        webView.evaluateJavaScript("window.metroApp ? window.metroApp.langPref : null") { [weak self] result, _ in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                guard self.languageView == nil else { return }
+                let pref = (result as? String).flatMap { ["system", "zh-Hans", "zh-Hant", "en"].contains($0) ? $0 : nil } ?? "system"
+                let picker = LanguageView(
+                    pageTitle: self.L("more.lang"),
+                    systemTitle: self.L("more.lang.system"),
+                    hansTitle: self.L("more.lang.hans"),
+                    hantTitle: self.L("more.lang.hant"),
+                    enTitle: self.L("more.lang.en"),
+                    systemDetail: self.systemLangDisplayName()
+                )
+                picker.onSelect = { [weak self] key in
+                    self?.applyLanguageChoice(key)
+                }
+                picker.configure(selected: pref)
+                picker.translatesAutoresizingMaskIntoConstraints = false
+                // Entry animation: slide in from the right + fade,
+                // like an iOS push (same as the Appearance picker).
+                picker.alpha = 0
+                picker.transform = CGAffineTransform(translationX: 24, y: 0)
+                self.view.addSubview(picker)
+                NSLayoutConstraint.activate([
+                    picker.topAnchor.constraint(equalTo: self.view.topAnchor),
+                    picker.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+                    picker.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+                    picker.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+                ])
+                self.languageView = picker
+                self.setSubViewBackButtonVisible(true)
+                UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut]) {
+                    picker.alpha = 1
+                    picker.transform = .identity
+                }
+            }
+        }
+    }
+
+    func dismissLanguage() {
+        guard let picker = languageView else { return }
+        languageView = nil
+        setSubViewBackButtonVisible(false)
+        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseIn], animations: {
+            picker.alpha = 0
+            picker.transform = CGAffineTransform(translationX: 24, y: 0)
+        }, completion: { _ in picker.removeFromSuperview() })
+    }
+
+    // Apply a language picked in the native picker. The web owns the
+    // language state: its setLang() switches the UI and posts
+    // langChanged, which native setLang() then persists (metro-lang /
+    // metro-lang-explicit) — so do NOT persist anything here.
+    func applyLanguageChoice(_ key: String) {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setLang('\(key)')", completionHandler: nil)
     }
 
     // Apply a theme picked in the native picker. Reuses the web's
@@ -814,6 +945,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cc" { return changchunRed }
         if currentCity == "sz" { return shenzhenGreen }
         if currentCity == "cd" { return chengduBlue }
+        if currentCity == "qd" { return qingdaoGreen }
         return subwayBlue
     }
 
@@ -830,6 +962,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cc" { return changchunRedDark }
         if currentCity == "sz" { return shenzhenGreenDark }
         if currentCity == "cd" { return chengduBlueDark }
+        if currentCity == "qd" { return qingdaoGreenDark }
         return subwayBlue
     }
 
@@ -849,6 +982,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cc" { return changchunRed }
         if currentCity == "sz" { return shenzhenGreen }
         if currentCity == "cd" { return chengduBlue }
+        if currentCity == "qd" { return qingdaoGreen }
         return accentColor()
     }
 
@@ -873,6 +1007,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cc": name = "ChangchunLogo"
         case "sz": name = "ShenzhenLogo"
         case "cd": name = "ChengduLogo"
+        case "qd": name = "QingdaoLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -983,7 +1118,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let cd = UIAction(title: L("city.cd"), image: cityLogoImage(for: "cd")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "cd" ? .on : .off) { [weak self] _ in
             self?.pickCity("cd")
         }
-        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd])
+        let qd = UIAction(title: L("city.qd"), image: cityLogoImage(for: "qd")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "qd" ? .on : .off) { [weak self] _ in
+            self?.pickCity("qd")
+        }
+        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd, qd])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -1014,6 +1152,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         sheet.addAction(cityAction("cc"))
         sheet.addAction(cityAction("sz"))
         sheet.addAction(cityAction("cd"))
+        sheet.addAction(cityAction("qd"))
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
@@ -1668,14 +1807,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // layout uses (build 63).
         updateSideBarLayout()
         updatePillVisibility()
-        // Fade the native launch splash out (same 0.4s as the web splash)
-        // to reveal the map underneath.
+        // Remove the native launch splash WITHOUT its own fade (flash
+        // fix, user 2026-11-19): splashDone is posted at the moment the
+        // web overlay — the identical poster, underneath this view —
+        // starts its single 0.4s fade. Fading both at once crossfaded
+        // two slightly different renderings of the same poster, which
+        // read as a flicker. Instant removal is invisible (the web
+        // overlay is still fully opaque at that instant) and leaves
+        // exactly one fade.
         if let splash = splashImageView {
-            UIView.animate(withDuration: 0.4, animations: {
-                splash.alpha = 0
-            }, completion: { _ in
-                splash.removeFromSuperview()
-            })
+            splash.removeFromSuperview()
             splashImageView = nil
         }
     }
@@ -1792,6 +1933,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cc": id = "1481796811"
         case "sz": id = "848926994"
         case "cd": id = "1303414976"
+        case "qd": id = "1373547573"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
@@ -2335,10 +2477,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             presentCityMenuPopover()
         } else if message.name == "splashDone" {
             splashFinished()
+        } else if message.name == "themeState" {
+            // The web reports its effective appearance on every
+            // applyTheme (launch + every change). Persist it so the
+            // NEXT launch's native splash can pick the matching
+            // light/dark poster before the page loads.
+            if let dict = message.body as? [String: Any],
+               let dark = dict["dark"] as? Bool {
+                UserDefaults.standard.set(dark, forKey: "metro-dark")
+            }
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
-                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd"].contains(city) {
+                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd"].contains(city) {
             // The web switched cities (user switch or the startup
             // restore). Mirror it natively; the web already switched,
             // so do NOT call switchCity here (that would loop).
@@ -2425,6 +2576,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                let open = dict["open"] as? Bool {
                 setSubViewBackButtonVisible(open)
             }
+        } else if message.name == "openLanguage" {
+            // Native Language picker (user 2026-11-19): the web posts
+            // here instead of opening its own 语言 sub-view (the template
+            // falls back to the web sub-view if this handler is absent).
+            // No body is needed.
+            presentLanguage()
         } else if message.name == "openAppearance" {
             // Native Appearance picker (user 2026-11-19): the web posts
             // here instead of opening its own 外观 sub-view (the template

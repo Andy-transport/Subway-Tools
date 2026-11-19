@@ -187,6 +187,10 @@ bj_splash_b64 = (BASE.parent / "app" / "splash.b64").read_text(encoding="utf-8")
 sy_splash_b64 = (BASE / "shenyang" / "splash.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__BJ_SPLASH__\*/', lambda _: bj_splash_b64, html, "bj splash")
 html = sub_once(r'/\*__SY_SPLASH__\*/', lambda _: sy_splash_b64, html, "sy splash")
+bj_splash_dark_b64 = (BASE.parent / "app" / "splash-dark.b64").read_text(encoding="utf-8").strip()
+sy_splash_dark_b64 = (BASE / "shenyang" / "splash-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__BJ_SPLASH_DARK__\*/', lambda _: bj_splash_dark_b64, html, "bj splash dark")
+html = sub_once(r'/\*__SY_SPLASH_DARK__\*/', lambda _: sy_splash_dark_b64, html, "sy splash dark")
 
 # N. inline the transit-app icons (App Store artwork, 120x120 PNG,
 # rounded corners, transparent background; see web/*-icon.b64).
@@ -229,6 +233,8 @@ html = sub_once(r'/\*__SH_ROUTES__\*/null', lambda _: sh_routes, html, "sh route
 html = sub_once(r'/\*__SH_MAP__\*/""', lambda _: _json.dumps(sh_map), html, "sh map svg")
 html = sub_once(r'/\*__SH_LOGO__\*/', lambda _: sh_logo_b64, html, "sh logo")
 html = sub_once(r'/\*__SH_SPLASH__\*/', lambda _: sh_splash_b64, html, "sh splash")
+sh_splash_dark_b64 = (BASE / "shanghai" / "splash-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__SH_SPLASH_DARK__\*/', lambda _: sh_splash_dark_b64, html, "sh splash dark")
 
 # Q. inline the Harbin Metro data (3 operating lines, 73 stations).
 # Same pattern as Shenyang/Shanghai (steps K/O): precomputed stations/routes
@@ -249,6 +255,8 @@ html = sub_once(r'/\*__HB_ROUTES__\*/null', lambda _: hb_routes, html, "hb route
 html = sub_once(r'/\*__HB_MAP__\*/""', lambda _: _json.dumps(hb_map), html, "hb map svg")
 html = sub_once(r'/\*__HB_LOGO__\*/', lambda _: hb_logo_b64, html, "hb logo")
 html = sub_once(r'/\*__HB_SPLASH__\*/', lambda _: hb_splash_b64, html, "hb splash")
+hb_splash_dark_b64 = (BASE / "harbin" / "splash-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__HB_SPLASH_DARK__\*/', lambda _: hb_splash_dark_b64, html, "hb splash dark")
 
 # R. inline the Dalian Metro data (6 operating lines, 100 stations).
 # Same pattern as Shenyang/Shanghai/Harbin (steps K/O/Q): precomputed
@@ -270,6 +278,8 @@ html = sub_once(r'/\*__DL_ROUTES__\*/null', lambda _: dl_routes, html, "dl route
 html = sub_once(r'/\*__DL_MAP__\*/""', lambda _: _json.dumps(dl_map), html, "dl map svg")
 html = sub_once(r'/\*__DL_LOGO__\*/', lambda _: dl_logo_b64, html, "dl logo")
 html = sub_once(r'/\*__DL_SPLASH__\*/', lambda _: dl_splash_b64, html, "dl splash")
+dl_splash_dark_b64 = (BASE / "dalian" / "splash-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__DL_SPLASH_DARK__\*/', lambda _: dl_splash_dark_b64, html, "dl splash dark")
 
 # S. inline the Jinhua Rail Transit data (Jinyi East Line, 2 routes, 29 stations).
 # Same pattern as Harbin/Dalian: precomputed stations/routes from the user's
@@ -288,6 +298,8 @@ html = sub_once(r'/\*__JH_ROUTES__\*/null', lambda _: jh_routes, html, "jh route
 html = sub_once(r'/\*__JH_MAP__\*/""', lambda _: _json.dumps(jh_map), html, "jh map svg")
 html = sub_once(r'/\*__JH_LOGO__\*/', lambda _: jh_logo_b64, html, "jh logo")
 html = sub_once(r'/\*__JH_SPLASH__\*/', lambda _: jh_splash_b64, html, "jh splash")
+jh_splash_dark_b64 = (BASE / "jinhua" / "splash-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__JH_SPLASH_DARK__\*/', lambda _: jh_splash_dark_b64, html, "jh splash dark")
 
 # S2. inline the Changzhou Metro data (2 operating lines, 43 stations).
 # Same pattern as Jinhua: precomputed stations/routes from the user's
@@ -306,6 +318,8 @@ html = sub_once(r'/\*__CZ_ROUTES__\*/null', lambda _: cz_routes, html, "cz route
 html = sub_once(r'/\*__CZ_MAP__\*/""', lambda _: _json.dumps(cz_map), html, "cz map svg")
 html = sub_once(r'/\*__CZ_LOGO__\*/', lambda _: cz_logo_b64, html, "cz logo")
 html = sub_once(r'/\*__CZ_SPLASH__\*/', lambda _: cz_splash_b64, html, "cz splash")
+cz_splash_dark_b64 = (BASE / "changzhou" / "splash-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__CZ_SPLASH_DARK__\*/', lambda _: cz_splash_dark_b64, html, "cz splash dark")
 
 # S5. inline the Shenzhen Metro data (17 lines, 351 stations).
 # Same pattern as Changzhou: precomputed stations/routes from the RMP
@@ -329,14 +343,27 @@ else:
 # Shenzhen splash (user-supplied 深圳/配线查询 image, web/shenzhen/splash.b64,
 # JPEG). The template uses the empty-string comment pattern
 # (window.SZ_SPLASH = /*__SZ_SPLASH__*/''), so match the marker + '' and
-# replace with a quoted JPEG data URL. Logo still not delivered — leave
-# /*__SZ_LOGO__*/ as '' (fallback).
+# replace with a quoted JPEG data URL. Logo: official Shenzhen Metro
+# Corporation logo (Wikimedia), web/shenzhen/logo.b64 (PNG), same
+# empty-string pattern as the splash.
 sz_splash_path = BASE / "shenzhen" / "splash.b64"
 if sz_splash_path.exists():
     sz_splash_b64 = sz_splash_path.read_text(encoding="utf-8").strip()
     html = sub_once(r"/\*__SZ_SPLASH__\*/''", lambda _: "'data:image/jpeg;base64," + sz_splash_b64 + "'", html, "sz splash")
 else:
     print("WARNING: web/shenzhen/splash.b64 missing; Shenzhen splash will be empty")
+sz_splash_dark_path = BASE / "shenzhen" / "splash-dark.b64"
+if sz_splash_dark_path.exists():
+    sz_splash_dark_b64 = sz_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__SZ_SPLASH_DARK__\*/''", lambda _: "'data:image/jpeg;base64," + sz_splash_dark_b64 + "'", html, "sz splash dark")
+else:
+    print("WARNING: web/shenzhen/splash-dark.b64 missing; Shenzhen dark splash will be empty")
+sz_logo_path = BASE / "shenzhen" / "logo.b64"
+if sz_logo_path.exists():
+    sz_logo_b64 = sz_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__SZ_LOGO__\*/''", lambda _: "'data:image/png;base64," + sz_logo_b64 + "'", html, "sz logo")
+else:
+    print("WARNING: web/shenzhen/logo.b64 missing; Shenzhen logo will be empty")
 
 # S6. inline the Chengdu Metro data (17 operating lines, 364 stations).
 # Same pattern as Changchun: precomputed stations/routes from the RMP
@@ -353,9 +380,63 @@ assert "</script" not in cd_map, "cd map svg must not contain </script"
 html = sub_once(r'/\*__CD_STATIONS__\*/\[\]', lambda _: cd_stations, html, "cd stations json")
 html = sub_once(r'/\*__CD_ROUTES__\*/null', lambda _: cd_routes, html, "cd routes json")
 html = sub_once(r'/\*__CD_MAP__\*/""', lambda _: _json.dumps(cd_map), html, "cd map svg")
-# logo.b64 / splash.b64 / cdmetro-icon.b64 are NOT yet sourced (see
-# chengdu/WIRING.md "Not yet prepared") — the corresponding sub_once
-# lines wait for those files; do not inline a placeholder here.
+# Chengdu logo (official Chengdu Rail Transit icon, Wikimedia) and splash
+# (user-supplied 成都/配线查询 image), both in web/chengdu/*.b64. The splash
+# is a JPEG inlined under the template's image/png data URL, the same
+# convention as the other cities' JPEG splashes.
+cd_logo_path = BASE / "chengdu" / "logo.b64"
+if cd_logo_path.exists():
+    cd_logo_b64 = cd_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__CD_LOGO__\*/', lambda _: cd_logo_b64, html, "cd logo")
+else:
+    print("WARNING: web/chengdu/logo.b64 missing; Chengdu logo will be empty")
+cd_splash_path = BASE / "chengdu" / "splash.b64"
+if cd_splash_path.exists():
+    cd_splash_b64 = cd_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__CD_SPLASH__\*/', lambda _: cd_splash_b64, html, "cd splash")
+else:
+    print("WARNING: web/chengdu/splash.b64 missing; Chengdu splash will be empty")
+cd_splash_dark_path = BASE / "chengdu" / "splash-dark.b64"
+if cd_splash_dark_path.exists():
+    cd_splash_dark_b64 = cd_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__CD_SPLASH_DARK__\*/', lambda _: cd_splash_dark_b64, html, "cd splash dark")
+else:
+    print("WARNING: web/chengdu/splash-dark.b64 missing; Chengdu dark splash will be empty")
+
+# S7. inline the Qingdao Metro data (8 operating lines, 176 stations).
+# Same pattern as Chengdu: precomputed stations/routes from the RMP
+# Gallery map v79 (see qingdao/NOTES.md); unopened lines (2号线二期, 5,
+# 6号线二期, 7号线二期, 8号线支线, 9, 15, 蓝谷快线二期) and the built-
+# but-unopened 东南山 are NOT in the data files.
+qd_stations = (BASE / "qingdao" / "stations.json").read_text(encoding="utf-8")
+qd_routes = (BASE / "qingdao" / "routes.json").read_text(encoding="utf-8")
+qd_map = (BASE / "qingdao" / "map.svg").read_text(encoding="utf-8")
+assert "</script" not in qd_stations, "qd stations json must not contain </script"
+assert "</script" not in qd_routes, "qd routes json must not contain </script"
+assert "</script" not in qd_map, "qd map svg must not contain </script"
+html = sub_once(r'/\*__QD_STATIONS__\*/\[\]', lambda _: qd_stations, html, "qd stations json")
+html = sub_once(r'/\*__QD_ROUTES__\*/null', lambda _: qd_routes, html, "qd routes json")
+html = sub_once(r'/\*__QD_MAP__\*/""', lambda _: _json.dumps(qd_map), html, "qd map svg")
+# Qingdao logo (official Qingdao Metro lockup, Wikimedia) and splash
+# (user-supplied 青岛/配线查询 image), both in web/qingdao/*.b64.
+qd_logo_path = BASE / "qingdao" / "logo.b64"
+if qd_logo_path.exists():
+    qd_logo_b64 = qd_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__QD_LOGO__\*/', lambda _: qd_logo_b64, html, "qd logo")
+else:
+    print("WARNING: web/qingdao/logo.b64 missing; Qingdao logo will be empty")
+qd_splash_path = BASE / "qingdao" / "splash.b64"
+if qd_splash_path.exists():
+    qd_splash_b64 = qd_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__QD_SPLASH__\*/', lambda _: qd_splash_b64, html, "qd splash")
+else:
+    print("WARNING: web/qingdao/splash.b64 missing; Qingdao splash will be empty")
+qd_splash_dark_path = BASE / "qingdao" / "splash-dark.b64"
+if qd_splash_dark_path.exists():
+    qd_splash_dark_b64 = qd_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__QD_SPLASH_DARK__\*/', lambda _: qd_splash_dark_b64, html, "qd splash dark")
+else:
+    print("WARNING: web/qingdao/splash-dark.b64 missing; Qingdao dark splash will be empty")
 
 # S3. inline the Chongqing Rail Transit data (14 lines, 282 stations).
 # Same pattern as Jinhua/Changzhou: precomputed stations/routes from the
@@ -374,6 +455,8 @@ html = sub_once(r'/\*__CQ_ROUTES__\*/null', lambda _: cq_routes, html, "cq route
 html = sub_once(r'/\*__CQ_MAP__\*/""', lambda _: _json.dumps(cq_map), html, "cq map svg")
 html = sub_once(r'/\*__CQ_LOGO__\*/', lambda _: cq_logo_b64, html, "cq logo")
 html = sub_once(r'/\*__CQ_SPLASH__\*/', lambda _: cq_splash_b64, html, "cq splash")
+cq_splash_dark_b64 = (BASE / "chongqing" / "splash-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__CQ_SPLASH_DARK__\*/', lambda _: cq_splash_dark_b64, html, "cq splash dark")
 
 # S4. inline the Changchun Rail Transit data (8 operating lines, 142 stations).
 # Same pattern as Harbin/Dalian/Jinhua/Changzhou/Chongqing: precomputed
@@ -393,6 +476,8 @@ html = sub_once(r'/\*__CC_ROUTES__\*/null', lambda _: cc_routes, html, "cc route
 html = sub_once(r'/\*__CC_MAP__\*/""', lambda _: _json.dumps(cc_map), html, "cc map svg")
 html = sub_once(r'/\*__CC_LOGO__\*/', lambda _: cc_logo_b64, html, "cc logo")
 html = sub_once(r'/\*__CC_SPLASH__\*/', lambda _: cc_splash_b64, html, "cc splash")
+cc_splash_dark_b64 = (BASE / "changchun" / "splash-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__CC_SPLASH_DARK__\*/', lambda _: cc_splash_dark_b64, html, "cc splash dark")
 
 # P. inline the first/last-train timetable data (web/timetable/*.json,
 # Sun-Thu standard timetable) + the user's calendar-clock tab icon.
@@ -407,6 +492,8 @@ cq_tt = (BASE / "timetable" / "cq.json").read_text(encoding="utf-8")
 cc_tt = (BASE / "timetable" / "cc.json").read_text(encoding="utf-8")
 sz_tt = (BASE / "timetable" / "sz.json").read_text(encoding="utf-8")
 cd_tt = (BASE / "timetable" / "cd.json").read_text(encoding="utf-8")
+qd_tt_path = BASE / "timetable" / "qd.json"
+qd_tt = qd_tt_path.read_text(encoding="utf-8") if qd_tt_path.exists() else "{}"
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
@@ -419,6 +506,7 @@ assert "</script" not in cq_tt, "cq timetable json must not contain </script"
 assert "</script" not in cc_tt, "cc timetable json must not contain </script"
 assert "</script" not in sz_tt, "sz timetable json must not contain </script"
 assert "</script" not in cd_tt, "cd timetable json must not contain </script"
+assert "</script" not in qd_tt, "qd timetable json must not contain </script"
 html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
 html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
 html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
@@ -430,6 +518,7 @@ html = sub_once(r'/\*__CQ_TIMETABLE__\*/\{\}', lambda _: cq_tt, html, "cq timeta
 html = sub_once(r'/\*__CC_TIMETABLE__\*/\{\}', lambda _: cc_tt, html, "cc timetable json")
 html = sub_once(r'/\*__SZ_TIMETABLE__\*/\{\}', lambda _: sz_tt, html, "sz timetable json")
 html = sub_once(r'/\*__CD_TIMETABLE__\*/\{\}', lambda _: cd_tt, html, "cd timetable json")
+html = sub_once(r'/\*__QD_TIMETABLE__\*/\{\}', lambda _: qd_tt, html, "qd timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 # U. inline verified station lat/lng (web/latlng/latlng-{city}.json,
@@ -449,6 +538,7 @@ cq_ll = (BASE / "latlng" / "latlng-cq.json").read_text(encoding="utf-8")
 cc_ll = (BASE / "latlng" / "latlng-cc.json").read_text(encoding="utf-8")
 sz_ll = (BASE / "latlng" / "latlng-sz.json").read_text(encoding="utf-8")
 cd_ll = (BASE / "latlng" / "latlng-cd.json").read_text(encoding="utf-8")
+qd_ll = (BASE / "latlng" / "latlng-qd.json").read_text(encoding="utf-8")
 assert "</script" not in bj_ll, "bj latlng json must not contain </script"
 assert "</script" not in sy_ll, "sy latlng json must not contain </script"
 assert "</script" not in sh_ll, "sh latlng json must not contain </script"
@@ -460,6 +550,7 @@ assert "</script" not in cq_ll, "cq latlng json must not contain </script"
 assert "</script" not in cc_ll, "cc latlng json must not contain </script"
 assert "</script" not in sz_ll, "sz latlng json must not contain </script"
 assert "</script" not in cd_ll, "cd latlng json must not contain </script"
+assert "</script" not in qd_ll, "qd latlng json must not contain </script"
 html = sub_once(r'/\*__BJ_LATLNG__\*/\{\}', lambda _: bj_ll, html, "bj latlng json")
 html = sub_once(r'/\*__SY_LATLNG__\*/\{\}', lambda _: sy_ll, html, "sy latlng json")
 html = sub_once(r'/\*__SH_LATLNG__\*/\{\}', lambda _: sh_ll, html, "sh latlng json")
@@ -471,6 +562,28 @@ html = sub_once(r'/\*__CQ_LATLNG__\*/\{\}', lambda _: cq_ll, html, "cq latlng js
 html = sub_once(r'/\*__CC_LATLNG__\*/\{\}', lambda _: cc_ll, html, "cc latlng json")
 html = sub_once(r'/\*__SZ_LATLNG__\*/\{\}', lambda _: sz_ll, html, "sz latlng json")
 html = sub_once(r'/\*__CD_LATLNG__\*/\{\}', lambda _: cd_ll, html, "cd latlng json")
+html = sub_once(r'/\*__QD_LATLNG__\*/\{\}', lambda _: qd_ll, html, "qd latlng json")
+
+# S8. inline the verified official metro logos for the not-yet-
+# supported cities (web/upcoming-logos/, see its MANIFEST.md): the
+# Settings "即将支持" rows show the real logo instead of the generic
+# grey M icon. Only visually verified files are listed; Tianjin is
+# held back (its Wikimedia source is named "Old Logo" — currency not
+# yet confirmed). Cities without a verified logo keep the M icon.
+_SOON_LOGO_FILES = {
+    "广州": "guangzhou.b64", "南京": "nanjing.b64", "西安": "xian.b64",
+    "杭州": "hangzhou.b64", "长沙": "changsha.b64", "无锡": "wuxi.b64",
+    "南昌": "nanchang.b64", "福州": "fuzhou.b64", "南宁": "nanning.b64",
+    "温州": "wenzhou.b64", "济南": "jinan.b64", "徐州": "xuzhou.b64",
+}
+_soon_logos = {}
+for _name, _fn in _SOON_LOGO_FILES.items():
+    _lp = BASE / "upcoming-logos" / _fn
+    if _lp.exists():
+        _soon_logos[_name] = "data:image/png;base64," + _lp.read_text(encoding="utf-8").strip()
+    else:
+        print("WARNING: web/upcoming-logos/" + _fn + " missing; " + _name + " keeps the generic icon")
+html = sub_once(r'/\*__SOON_LOGOS__\*/\{\}', lambda _: _json.dumps(_soon_logos, ensure_ascii=False), html, "soon logos")
 
 # T. inline the transit briefing seed (web/briefing.json): the 10 upcoming
 # lines + the Dalian Line 4 delay. The page renders from this seed when
