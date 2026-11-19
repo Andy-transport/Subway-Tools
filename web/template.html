@@ -1031,6 +1031,20 @@
 		   sub-view headers don't shift. visibility:hidden is not clickable,
 		   so no invisible tap target remains. */
 		html.native-app .more-sub-back, html.native-app .tt-back { visibility: hidden; }
+		html.native-app .more-sub-head { height: 0; padding: 0; overflow: hidden; visibility: hidden; }
+		html.native-app .more-sub { padding-top: 32px; }
+		html.is-pad.native-app .more-sub { padding-top: 40px; }
+		/* Settings fonts per language (user 2026-11-19): English -> San
+		   Francisco, Simplified -> PingFang SC, Traditional (HK/MO) ->
+		   PingFang HK, Traditional (TW) -> PingFang TC. The lang-hant-hk
+		   class comes from the device locale (syncHtmlClasses). The
+		   `div { font-family: sans-serif }` reset would otherwise win
+		   over inheritance, so descendants are forced to inherit. */
+		#moreSheet { font-family: -apple-system, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif; }
+		#moreSheet * { font-family: inherit; }
+		html.lang-zh-Hans #moreSheet { font-family: 'PingFang SC', -apple-system, 'SF Pro Text', sans-serif; }
+		html.lang-zh-Hant #moreSheet { font-family: 'PingFang TC', 'PingFang HK', -apple-system, sans-serif; }
+		html.lang-hant-hk #moreSheet { font-family: 'PingFang HK', 'PingFang TC', -apple-system, sans-serif; }
 		.more-sub-back svg, .tt-back svg { width: 20px; height: 20px; flex: none; }
 		@media (min-width: 700px) {
 			#transferPanel, #stationPanel { align-items: center; }
@@ -1334,7 +1348,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">Subway tools</div>
-						<div class="more-appver">{{ t('more.version', {v: '1.0.5'}) }}</div>
+						<div class="more-appver">{{ t('more.version', {v: '1.0.8'}) }}</div>
 					</div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
@@ -1370,7 +1384,7 @@
 					<div class="more-loc-hint" v-if="locPermHint">{{ t('more.loc.hint') }}</div>
 				</div>
 				<div class="more-card">
-					<div class="more-row" @click="showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.0.5</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.0.8</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
@@ -1420,12 +1434,12 @@
 				<div class="more-sub" v-show="showWhatsNewSub">
 					<div class="more-sub-head">
 						<button class="more-sub-back" @click="showWhatsNewSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
-						<div class="more-sub-title">{{ t('more.whatsnew', {v: '1.0.5'}) }}</div>
+						<div class="more-sub-title">{{ t('more.whatsnew', {v: '1.0.8'}) }}</div>
 					</div>
-					<div class="more-new-head"><span class="more-new-ver">1.0.5</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
+					<div class="more-new-head"><span class="more-new-ver">1.0.8</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
 					<div class="more-section">{{ t('more.new.features') }}</div>
 					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 					</div>
 					<div class="more-section">{{ t('more.new.improvements') }}</div>
 					<div class="more-card">
@@ -1433,7 +1447,7 @@
 					</div>
 					<div class="more-section">{{ t('more.bugfix') }}</div>
 					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+						<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6','more.fix.7','more.fix.8','more.fix.9']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 					</div>
 				</div>
 				</transition>
@@ -1544,7 +1558,7 @@
 						<img class="more-appicon" :src="appIcon" alt="">
 						<div>
 							<div class="more-appname">Subway tools</div>
-							<div class="more-appver">{{ t('more.version', {v: '1.0.5'}) }}</div>
+							<div class="more-appver">{{ t('more.version', {v: '1.0.8'}) }}</div>
 						</div>
 					</div>
 					<div class="more-up-note">{{ t('more.about.desc') }}</div>
@@ -1738,6 +1752,10 @@ var I18N = {
   'more.new.12': ['切换城市过渡更平滑，不再闪现旧界面', '切換城市過渡更平滑，不再閃現舊介面', 'Smoother city switching — the old interface no longer flashes'],
   'more.new.13': ['城市目录：全国 58 个开通轨道交通的城市，未支持的显示为灰色', '城市目錄：全國 58 個開通軌道交通的城市，未支援的顯示為灰色', 'City directory: all 58 mainland cities with rail transit; unsupported ones greyed out'],
   'more.new.14': ['切换城市列表加入各城市轨道交通标志', '切換城市列表加入各城市軌道交通標誌', 'City switcher now shows each city’s rail transit logo'],
+  'more.new.15': ['新增青岛地铁：8 条线路、176 座车站', '新增青島地鐵：8 條線路、176 座車站', 'Qingdao Metro added: 8 lines, 176 stations'],
+  'more.new.16': ['全部城市加入深色模式启动图，随外观自动切换', '全部城市加入深色模式啟動圖，隨外觀自動切換', 'Dark-mode launch posters for every city, switching with appearance'],
+  'more.new.17': ['时刻表：临近末班车时显示「末班车」提示', '時刻表：臨近末班車時顯示「末班車」提示', 'Timetable: a Last train badge appears near the final train'],
+  'more.new.18': ['设置子页面改为原生磨砂玻璃顶栏，标题居中、固定不滚动', '設定子頁面改為原生磨砂玻璃頂欄，標題居中、固定不捲動', 'Settings sub-pages get a native frosted-glass header with a centred, fixed title'],
   'more.bugfix': ['问题修复', '問題修復', 'Bug Fixes'],
   'more.new.features': ['新功能', '新功能', 'New Features'],
   'more.new.improvements': ['改进', '改進', 'Improvements'],
@@ -1748,6 +1766,9 @@ var I18N = {
   'more.fix.4': ['换乘/搜索面板改为纯色底板，地图不再透出', '換乘/搜尋面板改為純色底板，地圖不再透出', 'Transfer/search panels now use solid backgrounds — the map no longer shows through'],
   'more.fix.5': ['启动图期间隐藏状态栏与时间', '啟動圖期間隱藏狀態列與時間', 'Status bar and clock hidden during the splash screen'],
   'more.fix.6': ['iPad 顶部白条已移除，改为悬浮底栏', 'iPad 頂部白條已移除，改為懸浮底欄', 'iPad top strip removed in favour of a floating bottom bar'],
+  'more.fix.7': ['修复设置与时刻表返回按钮重叠、错位的问题', '修復設定與時刻表返回按鈕重疊、錯位的問題', 'Fixed overlapping and misplaced back buttons in Settings and Timetable'],
+  'more.fix.8': ['修复 Siri 快捷指令无法注册的问题', '修復 Siri 快捷指令無法註冊的問題', 'Fixed Siri Shortcuts not registering'],
+  'more.fix.9': ['修复成都、青岛启动图缺失的问题', '修復成都、青島啟動圖缺失的問題', 'Fixed missing launch posters for Chengdu and Qingdao'],
   'more.upcoming': ['即将开通', '即將開通', 'Opening Soon'],
   'more.upcoming.count': ['{n}条线路', '{n}條線路', '{n} lines'],
   'more.upcoming.none': ['本市暂无已公布的即将开通线路', '本市暫無已公布的即將開通線路', 'No upcoming lines announced for this city'],
@@ -2648,6 +2669,14 @@ function titlePy(py) {
 										var r = btns[i].getBoundingClientRect();
 										if (r.width > 0 && r.height > 0) { msg.cx = Math.round(r.left + r.width / 2); msg.cy = Math.round(r.top + r.height / 2); break; }
 									}
+									var subs = document.querySelectorAll('.more-sub');
+									for (var j = 0; j < subs.length; j++) {
+										if (subs[j].getBoundingClientRect().height > 0) {
+											var tt = subs[j].querySelector('.more-sub-title');
+											if (tt && tt.textContent) msg.title = tt.textContent.trim();
+											break;
+										}
+									}
 								} catch (e) {}
 								h.postMessage(msg);
 							});
@@ -2872,6 +2901,8 @@ function titlePy(py) {
 						var langs = ['lang-zh-Hans', 'lang-zh-Hant', 'lang-en'];
 						for (var j = 0; j < langs.length; j++) h.classList.remove(langs[j]);
 						if (this.lang) h.classList.add('lang-' + this.lang);
+						var nl = (navigator.language || '');
+						h.classList.toggle('lang-hant-hk', this.lang === 'zh-Hant' && (/-HK(-|$)/i.test(nl) || /-MO(-|$)/i.test(nl) || /^zh-HK/i.test(nl) || /^zh-MO/i.test(nl)));
 					},
 					setTheme(t) {
 						this.theme = t;

@@ -79,6 +79,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var subViewBackButton: UIButton!
     var subBackLeadingConstraint: NSLayoutConstraint?
     var subBackTopConstraint: NSLayoutConstraint?
+    var subHeaderGlass: UIVisualEffectView!
+    var subHeaderTitle: UILabel!
+    var subHeaderHeightConstraint: NSLayoutConstraint?
     // Native Appearance picker (user 2026-11-19, 外观 → Apple UI SDK 27.2):
     // a full-screen native view (two Light/Dark preview cards + 自动 switch),
     // opened by the web's "openAppearance" post. Nil while closed.
@@ -612,6 +615,45 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             subViewBackButton.heightAnchor.constraint(equalToConstant: 50),
         ])
 
+        // Native Settings header (user 2026-11-19, iOS Settings style,
+        // SDK 27.2 Liquid Glass): a frosted-glass strip across the top
+        // safe area with a centred 17pt title and a hairline at its
+        // bottom edge, shown while a Settings sub-view is open (the web
+        // posts the sub-view's title with its "subView" message). The
+        // web's own sub-view head is collapsed in the native app, the
+        // content scrolls underneath the glass, and the back button
+        // sits in the strip at the standard navigation position.
+        subHeaderGlass = makeGlassEffectView()
+        subHeaderGlass.translatesAutoresizingMaskIntoConstraints = false
+        subHeaderGlass.isHidden = true
+        view.addSubview(subHeaderGlass)
+        let subHeaderSep = UIView()
+        subHeaderSep.backgroundColor = .separator
+        subHeaderSep.translatesAutoresizingMaskIntoConstraints = false
+        subHeaderGlass.contentView.addSubview(subHeaderSep)
+        subHeaderTitle = UILabel()
+        subHeaderTitle.font = .systemFont(ofSize: 17, weight: .semibold)
+        subHeaderTitle.textColor = .label
+        subHeaderTitle.textAlignment = .center
+        subHeaderTitle.translatesAutoresizingMaskIntoConstraints = false
+        subHeaderGlass.contentView.addSubview(subHeaderTitle)
+        let subHeaderTopAnchor: NSLayoutYAxisAnchor = (UIDevice.current.userInterfaceIdiom == .pad) ? tabBar.bottomAnchor : view.topAnchor
+        subHeaderHeightConstraint = subHeaderGlass.heightAnchor.constraint(equalToConstant: 44)
+        NSLayoutConstraint.activate([
+            subHeaderGlass.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            subHeaderGlass.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            subHeaderGlass.topAnchor.constraint(equalTo: subHeaderTopAnchor),
+            subHeaderHeightConstraint!,
+            subHeaderSep.leadingAnchor.constraint(equalTo: subHeaderGlass.leadingAnchor),
+            subHeaderSep.trailingAnchor.constraint(equalTo: subHeaderGlass.trailingAnchor),
+            subHeaderSep.bottomAnchor.constraint(equalTo: subHeaderGlass.bottomAnchor),
+            subHeaderSep.heightAnchor.constraint(equalToConstant: 0.5),
+            subHeaderTitle.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            subHeaderTitle.centerYAnchor.constraint(equalTo: subViewBackButton.centerYAnchor),
+            subHeaderTitle.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 76),
+            subHeaderTitle.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -76),
+        ])
+
         setupNativePills()
         // Splash fallback: if the web never posts splashDone, reveal the
         // controls after 4s anyway.
@@ -651,7 +693,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // report, fall back to the system style at launch.
         let splashDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
         let splashImageName = (splashDark && UIImage(named: splashName + "Dark") != nil) ? splashName + "Dark" : splashName
-        splashImageView = UIImageView(image: UIImage(named: splashImageName))
+        // Fall back to the Beijing poster if a city's image is ever
+        // missing, so the launch screen is never blank (Chengdu and
+        // Qingdao had no native poster in 1.0.5 and showed nothing).
+        let splashImage = UIImage(named: splashImageName) ?? UIImage(named: splashName) ?? UIImage(named: "Splash")
+        splashImageView = UIImageView(image: splashImage)
         // Aspect-fit (not fill): the splash posters are portrait phone
         // images; on iPad / unfolded Duo, fill crops the artwork. Fit shows
         // the whole poster, and the white background blends with the
@@ -756,6 +802,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func resetSubViewBackButtonPosition() {
         subBackLeadingConstraint?.constant = 16
         subBackTopConstraint?.constant = (UIDevice.current.userInterfaceIdiom == .pad) ? 10 : 8
+    }
+
+    // Show/hide the native Settings header strip. A non-empty title
+    // shows it (and puts the back button at the standard navigation
+    // position inside the strip); nil hides it (button-only mode:
+    // timetable line detail, native pickers).
+    func setSubViewHeader(title: String?) {
+        guard let glass = subHeaderGlass else { return }
+        if let title = title, !title.isEmpty {
+            subHeaderTitle.text = title
+            subHeaderHeightConstraint?.constant = (UIDevice.current.userInterfaceIdiom == .pad) ? 44 : view.safeAreaInsets.top + 44
+            glass.isHidden = false
+            view.bringSubviewToFront(glass)
+            if let button = subViewBackButton { view.bringSubviewToFront(button) }
+            subBackLeadingConstraint?.constant = 16
+            subBackTopConstraint?.constant = -3
+        } else {
+            glass.isHidden = true
+        }
     }
 
     // MARK: - Native Appearance picker (user 2026-11-19)
@@ -2597,10 +2662,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // is open, false otherwise. Malformed bodies are ignored.
             if let dict = message.body as? [String: Any],
                let open = dict["open"] as? Bool {
-                if open, let cx = dict["cx"] as? NSNumber, let cy = dict["cy"] as? NSNumber {
-                    positionSubViewBackButton(centerX: CGFloat(cx.doubleValue), centerY: CGFloat(cy.doubleValue))
-                } else if open {
-                    resetSubViewBackButtonPosition()
+                if open {
+                    if let title = dict["title"] as? String, !title.isEmpty {
+                        setSubViewHeader(title: title)
+                    } else {
+                        setSubViewHeader(title: nil)
+                        if let cx = dict["cx"] as? NSNumber, let cy = dict["cy"] as? NSNumber {
+                            positionSubViewBackButton(centerX: CGFloat(cx.doubleValue), centerY: CGFloat(cy.doubleValue))
+                        } else {
+                            resetSubViewBackButtonPosition()
+                        }
+                    }
+                } else {
+                    setSubViewHeader(title: nil)
                 }
                 setSubViewBackButtonVisible(open)
             }
