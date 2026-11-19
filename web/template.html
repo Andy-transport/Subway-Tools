@@ -781,7 +781,11 @@
 		html.dark .more-new-row { color: #ddd; border-color: rgba(255,255,255,0.08); }
 		.more-up-row { display: flex; align-items: center; gap: 10px; padding: 10px 2px; font-size: 15px; border-bottom: 1px solid rgba(0,0,0,0.06); }
 		.more-up-row:last-child { border-bottom: none; }
-		.more-up-badge { flex: none; min-width: 34px; padding: 3px 8px; border-radius: 999px; font-size: 13px; font-weight: 700; text-align: center; }
+		.more-up-badge { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 9px; border-radius: 7px; line-height: 1.1; }
+		.more-up-badge .ln-num { font-size: 16px; font-weight: 800; line-height: 1; }
+		.more-up-badge .ln-txt { display: flex; flex-direction: column; line-height: 1.15; }
+		.more-up-badge .ln-zh { font-size: 9px; font-weight: 700; }
+		.more-up-badge .ln-en { font-size: 6.5px; font-weight: 600; opacity: 0.92; }
 		.more-up-name { flex: 1; font-weight: 600; color: #222; }
 		.more-up-date { flex: none; font-size: 13px; color: #888; }
 		html.dark .more-up-row { border-color: rgba(255,255,255,0.08); }
@@ -1348,7 +1352,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">Subway tools</div>
-						<div class="more-appver">{{ t('more.version', {v: '1.1.0'}) }}</div>
+						<div class="more-appver">{{ t('more.version', {v: '1.1.1'}) }}</div>
 					</div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
@@ -1384,7 +1388,7 @@
 					<div class="more-loc-hint" v-if="locPermHint">{{ t('more.loc.hint') }}</div>
 				</div>
 				<div class="more-card">
-					<div class="more-row" @click="showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.1</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
@@ -1434,12 +1438,12 @@
 				<div class="more-sub" v-show="showWhatsNewSub">
 					<div class="more-sub-head">
 						<button class="more-sub-back" @click="showWhatsNewSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
-						<div class="more-sub-title">{{ t('more.whatsnew', {v: '1.1.0'}) }}</div>
+						<div class="more-sub-title">{{ t('more.whatsnew', {v: '1.1.1'}) }}</div>
 					</div>
-					<div class="more-new-head"><span class="more-new-ver">1.1.0</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
+					<div class="more-new-head"><span class="more-new-ver">1.1.1</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
 					<div class="more-section">{{ t('more.new.features') }}</div>
 					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18','more.new.19','more.new.20']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 					</div>
 					<div class="more-section">{{ t('more.new.improvements') }}</div>
 					<div class="more-card">
@@ -1447,7 +1451,7 @@
 					</div>
 					<div class="more-section">{{ t('more.bugfix') }}</div>
 					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6','more.fix.7','more.fix.8','more.fix.9']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+						<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6','more.fix.7','more.fix.8','more.fix.9','more.fix.10','more.fix.11']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 					</div>
 				</div>
 				</transition>
@@ -1459,7 +1463,7 @@
 					</div>
 					<div class="more-section">{{ cityName }}</div>
 					<div class="more-card">
-						<div class="more-up-row" v-for="u in currentCityUpcoming()" :key="u.key"><span class="more-up-badge" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }">{{ u.badge }}</span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
+						<div class="more-up-row" v-for="u in currentCityUpcoming()" :key="u.key"><span class="more-up-badge" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }"><span class="ln-num">{{ upBadgeParts(u).left }}</span><span class="ln-txt"><span class="ln-zh">{{ upBadgeParts(u).top }}</span><span class="ln-en">{{ upBadgeParts(u).bottom }}</span></span></span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
 						<div class="more-up-note" v-if="!currentCityUpcoming().length">{{ t('more.upcoming.none') }}</div>
 					</div>
 					<div class="more-up-note" v-if="city === 'sh'">{{ t('upcoming.note.sh22') }}</div>
@@ -1558,7 +1562,7 @@
 						<img class="more-appicon" :src="appIcon" alt="">
 						<div>
 							<div class="more-appname">Subway tools</div>
-							<div class="more-appver">{{ t('more.version', {v: '1.1.0'}) }}</div>
+							<div class="more-appver">{{ t('more.version', {v: '1.1.1'}) }}</div>
 						</div>
 					</div>
 					<div class="more-up-note">{{ t('more.about.desc') }}</div>
@@ -1756,6 +1760,8 @@ var I18N = {
   'more.new.16': ['全部城市加入深色模式启动图，随外观自动切换', '全部城市加入深色模式啟動圖，隨外觀自動切換', 'Dark-mode launch posters for every city, switching with appearance'],
   'more.new.17': ['时刻表：临近末班车时显示「末班车」提示', '時刻表：臨近末班車時顯示「末班車」提示', 'Timetable: a Last train badge appears near the final train'],
   'more.new.18': ['设置子页面改为原生磨砂玻璃顶栏，标题居中、固定不滚动', '設定子頁面改為原生磨砂玻璃頂欄，標題居中、固定不捲動', 'Settings sub-pages get a native frosted-glass header with a centred, fixed title'],
+  'more.new.19': ['车站搜索列表中，1 号线车站优先显示（所有城市）', '車站搜尋清單中，1 號線車站優先顯示（所有城市）', 'Line 1 stations are listed first in station search (all cities)'],
+  'more.new.20': ['「即将开通」的线路标志改为官方样式，按线路颜色显示', '「即將開通」的線路標誌改為官方樣式，按線路顏色顯示', '"Opening Soon" line badges now use the official badge style in each line\u2019s colour'],
   'more.bugfix': ['问题修复', '問題修復', 'Bug Fixes'],
   'more.new.features': ['新功能', '新功能', 'New Features'],
   'more.new.improvements': ['改进', '改進', 'Improvements'],
@@ -1769,6 +1775,8 @@ var I18N = {
   'more.fix.7': ['修复设置与时刻表返回按钮重叠、错位的问题', '修復設定與時刻表返回按鈕重疊、錯位的問題', 'Fixed overlapping and misplaced back buttons in Settings and Timetable'],
   'more.fix.8': ['修复 Siri 快捷指令无法注册的问题', '修復 Siri 快捷指令無法註冊的問題', 'Fixed Siri Shortcuts not registering'],
   'more.fix.9': ['修复成都、青岛启动图缺失的问题', '修復成都、青島啟動圖缺失的問題', 'Fixed missing launch posters for Chengdu and Qingdao'],
+  'more.fix.10': ['修复深色模式下北京、上海、哈尔滨启动图下半部分缺失的问题', '修復深色模式下北京、上海、哈爾濱啟動圖下半部分缺失的問題', 'Fixed the lower half missing from the Beijing, Shanghai and Harbin launch posters in dark mode'],
+  'more.fix.11': ['返回按钮缩小并收入安全区，滑动时才显示玻璃标题栏；修复按钮压住语言页标题的问题', '返回按鈕縮小並收入安全區，滑動時才顯示玻璃標題欄；修復按鈕壓住語言頁標題的問題', 'The back button is smaller and stays inside the safe area, the glass title bar appears on scroll, and the button no longer covers the Language page title'],
   'more.upcoming': ['即将开通', '即將開通', 'Opening Soon'],
   'more.upcoming.count': ['{n}条线路', '{n}條線路', '{n} lines'],
   'more.upcoming.none': ['本市暂无已公布的即将开通线路', '本市暫無已公布的即將開通線路', 'No upcoming lines announced for this city'],
@@ -2327,6 +2335,16 @@ function titlePy(py) {
 						if (this.lang === 'zh-Hant') { left = toHant(left); top = toHant(top); }
 						return { left: left, top: top, bottom: bottom };
 					},
+					upBadgeParts(u) {
+						// Upcoming-line badge in the official format
+						// (user 2026-11-20): big label on the left,
+						// 号线/线 above, "Line X" below — the badgeParts
+						// layout, driven by the entry's own badge text
+						// (the line identifier itself is untouched).
+						var top = /^\d+$/.test(u.badge) ? '号线' : '线';
+						if (this.lang === 'zh-Hant') top = toHant(top);
+						return { left: u.badge, top: top, bottom: 'Line ' + u.badge };
+					},
 					lineNameByKey(key) {
 						var list = this.ttLineList || [];
 						for (var i = 0; i < list.length; i++) if (list[i].key === key) return list[i].name;
@@ -2661,6 +2679,7 @@ function titlePy(py) {
 							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.subView);
 							if (!h) return;
 							if (!open) { h.postMessage({ open: false }); return; }
+							var ttT = (this.tab === 'timetable' && this.ttLine && this.ttLineInfo) ? this.ttLineInfo.name : null;
 							this.$nextTick(function() {
 								var msg = { open: true };
 								try {
@@ -2677,9 +2696,22 @@ function titlePy(py) {
 											break;
 										}
 									}
+									if (!msg.title && ttT) msg.ttTitle = ttT;
+									var sheet = document.getElementById(msg.title ? 'moreSheet' : (msg.ttTitle ? 'timetablePanel' : ''));
+									msg.scrolled = sheet ? (sheet.scrollTop > 8) : false;
 								} catch (e) {}
 								h.postMessage(msg);
 							});
+						} catch (e) {}
+					},
+					notifySubScroll(scrolled) {
+						// Sub-view scroll state for the native header
+						// (user 2026-11-20): posted only on change.
+						if (this._subScrolled === scrolled) return;
+						this._subScrolled = scrolled;
+						try {
+							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.subView);
+							if (h) h.postMessage({ scroll: scrolled });
 						} catch (e) {}
 					},
 					// Clear cache only: drop the cached briefing (the one
@@ -4212,10 +4244,30 @@ function titlePy(py) {
 					walkIconThemed() { return this.darkNow ? this.walkIcon : this.walkIconInk; },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
-						if (!q) return this.stations;
-						return this.stations.filter(function(st) {
+						var list;
+						if (!q) list = this.stations;
+						else list = this.stations.filter(function(st) {
 							return st.n.indexOf(q) !== -1 || toHant(st.n).indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1;
 						}).slice(0, 200);
+						// Line 1 stations first (user 2026-11-20, every
+						// city): stable partition — stations on the
+						// city's Line 1 (routes key '1'; Jinhua has no
+						// Line 1, so its first line 金义线 'JY' is used)
+						// come first, keeping the pinyin order inside
+						// each group.
+						var R = this.routes;
+						if (R && R.lines && list.length) {
+							var k1 = R.lines['1'] ? '1' : Object.keys(R.lines)[0];
+							var L1 = k1 ? R.lines[k1] : null;
+							if (L1 && L1.stations && L1.stations.length) {
+								var onL1 = {};
+								L1.stations.forEach(function(n) { onL1[n] = 1; });
+								var first = [], rest = [];
+								list.forEach(function(st) { (onL1[st.n] ? first : rest).push(st); });
+								if (first.length) list = first.concat(rest);
+							}
+						}
+						return list;
 					},
 					timetableData() {
 						if (this.city === 'sy') return this.syTimetable;
@@ -4404,6 +4456,18 @@ function titlePy(py) {
 					if (_ch0) { _ch0.postMessage({ city: this.city }); }
 					var _lh0 = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.langChanged);
 					if (_lh0) { _lh0.postMessage({ lang: this.lang, explicit: false }); }
+					// Sub-view scroll state for the native header
+					// (user 2026-11-20): the Settings sheet and the
+					// timetable panel are the two sub-view scrollers;
+					// report scrolled/not-scrolled on change only
+					// (notifySubScroll dedupes).
+					var _app = this;
+					document.addEventListener('scroll', function(e) {
+						var t = e.target;
+						if (!t || !t.id) return;
+						if (t.id !== 'moreSheet' && t.id !== 'timetablePanel') return;
+						_app.notifySubScroll(t.scrollTop > 8);
+					}, true);
 					// Location permission row (Settings): ask native for the
 					// current state on launch so the row shows the right
 					// state. Query only — never prompts here.

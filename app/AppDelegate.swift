@@ -82,6 +82,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var subHeaderGlass: UIVisualEffectView!
     var subHeaderTitle: UILabel!
     var subHeaderHeightConstraint: NSLayoutConstraint?
+    // Sub-view header scroll state (user 2026-11-20): at rest the 40pt
+    // back button floats on its own; once the web reports the sub-view
+    // scrolled, the glass strip + title appear in the safe area and
+    // (timetable detail) the button docks into the strip.
+    var subScrolled = false
+    var subDockTitle: String?
+    var subTimetableMode = false
+    var subFrameCenter: (x: CGFloat, y: CGFloat)?
     // Native Appearance picker (user 2026-11-19, 外观 → Apple UI SDK 27.2):
     // a full-screen native view (two Light/Dark preview cards + 自动 switch),
     // opened by the web's "openAppearance" post. Nil while closed.
@@ -572,7 +580,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         subViewBackButton = UIButton(type: .system)
         subViewBackButton.translatesAutoresizingMaskIntoConstraints = false
         subViewBackButton.tintColor = .label
-        let subViewBackChevron = UIImage(systemName: "chevron.backward")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 22, weight: .bold))
+        let subViewBackChevron = UIImage(systemName: "chevron.backward")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .bold))
         if #available(iOS 26.0, *) {
             var subViewBackConfig = UIButton.Configuration.glass()
             subViewBackConfig.image = subViewBackChevron
@@ -581,11 +589,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             subViewBackButton.configuration = subViewBackConfig
         } else {
             subViewBackButton.backgroundColor = .clear
-            subViewBackButton.layer.cornerRadius = 25
+            subViewBackButton.layer.cornerRadius = 20
             subViewBackButton.clipsToBounds = true
             let subViewBackGlass = makeGlassEffectView()
             subViewBackGlass.translatesAutoresizingMaskIntoConstraints = false
-            subViewBackGlass.layer.cornerRadius = 25
+            subViewBackGlass.layer.cornerRadius = 20
             subViewBackGlass.clipsToBounds = true
             subViewBackGlass.isUserInteractionEnabled = false
             subViewBackButton.insertSubview(subViewBackGlass, at: 0)
@@ -611,8 +619,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         NSLayoutConstraint.activate([
             subBackLeadingConstraint!,
             subBackTopConstraint!,
-            subViewBackButton.widthAnchor.constraint(equalToConstant: 50),
-            subViewBackButton.heightAnchor.constraint(equalToConstant: 50),
+            subViewBackButton.widthAnchor.constraint(equalToConstant: 40),
+            subViewBackButton.heightAnchor.constraint(equalToConstant: 40),
         ])
 
         // Native Settings header (user 2026-11-19, iOS Settings style,
@@ -791,35 +799,82 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // native app, so the two can never show side by side or drift
     // apart — Settings sub-view heads and the timetable detail head
     // sit at different heights, which is why a fixed position was
-    // wrong). The 50pt button is centred on the web button's centre.
+    // wrong). The 40pt button is centred on the web button's centre.
     func positionSubViewBackButton(centerX: CGFloat, centerY: CGFloat) {
         guard let leading = subBackLeadingConstraint, let top = subBackTopConstraint else { return }
         let topBase: CGFloat = (UIDevice.current.userInterfaceIdiom == .pad) ? tabBar.frame.maxY : view.safeAreaInsets.top
-        leading.constant = (centerX - 25) - view.safeAreaInsets.left
-        top.constant = (centerY - 25) - topBase
+        leading.constant = (centerX - 20) - view.safeAreaInsets.left
+        top.constant = (centerY - 20) - topBase
+    }
+
+    // Docked position: inside the 44pt safe-area header strip — the
+    // 40pt button centred in it (2pt inset), standard nav leading.
+    func dockSubViewBackButton() {
+        subBackLeadingConstraint?.constant = 16
+        subBackTopConstraint?.constant = 2
     }
 
     func resetSubViewBackButtonPosition() {
-        subBackLeadingConstraint?.constant = 16
-        subBackTopConstraint?.constant = (UIDevice.current.userInterfaceIdiom == .pad) ? 10 : 8
+        dockSubViewBackButton()
     }
 
-    // Show/hide the native Settings header strip. A non-empty title
-    // shows it (and puts the back button at the standard navigation
-    // position inside the strip); nil hides it (button-only mode:
-    // timetable line detail, native pickers).
-    func setSubViewHeader(title: String?) {
+    // Apply the scroll state (user 2026-11-20): the glass strip and
+    // its centred title are visible only while the sub-view is
+    // scrolled; at rest the back button floats on its own. In
+    // timetable mode the button also moves between its frame-synced
+    // spot (at rest) and the docked spot inside the strip (scrolled).
+    func applySubScrollState(animated: Bool) {
         guard let glass = subHeaderGlass else { return }
-        if let title = title, !title.isEmpty {
-            subHeaderTitle.text = title
+        let showStrip = subScrolled && (subDockTitle != nil)
+        if showStrip {
+            subHeaderTitle.text = subDockTitle
             subHeaderHeightConstraint?.constant = (UIDevice.current.userInterfaceIdiom == .pad) ? 44 : view.safeAreaInsets.top + 44
-            glass.isHidden = false
-            view.bringSubviewToFront(glass)
-            if let button = subViewBackButton { view.bringSubviewToFront(button) }
-            subBackLeadingConstraint?.constant = 16
-            subBackTopConstraint?.constant = -3
+        }
+        let changes = {
+            if showStrip {
+                glass.isHidden = false
+                glass.alpha = 1
+                self.view.bringSubviewToFront(glass)
+                if let button = self.subViewBackButton { self.view.bringSubviewToFront(button) }
+            } else {
+                glass.alpha = 0
+            }
+            if self.subTimetableMode {
+                if self.subScrolled {
+                    self.dockSubViewBackButton()
+                } else if let c = self.subFrameCenter {
+                    self.positionSubViewBackButton(centerX: c.x, centerY: c.y)
+                }
+            }
+            self.view.layoutIfNeeded()
+        }
+        if animated {
+            UIView.animate(withDuration: 0.22, delay: 0, options: [.curveEaseOut], animations: changes) { _ in
+                if !showStrip { glass.isHidden = true }
+            }
         } else {
-            glass.isHidden = true
+            changes()
+            glass.isHidden = !showStrip
+            glass.alpha = showStrip ? 1 : 0
+        }
+    }
+
+    func setSubScrolled(_ scrolled: Bool) {
+        guard subScrolled != scrolled else { return }
+        subScrolled = scrolled
+        applySubScrollState(animated: true)
+    }
+
+    // Leave sub-view mode entirely (sub-view closed): hide the strip
+    // and forget the scroll state, dock title and frame centre.
+    func setSubViewHeader(title: String?) {
+        if title == nil {
+            subDockTitle = nil
+            subTimetableMode = false
+            subFrameCenter = nil
+            subScrolled = false
+            subHeaderGlass?.alpha = 0
+            subHeaderGlass?.isHidden = true
         }
     }
 
@@ -862,6 +917,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 self.appearanceView = picker
                 // The native back button must stay on top of the picker
                 // (the picker covers the web view, tab bar and pills).
+                // Reset its position first: a frame-synced position left
+                // over from a web sub-view overlaps the picker's title
+                // (user 2026-11-20 screenshot: button on top of 语言).
+                self.resetSubViewBackButtonPosition()
                 self.setSubViewBackButtonVisible(true)
                 UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut]) {
                     picker.alpha = 1
@@ -929,6 +988,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                     picker.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
                 ])
                 self.languageView = picker
+                self.resetSubViewBackButtonPosition()
                 self.setSubViewBackButtonVisible(true)
                 UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut]) {
                     picker.alpha = 1
@@ -2659,24 +2719,46 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // Native sub-view back button (user 2026-11-18): the web posts
             // {open: Bool} whenever sub-view open-state changes — open is
             // true while any Settings sub-view or a timetable line detail
-            // is open, false otherwise. Malformed bodies are ignored.
-            if let dict = message.body as? [String: Any],
-               let open = dict["open"] as? Bool {
-                if open {
-                    if let title = dict["title"] as? String, !title.isEmpty {
-                        setSubViewHeader(title: title)
+            // is open, false otherwise. It also posts {scroll: Bool}
+            // while a sub-view is open (user 2026-11-20: at rest the
+            // button floats alone; scrolled, the glass strip + title
+            // appear in the safe area and the timetable button docks
+            // into it). Malformed bodies are ignored.
+            if let dict = message.body as? [String: Any] {
+                if let scrolled = dict["scroll"] as? Bool {
+                    if let button = subViewBackButton, !button.isHidden {
+                        setSubScrolled(scrolled)
+                    }
+                } else if let open = dict["open"] as? Bool {
+                    if open {
+                        subScrolled = (dict["scrolled"] as? Bool) ?? false
+                        if let title = dict["title"] as? String, !title.isEmpty {
+                            subTimetableMode = false
+                            subDockTitle = title
+                            subFrameCenter = nil
+                            dockSubViewBackButton()
+                        } else {
+                            subTimetableMode = true
+                            subDockTitle = dict["ttTitle"] as? String
+                            if let cx = dict["cx"] as? NSNumber, let cy = dict["cy"] as? NSNumber {
+                                subFrameCenter = (CGFloat(cx.doubleValue), CGFloat(cy.doubleValue))
+                                if subScrolled {
+                                    dockSubViewBackButton()
+                                } else {
+                                    positionSubViewBackButton(centerX: CGFloat(cx.doubleValue), centerY: CGFloat(cy.doubleValue))
+                                }
+                            } else if subScrolled {
+                                dockSubViewBackButton()
+                            } else {
+                                resetSubViewBackButtonPosition()
+                            }
+                        }
+                        applySubScrollState(animated: false)
                     } else {
                         setSubViewHeader(title: nil)
-                        if let cx = dict["cx"] as? NSNumber, let cy = dict["cy"] as? NSNumber {
-                            positionSubViewBackButton(centerX: CGFloat(cx.doubleValue), centerY: CGFloat(cy.doubleValue))
-                        } else {
-                            resetSubViewBackButtonPosition()
-                        }
                     }
-                } else {
-                    setSubViewHeader(title: nil)
+                    setSubViewBackButtonVisible(open)
                 }
-                setSubViewBackButtonVisible(open)
             }
         } else if message.name == "openLanguage" {
             // Native Language picker (user 2026-11-19): the web posts
