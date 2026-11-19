@@ -679,40 +679,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // per-city splash — and hide it when the web posts splashDone.
         // currentCity was restored from UserDefaults above, so the image
         // matches the city the user last used.
-        let splashName: String
-        switch currentCity {
-        case "sy": splashName = "SplashSY"
-        case "sh": splashName = "SplashSH"
-        case "hb": splashName = "SplashHB"
-        case "dl": splashName = "SplashDL"
-        case "jh": splashName = "SplashJH"
-        case "cz": splashName = "SplashCZ"
-        case "cq": splashName = "SplashCQ"
-        case "cc": splashName = "SplashCC"
-        case "sz": splashName = "SplashSZ"
-        case "cd": splashName = "SplashCD"
-        case "qd": splashName = "SplashQD"
-        default: splashName = "Splash"
-        }
-        // Dark-mode splash (user 2026-11-19): every poster also has a
-        // generated dark variant (SplashXXDark). Pick it when the web's
-        // last-known effective appearance is dark ("metro-dark",
-        // persisted via the themeState message); before the first web
-        // report, fall back to the system style at launch.
-        let splashDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
-        let splashImageName = (splashDark && UIImage(named: splashName + "Dark") != nil) ? splashName + "Dark" : splashName
-        // Fall back to the Beijing poster if a city's image is ever
-        // missing, so the launch screen is never blank (Chengdu and
-        // Qingdao had no native poster in 1.0.5 and showed nothing).
-        let splashImage = UIImage(named: splashImageName) ?? UIImage(named: splashName) ?? UIImage(named: "Splash")
-        splashImageView = UIImageView(image: splashImage)
+        splashImageView = UIImageView()
+        refreshSplashImage()
         // Aspect-fit (not fill): the splash posters are portrait phone
         // images; on iPad / unfolded Duo, fill crops the artwork. Fit shows
         // the whole poster, and the white background blends with the
         // poster's own background in the letterbox area (white for
         // the light poster, black for the dark variant).
         splashImageView.contentMode = .scaleAspectFit
-        splashImageView.backgroundColor = splashDark ? .black : .white
+        splashImageView.backgroundColor = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark) ? .black : .white
         splashImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(splashImageView)
         NSLayoutConstraint.activate([
@@ -1946,6 +1921,47 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // Called when the web splash finishes (or the fallback timer fires):
     // reveal the native controls.
+    // (Re)pick the native splash poster for the current city and
+    // appearance (2026-11-20 fix, user: "每个城市都显示北京" — both
+    // splash layers showed Beijing). The launch-time pick reads
+    // UserDefaults, which the web refreshes only when it reports in;
+    // if the two stores ever diverge (web store reset, a switch whose
+    // report never landed), the native poster stays on the default.
+    // The web's launch sequence always reports cityChanged and
+    // themeState from mounted() BEFORE it posts splashDone, so the
+    // handlers call this while the splash is still up and the poster
+    // is corrected in place. Falls back to the Beijing poster if a
+    // city's image is ever missing, so the launch screen is never
+    // blank (Chengdu and Qingdao had no native poster in 1.0.5).
+    func refreshSplashImage() {
+        guard splashShowing, let iv = splashImageView else { return }
+        let splashName: String
+        switch currentCity {
+        case "sy": splashName = "SplashSY"
+        case "sh": splashName = "SplashSH"
+        case "hb": splashName = "SplashHB"
+        case "dl": splashName = "SplashDL"
+        case "jh": splashName = "SplashJH"
+        case "cz": splashName = "SplashCZ"
+        case "cq": splashName = "SplashCQ"
+        case "cc": splashName = "SplashCC"
+        case "sz": splashName = "SplashSZ"
+        case "cd": splashName = "SplashCD"
+        case "qd": splashName = "SplashQD"
+        default: splashName = "Splash"
+        }
+        // Dark variant when the web's last-known effective appearance
+        // is dark ("metro-dark", persisted via the themeState
+        // message); before the first web report, fall back to the
+        // system style at launch.
+        let splashDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        let splashImageName = (splashDark && UIImage(named: splashName + "Dark") != nil) ? splashName + "Dark" : splashName
+        if let img = UIImage(named: splashImageName) ?? UIImage(named: splashName) ?? UIImage(named: "Splash") {
+            iv.image = img
+        }
+        iv.backgroundColor = splashDark ? .black : .white
+    }
+
     func splashFinished() {
         guard splashShowing else { return }
         splashShowing = false
@@ -2633,6 +2649,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             if let dict = message.body as? [String: Any],
                let dark = dict["dark"] as? Bool {
                 UserDefaults.standard.set(dark, forKey: "metro-dark")
+                // Correct the launch poster in place if the launch
+                // pick used a stale appearance (2026-11-20 fix).
+                refreshSplashImage()
             }
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
@@ -2646,6 +2665,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 currentCity = city
                 refreshCityUI()
             }
+            // Correct the launch poster in place if the launch pick
+            // used a stale city (2026-11-20 fix).
+            refreshSplashImage()
         } else if message.name == "langChanged",
                   let dict = message.body as? [String: Any],
                   let lang = dict["lang"] as? String {
