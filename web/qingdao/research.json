@@ -1,0 +1,380 @@
+{
+ "city": "青岛",
+ "city_en": "Qingdao",
+ "city_key": "qd",
+ "total_stations_published": 176,
+ "total_stations_computed": 176,
+ "total_line_stations": 195,
+ "interchange_count": 17,
+ "network_km": 365,
+ "fare": {
+  "type": "distance-based, shortest-path mileage",
+  "bands": [
+   {
+    "max_km": 5,
+    "fare": 2,
+    "label": "0–5 km 起步价 ¥2"
+   },
+   {
+    "max_km": 10,
+    "fare": 3,
+    "label": "5–10 km ¥3"
+   },
+   {
+    "max_km": 17,
+    "fare": 4,
+    "label": "10–17 km ¥4"
+   },
+   {
+    "max_km": 27,
+    "fare": 5,
+    "label": "17–27 km ¥5"
+   },
+   {
+    "max_km": 38,
+    "fare": 6,
+    "label": "27–38 km ¥6"
+   }
+  ],
+  "beyond": "38 km 以上每增加 20 km 增加 ¥1（不足 20 km 按 20 km 计）",
+  "formula": "km<=5:2; <=10:3; <=17:4; <=27:5; <=38:6; else 6+ceil((km-38)/20)",
+  "rule": "按最短乘车路径的里程计费（青岛地铁票务规则）。全网单程最高票价可达 ¥8（西海岸快线全程，本地宝）。",
+  "source": "青岛地铁《票务规则》官方原文（青岛本地宝转载并标注为官网原文）；青岛地铁官网 www.qd-metro.com「票价规定」页（informationInfo.php?id=1387）；政策依据 青价格〔2015〕47号。现行规则自 2025 年 8 月起执行（起步里程由 6 km 调整为 5 km 等表述见票务规则修订报道）。",
+  "source_urls": [
+   "https://qd.bendibao.com/traffic/2025811/100413.shtm",
+   "http://www.qd-metro.com/informationInfo.php?id=1387"
+  ],
+  "worked_checks": [],
+  "note": "无逐站里程数据（RMP 示意图无距离），未做 worked check；app 侧需按既有城市做法做 px→km 标定。"
+ },
+ "interchanges": [
+  {
+   "name": "五四广场",
+   "lines": [
+    "2",
+    "3",
+    "8"
+   ]
+  },
+  {
+   "name": "青岛北站",
+   "lines": [
+    "1",
+    "3",
+    "8"
+   ]
+  },
+  {
+   "name": "井冈山路",
+   "lines": [
+    "1",
+    "13"
+   ]
+  },
+  {
+   "name": "人民会堂",
+   "lines": [
+    "3",
+    "4"
+   ]
+  },
+  {
+   "name": "台东",
+   "lines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "name": "张村",
+   "lines": [
+    "4",
+    "11"
+   ]
+  },
+  {
+   "name": "李村",
+   "lines": [
+    "2",
+    "3"
+   ]
+  },
+  {
+   "name": "泰山路",
+   "lines": [
+    "2",
+    "4"
+   ]
+  },
+  {
+   "name": "海泊桥（海慈医疗）",
+   "lines": [
+    "1",
+    "4"
+   ]
+  },
+  {
+   "name": "王家港",
+   "lines": [
+    "1",
+    "6"
+   ]
+  },
+  {
+   "name": "苗岭路",
+   "lines": [
+    "2",
+    "11"
+   ]
+  },
+  {
+   "name": "西吴家村",
+   "lines": [
+    "4",
+    "8"
+   ]
+  },
+  {
+   "name": "观象山（市立医院）",
+   "lines": [
+    "1",
+    "4"
+   ]
+  },
+  {
+   "name": "辛屯",
+   "lines": [
+    "6",
+    "13"
+   ]
+  },
+  {
+   "name": "辽阳东路",
+   "lines": [
+    "2",
+    "4"
+   ]
+  },
+  {
+   "name": "错埠岭",
+   "lines": [
+    "3",
+    "4"
+   ]
+  },
+  {
+   "name": "青岛站",
+   "lines": [
+    "1",
+    "3"
+   ]
+  }
+ ],
+ "lines": {
+  "1": {
+   "name": "1号线",
+   "color": "F7B000",
+   "stations": 41,
+   "termini": [
+    "王家港",
+    "东郭庄"
+   ],
+   "note": "兴国路–东郭庄段为7号线一期、随1号线贯通运营"
+  },
+  "2": {
+   "name": "2号线",
+   "color": "C32A05",
+   "stations": 25,
+   "termini": [
+    "四川路（轮渡）",
+    "李村公园"
+   ],
+   "note": "燕儿岛路站已更名为青岛中央法务区（燕儿岛路）"
+  },
+  "3": {
+   "name": "3号线",
+   "color": "006DBB",
+   "stations": 22,
+   "termini": [
+    "青岛站",
+    "青岛北站"
+   ]
+  },
+  "4": {
+   "name": "4号线",
+   "color": "00763C",
+   "stations": 25,
+   "termini": [
+    "人民会堂",
+    "大河东"
+   ]
+  },
+  "6": {
+   "name": "6号线",
+   "color": "6CA3D8",
+   "stations": 21,
+   "termini": [
+    "灵山湾",
+    "横云山路"
+   ],
+   "note": "一期"
+  },
+  "8": {
+   "name": "8号线",
+   "color": "E74893",
+   "stations": 17,
+   "termini": [
+    "胶州北站",
+    "五四广场"
+   ],
+   "note": "南段 2026-09-22 开通、全线贯通；另有大站快车（五四广场/西吴家村/青岛北站/胶东机场/胶州北站）"
+  },
+  "11": {
+   "name": "蓝谷快线",
+   "color": "304299",
+   "stations": 21,
+   "termini": [
+    "苗岭路",
+    "钱谷山"
+   ]
+  },
+  "13": {
+   "name": "西海岸快线",
+   "color": "009C86",
+   "stations": 23,
+   "termini": [
+    "嘉陵江西路",
+    "董家口火车站"
+   ],
+   "note": "嘉陵江西路、香江路 2023-10-26 开通"
+  }
+ },
+ "not_yet_open_excluded": [
+  "2号线二期（李村公园–世博园，在建）",
+  "5号线（在建）",
+  "6号线二期（灵山湾–青西站，在建）",
+  "7号线二期（兴国路以北/东郭庄以东，在建；一期已随1号线运营）",
+  "8号线支线（大涧–胶州火车站，在建）",
+  "9号线一期（在建）",
+  "15号线一期（在建）",
+  "蓝谷快线二期（钱谷山–鳌山湾，在建）",
+  "东南山站（8号线/7号线预留站，已建成但未开通、列车通过不停车，未计入176站）"
+ ],
+ "transit_app": {
+  "name": "青岛地铁-官方",
+  "ios_id": 1373547573,
+  "seller": "Qingdao Metro Group Co., Ltd.",
+  "bundle_id": "com.sdjictec.qdmetro",
+  "version_seen": "4.5.5（2026-11-09 更新）",
+  "url_scheme": null,
+  "url_scheme_note": "未查到公开 URL scheme，不要臆造；跳转行用 App Store 链接（同深圳做法）",
+  "app_store_url": "https://apps.apple.com/cn/app/id1373547573"
+ },
+ "theme": {
+  "recommended": "317C5B",
+  "basis": "青岛地铁品牌绿：官方 App 图标底色实测采样 #317C5B（图标四角与主色均为该值，PIL 采样 2026-11-19）。与深圳用系统品牌色 #00A051 的先例一致。",
+  "icon_sampled_colors": [
+   "317C5B",
+   "207452",
+   "1F7F59"
+  ]
+ },
+ "timetable": {
+  "status": "official_per_station_published_but_not_collected",
+  "detail": "青岛地铁官方发布逐站首末班车时刻表：官网 www.qd-metro.com 有首末班车时刻表、官方 App 内有逐站时刻、各线开通公告附全线逐站首末班车表（如8号线2026-09-22贯通公告，青岛本地宝转载全文）。本包未抓取建成 timetable/qd.json——官网从本机网络不可达（curl 返回 000），二手逐站表（都市圈/本地宝车站页）多处过期（如2号线仍以泰山路为终点、3号线末班21:50为旧时刻），不可直接采用。不要臆造时刻；后续应从官网/官方公告逐线采集真实逐站时刻。",
+  "terminus_times_secondary": [
+   {
+    "line": "8",
+    "from": "五四广场",
+    "to": "胶州北站",
+    "first": "06:10",
+    "last": "22:15",
+    "source": "青岛地铁贯通公告（官方，本地宝转载），2026-09-22 起执行"
+   },
+   {
+    "line": "8",
+    "from": "胶州北站",
+    "to": "五四广场",
+    "first": "05:45",
+    "last": "22:00",
+    "source": "同上（官方公告）"
+   },
+   {
+    "line": "3",
+    "from": "青岛北站",
+    "to": "青岛站",
+    "first": "06:00",
+    "last": "22:25",
+    "source": "好评好报网 2026-11-12（二手）"
+   },
+   {
+    "line": "3",
+    "from": "青岛站",
+    "to": "青岛北站",
+    "first": "06:15",
+    "last": "22:40",
+    "source": "好评好报网（二手）"
+   },
+   {
+    "line": "1",
+    "from": "东郭庄",
+    "to": "王家港",
+    "first": "06:00",
+    "last": "22:03",
+    "source": "好评好报网/都市圈（二手，两源一致）"
+   },
+   {
+    "line": "2",
+    "from": "李村公园",
+    "to": "四川路（轮渡）",
+    "first": "06:04",
+    "last": "22:40",
+    "note": "每年7月1日–10月7日末班延至22:55（旅游旺季）",
+    "source": "买购网线路页（二手）"
+   },
+   {
+    "line": "11",
+    "from": "苗岭路",
+    "to": "钱谷山",
+    "first": "06:30",
+    "last": "22:15",
+    "note": "末班与都市圈的22:00冲突，未定",
+    "source": "好评好报网（二手）"
+   },
+   {
+    "line": "11",
+    "from": "钱谷山",
+    "to": "苗岭路",
+    "first": "06:15",
+    "last": "21:30",
+    "source": "都市圈（二手）"
+   },
+   {
+    "line": "13",
+    "from": "董家口火车站",
+    "to": "嘉陵江西路",
+    "first": "06:15",
+    "last": "21:35",
+    "source": "好评好报网（二手；其站数21为旧数，仅取时刻参考）"
+   }
+  ],
+  "official_sources": [
+   "http://www.qd-metro.com（首末班车时刻表；本机不可达）",
+   "https://m.qd.bendibao.com/traffic/103211.shtm（8号线官方逐站首末班车表转载）",
+   "http://jt.dushiquan.net/qingdao/schedule/（逐站表二手，部分过期，慎用）"
+  ]
+ },
+ "latlng": {
+  "file": "web/latlng/latlng-qd.json",
+  "coverage": "176/176",
+  "sources": "中文维基百科车站条目坐标 + Wikidata P625（含 SPARQL 按站名+青岛消歧、条目搜索补漏）；董家口火车站用其地铁站专属 Wikidata 条目 Q60050184 坐标；红岛火车站用地铁站条目 Q108045570 坐标（非国铁条目）"
+ },
+ "sources": [
+  "青岛地铁 2026-09-22 8号线南段开通报道（运营里程365 km、8条线、176座车站、换乘站17座）",
+  "中文维基百科「青岛地铁车站列表」模板（2026-10-05 抓取版）逐线站序",
+  "高德地图青岛地铁线网（逐线站数核对）",
+  "RMP Gallery qingdao.json（railmapgen/rmp-gallery，version 79）站序/颜色/坐标",
+  "青岛地铁《票务规则》（官网原文，本地宝转载）",
+  "Apple iTunes Lookup API（App 1373547573）"
+ ]
+}
