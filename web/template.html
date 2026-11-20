@@ -811,6 +811,7 @@
 		.more-train-meta { font-size: 13px; color: #666; margin-top: 2px; }
 		html.dark .more-train-meta { color: #aaa; }
 		.more-train-spec { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+		.more-train-img { display: block; width: 100%; height: auto; border-radius: 10px; margin-bottom: 8px; }
 		.more-siri-text { flex: 1; min-width: 0; }
 		.more-siri-name { font-size: 15px; font-weight: 600; color: #000; }
 		html.dark .more-siri-name { color: #fff; }
@@ -1446,7 +1447,7 @@
 					<div class="more-new-head"><span class="more-new-ver">1.1.0B</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
 					<div class="more-section">{{ t('more.new.features') }}</div>
 					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18','more.new.19','more.new.20','more.new.21']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18','more.new.19','more.new.20','more.new.21','more.new.22']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 					</div>
 					<div class="more-section">{{ t('more.new.improvements') }}</div>
 					<div class="more-card">
@@ -1517,6 +1518,7 @@
 							<div class="more-section">{{ g.name }}</div>
 							<div class="more-card">
 								<div class="more-train-row" v-for="tr in g.trains" :key="tr.model + '|' + tr.line">
+									<img class="more-train-img" v-if="tr.img" :src="tr.img" loading="lazy" onerror="this.style.display='none'">
 									<div class="more-train-model">{{ tr.model }}</div>
 									<div class="more-train-meta">{{ tr.maker }} · {{ tr.line }}</div>
 									<div class="more-train-spec" v-if="tr.spec">{{ tr.spec }}</div>
@@ -1769,6 +1771,7 @@ var I18N = {
   'more.new.19': ['车站搜索列表中，1 号线车站优先显示（所有城市）', '車站搜尋清單中，1 號線車站優先顯示（所有城市）', 'Line 1 stations are listed first in station search (all cities)'],
   'more.new.20': ['「即将开通」的线路标志改为官方样式，按线路颜色显示', '「即將開通」的線路標誌改為官方樣式，按線路顏色顯示', '"Opening Soon" line badges now use the official badge style in each line\u2019s colour'],
   'more.new.21': ['北京换乘方案新增步行距离与时间预估（标注「预估」）', '北京換乘方案新增步行距離與時間預估（標註「預估」）', 'Beijing route results now show estimated transfer walking distances and times (labelled as estimates)'],
+  'more.new.22': ['车型检索新增深圳、成都、青岛，12 个城市全部覆盖', '車型檢索新增深圳、成都、青島，12 個城市全部覆蓋', 'Train Model Search adds Shenzhen, Chengdu and Qingdao — all 12 cities now covered'],
   'more.bugfix': ['问题修复', '問題修復', 'Bug Fixes'],
   'more.new.features': ['新功能', '新功能', 'New Features'],
   'more.new.improvements': ['改进', '改進', 'Improvements'],
@@ -1819,7 +1822,7 @@ var I18N = {
   'more.trains': ['车型检索', '車型檢索', 'Train Model Search'],
   'more.trains.ph': ['输入城市名、列车型号或线路（如沈阳地铁1号线）', '輸入城市名、列車型號或線路（如瀋陽地鐵1號線）', 'Enter a city, train model or line (e.g. Shenyang Metro Line 1)'],
   'more.trains.hint': ['输入城市名（如北京）、列车型号（如 DKZ4）或线路（如沈阳地铁1号线）进行搜索。', '輸入城市名（如北京）、列車型號（如 DKZ4）或線路（如瀋陽地鐵1號線）進行搜尋。', 'Enter a city (e.g. Beijing), a train model (e.g. DKZ4) or a line (e.g. Shenyang Metro Line 1) to search.'],
-  'more.trains.none': ['未找到相关列车。仅支持北京、沈阳、上海、哈尔滨、大连、金华、常州、重庆、长春 9 个城市。', '未找到相關列車。僅支援北京、瀋陽、上海、哈爾濱、大連、金華、常州、重慶、長春 9 個城市。', 'No matching train. Only Beijing, Shenyang, Shanghai, Harbin, Dalian, Jinhua, Changzhou, Chongqing and Changchun are covered.'],
+  'more.trains.none': ['未找到相关列车。仅支持北京、沈阳、上海、哈尔滨、大连、金华、常州、重庆、长春、深圳、成都、青岛 12 个城市。', '未找到相關列車。僅支援北京、瀋陽、上海、哈爾濱、大連、金華、常州、重慶、長春、深圳、成都、青島 12 個城市。', 'No matching train. Only Beijing, Shenyang, Shanghai, Harbin, Dalian, Jinhua, Changzhou, Chongqing, Changchun, Shenzhen, Chengdu and Qingdao are covered.'],
   'more.trains.source': ['数据来源：china-emu.cn，型号及参数仅供参考，非官方数据。', '資料來源：china-emu.cn，型號及參數僅供參考，非官方資料。', 'Source: china-emu.cn. Models and parameters are for reference only, not official data.'],
   'more.briefing.source': ['来源：{s}', '來源：{s}', 'Source: {s}'],
   'more.general': ['通用', '通用', 'General'],
@@ -2735,7 +2738,7 @@ function titlePy(py) {
 					// fully usable offline afterwards).
 					// Load the train data (web/trains.json): inlined seed first
 					// (offline build), then a relative fetch, then GitHub.
-					// Only the app's 9 cities are in the file, so no other
+					// Only the app's 12 cities are in the file, so no other
 					// city can ever match.
 					loadTrains() {
 						if (this.trainItems && this.trainItems.length) return;

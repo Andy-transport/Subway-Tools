@@ -602,7 +602,7 @@ briefing = (BASE / "briefing.json").read_text(encoding="utf-8")
 assert "</script" not in briefing, "briefing json must not contain </script"
 html = sub_once(r'/\*__BRIEFING_SEED__\*/\{\}', lambda _: briefing, html, "briefing seed json")
 
-# T2. inline the trains seed (web/trains.json): the 9-city train list for
+# T2. inline the trains seed (web/trains.json): the 12-city train list for
 # the Settings train search. Same offline pattern as the briefing seed.
 trains = (BASE / "trains.json").read_text(encoding="utf-8")
 assert "</script" not in trains, "trains json must not contain </script"
