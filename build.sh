@@ -43,26 +43,34 @@ mkdir -p build/Payload/Metro.app/web
 # so it is linked normally, not weak.
 # Two-phase compile (Siri round 5, 2026-11-20; phase 1 fixed in
 # round 5b after run #87 failed with "cannot specify -o when
-# generating multiple output files"): phase 1 compiles each source
-# separately with -emit-const-values, phase 2 links. Rounds 1-4
-# passed -emit-const-values to a single compile+link invocation and
-# the metadata processor still reported "No swiftconstvalues found"
-# (run #86 log) — the driver only emits the .swiftconstvalues file in
-# -c mode, exactly like Xcode's separate compile/link steps. The file
-# lands next to the objects in build/obj. Phase 1 must compile the
-# files one at a time (Xcode does the same per-file): a single -c
-# invocation over all sources still emits a module-level .o (the
-# -num-threads 0 whole-module artifact), and the driver refuses -o
-# when a compile produces multiple outputs.
+# generating multiple output files"; round 5c after run #89 failed
+# with "filename AppDelegate.swift used twice"): phase 1 compiles
+# each source separately with -emit-const-values, phase 2 links.
+# Rounds 1-4 passed -emit-const-values to a single compile+link
+# invocation and the metadata processor still reported "No
+# swiftconstvalues found" (run #86 log) — the driver only emits the
+# .swiftconstvalues file in -c mode, exactly like Xcode's separate
+# compile/link steps. The file lands next to the objects in
+# build/obj. Phase 1 must compile the files one at a time (Xcode
+# does the same per-file): a single -c invocation over all sources
+# still emits a module-level .o (the -num-threads 0 whole-module
+# artifact), and the driver refuses -o when a compile produces
+# multiple outputs. Per-file, the driver counts -primary-file as an
+# input file, so the primary file must NOT be repeated in the
+# positional list (that is the run #89 duplicate-filename error);
+# pass it once via -primary-file and the remaining files after it.
 mkdir -p build/obj
 SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
 for src in $SWIFT_SOURCES; do
   obj="build/obj/$(basename "${src%.swift}").o"
+  others=""
+  for f in $SWIFT_SOURCES; do
+    if [ "$f" != "$src" ]; then others="$others $f"; fi
+  done
   xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
     -module-name Metro -c \
     -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-    $SWIFT_SOURCES \
-    -primary-file "$src" -o "$obj"
+    -primary-file "$src" $others -o "$obj"
 done
 ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 \
