@@ -41,14 +41,27 @@ mkdir -p build/Payload/Metro.app/web
 # (AppIntents.swift, user 2026-11-18) are in the binary and the
 # AppShortcutsProvider is discovered. AppIntents exists on iOS 16.0+,
 # so it is linked normally, not weak.
-# -emit-const-values (Xcode's SWIFT_ENABLE_EMIT_CONST_VALUES=YES):
-# without it the binary carries no swiftconstvalues and
-# appintentsmetadataprocessor extracts nothing (run #85 log:
-# "No swiftconstvalues found" -> "Extracted no relevant App Intents
-# symbols"), so Metadata.appintents is never written.
+# Two-phase compile (Siri round 5, 2026-11-20): phase 1 compiles to
+# object files with -emit-const-values, phase 2 links. Rounds 1-4
+# passed -emit-const-values to a single compile+link invocation and
+# the metadata processor still reported "No swiftconstvalues found"
+# (run #86 log) — the driver only emits the .swiftconstvalues file in
+# -c mode, exactly like Xcode's separate compile/link steps. The file
+# lands next to the objects in build/obj.
+mkdir -p build/obj
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
+  -module-name Metro -c \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  -o build/Payload/Metro.app/Metro app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift
+  app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift \
+  -output-dir build/obj
+ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 \
+  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
+  build/obj/*.o -o build/Payload/Metro.app/Metro
+# The metadata processor locates the module's const values beside the
+# binary (Xcode leaves them in the products dir during its run); copy
+# it in for the extraction step and remove it before packaging.
+cp build/obj/*.swiftconstvalues build/Payload/Metro.app/ 2>/dev/null || echo "WARNING: no swiftconstvalues to place beside the binary"
 
 echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
 # A raw swiftc build skips Xcode's AppIntents metadata extraction, so
@@ -82,6 +95,9 @@ xcrun appintentsnltrainingprocessor \
   --output build/Payload/Metro.app/Metadata.appintents \
   || echo "WARNING: appintentsnltrainingprocessor failed - Siri phrases will not train"
 ls -la build/Payload/Metro.app/Metadata.appintents || true
+# The const-values file was build-time input for the extraction step
+# only; it is not part of the app bundle Xcode would ship.
+rm -f build/Payload/Metro.app/*.swiftconstvalues
 
 echo "== 2b. Live Activity widget extension REMOVED (user 2026-11-18) =="
 # The Live Activity widget extension (LiveActivityWidget.appex) is

@@ -151,6 +151,13 @@ transfers = (BASE / "transfers.json").read_text(encoding="utf-8")
 walk_b64 = (BASE / "walk-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in transfers, "transfers json must not contain </script"
 html = sub_once(r'/\*__METRO_TRANSFERS__\*/\{\}', lambda _: transfers, html, "transfers json")
+# L1. inline the Beijing transfer-time estimates (metroman-derived,
+# labelled 预估 in the UI; see transfer-times-bj.json + the method
+# note in ~/workspace/metroman-research). Placeholder in template:
+# /*__BJ_TRANSFER_TIMES__*/{} beside the transfers data field.
+bj_tt = (BASE / "transfer-times-bj.json").read_text(encoding="utf-8")
+assert "</script" not in bj_tt, "bj transfer times json must not contain </script"
+html = sub_once(r'/\*__BJ_TRANSFER_TIMES__\*/\{\}', lambda _: bj_tt, html, "bj transfer times json")
 html = sub_once(r'/\*__WALK_ICON__\*/', lambda _: walk_b64, html, "walk icon")
 walk_ink_b64 = (BASE / "walk-icon-ink.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__WALK_ICON_INK__\*/', lambda _: walk_ink_b64, html, "walk icon ink")

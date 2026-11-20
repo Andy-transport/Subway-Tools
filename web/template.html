@@ -59,6 +59,7 @@
 			window.QD_LOGO = "data:image/png;base64,/*__QD_LOGO__*/";
 			window.CDM_ICON = "data:image/png;base64,/*__CDM_ICON__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
+			window.BJ_TRANSFER_TIMES = /*__BJ_TRANSFER_TIMES__*/{};
 			window.SY_TRANSFERS = /*__SY_TRANSFERS__*/{};
 			window.SH_TRANSFERS = /*__SH_TRANSFERS__*/{};
 			window.HB_TRANSFERS = /*__HB_TRANSFERS__*/{};
@@ -1305,7 +1306,7 @@
 							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ t('tr.minutes', {n: r.minutes}) }}</span></div>
 							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>{{ t('tr.transfers', {n: r.transfers}) }} · {{ t('tr.km', {n: r.km}) }}</div>
 							<div class="ropt-opwarn" v-if="routeOpWarning(r)">⚠ {{ routeOpWarning(r) }}</div>
-							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span></span></template></div>
+							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span><span v-else-if="transferEstFor(r, si+1) && transferEstFor(r, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(r, si+1)) }}</span></span></template></div>
 						</div>
 						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="r.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="r.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 					</div>
@@ -1324,6 +1325,8 @@
 							<div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div>
 							<div class="tr-td-lines"><span class="tr-chip ln-badge" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div>
 							<div class="tr-td-walk" v-if="virtualDistFor(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(routeResult, i)}) }}</div>
+							<div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div>
+							<div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div>
 							<div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div>
 						</div>
 						<div class="tr-seg" @click="goSegment(seg)">
@@ -1352,7 +1355,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">Subway tools</div>
-						<div class="more-appver">{{ t('more.version', {v: '1.1.0'}) }}</div>
+						<div class="more-appver">{{ t('more.version', {v: '1.1.0B'}) }}</div>
 					</div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
@@ -1388,7 +1391,7 @@
 					<div class="more-loc-hint" v-if="locPermHint">{{ t('more.loc.hint') }}</div>
 				</div>
 				<div class="more-card">
-					<div class="more-row" @click="showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0B</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
@@ -1438,12 +1441,12 @@
 				<div class="more-sub" v-show="showWhatsNewSub">
 					<div class="more-sub-head">
 						<button class="more-sub-back" @click="showWhatsNewSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
-						<div class="more-sub-title">{{ t('more.whatsnew', {v: '1.1.0'}) }}</div>
+						<div class="more-sub-title">{{ t('more.whatsnew', {v: '1.1.0B'}) }}</div>
 					</div>
-					<div class="more-new-head"><span class="more-new-ver">1.1.0</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
+					<div class="more-new-head"><span class="more-new-ver">1.1.0B</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
 					<div class="more-section">{{ t('more.new.features') }}</div>
 					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18','more.new.19','more.new.20']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18','more.new.19','more.new.20','more.new.21']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 					</div>
 					<div class="more-section">{{ t('more.new.improvements') }}</div>
 					<div class="more-card">
@@ -1451,7 +1454,7 @@
 					</div>
 					<div class="more-section">{{ t('more.bugfix') }}</div>
 					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6','more.fix.7','more.fix.8','more.fix.9','more.fix.10','more.fix.11','more.fix.12','more.fix.13']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+						<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6','more.fix.7','more.fix.8','more.fix.9','more.fix.10','more.fix.11','more.fix.12','more.fix.13','more.fix.14','more.fix.15']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 					</div>
 				</div>
 				</transition>
@@ -1562,7 +1565,7 @@
 						<img class="more-appicon" :src="appIcon" alt="">
 						<div>
 							<div class="more-appname">Subway tools</div>
-							<div class="more-appver">{{ t('more.version', {v: '1.1.0'}) }}</div>
+							<div class="more-appver">{{ t('more.version', {v: '1.1.0B'}) }}</div>
 						</div>
 					</div>
 					<div class="more-up-note">{{ t('more.about.desc') }}</div>
@@ -1667,6 +1670,8 @@ var I18N = {
   'tr.transferWalk': ['换乘步行{dist}', '換乘步行{dist}', 'Transfer walk {dist}'],
   'tr.transferAt': ['在{st}换乘', '在{st}換乘', 'Transfer at {st}'],
   'tr.inStation': ['站内换乘', '站內換乘', 'In-station transfer'],
+  'tr.transferEst': ['站内换乘 · 约{dist}米 · 约{min}分钟（预估）', '站內換乘 · 約{dist}米 · 約{min}分鐘（預估）', 'In-station transfer · about {dist} m · about {min} min (estimate)'],
+  'tr.transferOut': ['出站换乘 · 约{dist}米 · 约{min}分钟（预估）', '出站換乘 · 約{dist}米 · 約{min}分鐘（預估）', 'Out-of-station transfer · about {dist} m · about {min} min (estimate)'],
   'tr.hint': ['点一段可在图上查看', '點一段可在圖上查看', 'Tap a segment to view it on the map'],
   'tr.history': ['搜索记录', '搜索記錄', 'Search History'],
   'tr.history.clear': ['清除', '清除', 'Clear'],
@@ -1681,10 +1686,11 @@ var I18N = {
   'tr.nearby.nodata': ['该城市暂无车站坐标数据，附近车站功能即将上线。', '該城市暫無車站座標資料，附近車站功能即將上線。', 'No station coordinates for this city yet — nearby stations coming soon.'],
   'tr.nearby.failed': ['定位失败，请稍后重试。', '定位失敗，請稍後再試。', 'Location failed. Please try again.'],
   'tr.nearby.m': ['{n} 米', '{n} 米', '{n} m'],
-  'map.strip.none': ['⚠️ 附近1.5公里内没有车站', '⚠️ 附近1.5公里內沒有車站', '⚠️ No station within 1.5 km'],
+  'map.strip.none': ['⚠️ 附近2公里内没有车站', '⚠️ 附近2公里內沒有車站', '⚠️ No station within 2 km'],
   'map.loc.settings': ['去设置', '去設定', 'Settings'],
-  'tr.smart.title': ['智能显示 · 1 公里内最近车站', '智能顯示 · 1 公里內最近車站', 'Smart display · stations within 1 km'],
-  'tr.smart.none': ['1 公里内暂无车站', '1 公里內暫無車站', 'No station within 1 km'],
+  'tr.smart.title': ['智能显示 · 1.5 公里内最近车站', '智能顯示 · 1.5 公里內最近車站', 'Smart display · stations within 1.5 km'],
+  'tr.smart.none': ['1.5 公里内暂无车站', '1.5 公里內暫無車站', 'No station within 1.5 km'],
+  'tr.nearby.none2km': ['2 公里内暂无车站', '2 公里內暫無車站', 'No station within 2 km'],
   'tr.smart.far': ['最近的车站是 {n}，约 {d}', '最近的車站是 {n}，約 {d}', 'Nearest station is {n}, about {d} away'],
   'tr.smart.noloc': ['需要定位权限才能显示附近车站', '需要定位權限才能顯示附近車站', 'Location permission is needed to show nearby stations'],
   'tr.nearby.km': ['{n} 公里', '{n} 公里', '{n} km'],
@@ -1762,6 +1768,7 @@ var I18N = {
   'more.new.18': ['设置子页面改为原生磨砂玻璃顶栏，标题居中、固定不滚动', '設定子頁面改為原生磨砂玻璃頂欄，標題居中、固定不捲動', 'Settings sub-pages get a native frosted-glass header with a centred, fixed title'],
   'more.new.19': ['车站搜索列表中，1 号线车站优先显示（所有城市）', '車站搜尋清單中，1 號線車站優先顯示（所有城市）', 'Line 1 stations are listed first in station search (all cities)'],
   'more.new.20': ['「即将开通」的线路标志改为官方样式，按线路颜色显示', '「即將開通」的線路標誌改為官方樣式，按線路顏色顯示', '"Opening Soon" line badges now use the official badge style in each line\u2019s colour'],
+  'more.new.21': ['北京换乘方案新增步行距离与时间预估（标注「预估」）', '北京換乘方案新增步行距離與時間預估（標註「預估」）', 'Beijing route results now show estimated transfer walking distances and times (labelled as estimates)'],
   'more.bugfix': ['问题修复', '問題修復', 'Bug Fixes'],
   'more.new.features': ['新功能', '新功能', 'New Features'],
   'more.new.improvements': ['改进', '改進', 'Improvements'],
@@ -1779,6 +1786,8 @@ var I18N = {
   'more.fix.11': ['返回按钮缩小并收入安全区，滑动时才显示玻璃标题栏；修复按钮压住语言页标题的问题', '返回按鈕縮小並收入安全區，滑動時才顯示玻璃標題欄；修復按鈕壓住語言頁標題的問題', 'The back button is smaller and stays inside the safe area, the glass title bar appears on scroll, and the button no longer covers the Language page title'],
   'more.fix.12': ['修复 Siri 快捷指令无法注册的问题，现在可以对 Siri 说「用城轨通查路线」', '修復 Siri 快捷指令無法註冊的問題，現在可以對 Siri 說「用城軌通查路線」', 'Fixed Siri Shortcuts not registering — you can now ask Siri to plan a route with Subway Tools'],
   'more.fix.13': ['修复启动图不跟随当前城市和深色外观的问题，现在切换到哪个城市就显示哪个城市的启动图', '修復啟動圖不跟隨當前城市和深色外觀的問題，現在切換到哪個城市就顯示哪個城市的啟動圖', 'Fixed the launch image not following the current city and dark appearance — it now shows the poster of the city you switched to'],
+  'more.fix.14': ['修复启动图上下出现黑边的问题', '修復啟動圖上下出現黑邊的問題', 'Fixed black bars at the top and bottom of the launch image'],
+  'more.fix.15': ['返回按钮移入安全区顶栏，与标题同行显示；进出设置子页面加入淡入淡出动画，不再突然消失', '返回按鈕移入安全區頂欄，與標題同列顯示；進出設定子頁面加入淡入淡出動畫，不再突然消失', 'The back button now sits in the safe-area header beside the title, like iOS Settings, and Settings sub-pages fade in and out instead of snapping shut'],
   'more.upcoming': ['即将开通', '即將開通', 'Opening Soon'],
   'more.upcoming.count': ['{n}条线路', '{n}條線路', '{n} lines'],
   'more.upcoming.none': ['本市暂无已公布的即将开通线路', '本市暫無已公布的即將開通線路', 'No upcoming lines announced for this city'],
@@ -2030,7 +2039,7 @@ function titlePy(py) {
 						ttLine: null,
 						showMore: false,
 						query: '',
-						city: (function() { try { var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
+						city: (function() { try { var ic = window._metroInitCity; if (ic === 'sy' || ic === 'sh' || ic === 'hb' || ic === 'dl' || ic === 'jh' || ic === 'cz' || ic === 'cq' || ic === 'cc' || ic === 'sz' || ic === 'cd' || ic === 'qd' || ic === 'bj') return ic; var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
 						lang: savedLang(),
 					langPref: savedLangPref(),
 					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
@@ -2058,6 +2067,7 @@ function titlePy(py) {
 						hbLogo: (window.HB_LOGO || ''),
 						hbMap: (window.HB_MAP || ''),
 						transfers: (window.METRO_TRANSFERS || {}),
+						bjTransferTimes: (window.BJ_TRANSFER_TIMES || {}),
 						walkIcon: (window.WALK_ICON || ''),
 						walkIconInk: (window.WALK_ICON_INK || ''),
 						fareIcon: (window.FARE_ICON || ''),
@@ -2217,8 +2227,8 @@ function titlePy(py) {
 						locPerm: 'unknown',
 						locPermHint: false,
 						searchHistory: (function () { try { var h = JSON.parse(window.localStorage.getItem('metro-search-history') || '[]'); return Array.isArray(h) ? h : []; } catch (e) { return []; } })(),
-						theme: (function() { try { var t = window.localStorage.getItem('metro-theme'); return (t === 'light' || t === 'dark' || t === 'system') ? t : 'system'; } catch (e) { return 'system'; } })(),
-						darkNow: false,
+						theme: (function() { try { var it = window._metroInitTheme; if (it === 'light' || it === 'dark' || it === 'system') return it; var t = window.localStorage.getItem('metro-theme'); return (t === 'light' || t === 'dark' || t === 'system') ? t : 'system'; } catch (e) { return 'system'; } })(),
+						darkNow: (typeof window._metroInitDark === 'boolean') ? window._metroInitDark : false,
 					showCitySub: false,
 					bjMapType: (function() { try { var m = window.localStorage.getItem('metro-bj-maptype'); return m === 'line' ? 'line' : 'track'; } catch (e) { return 'track'; } })(),
 					bjMapExpanded: false,
@@ -2915,7 +2925,7 @@ function titlePy(py) {
 						// the native launch splash picks its light/dark poster
 						// variant from the persisted value on the next launch.
 						var th = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.themeState);
-						if (th) th.postMessage({ dark: dark });
+						if (th) th.postMessage({ dark: dark, theme: this.theme });
 					},
 					// Sync <html> classes (build 77): the #app :class binding is
 					// INERT in Vue 3 in-DOM templates (proven by a minimal Vue
@@ -3451,6 +3461,22 @@ function titlePy(py) {
 						}
 						return info.dist;
 					},
+					// Beijing transfer estimate (user 2026-11-20): look up
+					// the metroman-derived estimate for the boundary
+					// before segment i — ordered line pair "prev>cur" at
+					// station segs[i].from. Returns {min, dist, out} or
+					// null. Beijing only; pairs with no planner data stay
+					// null (never invented).
+					transferEstFor(r, i) {
+						if (this.city !== 'bj') return null;
+						if (!i || !r || !r.segments) return null;
+						var segs = r.segments;
+						if (i >= segs.length) return null;
+						var info = this.bjTransferTimes && this.bjTransferTimes[segs[i].from];
+						if (!info) return null;
+						var e = info[segs[i - 1].line + '>' + segs[i].line];
+						return e || null;
+					},
 					// Tap a transfer station in a route option: select the
 					// route and focus its transfer detail (the boundary
 					// after segment si). Tap again to dismiss.
@@ -3520,14 +3546,17 @@ function titlePy(py) {
 						}
 						list.sort(function (a, b) { return a.dist - b.dist; });
 						this.userLat = lat; this.userLng = lng;
-						this.smartList = list.filter(function (x) { return x.dist <= 1; });
-						this.stripList = list.filter(function (x) { return x.dist <= 1.5; });
+						this.smartList = list.filter(function (x) { return x.dist <= 1.5; });
+						this.stripList = list.filter(function (x) { return x.dist <= 2; });
 						if (this.tab === 'map' && list.length) {
 							var _nr = list[0];
 							if (_nr && _nr.st && _nr.st.x && _nr.st.y) locateStation(_nr.st);
 						}
-						this.nearbyList = list.slice(0, 5);
-						if (!this.nearbyList.length) { this.nearbyMsg = this.t('tr.nearby.nodata'); this.nearbyNote = ''; }
+						// Display cap (user 2026-11-20): only stations
+						// within 1.5 km, and never anything beyond 2 km.
+						this.nearbyList = list.filter(function (x) { return x.dist <= 1.5; }).slice(0, 5);
+						if (!list.length) { this.nearbyMsg = this.t('tr.nearby.nodata'); this.nearbyNote = ''; }
+						else if (!this.nearbyList.length) { this.nearbyMsg = this.t('tr.nearby.none2km'); this.nearbyNote = ''; }
 						else if (have < sts.length) { this.nearbyNote = this.t('tr.nearby.partial', {have: have, total: sts.length}); }
 						else { this.nearbyNote = ''; }
 					},

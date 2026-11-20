@@ -82,11 +82,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var subHeaderGlass: UIVisualEffectView!
     var subHeaderTitle: UILabel!
     var subHeaderHeightConstraint: NSLayoutConstraint?
-    // Sub-view header scroll state (user 2026-11-20): at rest the 40pt
-    // back button floats on its own; once the web reports the sub-view
-    // scrolled, the glass strip + title appear in the safe area and
-    // (timetable detail) the button docks into the strip.
+    // Sub-view header state (user 2026-11-20, latest instruction
+    // 22:53: "安全区的按钮参考第二张效果 上移一下" — the reference is
+    // the iOS Settings Accessibility page): while ANY sub-view is open
+    // the glass strip + centred title fill the safe-area header and
+    // the 40pt back button docks inside it at the standard navigation
+    // position, at rest AND scrolled alike. This replaces the earlier
+    // same-day design (button floating alone at rest over the web's
+    // big title, strip only after scrolling) — the timetable detail
+    // keeps its title in the web's own .tt-title row, so its strip
+    // carries no centred title, but its button docks the same way.
     var subScrolled = false
+    // True while the sub-view chrome (glass strip + back button) is
+    // fading out after a close; a re-open during the fade cancels it.
+    var subChromeClosing = false
     var subDockTitle: String?
     var subTimetableMode = false
     var subFrameCenter: (x: CGFloat, y: CGFloat)?
@@ -433,8 +442,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // scripts run, so the web's savedLang() can follow the system
         // language when the user has no explicit in-app choice (see
         // systemLang()), and the web can clear the top tab bar on iPad.
+        // Splash state injection (2026-11-20, second fix for "每个城市都
+        // 显示北京 / 没有深色模式"): the web's file:// localStorage did
+        // not survive on the user's device — the launch restore read
+        // nothing back, so the web overlay stayed on Beijing + light
+        // even though the native side held the right values.
+        // UserDefaults is now the single source of truth: inject the
+        // persisted city + theme + effective dark flag at document
+        // start and let the web prefer them over localStorage.
         let _isPadStr = UIDevice.current.userInterfaceIdiom == .pad ? "true" : "false"
-        let _langScript = WKUserScript(source: "window._metroSystemLang = '\(Self.systemLang())'; window._metroIsPad = \(_isPadStr);", injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        let _initCity = currentCity
+        let _initTheme = UserDefaults.standard.string(forKey: "metro-theme") ?? "system"
+        let _initDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        let _langScript = WKUserScript(source: "window._metroSystemLang = '\(Self.systemLang())'; window._metroIsPad = \(_isPadStr); window._metroInitCity = '\(_initCity)'; window._metroInitTheme = '\(_initTheme)'; window._metroInitDark = \(_initDark);", injectionTime: .atDocumentStart, forMainFrameOnly: true)
         config.userContentController.addUserScript(_langScript)
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
@@ -631,6 +651,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // web's own sub-view head is collapsed in the native app, the
         // content scrolls underneath the glass, and the back button
         // sits in the strip at the standard navigation position.
+        // (User 2026-11-20 22:53: the strip now shows for the whole
+        // time a sub-view is open — see applySubScrollState.)
         subHeaderGlass = makeGlassEffectView()
         subHeaderGlass.translatesAutoresizingMaskIntoConstraints = false
         subHeaderGlass.isHidden = true
@@ -784,6 +806,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // Docked position: inside the 44pt safe-area header strip — the
     // 40pt button centred in it (2pt inset), standard nav leading.
+    // The top constraint is anchored to the safe area on iPhone, so
+    // constant 2 centres the button in the strip; on iPad it is
+    // anchored to the tab bar's bottom edge, whose strip is exactly
+    // 44pt, so the same constant applies.
     func dockSubViewBackButton() {
         subBackLeadingConstraint?.constant = 16
         subBackTopConstraint?.constant = 2
@@ -793,44 +819,39 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         dockSubViewBackButton()
     }
 
-    // Apply the scroll state (user 2026-11-20): the glass strip and
-    // its centred title are visible only while the sub-view is
-    // scrolled; at rest the back button floats on its own. In
-    // timetable mode the button also moves between its frame-synced
-    // spot (at rest) and the docked spot inside the strip (scrolled).
+    // Apply the header state (user 2026-11-20 22:53, superseding the
+    // same-day "strip only after scrolling" design): while a sub-view
+    // is open, the glass strip + centred title are always shown in the
+    // safe-area header and the back button is always docked inside it
+    // at the standard navigation position — the layout of the iOS
+    // Settings sub-pages the user screenshotted (更新内容 / 无障碍).
+    // Settings sub-views carry their title in the strip; the
+    // timetable detail keeps its title in the web's .tt-title row, so
+    // its strip shows no centred title but the button docks the same.
+    // The strip is hidden only when no sub-view is open (handled by
+    // setSubChromeVisible(false) in the subView message handler).
     func applySubScrollState(animated: Bool) {
         guard let glass = subHeaderGlass else { return }
-        let showStrip = subScrolled && (subDockTitle != nil)
+        let showStrip = subViewBackButton != nil && !subViewBackButton.isHidden
         if showStrip {
             subHeaderTitle.text = subDockTitle
             subHeaderHeightConstraint?.constant = (UIDevice.current.userInterfaceIdiom == .pad) ? 44 : view.safeAreaInsets.top + 44
         }
-        let changes = {
-            if showStrip {
-                glass.isHidden = false
-                glass.alpha = 1
-                self.view.bringSubviewToFront(glass)
-                if let button = self.subViewBackButton { self.view.bringSubviewToFront(button) }
-            } else {
-                glass.alpha = 0
-            }
-            if self.subTimetableMode {
-                if self.subScrolled {
-                    self.dockSubViewBackButton()
-                } else if let c = self.subFrameCenter {
-                    self.positionSubViewBackButton(centerX: c.x, centerY: c.y)
-                }
-            }
-            self.view.layoutIfNeeded()
+        // Visibility and alpha are owned by setSubChromeVisible (the
+        // open/close fade); here we only refresh the title, the strip
+        // height and the docked button position.
+        if showStrip {
+            glass.isHidden = false
+            self.view.bringSubviewToFront(glass)
+            if let button = self.subViewBackButton { self.view.bringSubviewToFront(button) }
+            self.dockSubViewBackButton()
         }
         if animated {
-            UIView.animate(withDuration: 0.22, delay: 0, options: [.curveEaseOut], animations: changes) { _ in
-                if !showStrip { glass.isHidden = true }
+            UIView.animate(withDuration: 0.22, delay: 0, options: [.curveEaseOut]) {
+                self.view.layoutIfNeeded()
             }
         } else {
-            changes()
-            glass.isHidden = !showStrip
-            glass.alpha = showStrip ? 1 : 0
+            self.view.layoutIfNeeded()
         }
     }
 
@@ -840,16 +861,62 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         applySubScrollState(animated: true)
     }
 
-    // Leave sub-view mode entirely (sub-view closed): hide the strip
-    // and forget the scroll state, dock title and frame centre.
+    // Leave sub-view mode entirely (sub-view closed): forget the
+    // scroll state, dock title and frame centre. Visibility of the
+    // strip and button is owned by setSubChromeVisible (the fade).
     func setSubViewHeader(title: String?) {
         if title == nil {
             subDockTitle = nil
             subTimetableMode = false
             subFrameCenter = nil
             subScrolled = false
-            subHeaderGlass?.alpha = 0
-            subHeaderGlass?.isHidden = true
+        }
+    }
+
+    // Animate the sub-view chrome (glass strip + title + back button)
+    // in and out (user 2026-11-20 23:01: exiting a Settings sub-view
+    // snapped shut with no animation). The web content already slides
+    // over 0.28s (the .more-sub Vue transition), so the native chrome
+    // fades over the same 0.28s. Show: unhide at alpha 0, then fade to
+    // 1. Hide: fade to 0, then hide for real and restore alpha 1 so
+    // the next show starts clean. A re-open during the fade-out
+    // cancels it (subChromeClosing flag + removing the animations).
+    func setSubChromeVisible(_ visible: Bool) {
+        guard let glass = subHeaderGlass, let button = subViewBackButton else { return }
+        if visible {
+            subChromeClosing = false
+            glass.layer.removeAllAnimations()
+            button.layer.removeAllAnimations()
+            let wasHidden = glass.isHidden && button.isHidden
+            glass.isHidden = false
+            button.isHidden = false
+            view.bringSubviewToFront(glass)
+            view.bringSubviewToFront(button)
+            if wasHidden {
+                glass.alpha = 0
+                button.alpha = 0
+                UIView.animate(withDuration: 0.28, delay: 0, options: [.curveEaseOut]) {
+                    glass.alpha = 1
+                    button.alpha = 1
+                }
+            } else {
+                glass.alpha = 1
+                button.alpha = 1
+            }
+        } else {
+            guard !glass.isHidden || !button.isHidden else { return }
+            subChromeClosing = true
+            UIView.animate(withDuration: 0.28, delay: 0, options: [.curveEaseInOut], animations: {
+                glass.alpha = 0
+                button.alpha = 0
+            }) { [weak self] _ in
+                guard let self = self, self.subChromeClosing else { return }
+                self.subChromeClosing = false
+                glass.isHidden = true
+                button.isHidden = true
+                glass.alpha = 1
+                button.alpha = 1
+            }
         }
     }
 
@@ -2649,6 +2716,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             if let dict = message.body as? [String: Any],
                let dark = dict["dark"] as? Bool {
                 UserDefaults.standard.set(dark, forKey: "metro-dark")
+                // Also persist the web's theme MODE (system/light/dark)
+                // when the report carries it, so the launch injection
+                // can hand the web its exact previous appearance state.
+                if let mode = dict["theme"] as? String {
+                    UserDefaults.standard.set(mode, forKey: "metro-theme")
+                }
                 // Correct the launch poster in place if the launch
                 // pick used a stale appearance (2026-11-20 fix).
                 refreshSplashImage()
@@ -2742,10 +2815,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // {open: Bool} whenever sub-view open-state changes — open is
             // true while any Settings sub-view or a timetable line detail
             // is open, false otherwise. It also posts {scroll: Bool}
-            // while a sub-view is open (user 2026-11-20: at rest the
-            // button floats alone; scrolled, the glass strip + title
-            // appear in the safe area and the timetable button docks
-            // into it). Malformed bodies are ignored.
+            // while a sub-view is open (kept only as a state record now;
+            // user 2026-11-20 22:53: the header is always shown while a
+            // sub-view is open, scrolled or not). Malformed bodies are
+            // ignored.
             if let dict = message.body as? [String: Any] {
                 if let scrolled = dict["scroll"] as? Bool {
                     if let button = subViewBackButton, !button.isHidden {
@@ -2758,28 +2831,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                             subTimetableMode = false
                             subDockTitle = title
                             subFrameCenter = nil
-                            dockSubViewBackButton()
                         } else {
                             subTimetableMode = true
-                            subDockTitle = dict["ttTitle"] as? String
+                            // The timetable detail keeps its title in the
+                            // web's .tt-title row, so the native strip
+                            // shows no centred title for it.
+                            subDockTitle = nil
                             if let cx = dict["cx"] as? NSNumber, let cy = dict["cy"] as? NSNumber {
                                 subFrameCenter = (CGFloat(cx.doubleValue), CGFloat(cy.doubleValue))
-                                if subScrolled {
-                                    dockSubViewBackButton()
-                                } else {
-                                    positionSubViewBackButton(centerX: CGFloat(cx.doubleValue), centerY: CGFloat(cy.doubleValue))
-                                }
-                            } else if subScrolled {
-                                dockSubViewBackButton()
-                            } else {
-                                resetSubViewBackButtonPosition()
                             }
                         }
+                        dockSubViewBackButton()
                         applySubScrollState(animated: false)
+                        setSubChromeVisible(true)
                     } else {
                         setSubViewHeader(title: nil)
+                        setSubChromeVisible(false)
                     }
-                    setSubViewBackButtonVisible(open)
                 }
             }
         } else if message.name == "openLanguage" {
