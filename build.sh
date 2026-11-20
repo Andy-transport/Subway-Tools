@@ -41,45 +41,43 @@ mkdir -p build/Payload/Metro.app/web
 # (AppIntents.swift, user 2026-11-18) are in the binary and the
 # AppShortcutsProvider is discovered. AppIntents exists on iOS 16.0+,
 # so it is linked normally, not weak.
-# Two-phase compile (Siri round 5, 2026-11-20; phase 1 fixed in
-# round 5b after run #87 failed with "cannot specify -o when
-# generating multiple output files"; round 5c after run #89 failed
-# with "filename AppDelegate.swift used twice"): phase 1 compiles
-# each source separately with -emit-const-values, phase 2 links.
-# Rounds 1-4 passed -emit-const-values to a single compile+link
-# invocation and the metadata processor still reported "No
-# swiftconstvalues found" (run #86 log) — the driver only emits the
-# .swiftconstvalues file in -c mode, exactly like Xcode's separate
-# compile/link steps. The file lands next to the objects in
-# build/obj. Phase 1 must compile the files one at a time (Xcode
-# does the same per-file): a single -c invocation over all sources
-# still emits a module-level .o (the -num-threads 0 whole-module
-# artifact), and the driver refuses -o when a compile produces
-# multiple outputs. Per-file, the driver counts -primary-file as an
-# input file, so the primary file must NOT be repeated in the
-# positional list (that is the run #89 duplicate-filename error);
-# pass it once via -primary-file and the remaining files after it.
+# Compile strategy (Siri round 6, 2026-11-21): back to the single
+# compile+link invocation that built every shipped IPA (#84-#86).
+# The round-5 per-file -primary-file batch compiles failed three
+# runs in a row (#87 "cannot specify -o when generating multiple
+# output files", #89 "filename AppDelegate.swift used twice", #90
+# the #87 error again): with this invocation shape the driver warns
+# "save unknown driver flag -primary-file as additional
+# swift-frontend flag" — it forwards -primary-file to the frontend
+# instead of honouring it, so the batch semantics never engage.
+# Do not reintroduce -primary-file here.
+# Const values: the metadata processor below needs a
+# .swiftconstvalues for the App Intents declarations. Harvest one
+# best-effort by compiling AppIntents.swift ALONE (single input, so
+# -c -o is legal and no -primary-file is needed) into a throwaway
+# object that is never linked; the real binary is compiled from all
+# sources by the main invocation right after. Non-fatal on purpose:
+# if the solo compile ever fails (e.g. AppIntents.swift gains
+# references to other app types), the build continues without Siri
+# metadata, exactly like builds #84-#86.
 mkdir -p build/obj
 SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
-for src in $SWIFT_SOURCES; do
-  obj="build/obj/$(basename "${src%.swift}").o"
-  others=""
-  for f in $SWIFT_SOURCES; do
-    if [ "$f" != "$src" ]; then others="$others $f"; fi
-  done
-  xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
-    -module-name Metro -c \
-    -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-    -primary-file "$src" $others -o "$obj"
-done
-ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 \
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
+  -module-name Metro -c \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  build/obj/*.o -o build/Payload/Metro.app/Metro
+  app/AppIntents.swift -o build/obj/AppIntents-harvest.o \
+  || echo "WARNING: AppIntents const-values harvest failed; continuing without Siri metadata"
+ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
+  -module-name Metro \
+  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
+  $SWIFT_SOURCES -o build/Payload/Metro.app/Metro
 # The metadata processor locates the module's const values beside the
 # binary (Xcode leaves them in the products dir during its run); copy
-# it in for the extraction step and remove it before packaging.
-cp build/obj/*.swiftconstvalues build/Payload/Metro.app/ 2>/dev/null || echo "WARNING: no swiftconstvalues to place beside the binary"
+# any harvested file in for the extraction step; it is removed again
+# before packaging (see the rm after the processors below).
+find build/obj build/Payload/Metro.app -name "*.swiftconstvalues" -exec cp {} build/Payload/Metro.app/ \; 2>/dev/null || true
+ls build/Payload/Metro.app/*.swiftconstvalues 2>/dev/null || echo "WARNING: no swiftconstvalues beside the binary"
 
 echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
 # A raw swiftc build skips Xcode's AppIntents metadata extraction, so
