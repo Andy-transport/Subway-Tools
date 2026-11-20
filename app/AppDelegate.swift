@@ -943,6 +943,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 picker.onThemeChange = { [weak self] key in
                     self?.applyAppearanceTheme(key)
                 }
+                picker.lightPreview.refreshPoster(city: self.currentCity)
+                picker.darkPreview.refreshPoster(city: self.currentCity)
                 picker.configure(theme: theme, effectiveDark: effectiveDark)
                 picker.translatesAutoresizingMaskIntoConstraints = false
                 // Entry animation (user 2026-11-19, 进入动画优化）:

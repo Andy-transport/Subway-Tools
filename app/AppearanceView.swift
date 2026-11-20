@@ -2,12 +2,13 @@ import UIKit
 
 // Native Appearance picker (user 2026-11-19, 外观 → Apple UI SDK 27.2):
 // two preview cards (Light / Dark) side by side with radio circles below,
-// plus an 自动 (Automatic) row with a UISwitch. The preview cards are
-// built natively: a plain "北京" text label (system font, blue — NOT the
-// calligraphic wordmark/logo) + a simple line diagram drawn with
-// CAShapeLayer + a "配线查询" label. The view's own background follows the
-// current appearance (.systemBackground); the two preview cards are FIXED
-// light (#fff) and dark (#000) so they show what each mode looks like.
+// plus an 自动 (Automatic) row with a UISwitch. The preview cards show
+// the CURRENT city's own splash poster (user 2026-11-20: 这个图按切换的
+// 城市调整） — the light card the light poster, the dark card the dark
+// poster, loaded from the same bundle images the launch splash uses.
+// The view's own background follows the current appearance
+// (.systemBackground); the two preview cards are FIXED light/dark so
+// they show what each mode looks like.
 final class AppearanceView: UIView {
 
     var onThemeChange: ((String) -> Void)?
@@ -19,8 +20,8 @@ final class AppearanceView: UIView {
     private let cardView = UIView()
     private let lightColumn = UIView()
     private let darkColumn = UIView()
-    private let lightPreview = PreviewCardView(dark: false)
-    private let darkPreview = PreviewCardView(dark: true)
+    let lightPreview = PreviewCardView(dark: false)
+    let darkPreview = PreviewCardView(dark: true)
     private let lightNameLabel = UILabel()
     private let darkNameLabel = UILabel()
     private let lightRadio = UIButton(type: .system)
@@ -227,125 +228,63 @@ final class AppearanceView: UIView {
     }
 }
 
-// One Light/Dark preview card: fixed background, a plain "北京" text
-// label, a simple line diagram, "配线查询" and a small English caption.
+// One Light/Dark preview card: the CURRENT city's splash poster for
+// this mode, filling the whole card (user 2026-11-20: the previews
+// follow the selected city, and the posters no longer carry the
+// 配线查询 block). The image is the same bundle asset the launch
+// splash shows (SplashXX / SplashXXDark), so the card always matches
+// what starting the app in that city + mode looks like.
 final class PreviewCardView: UIView {
     private let dark: Bool
-    private let cityLabel = UILabel()
-    private let diagram: PreviewDiagramView
-    private let queryLabel = UILabel()
-    private let captionLabel = UILabel()
+    private let posterView = UIImageView()
 
     init(dark: Bool) {
         self.dark = dark
-        self.diagram = PreviewDiagramView(dark: dark)
         super.init(frame: .zero)
         backgroundColor = dark ? .black : .white
         layer.cornerRadius = 20
         clipsToBounds = true
 
-        cityLabel.text = "北京"
-        cityLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
-        cityLabel.textColor = UIColor(red: 0.05, green: 0.32, blue: 0.72, alpha: 1)
-        cityLabel.textAlignment = .center
-
-        queryLabel.text = "配线查询"
-        queryLabel.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
-        queryLabel.textColor = dark ? .white : .black
-        queryLabel.textAlignment = .center
-
-        captionLabel.text = "BEIJING SUBWAY · TRACK LAYOUT LOOKUP"
-        captionLabel.font = UIFont.systemFont(ofSize: 6.5, weight: .regular)
-        captionLabel.textColor = .systemGray
-        captionLabel.textAlignment = .center
-        captionLabel.adjustsFontSizeToFitWidth = true
-        captionLabel.minimumScaleFactor = 0.7
-
-        for v in [cityLabel, diagram, queryLabel, captionLabel] {
-            v.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(v)
-        }
+        posterView.contentMode = .scaleAspectFill
+        posterView.clipsToBounds = true
+        posterView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(posterView)
         NSLayoutConstraint.activate([
-            cityLabel.topAnchor.constraint(equalTo: topAnchor, constant: 18),
-            cityLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            cityLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-
-            diagram.topAnchor.constraint(equalTo: cityLabel.bottomAnchor, constant: 10),
-            diagram.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
-            diagram.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
-            diagram.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.45),
-
-            queryLabel.topAnchor.constraint(equalTo: diagram.bottomAnchor, constant: 10),
-            queryLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            queryLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-
-            captionLabel.topAnchor.constraint(equalTo: queryLabel.bottomAnchor, constant: 6),
-            captionLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            captionLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            captionLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -12),
+            posterView.topAnchor.constraint(equalTo: topAnchor),
+            posterView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            posterView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            posterView.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
+        refreshPoster()
+    }
+
+    // Load this card's poster for the given city key, mirroring
+    // refreshSplashImage()'s naming: SplashXX, dark prefers
+    // SplashXXDark and falls back to the light poster, then Beijing.
+    func refreshPoster(city: String = "bj") {
+        let base: String
+        switch city {
+        case "sy": base = "SplashSY"
+        case "sh": base = "SplashSH"
+        case "hb": base = "SplashHB"
+        case "dl": base = "SplashDL"
+        case "jh": base = "SplashJH"
+        case "cz": base = "SplashCZ"
+        case "cq": base = "SplashCQ"
+        case "cc": base = "SplashCC"
+        case "sz": base = "SplashSZ"
+        case "cd": base = "SplashCD"
+        case "qd": base = "SplashQD"
+        default: base = "Splash"
+        }
+        if dark, let img = UIImage(named: base + "Dark") {
+            posterView.image = img
+        } else {
+            posterView.image = UIImage(named: base) ?? UIImage(named: "Splash")
+        }
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-}
-
-// Simple line diagram: a thin circle with a red polyline + end dots,
-// drawn to the view's bounds in layoutSubviews.
-fileprivate final class PreviewDiagramView: UIView {
-    private let dark: Bool
-    private let circleLayer = CAShapeLayer()
-    private let lineLayer = CAShapeLayer()
-    private let startDot = CAShapeLayer()
-    private let endDot = CAShapeLayer()
-
-    init(dark: Bool) {
-        self.dark = dark
-        super.init(frame: .zero)
-        backgroundColor = .clear
-        circleLayer.fillColor = UIColor.clear.cgColor
-        circleLayer.strokeColor = (dark ? UIColor.systemGray : UIColor.systemGray4).cgColor
-        circleLayer.lineWidth = 1
-        lineLayer.fillColor = UIColor.clear.cgColor
-        lineLayer.strokeColor = UIColor(red: 0.89, green: 0.0, blue: 0.10, alpha: 1).cgColor
-        lineLayer.lineWidth = 1.5
-        lineLayer.lineJoin = .round
-        lineLayer.lineCap = .round
-        startDot.fillColor = lineLayer.strokeColor
-        endDot.fillColor = lineLayer.strokeColor
-        layer.addSublayer(circleLayer)
-        layer.addSublayer(lineLayer)
-        layer.addSublayer(startDot)
-        layer.addSublayer(endDot)
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        let w = bounds.width
-        let h = bounds.height
-        guard w > 0, h > 0 else { return }
-        let cx = w / 2
-        let cy = h / 2
-        let r = min(w, h) * 0.42
-        circleLayer.frame = bounds
-        circleLayer.path = UIBezierPath(arcCenter: CGPoint(x: cx, y: cy), radius: r, startAngle: 0, endAngle: .pi * 2, clockwise: true).cgPath
-        let p1 = CGPoint(x: w * 0.12, y: h * 0.40)
-        let p2 = CGPoint(x: w * 0.32, y: h * 0.60)
-        let p3 = CGPoint(x: w * 0.88, y: h * 0.60)
-        let line = UIBezierPath()
-        line.move(to: p1)
-        line.addLine(to: p2)
-        line.addLine(to: p3)
-        lineLayer.frame = bounds
-        lineLayer.path = line.cgPath
-        startDot.frame = bounds
-        startDot.path = UIBezierPath(arcCenter: p1, radius: 2.5, startAngle: 0, endAngle: .pi * 2, clockwise: true).cgPath
-        endDot.frame = bounds
-        endDot.path = UIBezierPath(arcCenter: p3, radius: 2.5, startAngle: 0, endAngle: .pi * 2, clockwise: true).cgPath
     }
 }
