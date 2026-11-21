@@ -1,9 +1,7 @@
 name: Build Metro IPA
 
-
 on:
   workflow_dispatch:
-
 
 jobs:
   build:
@@ -18,4 +16,3 @@ jobs:
           name: Subway Tools
           path: build/Subway Tools.ipa
           if-no-files-found: error
-
