@@ -72,10 +72,14 @@ EOF
 SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -const-gather-protocols-list build/Metro_const_extract_protocols.json \
-  -module-name Metro -c \
+  -module-name Metro -emit-module-path build/obj/Metro.swiftmodule -c \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   app/AppIntents.swift -o build/obj/AppIntents-harvest.o \
   || echo "WARNING: AppIntents const-values harvest failed; continuing without Siri metadata"
+echo "== Siri experiment 6 =="
+echo "-- E6: harvest now also emits the module file (-emit-module-path build/obj/Metro.swiftmodule) --"
+ls -la build/obj/Metro.swiftmodule 2>/dev/null || echo "Metro.swiftmodule: ABSENT"
+for f in build/obj/*.swiftconstvalues; do if [ -f "$f" ]; then echo "E6 harvest constvalues: $f = $(wc -c < "$f") bytes"; fi; done
 echo "== Siri experiment 4 =="
 echo "-- H1: solo-harvest const values (protocols list, restructured AppIntents.swift) --"
 ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
@@ -157,6 +161,54 @@ xcrun appintentsnltrainingprocessor \
 ls -la build/Payload/Metro.app/Metadata.appintents || true
 echo "-- E4 result: Metadata.appintents --"
 ls -la build/Payload/Metro.app/Metadata.appintents 2>/dev/null || echo "Metadata.appintents: ABSENT"
+
+echo "== Siri experiment 6: processor cwd matrix =="
+# Siri experiment 6: exp5 ruled out filename/location in build/obj and
+# the .app. Remaining hypotheses: appintentsmetadataprocessor locates
+# the module's const values (a) relative to the compiled .swiftmodule —
+# the harvest now emits build/obj/Metro.swiftmodule, so the standard
+# invocation above (P1, cwd=root) doubles as the swiftmodule test —
+# and/or (b) relative to its working directory. P2/P3 rerun the
+# IDENTICAL processor command from different working directories, each
+# writing to its own output path under build/exp6/ so the results are
+# distinguishable. All paths in the reruns are absolute because the cwd
+# changes. This block runs BEFORE the rm of the staged .swiftconstvalues
+# below, so the reruns see the same staged inputs as P1.
+ROOT="$PWD"
+mkdir -p build/exp6
+echo "-- E6 P2 (cwd=build/obj) --"
+( cd build/obj && xcrun appintentsmetadataprocessor \
+  --toolchain-dir "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain" \
+  --module-name Metro \
+  --platform-family iOS \
+  --deployment-target 16.0 \
+  --bundle-identifier com.andytransport.metro \
+  --target-triple arm64-apple-ios16.0 \
+  --xcode-version "$(xcodebuild -version | tail -1 | awk '{print $NF}')" \
+  --sdk-root "$(xcrun -sdk iphoneos --show-sdk-path)" \
+  --binary-file "$ROOT/build/Payload/Metro.app/Metro" \
+  --source-files "$ROOT/app/AppDelegate.swift" "$ROOT/app/AppIntents.swift" "$ROOT/app/SearchConditionsViewController.swift" "$ROOT/app/AppearanceView.swift" "$ROOT/app/LanguageView.swift" "$ROOT/app/LiveActivity/TripAttributes.swift" \
+  --output "$ROOT/build/exp6/P2.appintents" ) || true
+ls -la build/exp6/P2.appintents 2>/dev/null || echo "P2.appintents: ABSENT"
+echo "-- E6 P3 (cwd=build/Payload/Metro.app) --"
+( cd build/Payload/Metro.app && xcrun appintentsmetadataprocessor \
+  --toolchain-dir "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain" \
+  --module-name Metro \
+  --platform-family iOS \
+  --deployment-target 16.0 \
+  --bundle-identifier com.andytransport.metro \
+  --target-triple arm64-apple-ios16.0 \
+  --xcode-version "$(xcodebuild -version | tail -1 | awk '{print $NF}')" \
+  --sdk-root "$(xcrun -sdk iphoneos --show-sdk-path)" \
+  --binary-file "$ROOT/build/Payload/Metro.app/Metro" \
+  --source-files "$ROOT/app/AppDelegate.swift" "$ROOT/app/AppIntents.swift" "$ROOT/app/SearchConditionsViewController.swift" "$ROOT/app/AppearanceView.swift" "$ROOT/app/LanguageView.swift" "$ROOT/app/LiveActivity/TripAttributes.swift" \
+  --output "$ROOT/build/exp6/P3.appintents" ) || true
+ls -la build/exp6/P3.appintents 2>/dev/null || echo "P3.appintents: ABSENT"
+echo "-- E6 summary --"
+e6_check() { if [ -e "$2" ]; then echo "E6 $1: EXISTS ($(du -sh "$2" 2>/dev/null | cut -f1)) — $2"; else echo "E6 $1: ABSENT — $2"; fi; }
+e6_check "P1 standard (cwd=root, harvest emitted Metro.swiftmodule)" "build/Payload/Metro.app/Metadata.appintents"
+e6_check "P2 (cwd=build/obj)" "build/exp6/P2.appintents"
+e6_check "P3 (cwd=build/Payload/Metro.app)" "build/exp6/P3.appintents"
 # The const-values file was build-time input for the extraction step
 # only; it is not part of the app bundle Xcode would ship.
 rm -f build/Payload/Metro.app/*.swiftconstvalues
