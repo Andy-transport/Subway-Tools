@@ -429,7 +429,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
            ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd"].contains(saved) {
             currentCity = saved
         }
-        view.backgroundColor = UIColor(red: 12.0 / 255.0, green: 15.0 / 255.0, blue: 22.0 / 255.0, alpha: 1) // #0c0f16, the web's dark background (build 63): nothing white shows through while the page loads or at the edges.
+        view.backgroundColor = rootBackgroundColor() // Theme-following (white in light, #0c0f16 in dark): on the unfolded Duo the area beside the sidebar blends with the page instead of showing as a black edge (user 2026-11-21).
 
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "tabChanged")
@@ -768,6 +768,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
+        view.backgroundColor = rootBackgroundColor()
         updateSideBarLayout()
     }
 
@@ -1129,7 +1130,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         NSLayoutConstraint.activate([
             cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
             cityPill.topAnchor.constraint(equalTo: pillTopAnchor, constant: 10),
-            mapToolsPill.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            mapToolsPill.trailingAnchor.constraint(equalTo: webView.trailingAnchor, constant: -12), // The content's right edge: with the Duo sidebar active this sits just left of the sidebar; otherwise it is the screen edge (the safe area inset left it floating mid-screen on the Duo).
             mapToolsPill.topAnchor.constraint(equalTo: pillTopAnchor, constant: 10),
             mapToolsPill.heightAnchor.constraint(equalToConstant: 36),
             locateButton.leadingAnchor.constraint(equalTo: mapToolsPill.leadingAnchor, constant: 4),
@@ -2471,7 +2472,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
         NSLayoutConstraint.activate([
             sideBar.widthAnchor.constraint(equalToConstant: 64),
-            sideBar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            sideBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12), // Real screen edge, NOT the safe area: on the unfolded Duo the safe area's trailing inset is huge and left a ~20% black strip with the sidebar floating at its inner edge (user 2026-11-21).
             sideBar.centerYAnchor.constraint(equalTo: view.centerYAnchor),
         ])
     }
@@ -2501,11 +2502,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return cfg
     }
 
+    // Root background colour for the current app appearance: white in
+    // light mode, #0c0f16 (the web's dark background) in dark mode.
+    func rootBackgroundColor() -> UIColor {
+        let dark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        return dark ? UIColor(red: 12.0 / 255.0, green: 15.0 / 255.0, blue: 22.0 / 255.0, alpha: 1) : .white
+    }
+
     // Wide iPhone = Duo unfolded (also a large iPhone in landscape,
     // which is acceptable adaptive behaviour). iPad never gets the
-    // sidebar — it keeps the bottom floating tab bar.
+    // sidebar — it keeps the bottom floating tab bar. The Duo unfolded
+    // in PORTRAIT is ~690pt wide — under the 700 threshold but far
+    // beyond any regular iPhone's portrait width (<= 440pt) — so a
+    // portrait width >= 600 also counts (user 2026-11-21: on the Duo
+    // the bottom bar must become the vertical right sidebar).
     func sideBarShouldShow() -> Bool {
-        return UIDevice.current.userInterfaceIdiom == .phone && view.bounds.width >= 700
+        if UIDevice.current.userInterfaceIdiom != .phone { return false }
+        let w = view.bounds.width
+        let h = view.bounds.height
+        return w >= 700 || (h > w && w >= 600)
     }
 
     // Switch between sidebar (wide iPhone) and bottom tab bar
@@ -2764,6 +2779,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 // Correct the launch poster in place if the launch
                 // pick used a stale appearance (2026-11-20 fix).
                 refreshSplashImage()
+                view.backgroundColor = rootBackgroundColor()
             }
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
