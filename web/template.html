@@ -594,7 +594,7 @@
 			color: #000;
 		}
 
-		.map-strip { position: fixed; left: 12px; right: 12px; bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 99900; background: #fff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+		.map-strip { position: fixed; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 99900; background: #fff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
 		html.dark .map-strip { background: #2c2c2e; }
 		.map-strip-row { display: flex; gap: 8px; overflow-x: auto; padding: 6px 2px; scrollbar-width: none; }
 		.map-strip-row::-webkit-scrollbar { display: none; }
@@ -602,7 +602,7 @@
 		html.dark .map-strip-chip { background: #2c2c2e; color: #fff; }
 		.map-strip-none { background: #fff; color: #000; border-radius: 12px; padding: 10px 14px; font-size: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
 		html.dark .map-strip-none { background: #2c2c2e; color: #fff; }
-		.map-loc-msg { position: fixed; left: 12px; right: 12px; bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 99900; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.95); color: #000; border-radius: 12px; padding: 10px 12px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
+		.map-loc-msg { position: fixed; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 99900; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.95); color: #000; border-radius: 12px; padding: 10px 12px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
 		html.dark .map-loc-msg { background: rgba(44,44,46,0.95); color: #fff; }
 		.map-loc-msg span { flex: 1; }
 		.map-loc-msg button { border: none; background: #007aff; color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; }
@@ -710,6 +710,12 @@
 			border-radius: 0;
 			box-shadow: none;
 			padding: calc(env(safe-area-inset-top) + 20px) 20px calc(100px + env(safe-area-inset-bottom));
+			/* Landscape Dynamic Island (phone): the island eats ~59px of
+			   the left/right safe area in landscape, so the fixed 20px
+			   side padding would let content slide under it. Portrait
+			   insets are 0, so portrait renders exactly as before. */
+			padding-left: max(20px, env(safe-area-inset-left));
+			padding-right: max(20px, env(safe-area-inset-right));
 		}
 		html.dark #moreSheet { background: #000000; }
 		/* iPad top tab bar (build 74): the native floating tab bar sits at

@@ -455,7 +455,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
            ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(saved) {
             currentCity = saved
         }
-        view.backgroundColor = rootBackgroundColor() // Theme-following (white in light, #0c0f16 in dark): on the unfolded Duo the area beside the sidebar blends with the page instead of showing as a black edge (user 2026-11-21).
+        view.backgroundColor = rootBackgroundColor() // Tab- and theme-matched page background: on the unfolded Duo the area beside the sidebar blends with the page instead of showing as an edge (users 2026-11-21, 2026-11-22).
 
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "tabChanged")
@@ -2575,6 +2575,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard index >= 0 && index < tabKeys.count else { return }
         let key = tabKeys[index]
         currentTab = key
+        view.backgroundColor = rootBackgroundColor() // Sidebar strip follows the tab's page background.
         updatePillVisibility()
         updateTransferVisibility()
         updateSideBarSelection()
@@ -2697,25 +2698,47 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return cfg
     }
 
-    // Root background colour for the current app appearance: white in
-    // light mode, #0c0f16 (the web's dark background) in dark mode.
+    // Root background colour: matches the CURRENT TAB's web page
+    // background exactly, per appearance, so the strip beside the Duo
+    // sidebar (the web view stops at the sidebar's leading edge) has
+    // no seam in either theme (user 2026-11-22: in light mode the
+    // strip was bright white beside Settings' lavender page). Web
+    // values (web/template.html): light — #moreSheet #f2f2f7, the map
+    // body and the transfer/stations/timetable panels #ffffff; dark —
+    // #transferPanel/#stationPanel #101420, the map body, #moreSheet
+    // and #timetablePanel #000000 (the html.dark base #0c0f16 is
+    // overridden by body and every panel, so it is never the visible
+    // page background). Refreshed wherever the theme refresh already
+    // happens, plus on every tab change (setWebTab / tabChanged).
     func rootBackgroundColor() -> UIColor {
         let dark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
-        return dark ? UIColor(red: 12.0 / 255.0, green: 15.0 / 255.0, blue: 22.0 / 255.0, alpha: 1) : .white
+        if dark {
+            if currentTab == "transfer" || currentTab == "stations" {
+                return UIColor(red: 16.0 / 255.0, green: 20.0 / 255.0, blue: 32.0 / 255.0, alpha: 1) // #101420
+            }
+            return .black // #000000
+        }
+        if currentTab == "more" {
+            return UIColor(red: 242.0 / 255.0, green: 242.0 / 255.0, blue: 247.0 / 255.0, alpha: 1) // #f2f2f7
+        }
+        return .white // #ffffff
     }
 
-    // Wide iPhone = Duo unfolded (also a large iPhone in landscape,
-    // which is acceptable adaptive behaviour). iPad never gets the
-    // sidebar — it keeps the bottom floating tab bar. The Duo unfolded
-    // in PORTRAIT is ~690pt wide — under the 700 threshold but far
-    // beyond any regular iPhone's portrait width (<= 440pt) — so a
-    // portrait width >= 600 also counts (user 2026-11-21: on the Duo
-    // the bottom bar must become the vertical right sidebar).
+    // Sidebar = iPhone Duo UNFOLDED only (user 2026-11-22: a regular
+    // iPhone keeps the floating BOTTOM tab bar in landscape too — the
+    // old rule, width >= 700 or portrait width >= 600, caught every
+    // landscape iPhone, e.g. 874x402). The Duo's unfolded inner display
+    // is >= 600pt in BOTH dimensions in either orientation (portrait
+    // ~690pt wide, landscape the same canvas swapped), while a regular
+    // iPhone always fails one dimension (portrait width <= 440pt;
+    // landscape height <= 440pt) — and so does the folded Duo (outer
+    // display fails one dimension in both orientations). iPad never
+    // gets the sidebar — it keeps its top tab bar.
     func sideBarShouldShow() -> Bool {
         if UIDevice.current.userInterfaceIdiom != .phone { return false }
         let w = view.bounds.width
         let h = view.bounds.height
-        return w >= 700 || (h > w && w >= 600)
+        return w >= 600 && h >= 600
     }
 
     // Switch between sidebar (wide iPhone) and bottom tab bar
@@ -2949,6 +2972,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
            let tab = message.body as? String,
            let idx = tabKeys.firstIndex(of: tab) {
             currentTab = tab
+            view.backgroundColor = rootBackgroundColor() // Sidebar strip follows the tab's page background.
             updatePillVisibility()
             updateTransferVisibility()
             tabBar.selectedItem = tabBar.items?[idx]
