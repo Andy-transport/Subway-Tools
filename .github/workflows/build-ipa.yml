@@ -1,7 +1,9 @@
 name: Build Metro IPA
 
+
 on:
   workflow_dispatch:
+
 
 jobs:
   build:
@@ -13,6 +15,7 @@ jobs:
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Convenient-transportation-1.0.3-unsigned
-          path: build/Convenient-transportation-1.0.3-unsigned.ipa
+          name: Subway Tools
+          path: build/Subway Tools.ipa
           if-no-files-found: error
+
