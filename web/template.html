@@ -1178,6 +1178,24 @@
 
 
 	<body>
+		<script>
+		/* 26C102: post the resolved city + dark state to the native shell
+		   at parse time — long before Vue mounts — so the launch splash
+		   poster gets an early correction even if the mounted() posts
+		   (cityChanged / themeState) are delayed or lost on device. */
+		try {
+			var _sc = window._metroInitCity || window.localStorage.getItem('metro-city') || 'bj';
+			var _sd = false;
+			if (typeof window._metroInitDark === 'boolean') { _sd = window._metroInitDark; }
+			else {
+				var _st = window._metroInitTheme || window.localStorage.getItem('metro-theme') || 'system';
+				_sd = _st === 'dark' || (_st === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+			}
+			if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.splashState) {
+				window.webkit.messageHandlers.splashState.postMessage({ city: _sc, dark: _sd });
+			}
+		} catch (e) {}
+		</script>
 		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'cc-theme': city === 'cc', 'sz-theme': city === 'sz', 'cd-theme': city === 'cd', 'qd-theme': city === 'qd', 'sjz-theme': city === 'sjz', 'native-app': nativeApp, ['lang-' + lang]: true }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="mapLoadingOverlay" :class="{ hidden: !mapLoading }"><div class="map-loading-box"><div class="map-loading-spin"></div><div class="map-loading-city">{{ cityName }}</div></div></div>
@@ -1427,7 +1445,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C101)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C102)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card">
@@ -1644,7 +1662,7 @@
 						<img class="more-about-icon" :src="appIcon" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C101)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C102)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 				</div>
@@ -2337,7 +2355,12 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
-							{ v: '1.1.0 (26C101)', date: '2026-11-21', lines: [
+							{ v: '1.1.0 (26C102)', date: '2026-11-21', lines: [
+								['修复启动图不跟随所选城市与深色模式的问题（多路持久化）', '修復啟動圖不跟隨所選城市與深色模式的問題（多路持久化）', 'Fixed the launch poster not following the selected city and dark mode (redundant persistence paths)'],
+								['修复子页面顶栏标题串页：打开新页面时标题不再残留上一个页面', '修復子頁面頂欄標題串頁：打開新頁面時標題不再殘留上一個頁面', 'Fixed the sub-page header title carrying over from the previously visited page'],
+								['修复不能滑动的子页面顶部出现横条的问题', '修復不能滑動的子頁面頂部出現橫條的問題', 'Fixed a band appearing at the top of non-scrolling sub-pages'],
+							] },
+						{ v: '1.1.0 (26C101)', date: '2026-11-21', lines: [
 								['启动图修复：切换到哪个城市就显示哪个城市的启动图，并跟随深色模式，上下不再有黑边', '啟動圖修復：切換到哪個城市就顯示哪個城市的啟動圖，並跟隨深色模式，上下不再有黑邊', 'Launch poster fixed: it shows the selected city’s poster, follows dark mode, and no longer has black bars at the top and bottom'],
 								['设置标题与应用名称跟随应用语言显示（中文显示「城轨通」）', '設定標題與應用名稱跟隨應用語言顯示（中文顯示「城軌通」）', 'The Settings title and app name now follow the app language'],
 								['「关于」页面改为浮光样式：居中图标、应用名、标语、版本与声明胶囊', '「關於」頁面改為浮光樣式：居中圖標、應用名、標語、版本與聲明膠囊', 'The About page now follows the Floating Light layout: centred icon, app name, tagline, version and a disclaimer capsule'],
@@ -2845,20 +2868,42 @@ function titlePy(py) {
 							if (!h) return;
 							if (!open) { h.postMessage({ open: false }); return; }
 							var ttT = (this.tab === 'timetable' && this.ttLine && this.ttLineInfo) ? this.ttLineInfo.name : null;
+							// 26C102: resolve the header title DETERMINISTICALLY
+							// from the open page's state flag (the DOM scrape
+							// below stays as a fallback), and flag pages that
+							// cannot scroll so the native header stays fully
+							// transparent on them (no strip, no top band).
+							var expT = null;
+							try {
+								if (this.showWhatsNewSub) expT = (this.relSel >= 0) ? this.t('more.whatsnew.title') : this.t('more.whatsnew');
+								else if (this.showSiriSub) expT = this.t('more.siri');
+								else if (this.showAboutSub) expT = this.t('more.about');
+								else if (this.showGeneralSub) expT = this.t('more.general');
+								else if (this.showBriefingSub) expT = this.t('more.briefing');
+								else if (this.showUpcomingSub) expT = this.t('more.upcoming');
+								else if (this.showTrainSub) expT = this.t('more.trains');
+								else if (this.showAppearanceSub) expT = this.t('more.appearance');
+								else if (this.showLangSub) expT = this.t('more.lang');
+							} catch (e) {}
+							var expStatic = !!(this.showAboutSub || this.showGeneralSub || this.showAppearanceSub || this.showLangSub);
 							this.$nextTick(function() {
 								var msg = { open: true };
+								if (expStatic) msg.static = true;
 								try {
 									var btns = document.querySelectorAll('.more-sub-back, .tt-back');
 									for (var i = 0; i < btns.length; i++) {
 										var r = btns[i].getBoundingClientRect();
 										if (r.width > 0 && r.height > 0) { msg.cx = Math.round(r.left + r.width / 2); msg.cy = Math.round(r.top + r.height / 2); break; }
 									}
-									var subs = document.querySelectorAll('.more-sub');
-									for (var j = 0; j < subs.length; j++) {
-										if (subs[j].getBoundingClientRect().height > 0) {
-											var tt = subs[j].querySelector('.more-sub-title');
-											if (tt && tt.textContent) msg.title = tt.textContent.trim();
-											break;
+									if (expT) { msg.title = expT; }
+									else {
+										var subs = document.querySelectorAll('.more-sub');
+										for (var j = 0; j < subs.length; j++) {
+											if (subs[j].getBoundingClientRect().height > 0) {
+												var tt = subs[j].querySelector('.more-sub-title');
+												if (tt && tt.textContent) msg.title = tt.textContent.trim();
+												break;
+											}
 										}
 									}
 									if (!msg.title && ttT) msg.ttTitle = ttT;

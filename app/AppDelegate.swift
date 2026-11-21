@@ -112,6 +112,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // fading out after a close; a re-open during the fade cancels it.
     var subChromeClosing = false
     var subDockTitle: String?
+    // True while a structurally static sub-view is open (About, 通用
+    // and the web fallbacks for 外观/语言 — pages whose content fits
+    // the screen and cannot scroll). On those pages the glass strip
+    // stays fully hidden and the back button floats alone (26C102);
+    // a real scroll post graduates the page back to the frosted
+    // strip. Set from the web's subView open post ({static: true}).
+    var subViewStatic = false
     var subTimetableMode = false
     var subFrameCenter: (x: CGFloat, y: CGFloat)?
     // Native Appearance picker (user 2026-11-19, 外观 → Apple UI SDK 27.2):
@@ -462,6 +469,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "cityChanged")
         config.userContentController.add(self, name: "langChanged")
         config.userContentController.add(self, name: "splashDone")
+        config.userContentController.add(self, name: "splashState")
         config.userContentController.add(self, name: "themeState")
         config.userContentController.add(self, name: "liveActivity")
         config.userContentController.add(self, name: "clearCache")
@@ -897,10 +905,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // setSubChromeVisible(false) in the subView message handler).
     func applySubScrollState(animated: Bool) {
         guard let glass = subHeaderGlass else { return }
-        let showStrip = subViewBackButton != nil && !subViewBackButton.isHidden
-        if showStrip {
+        let chromeUp = subViewBackButton != nil && !subViewBackButton.isHidden
+        // 26C102: on a static sub-view the strip never shows (see
+        // subViewStatic) — the glass stays hidden at height 0 and the
+        // back button floats alone over the page. Before this, the
+        // glass was unhidden on every open while its height stayed at
+        // the initial 44pt (the open-time refresh was skipped while
+        // the button was still hidden), painting a tinted band with a
+        // hard hairline edge across the status-bar zone of pages that
+        // never scroll — the band the user boxed on the About page.
+        let showStrip = chromeUp && !subViewStatic
+        if chromeUp {
+            // The title text refreshes on EVERY call while the chrome
+            // is up, not only when the strip shows — together with the
+            // reordered open branch this is the stale-title fix: the
+            // previous page's title can no longer survive an open.
             subHeaderTitle.text = subDockTitle
-            subHeaderHeightConstraint?.constant = (UIDevice.current.userInterfaceIdiom == .pad) ? 44 : view.safeAreaInsets.top + 44
+            subHeaderHeightConstraint?.constant = subViewStatic ? 0 : ((UIDevice.current.userInterfaceIdiom == .pad) ? 44 : view.safeAreaInsets.top + 44)
         }
         // Visibility and alpha are owned by setSubChromeVisible (the
         // open/close fade); here we only refresh the title, the strip
@@ -908,6 +929,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if showStrip {
             glass.isHidden = false
             self.view.bringSubviewToFront(glass)
+            if let button = self.subViewBackButton { self.view.bringSubviewToFront(button) }
+            self.dockSubViewBackButton()
+        } else if chromeUp {
+            glass.isHidden = true
             if let button = self.subViewBackButton { self.view.bringSubviewToFront(button) }
             self.dockSubViewBackButton()
         }
@@ -935,6 +960,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             subTimetableMode = false
             subFrameCenter = nil
             subScrolled = false
+            // 26C102: clear the label itself too — it previously kept
+            // the last page's title text while hidden, and (with the
+            // open-time refresh skipped) that stale text is what the
+            // next page inherited.
+            subHeaderTitle.text = nil
         }
     }
 
@@ -1129,6 +1159,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // setTheme()/applyTheme() (guarded form, same as themeButtonTapped),
     // so web and native stay in sync. No local theme state is kept.
     func applyAppearanceTheme(_ key: String) {
+        // 26C102: persist the choice natively too, not only via the
+        // web's themeState post — the launch splash reads metro-theme
+        // / metro-dark at viewDidLoad, and on device those posts
+        // alone left the splash on the stale appearance.
+        UserDefaults.standard.set(key, forKey: "metro-theme")
+        let dark = key == "dark" || (key == "system" && traitCollection.userInterfaceStyle == .dark)
+        UserDefaults.standard.set(dark, forKey: "metro-dark")
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTheme('\(key)')", completionHandler: nil)
     }
 
@@ -2896,6 +2933,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             presentCityMenuPopover()
         } else if message.name == "splashDone" {
             splashFinished()
+        } else if message.name == "splashState" {
+            // 26C102: the page posts its resolved city + dark state
+            // from an inline script at parse time — long before Vue
+            // mounts and its cityChanged / themeState posts fire — so
+            // the launch poster's persisted state gets an early,
+            // independent correction even if the mounted() posts are
+            // delayed or lost on device. Same keys the other handlers
+            // write; the poster re-picks immediately.
+            if let dict = message.body as? [String: Any] {
+                if let city = dict["city"] as? String,
+                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(city) {
+                    UserDefaults.standard.set(city, forKey: "metro-city")
+                    currentCity = city
+                }
+                if let dark = dict["dark"] as? Bool {
+                    UserDefaults.standard.set(dark, forKey: "metro-dark")
+                }
+                refreshSplashImage()
+            }
         } else if message.name == "themeState" {
             // The web reports its effective appearance on every
             // applyTheme (launch + every change). Persist it so the
@@ -3013,6 +3069,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // ignored.
             if let dict = message.body as? [String: Any] {
                 if let scrolled = dict["scroll"] as? Bool {
+                    // A static page that actually scrolls (small
+                    // screens) graduates to the normal frosted strip.
+                    if scrolled { subViewStatic = false }
                     if let button = subViewBackButton, !button.isHidden {
                         setSubScrolled(scrolled)
                     }
@@ -3033,10 +3092,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                                 subFrameCenter = (CGFloat(cx.doubleValue), CGFloat(cy.doubleValue))
                             }
                         }
+                        subViewStatic = (dict["static"] as? Bool) ?? false
                         dockSubViewBackButton()
-                        applySubScrollState(animated: false)
+                        // 26C102 stale-title fix: unhide the chrome
+                        // BEFORE refreshing the header state.
+                        // applySubScrollState refreshes the title text
+                        // and strip height only while the back button
+                        // is not hidden; the old order (refresh, then
+                        // unhide) made the open-time refresh a no-op,
+                        // so the previous page's title survived until
+                        // the next scroll post — and a page that never
+                        // scrolls (What's New) kept it for good.
                         setSubChromeVisible(true)
+                        applySubScrollState(animated: false)
                     } else {
+                        subViewStatic = false
                         setSubViewHeader(title: nil)
                         setSubChromeVisible(false)
                         // No sub-view open: the Siri page (and its
