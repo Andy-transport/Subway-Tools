@@ -792,6 +792,19 @@
 		html.dark .more-up-row { border-color: rgba(255,255,255,0.08); }
 		html.dark .more-up-name { color: #eee; }
 		.more-up-note { font-size: 12px; color: #999; line-height: 1.55; padding: 8px 2px 0; }
+		.more-rel-row { display: flex; align-items: center; gap: 10px; padding: 14px 2px; border-bottom: 0.5px solid rgba(120,120,128,0.25); cursor: pointer; }
+		.more-rel-main { flex: 1; min-width: 0; }
+		.more-rel-title { font-size: 17px; }
+		.more-rel-date { font-size: 14px; color: #8e8e93; margin-top: 3px; }
+		.more-rel-detail { padding: 6px 2px; }
+		.more-rel-line { font-size: 16px; line-height: 1.65; margin: 0 0 10px; }
+		.more-about-hero { text-align: center; padding: 20px 0 18px; }
+		.more-about-icon { width: 96px; height: 96px; border-radius: 24px; }
+		.more-about-name { font-size: 27px; font-weight: 700; margin-top: 14px; }
+		.more-about-tag { font-size: 15px; color: #8e8e93; margin-top: 6px; }
+		.more-about-ver { font-size: 14px; color: #8e8e93; margin-top: 8px; }
+		.more-disclaimer { border-radius: 999px; background: #f2f2f7; color: #8e8e93; font-size: 14px; line-height: 1.5; text-align: center; padding: 14px 20px; margin: 26px 0 8px; }
+		html.dark .more-disclaimer { background: #1c1c1e; }
 		.more-section-sub { font-size: 12px; margin-top: 10px; padding-left: 4px; }
 		.more-brief-card { padding: 10px 2px; border-bottom: 1px solid rgba(0,0,0,0.06); }
 		.more-brief-card:last-child { border-bottom: none; }
@@ -1356,7 +1369,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">Subway tools</div>
-						<div class="more-appver">{{ t('more.version', {v: '1.1.0B'}) }}</div>
+						<div class="more-appver">{{ t('more.version', {v: '1.1.0C'}) }}</div>
 					</div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
@@ -1388,7 +1401,7 @@
 					<div class="more-loc-hint" v-if="locPermHint">{{ t('more.loc.hint') }}</div>
 				</div>
 				<div class="more-card">
-					<div class="more-row" @click="showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0B</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="relSel = -1; showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0C</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
@@ -1435,23 +1448,30 @@
 				</div>
 				</transition>
 				<transition name="more-sub">
-				<div class="more-sub" v-show="showWhatsNewSub">
+				<div class="more-sub" v-show="showWhatsNewSub && relSel < 0">
 					<div class="more-sub-head">
 						<button class="more-sub-back" @click="showWhatsNewSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
-						<div class="more-sub-title">{{ t('more.whatsnew', {v: '1.1.0B'}) }}</div>
+						<div class="more-sub-title">{{ t('more.whatsnew.title') }}</div>
 					</div>
-					<div class="more-new-head"><span class="more-new-ver">1.1.0B</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
-					<div class="more-section">{{ t('more.new.features') }}</div>
-					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18','more.new.19','more.new.20','more.new.21','more.new.22','more.new.23','more.new.24']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+					<div class="more-rel-list">
+						<div class="more-rel-row" v-for="(r, i) in releaseNotes" :key="r.v" @click="relSel = i">
+							<div class="more-rel-main">
+								<div class="more-rel-title">{{ t('more.rel.title', {v: r.v}) }}</div>
+								<div class="more-rel-date">{{ r.date }}</div>
+							</div>
+							<span class="more-chev">›</span>
+						</div>
 					</div>
-					<div class="more-section">{{ t('more.new.improvements') }}</div>
-					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.new.3','more.new.8','more.new.11','more.new.12']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+				</div>
+				</transition>
+				<transition name="more-sub">
+				<div class="more-sub" v-show="showWhatsNewSub && relSel >= 0">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="relSel = -1"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
+						<div class="more-sub-title">{{ t('more.whatsnew.title') }}</div>
 					</div>
-					<div class="more-section">{{ t('more.bugfix') }}</div>
-					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.fix.1','more.fix.2','more.fix.3','more.fix.4','more.fix.5','more.fix.6','more.fix.7','more.fix.8','more.fix.9','more.fix.10','more.fix.11','more.fix.12','more.fix.13','more.fix.14','more.fix.15','more.fix.16']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+					<div class="more-rel-detail" v-if="relSel >= 0">
+						<p class="more-rel-line" v-for="(ln, j) in releaseNotes[relSel].lines" :key="j">{{ li(ln) }}</p>
 					</div>
 				</div>
 				</transition>
@@ -1559,18 +1579,17 @@
 						<button class="more-sub-back" @click="showAboutSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
 						<div class="more-sub-title">{{ t('more.about') }}</div>
 					</div>
-					<div class="more-appcard">
-						<img class="more-appicon" :src="appIcon" alt="">
-						<div>
-							<div class="more-appname">Subway tools</div>
-							<div class="more-appver">{{ t('more.version', {v: '1.1.0B'}) }}</div>
-						</div>
+					<div class="more-about-hero">
+						<img class="more-about-icon" :src="appIcon" alt="">
+						<div class="more-about-name">{{ t('app.name') }}</div>
+						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
+						<div class="more-about-ver">{{ t('more.version', {v: '1.1.0C'}) }}</div>
 					</div>
-					<div class="more-up-note">{{ t('more.about.desc') }}</div>
 					<div class="more-card">
 						<div class="more-row" @click="aboutRepo"><span>{{ t('more.about.github') }}</span><span class="more-row-value">Andy-transport</span><span class="more-chev">›</span></div>
 						<div class="more-row" @click="aboutDouyin"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">351453703</span><span class="more-chev">›</span></div>
 					</div>
+					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 				</div>
 				</transition>
 			</div>
@@ -1748,6 +1767,9 @@ var I18N = {
   'more.credit': ['数据来源 SierraQin · CC0 1.0', '資料來源 SierraQin · CC0 1.0', 'Data: SierraQin · CC0 1.0'],
   'more.whatsnew': ['更新内容 · {v}', '更新內容 · {v}', "What's New · {v}"],
   'more.whatsnew.title': ['更新内容', '更新內容', "What's New"],
+  'more.rel.title': ['城轨通 {v} 主要更新', '城軌通 {v} 主要更新', 'Subway Tools {v} — main updates'],
+  'app.name': ['城轨通', '城軌通', 'Subway Tools'],
+  'more.about.disclaimer': ['非官方应用，线路、时刻与票价数据仅供参考，请以运营方公告为准', '非官方應用，線路、時刻與票價數據僅供參考，請以營運方公告為準', 'Unofficial app. Lines, timetables and fares are for reference only — please follow operator announcements.'],
   'more.new.1': ['iPhone Duo 折叠屏：展开后显示右侧边栏', 'iPhone Duo 摺疊螢幕：展開後顯示右側邊欄', 'iPhone Duo foldable: right sidebar when unfolded'],
   'more.new.2': ['iPad 悬浮底栏，大屏操作更顺手', 'iPad 懸浮底欄，大螢幕操作更順手', 'iPad floating bottom bar for easier large-screen use'],
   'more.new.3': ['重进 App 后保持上次选择的城市', '重進 App 後保持上次選擇的城市', 'Reopening keeps your last selected city'],
@@ -2236,6 +2258,33 @@ function titlePy(py) {
 					bjMapExpanded: false,
 					showLangSub: false,
 					showWhatsNewSub: false,
+						relSel: -1,
+						releaseNotes: [
+							{ v: '1.1.0C', date: '2026-11-21', lines: [
+								['12 个城市启用全新启动图，随深浅模式自动切换', '12 個城市啟用全新啟動圖，隨深淺模式自動切換', 'All-new launch posters for all 12 cities, switching automatically with light and dark appearance'],
+								['青岛地铁图标改为纯图形标志，不再带文字', '青島地鐵圖標改為純圖形標誌，不再帶文字', 'Qingdao Metro icon is now the symbol only, without the wordmark'],
+								['设置卡片改用更大的 Apple 圆角', '設定卡片改用更大的 Apple 圓角', 'Settings cards get larger Apple rounded corners'],
+								['重置缩放从设置移到地图右上角工具条', '重置縮放從設定移到地圖右上角工具列', 'Reset zoom moved from Settings to the map toolbar at the top right'],
+							] },
+							{ v: '1.1.0B', date: '2026-11-21', lines: [
+								['车型搜索覆盖 12 个城市，共 331 列列车', '車型搜尋覆蓋 12 個城市，共 331 列列車', 'Train model search covers 331 trains across all 12 cities'],
+								['北京换乘步行距离预估：按约 75 米/分钟估算，显示约多少米、约多少分钟', '北京換乘步行距離預估：按約 75 米/分鐘估算，顯示約多少米、約多少分鐘', 'Beijing transfer walking estimates at about 75 m/min, shown as approximate metres and minutes'],
+								['附近车站只显示 1.5 公里内的车站', '附近車站只顯示 1.5 公里內的車站', 'Nearby stations are limited to within 1.5 km'],
+							] },
+							{ v: '1.1.0', date: '2026-11-20', lines: [
+								['启动图跟随所选城市切换', '啟動圖跟隨所選城市切換', 'The launch poster now follows the selected city'],
+								['启动图适配深色模式', '啟動圖適配深色模式', 'Launch posters adapt to dark mode'],
+							] },
+							{ v: '1.0.6', date: '2026-11-19', lines: [
+								['新增青岛地铁：8 条线路、176 座车站', '新增青島地鐵：8 條線路、176 座車站', 'Added Qingdao Metro: 8 lines, 176 stations'],
+								['补齐成都、深圳启动图，启动画面适配 iPad 与折叠屏', '補齊成都、深圳啟動圖，啟動畫面適配 iPad 與折疊屏', 'Added Chengdu and Shenzhen posters; launch screen adapted for iPad and foldables'],
+								['按要求移除红庙站的搜索与线路数据', '按要求移除紅廟站的搜尋與線路數據', 'Removed Hongmiao station from search and line data as requested'],
+							] },
+							{ v: '1.0.5', date: '2026-11-19', lines: [
+								['新增深圳地铁：17 条线路、351 座车站', '新增深圳地鐵：17 條線路、351 座車站', 'Added Shenzhen Metro: 17 lines, 351 stations'],
+								['移除实时活动组件，保证侧载签名可以正常安装', '移除即時活動組件，保證側載簽名可以正常安裝', 'Removed the Live Activities component so sideload signing installs cleanly'],
+							] },
+						],
 					showUpcomingSub: false,
 								showBriefingSub: false,
 					showSiriSub: false,
@@ -2279,6 +2328,7 @@ function titlePy(py) {
 				methods: {
 					// ---- i18n (build 64) ----
 					t(key, vars) { return fmt(i18n(key, this.lang), vars || {}); },
+					li(arr) { var idx = LANGS.indexOf(this.lang); if (idx < 0) idx = 0; return arr[idx] || arr[0]; },
 					setLang(l) {
 						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.langChanged);
 						if (l === 'system') {
