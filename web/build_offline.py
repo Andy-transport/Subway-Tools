@@ -161,6 +161,10 @@ html = sub_once(r'/\*__BJ_TRANSFER_TIMES__\*/\{\}', lambda _: bj_tt, html, "bj t
 html = sub_once(r'/\*__WALK_ICON__\*/', lambda _: walk_b64, html, "walk icon")
 walk_ink_b64 = (BASE / "walk-icon-ink.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__WALK_ICON_INK__\*/', lambda _: walk_ink_b64, html, "walk icon ink")
+pin_b64 = (BASE / "pin-icon.b64").read_text(encoding="utf-8").strip()
+pin_ink_b64 = (BASE / "pin-icon-ink.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__PIN_ICON__\*/', lambda _: pin_b64, html, "pin icon")
+html = sub_once(r'/\*__PIN_ICON_INK__\*/', lambda _: pin_ink_b64, html, "pin icon ink")
 fare_b64 = (BASE / "wallet-icon.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__FARE_ICON__\*/', lambda _: fare_b64, html, "fare icon")
 
@@ -222,6 +226,10 @@ html = sub_once(r'/\*__RWX_ICON__\*/', lambda _: rwx_b64, html, "renwoxing icon"
 html = sub_once(r'/\*__CZM_ICON__\*/', lambda _: czm_b64, html, "changzhou metro icon")
 html = sub_once(r'/\*__YCX_ICON__\*/', lambda _: ycx_b64, html, "yuchangxing icon")
 html = sub_once(r'/\*__CCE_ICON__\*/', lambda _: cce_b64, html, "changchun e-travel icon")
+szm_b64 = (BASE / "szmetro-icon.b64").read_text(encoding="utf-8").strip()
+qdm_b64 = (BASE / "qdmetro-icon.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__SZM_ICON__\*/', lambda _: szm_b64, html, "shenzhen metro app icon")
+html = sub_once(r'/\*__QDM_ICON__\*/', lambda _: qdm_b64, html, "qingdao metro app icon")
 
 # O. inline the Shanghai Metro data (22 operating lines, 413 stations).
 # Same pattern as Shenyang (step K): precomputed stations/routes from

@@ -58,6 +58,8 @@
 			window.CD_LOGO = "data:image/png;base64,/*__CD_LOGO__*/";
 			window.QD_LOGO = "data:image/png;base64,/*__QD_LOGO__*/";
 			window.CDM_ICON = "data:image/png;base64,/*__CDM_ICON__*/";
+			window.SZM_ICON = "data:image/png;base64,/*__SZM_ICON__*/";
+			window.QDM_ICON = "data:image/png;base64,/*__QDM_ICON__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.BJ_TRANSFER_TIMES = /*__BJ_TRANSFER_TIMES__*/{};
 			window.SY_TRANSFERS = /*__SY_TRANSFERS__*/{};
@@ -70,6 +72,8 @@
 			window.SZ_TRANSFERS = /*__SZ_TRANSFERS__*/{};
 			window.WALK_ICON = "data:image/png;base64,/*__WALK_ICON__*/";
 			window.WALK_ICON_INK = "data:image/png;base64,/*__WALK_ICON_INK__*/";
+			window.PIN_ICON = "data:image/png;base64,/*__PIN_ICON__*/";
+			window.PIN_ICON_INK = "data:image/png;base64,/*__PIN_ICON_INK__*/";
 			window.FARE_ICON = "data:image/png;base64,/*__FARE_ICON__*/";
 			window.YKT_ICON = "data:image/png;base64,/*__YKT_ICON__*/";
 			window.SJT_ICON = "data:image/png;base64,/*__SJT_ICON__*/";
@@ -805,6 +809,13 @@
 		.more-about-ver { font-size: 14px; color: #8e8e93; margin-top: 8px; }
 		.more-disclaimer { border-radius: 999px; background: #f2f2f7; color: #8e8e93; font-size: 14px; line-height: 1.5; text-align: center; padding: 14px 20px; margin: 26px 0 8px; }
 		html.dark .more-disclaimer { background: #1c1c1e; }
+		.more-row-switch { justify-content: space-between; cursor: default; }
+		.more-card .more-row:last-child { border-bottom: none; }
+		.more-switch { width: 51px; height: 31px; border-radius: 999px; border: none; padding: 0; background: #e9e9ea; position: relative; cursor: pointer; transition: background .25s; flex: none; }
+		html.dark .more-switch { background: rgba(120,120,128,0.32); }
+		.more-switch.on { background: #34c759; }
+		.more-switch-knob { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform .25s; }
+		.more-switch.on .more-switch-knob { transform: translateX(20px); }
 		.more-section-sub { font-size: 12px; margin-top: 10px; padding-left: 4px; }
 		.more-brief-card { padding: 10px 2px; border-bottom: 1px solid rgba(0,0,0,0.06); }
 		.more-brief-card:last-child { border-bottom: none; }
@@ -1291,10 +1302,10 @@
 				<button class="tr-search" @click="doSearch">{{ t('tr.search') }}</button>
 				<div class="tr-actions">
 					<button class="tr-action-btn" @click="openTransitApp"><img v-if="transitIcon" :src="transitIcon" :alt="transitLabel"><span>{{ transitLabel }}</span></button>
-					<button class="tr-action-btn" @click="requestNearbyStations"><img :src="walkIconThemed" alt=""><span>{{ t('tr.nearby') }}</span><span v-if="nearbyLoading">{{ t('tr.nearby.locating') }}</span></button>
+					<button class="tr-action-btn" @click="requestNearbyStations"><img :src="pinIconThemed" alt=""><span>{{ t('tr.nearby') }}</span><span v-if="nearbyLoading">{{ t('tr.nearby.locating') }}</span></button>
 					<button class="tr-action-btn" @click="openApplePay"><span>{{ t('tr.applepay') }}</span></button>
 				</div>
-				<div class="tr-smart" v-if="nearbyList.length || nearbyMsg">
+				<div class="tr-smart" v-if="nearbySmart && (nearbyList.length || nearbyMsg)">
 					<div class="tr-smart-head"><img v-if="aiIcon" :src="aiIcon" alt=""><span>{{ t('tr.smart.title') }}</span></div>
 					<div v-if="userLat != null && smartList.length">
 						<div class="tr-nearby-item" v-for="s in smartList" :key="'sm' + s.n" @click="pickNearby(s)"><span>{{ stNameStr(s.n) }}</span><span class="tr-nearby-dist">{{ s.distText }}</span></div>
@@ -1514,6 +1525,13 @@
 						<div class="more-sub-title">{{ t('more.siri') }}</div>
 					</div>
 					<div class="more-up-note">{{ t('more.siri.note') }}</div>
+					<div class="more-card">
+						<div class="more-row more-row-switch">
+							<span>{{ t('siri.nearbySmart') }}</span>
+							<button class="more-switch" :class="{ on: nearbySmart }" @click="toggleNearbySmart" role="switch" :aria-checked="nearbySmart ? 'true' : 'false'"><span class="more-switch-knob"></span></button>
+						</div>
+					</div>
+					<div class="more-up-note">{{ t('siri.nearbySmart.desc') }}</div>
 					<div class="more-card">
 						<div class="more-row" v-for="s in siriShortcuts" :key="s.id" @click="addShortcut(s.id)">
 							<div class="more-siri-text"><div class="more-siri-name">{{ t(s.nameKey) }}</div><div class="more-siri-desc">{{ t(s.descKey) }}</div><div class="more-siri-voice">{{ t(s.voiceKey) }}</div></div>
@@ -1821,6 +1839,8 @@ var I18N = {
   'more.briefing.empty': ['暂无该城市简报', '暫無該城市簡報', 'No briefing for this city'],
   'more.siri': ['Siri 快捷指令', 'Siri 快捷指令', 'Siri Shortcuts'],
   'more.siri.note': ['在 Siri 里说出下面的口令即可使用。点按一条可将其添加到 Siri。', '在 Siri 裡說出下面的口令即可使用。點按一條可將其加入 Siri。', 'Say the phrase below to Siri to use it. Tap an item to add it to Siri.'],
+  'siri.nearbySmart': ['附近车站智能显示', '附近車站智能顯示', 'Smart Nearby Stations'],
+  'siri.nearbySmart.desc': ['开启后，换乘页会根据定位智能显示 1.5 公里内的最近车站；关闭后只显示普通附近车站列表。', '開啟後，換乘頁會根據定位智能顯示 1.5 公里內的最近車站；關閉後只顯示普通附近車站列表。', 'When on, the Transfer tab smartly shows the nearest stations within 1.5 km based on your location; when off, only the regular nearby list is shown.'],
   'siri.openApp': ['打开 Subway tools', '打開 Subway tools', 'Open Subway tools'],
   'siri.openApp.desc': ['打开 App，查看线路图', '打開 App，查看線路圖', 'Open the app and view the map'],
   'siri.openApp.voice': ['“打开 Subway tools”', '“打開 Subway tools”', '“Open Subway tools”'],
@@ -2094,6 +2114,8 @@ function titlePy(py) {
 						bjTransferTimes: (window.BJ_TRANSFER_TIMES || {}),
 						walkIcon: (window.WALK_ICON || ''),
 						walkIconInk: (window.WALK_ICON_INK || ''),
+						pinIcon: (window.PIN_ICON || ''),
+						pinIconInk: (window.PIN_ICON_INK || ''),
 						fareIcon: (window.FARE_ICON || ''),
 						yktIcon: (window.YKT_ICON || ''),
 						sjtIcon: (window.SJT_ICON || ''),
@@ -2173,6 +2195,8 @@ function titlePy(py) {
 						cdLogo: (window.CD_LOGO || ''),
 						cdMap: (window.CD_MAP || ''),
 						cdmIcon: (window.CDM_ICON || ''),
+						szmIcon: (window.SZM_ICON || ''),
+						qdmIcon: (window.QDM_ICON || ''),
 						cdSplash: (window.CD_SPLASH || ''),
 					cdSplashDark: (window.CD_SPLASH_DARK || ''),
 					qdSplash: (window.QD_SPLASH || ''),
@@ -2244,6 +2268,7 @@ function titlePy(py) {
 						toLine: null,
 						smartList: [], userLat: null, userLng: null,
 						stripList: [], mapLocMsg: '',
+						nearbySmart: (function () { try { return window.localStorage.getItem('metro-nearby-smart') !== '0'; } catch (e) { return true; } })(),
 						nearbyList: [],
 						nearbyMsg: '',
 						nearbyLoading: false,
@@ -2265,6 +2290,9 @@ function titlePy(py) {
 								['青岛地铁图标改为纯图形标志，不再带文字', '青島地鐵圖標改為純圖形標誌，不再帶文字', 'Qingdao Metro icon is now the symbol only, without the wordmark'],
 								['设置卡片改用更大的 Apple 圆角', '設定卡片改用更大的 Apple 圓角', 'Settings cards get larger Apple rounded corners'],
 								['重置缩放从设置移到地图右上角工具条', '重置縮放從設定移到地圖右上角工具列', 'Reset zoom moved from Settings to the map toolbar at the top right'],
+								['「打开地铁」按钮加上官方 App 图标（深圳、青岛）', '「打開地鐵」按鈕加上官方 App 圖標（深圳、青島）', 'Official app icons added to the Open Metro buttons (Shenzhen, Qingdao)'],
+								['附近车站按钮换用定位图钉图标，随深浅模式自动适配', '附近車站按鈕換用定位圖釘圖標，隨深淺模式自動適配', 'Nearby Stations button gets a location-pin icon that adapts to light and dark mode'],
+								['Siri 与智能搜索页新增「附近车站智能显示」开关', 'Siri 與智能搜尋頁新增「附近車站智能顯示」開關', 'New Smart Nearby Stations toggle on the Siri & Smart Search page'],
 							] },
 							{ v: '1.1.0B', date: '2026-11-21', lines: [
 								['车型搜索覆盖 12 个城市，共 331 列列车', '車型搜尋覆蓋 12 個城市，共 331 列列車', 'Train model search covers 331 trains across all 12 cities'],
@@ -3568,6 +3596,7 @@ function titlePy(py) {
 					// (permission prompt appears only here, never at launch), or use
 					// HTML5 geolocation in a plain browser. The native side calls
 					// showNearbyStations(lat, lng) / nearbyError(msg) with the result.
+					toggleNearbySmart() { this.nearbySmart = !this.nearbySmart; try { window.localStorage.setItem('metro-nearby-smart', this.nearbySmart ? '1' : '0'); } catch (e) {} },
 					requestNearbyStations() {
 						this.nearbyMsg = '';
 						this.nearbyList = [];
@@ -4318,7 +4347,7 @@ function titlePy(py) {
 					},
 					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : (this.city === 'sz' ? this.szLogo : (this.city === 'cd' ? this.cdLogo : (this.city === 'qd' ? this.qdLogo : this.bjLogo)))))))))); },
 					transitLabel() { return this.t('transit.' + this.city); },
-					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? '' : (this.city === 'qd' ? '' : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : this.yktIcon)))))))))); },
+					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? this.szmIcon : (this.city === 'qd' ? this.qdmIcon : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : this.yktIcon)))))))))); },
 					splashImg() {
 						var light = { bj: this.bjSplash, sy: this.sySplash, sh: this.shSplash, hb: this.hbSplash, dl: this.dlSplash, jh: this.jhSplash, cz: this.czSplash, cq: this.cqSplash, cc: this.ccSplash, sz: this.szSplash, cd: this.cdSplash, qd: this.qdSplash };
 						var dark = { bj: this.bjSplashDark, sy: this.sySplashDark, sh: this.shSplashDark, hb: this.hbSplashDark, dl: this.dlSplashDark, jh: this.jhSplashDark, cz: this.czSplashDark, cq: this.cqSplashDark, cc: this.ccSplashDark, sz: this.szSplashDark, cd: this.cdSplashDark, qd: this.qdSplashDark };
@@ -4330,6 +4359,7 @@ function titlePy(py) {
 					// colour swirl on white (suits light mode) — swap by theme.
 					aiIcon() { return this.darkNow ? this.smartIcon : this.siriIcon; },
 					walkIconThemed() { return this.darkNow ? this.walkIcon : this.walkIconInk; },
+					pinIconThemed() { return this.darkNow ? this.pinIcon : this.pinIconInk; },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						var list;
