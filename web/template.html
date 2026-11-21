@@ -1445,7 +1445,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C102)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C103)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card">
@@ -1662,7 +1662,7 @@
 						<img class="more-about-icon" :src="appIcon" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C102)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C103)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 				</div>
@@ -2355,6 +2355,9 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26C103)', date: '2026-11-21', lines: [
+								['修复 Siri 与快捷指令：语音短语现在能被 Siri 正确识别', '修復 Siri 與快捷指令：語音短語現在能被 Siri 正確識別', 'Fixed Siri & Shortcuts: voice phrases are now recognised by Siri'],
+							] },
 							{ v: '1.1.0 (26C102)', date: '2026-11-21', lines: [
 								['修复启动图不跟随所选城市与深色模式的问题（多路持久化）', '修復啟動圖不跟隨所選城市與深色模式的問題（多路持久化）', 'Fixed the launch poster not following the selected city and dark mode (redundant persistence paths)'],
 								['修复子页面顶栏标题串页：打开新页面时标题不再残留上一个页面', '修復子頁面頂欄標題串頁：打開新頁面時標題不再殘留上一個頁面', 'Fixed the sub-page header title carrying over from the previously visited page'],

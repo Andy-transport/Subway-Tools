@@ -61,8 +61,16 @@ mkdir -p build/Payload/Metro.app/web
 # references to other app types), the build continues without Siri
 # metadata, exactly like builds #84-#86.
 mkdir -p build/obj
+# Const-extraction protocols list (committed at the repo root as
+# Metro_const_extract_protocols.json): Xcode's build system passes
+# this list to swiftc via -const-gather-protocols-list whenever
+# SWIFT_EMIT_CONST_VALUE_PROTOCOLS is non-empty. Without it the
+# harvest below emits NO .swiftconstvalues at all (experiments 1-3,
+# 2026-11-21); with it plus the plain-AppIntent declarations the
+# harvest produces the real 57 KB file the metadata step consumes.
 SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
+  -const-gather-protocols-list Metro_const_extract_protocols.json \
   -module-name Metro -c \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   app/AppIntents.swift -o build/obj/AppIntents-harvest.o \
@@ -86,18 +94,47 @@ echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
 # use them). Non-fatal on purpose: failures show in the build log and
 # the app still builds; the delivered IPA is checked for
 # Metadata.appintents.
+# Interface (proven 2026-11-21, experiment run #109: the processor
+# printed 'Writing Metadata.appintents' and the bundle gained
+# Metadata.appintents with version.json + extract.actionsdata):
+# Xcode 27.2's appintentsmetadataprocessor does NOT scan directories
+# and does NOT take --binary-file/--source-files; its USAGE takes two
+# LIST FILES -- --source-file-list and --swift-const-vals-list -- plus
+# --toolchain-dir/--sdk-root/--xcode-version. Assemble both lists with
+# ABSOLUTE paths (one path per line): the source list is exactly
+# SWIFT_SOURCES; the const-vals list is the solo harvest output first,
+# plus any other .swiftconstvalues in build/obj, deduped.
+ROOT="$PWD"
+: > build/obj/e8-sources.txt
+for src in $SWIFT_SOURCES; do echo "$ROOT/$src" >> build/obj/e8-sources.txt; done
+: > build/obj/e8-constvals.txt
+for f in build/obj/*harvest*.swiftconstvalues; do if [ -f "$f" ]; then echo "$ROOT/$f" >> build/obj/e8-constvals.txt; fi; done
+for f in build/obj/*.swiftconstvalues; do if [ -f "$f" ]; then grep -qxF "$ROOT/$f" build/obj/e8-constvals.txt || echo "$ROOT/$f" >> build/obj/e8-constvals.txt; fi; done
+echo "-- source-file-list (build/obj/e8-sources.txt) --"
+cat build/obj/e8-sources.txt
+echo "-- swift-const-vals-list (build/obj/e8-constvals.txt) --"
+cat build/obj/e8-constvals.txt
+# Toolchain dir = two levels up from the tool's bin dir
+# (.../XcodeDefault.xctoolchain/usr/bin/<tool> -> .../XcodeDefault.xctoolchain).
+TOOL_PATH=$(xcrun -f appintentsmetadataprocessor || true)
+TOOLCHAIN_DIR=$(cd "$(dirname "$TOOL_PATH")/../.." 2>/dev/null && pwd || true)
+SDK_ROOT=$(xcrun --sdk iphoneos --show-sdk-path)
+XCODE_VERSION=$(xcodebuild -version | tail -1 | awk '{print $NF}')
+echo "TOOLCHAIN_DIR: $TOOLCHAIN_DIR"
+echo "SDK_ROOT: $SDK_ROOT"
+echo "XCODE_VERSION: $XCODE_VERSION"
 xcrun appintentsmetadataprocessor \
-  --toolchain-dir "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain" \
+  --output "$ROOT/build/Payload/Metro.app/Metadata.appintents" \
+  --toolchain-dir "$TOOLCHAIN_DIR" \
   --module-name Metro \
+  --sdk-root "$SDK_ROOT" \
+  --xcode-version "$XCODE_VERSION" \
   --platform-family iOS \
   --deployment-target 16.0 \
-  --bundle-identifier com.andytransport.metro \
   --target-triple arm64-apple-ios16.0 \
-  --xcode-version "$(xcodebuild -version | tail -1 | awk '{print $NF}')" \
-  --sdk-root "$(xcrun -sdk iphoneos --show-sdk-path)" \
-  --binary-file build/Payload/Metro.app/Metro \
-  --source-files app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift \
-  --output build/Payload/Metro.app/Metadata.appintents \
+  --source-file-list "$ROOT/build/obj/e8-sources.txt" \
+  --swift-const-vals-list "$ROOT/build/obj/e8-constvals.txt" \
+  --force \
   || echo "WARNING: appintentsmetadataprocessor failed - Siri shortcuts will not register"
 # NL training only tunes phrase recognition; shortcut registration comes
 # from Metadata.appintents above. This processor requires
