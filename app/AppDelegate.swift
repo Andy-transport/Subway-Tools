@@ -141,6 +141,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // .more-theme-seg row, same pattern as sortTabs.
     var themeButtons: [UIButton] = []
     let themeSegKeys = ["system", "light", "dark"]
+    // Native UISwitch for the Siri page's 附近车站智能显示 row
+    // (26C101, user: the toggle must be Apple UI, not the web CSS
+    // switch): frame-positioned over the web's slot element from the
+    // "switchFrame" reports, same overlay pattern as the theme
+    // buttons. nearbySmartApplying guards the programmatic state sync
+    // so it can never be mistaken for a user toggle.
+    var nearbySmartSwitch: UISwitch!
+    var nearbySmartApplying = false
     // Web view's origin in the main view: the web view is full-screen
     // on every device (build 63 removed the iPad top strip), so the
     // origin is (0, 0) and web getBoundingClientRect coordinates map
@@ -443,6 +451,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "tabsFrame")
         config.userContentController.add(self, name: "transferFrame")
         config.userContentController.add(self, name: "themeFrame")
+        config.userContentController.add(self, name: "switchFrame")
         config.userContentController.add(self, name: "stationPicked")
         config.userContentController.add(self, name: "timePicker")
         config.userContentController.add(self, name: "openTransitApp")
@@ -551,7 +560,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // the safe area) so it is the same height on iPhone and
             // iPad. Was safeArea.bottom - 4 (build 56), which left a
             // large gap above the home indicator.
-            barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -18))
+            // Lowered again (26C101, user: the pill still floated too
+            // high with a large gap under it): -18 -> -10, so the
+            // pill's bottom edge sits ~10pt above the screen bottom,
+            // snug above the home indicator like Apple's own floating
+            // bars. iPhone portrait only — the iPad top bar and the
+            // Duo sidebar are separate layouts, untouched.
+            barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10))
         }
         NSLayoutConstraint.activate(barConstraints)
         // iPhone Duo sidebar (build 63): created here so the web view
@@ -656,7 +671,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // would land on top of the tab bar.
         let subViewBackTopAnchor: NSLayoutYAxisAnchor = (UIDevice.current.userInterfaceIdiom == .pad) ? tabBar.bottomAnchor : view.safeAreaLayoutGuide.topAnchor
         let subViewBackTopConstant: CGFloat = (UIDevice.current.userInterfaceIdiom == .pad) ? 10 : 8
-        subBackLeadingConstraint = subViewBackButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16)
+        subBackLeadingConstraint = subViewBackButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 22)
         subBackTopConstraint = subViewBackButton.topAnchor.constraint(equalTo: subViewBackTopAnchor, constant: subViewBackTopConstant)
         NSLayoutConstraint.activate([
             subBackLeadingConstraint!,
@@ -714,6 +729,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         setupSortTabs()
         setupThemeButtons()
+        setupNearbySmartSwitch()
         setupTransferControls()
         // Native launch splash (build 53, user 2026-11-15 "点进去为什么
         // 第一时刻没有开屏动画是白屏"): the web splash only appears after
@@ -724,23 +740,36 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // currentCity was restored from UserDefaults above, so the image
         // matches the city the user last used.
         splashImageView = UIImageView()
-        refreshSplashImage()
-        // Aspect-fit (not fill): the splash posters are portrait phone
-        // images; on iPad / unfolded Duo, fill crops the artwork. Fit shows
-        // the whole poster, and the white background blends with the
-        // poster's own background in the letterbox area (white for
-        // the light poster, black for the dark variant).
-        splashImageView.contentMode = .scaleAspectFit
-        splashImageView.backgroundColor = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark) ? .black : .white
         splashImageView.translatesAutoresizingMaskIntoConstraints = false
+        splashImageView.clipsToBounds = true
         view.addSubview(splashImageView)
+        // Pinned to the view's EDGES (not the safe area) so no strip
+        // of root background can show above or below the poster.
         NSLayoutConstraint.activate([
             splashImageView.topAnchor.constraint(equalTo: view.topAnchor),
             splashImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             splashImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             splashImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
+        // refreshSplashImage owns the image, the content mode and the
+        // background colour (26C101): fill on phone widths (poster
+        // aspect ≈ phone aspect, so no letterbox at all), fit on
+        // iPad / Duo widths with the background set to the picked
+        // poster's OWN background colour, so any letterbox area is
+        // invisible. The old code used aspect-fit everywhere and set
+        // the background once from the appearance flag — in dark mode
+        // a light poster then sat on black, which is exactly the
+        // "black bars top and bottom" the user reported.
+        refreshSplashImage()
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
+        // App Intents in-process deep links (26C101): the rewritten
+        // intents no longer open subwaymotion:// URLs through the
+        // system (no OpenURLIntent); perform() posts this notification
+        // and stashes the URL in UserDefaults. The notification covers
+        // the running app; the didBecomeActive consume covers a cold
+        // start where perform() ran before this controller existed.
+        NotificationCenter.default.addObserver(self, selector: #selector(handleIntentDeepLink(_:)), name: SubwayDeepLink.notification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(consumePendingIntentDeepLink), name: UIApplication.didBecomeActiveNotification, object: nil)
         loadMap()
         // iPhone Duo sidebar (build 63): pick sidebar vs bottom tab
         // bar for the launch width; viewDidLayoutSubviews re-picks it
@@ -769,6 +798,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if abs(w - lastSideBarLayoutWidth) > 0.5 {
             lastSideBarLayoutWidth = w
             updateSideBarLayout()
+            // Width class changed (fold/unfold, rotation) while the
+            // splash is up: re-evaluate fill vs fit (26C101).
+            refreshSplashImage()
         }
     }
 
@@ -776,6 +808,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         super.traitCollectionDidChange(previousTraitCollection)
         view.backgroundColor = rootBackgroundColor()
         updateSideBarLayout()
+        // Appearance changed while running (26C101): re-pick the
+        // launch poster variant too — this hook previously refreshed
+        // everything EXCEPT the splash, so a system appearance flip
+        // with the splash still up kept the stale variant.
+        if previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle {
+            refreshSplashImage()
+        }
     }
 
     func loadMap() {
@@ -834,7 +873,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // anchored to the tab bar's bottom edge, whose strip is exactly
     // 44pt, so the same constant applies.
     func dockSubViewBackButton() {
-        subBackLeadingConstraint?.constant = 16
+        // Leading 22 (26C101, user: 不要太贴近安全区边缘): the button
+        // breathes a little and roughly aligns with the 20pt content
+        // margin instead of hugging the safe-area edge at 16.
+        subBackLeadingConstraint?.constant = 22
         subBackTopConstraint?.constant = 2
     }
 
@@ -1595,6 +1637,61 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
     }
 
+    // MARK: - Native UISwitch for the Siri page (26C101)
+
+    // The 附近车站智能显示 toggle is a real UISwitch (user: "把这个
+    // 改成 Apple UI SDK 27.2"), overlaid on the web Siri page's slot
+    // element — same frame-report pattern as the theme buttons. The
+    // web keeps the state (Vue + localStorage 'metro-nearby-smart');
+    // the switch only renders it and reports user toggles back
+    // through window.__setNearbySmart.
+    func setupNearbySmartSwitch() {
+        nearbySmartSwitch = UISwitch()
+        nearbySmartSwitch.onTintColor = .systemGreen
+        nearbySmartSwitch.translatesAutoresizingMaskIntoConstraints = true
+        nearbySmartSwitch.isHidden = true
+        nearbySmartSwitch.addTarget(self, action: #selector(nearbySmartSwitchChanged(_:)), for: .valueChanged)
+        view.addSubview(nearbySmartSwitch)
+    }
+
+    @objc func nearbySmartSwitchChanged(_ sender: UISwitch) {
+        // Programmatic syncs are guarded out: only a genuine user
+        // toggle reaches the web.
+        guard !nearbySmartApplying else { return }
+        webView.evaluateJavaScript("window.__setNearbySmart && window.__setNearbySmart(\(sender.isOn))", completionHandler: nil)
+    }
+
+    func hideNearbySmartSwitch() {
+        nearbySmartSwitch?.isHidden = true
+    }
+
+    // Place the switch over the web slot's reported frame: trailing
+    // aligned inside the slot, vertically centred. A zero-size rect
+    // (Siri page not visible) hides it. The posted value is applied
+    // WITHOUT firing the change handler.
+    func placeSwitch(frame dict: [String: Any]) {
+        guard (dict["id"] as? String) == "nearbySmart", let sw = nearbySmartSwitch else { return }
+        let x = ((dict["x"] as? Double) ?? 0) + webOffset.x
+        let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
+        let w = (dict["width"] as? Double) ?? 0
+        let h = (dict["height"] as? Double) ?? 0
+        if w > 0 && h > 0 && currentTab == "more" && !splashShowing {
+            let size = sw.intrinsicContentSize
+            sw.frame = CGRect(x: CGFloat(x) + CGFloat(w) - size.width,
+                              y: CGFloat(y) + (CGFloat(h) - size.height) / 2,
+                              width: size.width, height: size.height)
+            if let on = dict["on"] as? Bool, on != sw.isOn {
+                nearbySmartApplying = true
+                sw.setOn(on, animated: false)
+                nearbySmartApplying = false
+            }
+            sw.isHidden = false
+            view.bringSubviewToFront(sw)
+        } else {
+            sw.isHidden = true
+        }
+    }
+
     // MARK: - Native Liquid Glass transfer input area (build 37)
 
     // The from/to fields card and the 搜索 button are native Liquid
@@ -2077,16 +2174,34 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // message); before the first web report, fall back to the
         // system style at launch.
         let splashDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
-        let splashImageName = (splashDark && UIImage(named: splashName + "Dark") != nil) ? splashName + "Dark" : splashName
+        let useDark = splashDark && UIImage(named: splashName + "Dark") != nil
+        let splashImageName = useDark ? splashName + "Dark" : splashName
         if let img = UIImage(named: splashImageName) ?? UIImage(named: splashName) ?? UIImage(named: "Splash") {
             iv.image = img
         }
-        iv.backgroundColor = splashDark ? .black : .white
+        // Background follows the poster ACTUALLY shown, not the
+        // appearance flag (26C101): the light posters are white
+        // edge-to-edge and the dark posters black edge-to-edge
+        // (verified in the bundle), so matching the background to the
+        // picked variant makes any letterbox area invisible. The old
+        // code keyed the background to splashDark even when the dark
+        // image was missing and the light poster was on screen.
+        iv.backgroundColor = useDark ? .black : .white
+        // Content mode by width class (26C101): phone widths fill —
+        // the poster's 1170x2532 aspect matches phone screens to
+        // within a fraction of a percent, so the crop is invisible
+        // and no bars can appear. Wide screens (iPad, unfolded Duo,
+        // landscape) fit, with the poster-matched background above
+        // blending the margins away.
+        let w = view.bounds.width
+        iv.contentMode = (w > 0 && w <= 500) ? .scaleAspectFill : .scaleAspectFit
+        iv.clipsToBounds = true
     }
 
     func splashFinished() {
         guard splashShowing else { return }
         splashShowing = false
+        hideNearbySmartSwitch()
         // Status bar comes back now that the splash is done (build 63).
         setNeedsStatusBarAppearanceUpdate()
         // Reveal the tab bar or the Duo sidebar, whichever the current
@@ -2774,6 +2889,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             updateTransferVisibility()
             tabBar.selectedItem = tabBar.items?[idx]
             updateSideBarSelection()
+            // The native Siri-page switch only exists on the
+            // Settings tab (26C101).
+            if tab != "more" { hideNearbySmartSwitch() }
         } else if message.name == "cityMenu" {
             presentCityMenuPopover()
         } else if message.name == "splashDone" {
@@ -2831,6 +2949,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "themeFrame",
                   let dict = message.body as? [String: Any] {
             placeThemeButtons(frame: dict)
+        } else if message.name == "switchFrame",
+                  let dict = message.body as? [String: Any] {
+            placeSwitch(frame: dict)
         } else if message.name == "stationPicked",
                   let dict = message.body as? [String: Any] {
             // The user tapped a web suggestion row: mirror the picked
@@ -2918,6 +3039,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                     } else {
                         setSubViewHeader(title: nil)
                         setSubChromeVisible(false)
+                        // No sub-view open: the Siri page (and its
+                        // native switch) is gone too (26C101). Opening
+                        // a DIFFERENT sub-view posts fresh zero frames
+                        // from the web, which hide it the same way.
+                        hideNearbySmartSwitch()
                     }
                 }
             }
@@ -2970,6 +3096,24 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         webPageReady = true
         flushPendingDeepLink()
+    }
+
+    // App Intent deep link delivered in-process (26C101): route it
+    // through the exact same path as a subwaymotion:// URL open, and
+    // clear the UserDefaults stash so the didBecomeActive consume
+    // below cannot apply it a second time.
+    @objc func handleIntentDeepLink(_ note: Notification) {
+        guard let url = note.userInfo?["url"] as? URL else { return }
+        UserDefaults.standard.removeObject(forKey: SubwayDeepLink.pendingKey)
+        handleDeepLink(url)
+    }
+
+    // Cold-start fallback for intent deep links: perform() may have
+    // run before this controller registered its observer, leaving
+    // only the UserDefaults stash. Consume it once on activation.
+    @objc func consumePendingIntentDeepLink() {
+        guard let url = SubwayDeepLink.consumePending() else { return }
+        handleDeepLink(url)
     }
 
     func handleDeepLink(_ url: URL) {
@@ -3072,18 +3216,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func presentShortcutSetup(for id: String) {
         guard let shortcut = SubwayShortcutID(rawValue: id) else { return }
         let name = shortcut.displayTitle
-        // The intents need iOS 18+ (OpenURLIntent); on older iOS there
-        // is nothing to donate — the alert still offers the manual
-        // add path.
+        // The intents are plain AppIntents (26C101 rewrite, no
+        // OpenURLIntent), so they exist on every supported iOS
+        // version and can always be donated.
         Task { [weak self] in
             var donated = false
-            if #available(iOS 18.0, *) {
-                do {
-                    try await shortcut.makeIntent().donate()
-                    donated = true
-                } catch {
-                    donated = false
-                }
+            do {
+                try await shortcut.makeIntent().donate()
+                donated = true
+            } catch {
+                donated = false
             }
             let wasDonated = donated
             DispatchQueue.main.async { [weak self] in
@@ -3128,6 +3270,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     deinit {
         webView.removeObserver(self, forKeyPath: "canGoBack")
+        NotificationCenter.default.removeObserver(self)
     }
 
     // window.open() and target=_blank links have no target frame:

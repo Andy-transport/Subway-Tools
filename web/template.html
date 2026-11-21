@@ -338,6 +338,13 @@
 		#splashOverlay { position: fixed; inset: 0; z-index: 99999; background: #fff; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
 		#splashOverlay.hidden { opacity: 0; pointer-events: none; }
 		#splashOverlay img { width: 100%; height: 100%; object-fit: contain; display: block; }
+		/* Launch poster fill (26C101): on phone-aspect viewports the
+		   poster's aspect (1170x2532) matches the screen to within a
+		   fraction of a percent, so cover crops almost nothing and no
+		   letterbox bars can appear; wider viewports (iPad / Duo) keep
+		   contain, with the overlay background following the same dark
+		   flag as the poster variant so the margins blend invisibly. */
+		@media (min-aspect-ratio: 2/5) and (max-aspect-ratio: 11/20) { #splashOverlay img { object-fit: cover; } }
 		html.dark #splashOverlay { background: #000; }
 
 		/* Map loading cover (city switch, task A): theme-aware, sits
@@ -820,11 +827,11 @@
 		.more-rel-detail { padding: 6px 2px; }
 		.more-rel-line { font-size: 16px; line-height: 1.65; margin: 0 0 10px; }
 		.more-about-hero { text-align: center; padding: 20px 0 18px; }
-		.more-about-icon { width: 96px; height: 96px; border-radius: 24px; }
+		.more-about-icon { width: 92px; height: 92px; border-radius: 22px; }
 		.more-about-name { font-size: 27px; font-weight: 700; margin-top: 14px; }
 		.more-about-tag { font-size: 15px; color: #8e8e93; margin-top: 6px; }
 		.more-about-ver { font-size: 14px; color: #8e8e93; margin-top: 8px; }
-		.more-disclaimer { border-radius: 999px; background: #f2f2f7; color: #8e8e93; font-size: 14px; line-height: 1.5; text-align: center; padding: 14px 20px; margin: 26px 0 8px; }
+		.more-disclaimer { border-radius: 999px; background: #f2f2f7; color: #8e8e93; font-size: 14px; line-height: 1.5; text-align: center; padding: 14px 20px; margin: 48px 0 8px; }
 		html.dark .more-disclaimer { background: #1c1c1e; }
 		.more-row-switch { justify-content: space-between; cursor: default; }
 		.more-card .more-row:last-child { border-bottom: none; }
@@ -833,6 +840,11 @@
 		.more-switch.on { background: #34c759; }
 		.more-switch-knob { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform .25s; }
 		.more-switch.on .more-switch-knob { transform: translateX(20px); }
+		/* Native UISwitch slot (26C101): in the app the Siri page's
+		   Smart Nearby toggle is a real native UISwitch overlaid by the
+		   shell; this empty slot reserves its exact footprint (the CSS
+		   switch's 51x31) so the row layout is unchanged. */
+		.more-switch-slot { width: 51px; height: 31px; flex: none; display: block; }
 		.more-section-sub { font-size: 12px; margin-top: 10px; padding-left: 4px; }
 		.more-brief-card { padding: 10px 2px; border-bottom: 1px solid rgba(0,0,0,0.06); }
 		.more-brief-card:last-child { border-bottom: none; }
@@ -1088,6 +1100,17 @@
 		html.native-app .more-sub-head { height: 0; padding: 0; overflow: hidden; visibility: hidden; }
 		html.native-app .more-sub { padding-top: 32px; }
 		html.is-pad.native-app .more-sub { padding-top: 40px; }
+		/* Static sub-pages (26C101, the About page): the content never
+		   scrolls, so the stacked top clearance — #moreSheet's
+		   safe-area padding PLUS the 32px (iPad 40px) .more-sub
+		   padding above — only pushes the hero down into a dead gap.
+		   Cancel the extra .more-sub padding back out with the
+		   negative margin and keep a single fixed 18px top padding,
+		   so the content sits just below the native back-button row
+		   with a normal small gap. Scrolling sub-pages (What's New,
+		   Siri, Briefing, Opening Soon, ...) keep the rules above. */
+		html.native-app .more-sub.more-sub-static { padding-top: 18px; margin-top: -32px; }
+		html.is-pad.native-app .more-sub.more-sub-static { padding-top: 18px; margin-top: -40px; }
 		/* Settings fonts per language (user 2026-11-19): English -> San
 		   Francisco, Simplified -> PingFang SC, Traditional (HK/MO) ->
 		   PingFang HK, Traditional (TW) -> PingFang TC. The lang-hant-hk
@@ -1399,13 +1422,17 @@
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
 			<div id="moreSheet" class="glass" v-show="showMore">
 				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub">
-				<div class="more-title">Subway tools</div>
+				<div class="more-title">{{ t('app.name') }}</div>
 				<div class="more-appcard">
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
-						<div class="more-appname">Subway tools</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C100)' : '1.1.0'}) }}</div>
+						<div class="more-appname">{{ t('app.name') }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C101)' : '1.1.0'}) }}</div>
 					</div>
+				</div>
+				<div class="more-card">
+					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showAboutSub = true"><span>{{ t('more.about') }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
 				<div class="more-card">
@@ -1420,14 +1447,6 @@
 				</div>
 				<div class="more-section">{{ t('more.more') }}</div>
 				<div class="more-card">
-					<div class="more-row" @click="doRepo">
-						<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"/></svg>
-						<span>{{ t('more.repo') }}</span><span class="more-chev">›</span>
-					</div>
-					<div class="more-row" @click="showAboutSub = true">
-						<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/></svg>
-						<span>{{ t('more.about') }}</span><span class="more-chev">›</span>
-					</div>
 					<div class="more-row" @click="requestLocPerm">
 						<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
 						<span>{{ t('more.loc') }}</span>
@@ -1439,7 +1458,6 @@
 					<div class="more-row" @click="relSel = -1; showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
-					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showTrainSub = true; loadTrains()"><img class="more-row-icon" :src="trainIcon" alt=""><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="aiIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
 				</div>
@@ -1489,7 +1507,7 @@
 						<div class="more-sub-title">{{ t('more.whatsnew.title') }}</div>
 					</div>
 					<div class="more-rel-list">
-						<div class="more-rel-row" v-for="(r, i) in releaseNotes" :key="r.v" @click="relSel = i">
+						<div class="more-rel-row" v-for="(r, i) in releaseNotes" :key="i" @click="relSel = i">
 							<div class="more-rel-main">
 								<div class="more-rel-title">{{ t('more.rel.title', {v: r.v}) }}</div>
 								<div class="more-rel-date">{{ r.date }}</div>
@@ -1552,7 +1570,8 @@
 					<div class="more-card">
 						<div class="more-row more-row-switch">
 							<span>{{ t('siri.nearbySmart') }}</span>
-							<button class="more-switch" :class="{ on: nearbySmart }" @click="toggleNearbySmart" role="switch" :aria-checked="nearbySmart ? 'true' : 'false'"><span class="more-switch-knob"></span></button>
+							<button v-if="!nativeApp" class="more-switch" :class="{ on: nearbySmart }" @click="toggleNearbySmart" role="switch" :aria-checked="nearbySmart ? 'true' : 'false'"><span class="more-switch-knob"></span></button>
+							<span v-else id="nearbySmartSlot" class="more-switch-slot"></span>
 						</div>
 					</div>
 					<div class="more-up-note">{{ t('siri.nearbySmart.desc') }}</div>
@@ -1616,7 +1635,7 @@
 				</div>
 				</transition>
 				<transition name="more-sub">
-				<div class="more-sub" v-show="showAboutSub">
+				<div class="more-sub more-sub-static" v-show="showAboutSub">
 					<div class="more-sub-head">
 						<button class="more-sub-back" @click="showAboutSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
 						<div class="more-sub-title">{{ t('more.about') }}</div>
@@ -1625,11 +1644,7 @@
 						<img class="more-about-icon" :src="appIcon" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C100)' : '1.1.0'}) }}</div>
-					</div>
-					<div class="more-card">
-						<div class="more-row" @click="aboutRepo"><span>{{ t('more.about.github') }}</span><span class="more-row-value">Andy-transport</span><span class="more-chev">›</span></div>
-						<div class="more-row" @click="aboutDouyin"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">351453703</span><span class="more-chev">›</span></div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C101)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 				</div>
@@ -1784,7 +1799,7 @@ var I18N = {
   'more.pdf': ['下载PDF', '下載PDF', 'Download PDF'],
   'more.pdf.fail': ['PDF 生成失败，请稍后重试', 'PDF 生成失敗，請稍後重試', 'Could not generate the PDF. Please try again.'],
   'more.douyin': ['作者抖音', '作者抖音', 'Author on Douyin'],
-  'more.about': ['关于作者', '關於作者', 'About the Author'],
+  'more.about': ['关于', '關於', 'About'],
   'more.about.github': ['作者 GitHub', '作者 GitHub', 'Author on GitHub'],
   'more.about.douyin': ['作者抖音', '作者抖音', 'Author on Douyin'],
   'more.about.desc': ['城市轨道交通出行工具', '城市軌道交通出行工具', 'A metro and rail transit tool'],
@@ -1867,9 +1882,9 @@ var I18N = {
   'more.siri.note': ['在 Siri 里说出下面的口令即可使用。点按一条可将其添加到 Siri。', '在 Siri 裡說出下面的口令即可使用。點按一條可將其加入 Siri。', 'Say the phrase below to Siri to use it. Tap an item to add it to Siri.'],
   'siri.nearbySmart': ['附近车站智能显示', '附近車站智能顯示', 'Smart Nearby Stations'],
   'siri.nearbySmart.desc': ['开启后，换乘页会根据定位智能显示 1.5 公里内的最近车站；关闭后只显示普通附近车站列表。', '開啟後，換乘頁會根據定位智能顯示 1.5 公里內的最近車站；關閉後只顯示普通附近車站列表。', 'When on, the Transfer tab smartly shows the nearest stations within 1.5 km based on your location; when off, only the regular nearby list is shown.'],
-  'siri.openApp': ['打开 Subway tools', '打開 Subway tools', 'Open Subway tools'],
+  'siri.openApp': ['打开城轨通', '打開城軌通', 'Open Subway tools'],
   'siri.openApp.desc': ['打开 App，查看线路图', '打開 App，查看線路圖', 'Open the app and view the map'],
-  'siri.openApp.voice': ['“打开 Subway tools”', '“打開 Subway tools”', '“Open Subway tools”'],
+  'siri.openApp.voice': ['“打开城轨通”', '“打開城軌通”', '“Open Subway tools”'],
   'siri.firstTrain': ['查询首班车', '查詢首班車', 'First train'],
   'siri.firstTrain.desc': ['查询车站的首班车时间', '查詢車站的首班車時間', 'Check a station’s first train time'],
   'siri.firstTrain.voice': ['“首班车几点”', '“首班車幾點”', '“When is the first train?”'],
@@ -2322,6 +2337,14 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26C101)', date: '2026-11-21', lines: [
+								['启动图修复：切换到哪个城市就显示哪个城市的启动图，并跟随深色模式，上下不再有黑边', '啟動圖修復：切換到哪個城市就顯示哪個城市的啟動圖，並跟隨深色模式，上下不再有黑邊', 'Launch poster fixed: it shows the selected city’s poster, follows dark mode, and no longer has black bars at the top and bottom'],
+								['设置标题与应用名称跟随应用语言显示（中文显示「城轨通」）', '設定標題與應用名稱跟隨應用語言顯示（中文顯示「城軌通」）', 'The Settings title and app name now follow the app language'],
+								['「关于」页面改为浮光样式：居中图标、应用名、标语、版本与声明胶囊', '「關於」頁面改為浮光樣式：居中圖標、應用名、標語、版本與聲明膠囊', 'The About page now follows the Floating Light layout: centred icon, app name, tagline, version and a disclaimer capsule'],
+								['「附近车站智能显示」开关改为原生 Apple 开关（UISwitch）', '「附近車站智能顯示」開關改為原生 Apple 開關（UISwitch）', 'The Smart Nearby Stations toggle is now a native Apple UISwitch'],
+								['修复更新内容中两个同名版本条目切换错乱的问题', '修復更新內容中兩個同名版本條目切換錯亂的問題', 'Fixed the What’s New list misbehaving on two entries with the same version label'],
+								['二级页面返回按钮不再紧贴安全区边缘；iPhone 底部栏下移，贴近 Home 指示条', '二級頁面返回按鈕不再緊貼安全區邊緣；iPhone 底部欄下移，貼近 Home 指示條', 'Sub-page back button no longer hugs the safe-area edge; the iPhone tab bar sits lower, closer to the Home indicator'],
+							] },
 							{ v: '1.1.0', date: '2026-11-21', lines: [
 								['新增石家庄：3 条线路、60 座车站', '新增石家莊：3 條線路、60 座車站', 'Added Shijiazhuang: 3 lines, 60 stations'],
 								['13 个城市启用全新启动图，随深浅模式自动切换', '13 個城市啟用全新啟動圖，隨深淺模式自動切換', 'All-new launch posters for all 13 cities, switching automatically with light and dark appearance'],
@@ -3673,7 +3696,27 @@ function titlePy(py) {
 					// (permission prompt appears only here, never at launch), or use
 					// HTML5 geolocation in a plain browser. The native side calls
 					// showNearbyStations(lat, lng) / nearbyError(msg) with the result.
-					toggleNearbySmart() { this.nearbySmart = !this.nearbySmart; try { window.localStorage.setItem('metro-nearby-smart', this.nearbySmart ? '1' : '0'); } catch (e) {} },
+					toggleNearbySmart() { this.setNearbySmart(!this.nearbySmart); },
+					// Single write path for the Smart Nearby flag: the CSS
+					// switch (plain browser), the native UISwitch callback
+					// (window.__setNearbySmart) and any future caller all
+					// land here, so state + persistence can never diverge.
+					setNearbySmart(v) { this.nearbySmart = !!v; try { window.localStorage.setItem('metro-nearby-smart', this.nearbySmart ? '1' : '0'); } catch (e) {} },
+					// Native UISwitch overlay (26C101): report the Siri
+					// page switch slot's frame + current value so the
+					// shell can place its real UISwitch exactly over the
+					// slot (same frame-report pattern as the theme
+					// buttons). A zero rect hides the switch — posted
+					// whenever the Siri page is not the visible sub-view.
+					reportSwitchFrame() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.switchFrame;
+						if (!h) return;
+						var el = document.getElementById('nearbySmartSlot');
+						if (!this.showSiriSub || !el) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
+						var r = el.getBoundingClientRect();
+						if (!r.width || r.bottom < 0 || r.top > window.innerHeight) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
+						h.postMessage({ id: 'nearbySmart', x: r.left, y: r.top, width: r.width, height: r.height, on: this.nearbySmart });
+					},
 					requestNearbyStations() {
 						this.nearbyMsg = '';
 						this.nearbyList = [];
@@ -4406,11 +4449,10 @@ function titlePy(py) {
 							}, 150);
 						});
 					},
-					doRepo() { this.closeMore(); openRepo(); },
+
 					doPdf() { this.closeMore(); pdfDownload(); },
 					doDouyin() { this.closeMore(); openDouyin(); },
-					aboutRepo() { openRepo(); },
-					aboutDouyin() { openDouyin(); },
+
 					openAppearance() {
 						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openAppearance);
 						if (h) { h.postMessage({}); return; }
@@ -4594,9 +4636,9 @@ function titlePy(py) {
 					}
 					if (this.nativeApp) {
 						var self = this;
-						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); });
+						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); });
 						clearTimeout(window._metroTabsTimer);
-						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); }, 300);
+						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); }, 300);
 					}
 				},
 				mounted: function() {
@@ -4625,6 +4667,7 @@ function titlePy(py) {
 							window.requestAnimationFrame(function() {
 								_moreTicking = false;
 								self.reportThemeFrame();
+								self.reportSwitchFrame();
 							});
 						}, { passive: true });
 					}
@@ -4652,7 +4695,15 @@ function titlePy(py) {
 					// on the city the user last switched to, and shows that
 					// city's splash. The swap happens behind the launch splash.
 					try {
-						var _savedCity = window.localStorage.getItem('metro-city');
+						// Single source of truth (26C101): the native
+						// shell persists the city in UserDefaults and
+						// injects it as _metroInitCity at document start.
+						// Prefer it over localStorage — reading ONLY
+						// localStorage here (the old code) meant a
+						// cleared/reset web store skipped the restore
+						// switch entirely and the app (and its splash)
+						// came up on the wrong city.
+						var _savedCity = window._metroInitCity || window.localStorage.getItem('metro-city');
 						// Relaunch restore (build 63): data() already set
 						// this.city from the same localStorage value, so
 						// _savedCity === this.city and the old
@@ -4684,6 +4735,32 @@ function titlePy(py) {
 						if (t.id !== 'moreSheet' && t.id !== 'timetablePanel') return;
 						_app.notifySubScroll(t.scrollTop > 8);
 					}, true);
+					// Edge-swipe back (26C101): while a sub-view is open
+					// (the same anySubViewOpen state that shows the
+					// native back button — Settings sub-pages and the
+					// timetable line detail), a swipe that STARTS within
+					// 24pt of the left edge and travels more than 60pt
+					// right (with little vertical drift) goes back
+					// through the very same goBack() the native back
+					// button invokes — one close path, no duplicate.
+					// The edge-start requirement keeps the gesture out
+					// of in-page horizontal scrolling, and it is never
+					// armed on the main pages, so map dragging is
+					// unaffected.
+					var _edgeX = null, _edgeY = null;
+					document.addEventListener('touchstart', function(e) {
+						var t = e.changedTouches && e.changedTouches[0];
+						if (t && t.clientX <= 24 && self.anySubViewOpen) { _edgeX = t.clientX; _edgeY = t.clientY; }
+						else { _edgeX = null; _edgeY = null; }
+					}, { passive: true });
+					document.addEventListener('touchend', function(e) {
+						if (_edgeX === null) return;
+						var t = e.changedTouches && e.changedTouches[0];
+						var dx = t ? t.clientX - _edgeX : 0;
+						var dy = t ? Math.abs(t.clientY - _edgeY) : 999;
+						_edgeX = null; _edgeY = null;
+						if (dx > 60 && dy <= 40) self.goBack();
+					}, { passive: true });
 					// Location permission row (Settings): ask native for the
 					// current state on launch so the row shows the right
 					// state. Query only — never prompts here.
@@ -4701,6 +4778,11 @@ function titlePy(py) {
 			});
 			const vm = App.mount("#app");
 			window.metroApp = vm; // native UITabBar calls metroApp.setTab(key)
+			// Native UISwitch callback (26C101): the shell's real
+			// UISwitch on the Siri page reports user toggles through
+			// here so the Vue state + localStorage update exactly as
+			// the old CSS switch's tap did (setNearbySmart).
+			window.__setNearbySmart = function(v) { if (window.metroApp) window.metroApp.setNearbySmart(v); };
 			// Swipe left/right on the tab bar to switch tabs; the pill slides with it.
 			// Claim the gesture on touchmove (a diagonal swipe used to be stolen by the
 			// browser and end as touchcancel), and swallow the synthetic click that
