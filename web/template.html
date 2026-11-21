@@ -688,7 +688,7 @@
 		   need top clearance there and no bottom-bar clearance. iPhone is
 		   unchanged (bottom bar). window._metroIsPad is injected by native
 		   at document start; undefined (offline preview) means iPhone. */
-		html.is-pad #moreSheet { padding-top: calc(env(safe-area-inset-top) + 72px); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+		html.is-pad #moreSheet { padding-top: calc(env(safe-area-inset-top) + 118px); padding-bottom: calc(28px + env(safe-area-inset-bottom)); } /* Settings also carries the native sub-view header strip (44pt) below the tab bar, so its top clearance is 72 + 44 + margin (user 2026-11-21: iPad scroll safe areas). */
 		html.is-pad #stationPanel, html.is-pad #transferPanel, html.is-pad #timetablePanel { padding-top: calc(env(safe-area-inset-top) + 72px); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 		.more-title { font-size: 34px; font-weight: 700; color: #000; margin: 8px 4px 16px; }
 		html.dark .more-title { color: #fff; }
@@ -2303,7 +2303,9 @@ function titlePy(py) {
 								['搜索记录按城市分开显示，切换城市只看该城市的记录', '搜尋記錄按城市分開顯示，切換城市只看該城市的記錄', 'Search history is now per city — each city shows only its own records'],
 								['iPhone Duo 展开时改用右侧竖向栏，界面铺满全屏', 'iPhone Duo 展開時改用右側豎向欄，界面鋪滿全屏', 'On iPhone Duo unfolded, navigation moves to a vertical right sidebar and the UI fills the full screen'],
 								['换乘页出发/到达交换按钮图标优化', '換乘頁出發/到達交換按鈕圖標優化', 'Polished the swap button on the Transfer tab'],
-								['无数字的线路标识改为单行：站名与「线」同行同字号', '無數字的線路標識改為單行：站名與「線」同行同字號', 'Named-line badges (no number) now sit on a single line'],
+								['无数字的线路标识改为单行：站名与「线」同行同字號', '無數字的線路標識改為單行：站名與「線」同行同字號', 'Named-line badges (no number) now sit on a single line'],
+								['车站搜索按线路编号与上下行顺序排序', '車站搜尋按線路編號與上下行順序排序', 'Station search results are sorted by line number and direction order'],
+								['iPad 外观页与设置页布局适配', 'iPad 外觀頁與設定頁佈局適配', 'iPad layout fixes for the Appearance and Settings pages'],
 							] },
 							{ v: '1.1.0B', date: '2026-11-21', lines: [
 								['车型搜索覆盖 12 个城市，共 331 列列车', '車型搜尋覆蓋 12 個城市，共 331 列列車', 'Train model search covers 331 trains across all 12 cities'],
@@ -3752,6 +3754,29 @@ function titlePy(py) {
 						var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
 						return 2 * R * Math.asin(Math.sqrt(a));
 					},
+					// Station ordering (user 2026-11-21): by line number
+					// (routes order — Line 1, 2, 3 ... then named lines),
+					// then along the line in up/down direction order. An
+					// interchange station sorts by its earliest line and
+					// its position on that line. Returns a new array.
+					sortByLineOrder(list) {
+						var R = this.routes;
+						if (!R || !R.lines || !list.length) return list;
+						var rank = {}, pos = {};
+						var keys = Object.keys(R.lines);
+						for (var li = 0; li < keys.length; li++) {
+							var sts = (R.lines[keys[li]] || {}).stations || [];
+							for (var si = 0; si < sts.length; si++) if (rank[sts[si]] === undefined) { rank[sts[si]] = li; pos[sts[si]] = si; }
+						}
+						return list.map(function (st, i) { return { st: st, i: i }; }).sort(function (a, b) {
+							var ra = rank[a.st.n] === undefined ? 9999 : rank[a.st.n];
+							var rb = rank[b.st.n] === undefined ? 9999 : rank[b.st.n];
+							if (ra !== rb) return ra - rb;
+							var pa = pos[a.st.n] === undefined ? 9999 : pos[a.st.n];
+							var pb = pos[b.st.n] === undefined ? 9999 : pos[b.st.n];
+							return pa !== pb ? pa - pb : a.i - b.i;
+						}).map(function (x) { return x.st; });
+					},
 					// 搜索记录 (build 63): every route search with a from + to is saved
 					// to localStorage ('metro-search-history'), most recent first, cap 10 per city.
 					// Same from→to in the same city moves to the top, not duplicated.
@@ -4384,25 +4409,11 @@ function titlePy(py) {
 						else list = this.stations.filter(function(st) {
 							return st.n.indexOf(q) !== -1 || toHant(st.n).indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1;
 						}).slice(0, 200);
-						// Line 1 stations first (user 2026-11-20, every
-						// city): stable partition — stations on the
-						// city's Line 1 (routes key '1'; Jinhua has no
-						// Line 1, so its first line 金义线 'JY' is used)
-						// come first, keeping the pinyin order inside
-						// each group.
-						var R = this.routes;
-						if (R && R.lines && list.length) {
-							var k1 = R.lines['1'] ? '1' : Object.keys(R.lines)[0];
-							var L1 = k1 ? R.lines[k1] : null;
-							if (L1 && L1.stations && L1.stations.length) {
-								var onL1 = {};
-								L1.stations.forEach(function(n) { onL1[n] = 1; });
-								var first = [], rest = [];
-								list.forEach(function(st) { (onL1[st.n] ? first : rest).push(st); });
-								if (first.length) list = first.concat(rest);
-							}
-						}
-						return list;
+						// Order by line number, then along the line
+						// (user 2026-11-21) — replaces the 2026-11-20
+						// Line-1-first partition, which this generalises
+						// (Line 1 has rank 0, so its stations still lead).
+						return this.sortByLineOrder(list);
 					},
 					timetableData() {
 						if (this.city === 'sy') return this.syTimetable;
@@ -4474,14 +4485,18 @@ function titlePy(py) {
 						var q = this.suggestFor === 'from' ? (this.fromQueryLive || this.fromQuery) : (this.suggestFor === 'to' ? (this.toQueryLive || this.toQuery) : '');
 						q = (q || '').replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\s+/g, '').toLowerCase();
 						if (!q) return [];
+						var matched = [];
+						for (var i = 0; i < this.stations.length; i++) {
+							var st0 = this.stations[i];
+							if (st0.n.indexOf(q) !== -1 || toHant(st0.n).indexOf(q) !== -1 || st0.py.indexOf(q) !== -1 || st0.ini.indexOf(q) !== -1) matched.push(st0);
+						}
+						matched = this.sortByLineOrder(matched);
 						var out = [];
-						for (var i = 0; i < this.stations.length && out.length < 8; i++) {
-							var st = this.stations[i];
-							if (st.n.indexOf(q) !== -1 || toHant(st.n).indexOf(q) !== -1 || st.py.indexOf(q) !== -1 || st.ini.indexOf(q) !== -1) {
-								var lns = this.stationLines(st.n);
-								for (var j = 0; j < lns.length && out.length < 8; j++) out.push({ st: st, line: lns[j] });
-								if (!lns.length) out.push({ st: st, line: null });
-							}
+						for (var k = 0; k < matched.length && out.length < 8; k++) {
+							var st = matched[k];
+							var lns = this.stationLines(st.n);
+							for (var j = 0; j < lns.length && out.length < 8; j++) out.push({ st: st, line: lns[j] });
+							if (!lns.length) out.push({ st: st, line: null });
 						}
 						return out;
 					},

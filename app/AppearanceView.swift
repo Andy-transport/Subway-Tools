@@ -78,13 +78,15 @@ final class AppearanceView: UIView {
         for v in [autoLabel, autoSwitch] { v.translatesAutoresizingMaskIntoConstraints = false; autoRow.addSubview(v) }
 
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 64),
+            titleLabel.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: UIDevice.current.userInterfaceIdiom == .pad ? 132 : 64), // iPad: the top tab bar + native header strip occupy ~106pt, so the title starts below them (user 2026-11-21).
             titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 28),
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -28),
 
             cardView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            cardView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            cardView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            cardView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            cardView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 16),
+            cardView.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
+            cardView.widthAnchor.constraint(lessThanOrEqualToConstant: 600), // Wide screens (iPad / Duo): cap the card so the 1.9-aspect previews fit the screen height; iPhone widths are under the cap and unchanged (user 2026-11-21).
 
             lightColumn.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 24),
             lightColumn.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 24),
