@@ -92,6 +92,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // Distinct from backButton above, which is the bottom-anchored
     // "‹ 返回" web-history button driven by webView.canGoBack.
     var subViewBackButton: UIButton!
+    // Left-edge swipe-back recognizer (26D104): lives on the root view,
+    // enabled only while a sub-view is open (mirrors the back button's
+    // visibility via setSubViewBackButtonVisible / setSubChromeVisible),
+    // and performs the exact back-button action (subViewBackTapped).
+    var subViewEdgePan: UIScreenEdgePanGestureRecognizer?
     var subBackLeadingConstraint: NSLayoutConstraint?
     var subBackTopConstraint: NSLayoutConstraint?
     var subHeaderGlass: UIVisualEffectView!
@@ -608,6 +613,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         swipeRight.direction = .right
         tabBar.addGestureRecognizer(swipeRight)
 
+        // Left-edge swipe-back (26D104, restored): a screen-edge pan on
+        // the root view. It is DISABLED by default and enabled only
+        // while a sub-view is open (the same state that shows the
+        // native back button), so it can never eat pans on the home /
+        // map pages. UIScreenEdgePan begins only from the left edge,
+        // so ordinary scrolls and the tab-bar swipes above are
+        // unaffected while it is enabled.
+        let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(subViewEdgePanBegan(_:)))
+        edgePan.edges = .left
+        edgePan.isEnabled = false
+        view.addGestureRecognizer(edgePan)
+        subViewEdgePan = edgePan
+
         backButton = UIButton(type: .system)
         backButton.setTitle("‹ 返回", for: .normal)
         backButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
@@ -839,12 +857,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         webView.evaluateJavaScript("window.metroApp && window.metroApp.goBack()", completionHandler: nil)
     }
 
+    // Left-edge swipe-back (26D104): performs the identical action as
+    // the native back button — dismisses a native picker if one is
+    // showing and asks the web to goBack() (which closes an in-page
+    // sub-view). The recognizer is only enabled while a sub-view is
+    // open, so .began here always means "go back".
+    @objc func subViewEdgePanBegan(_ recognizer: UIScreenEdgePanGestureRecognizer) {
+        guard recognizer.state == .began else { return }
+        subViewBackTapped()
+    }
+
     // Show/hide the native sub-view back button. Called from the "subView"
     // message handler. If the button was never created, there is nothing
     // to show — the web back button remains the fallback.
     func setSubViewBackButtonVisible(_ visible: Bool) {
         guard let button = subViewBackButton else { return }
         button.isHidden = !visible
+        subViewEdgePan?.isEnabled = visible
         if visible { view.bringSubviewToFront(button) }
     }
 
@@ -966,6 +995,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // cancels it (subChromeClosing flag + removing the animations).
     func setSubChromeVisible(_ visible: Bool) {
         guard let glass = subHeaderGlass, let button = subViewBackButton else { return }
+        subViewEdgePan?.isEnabled = visible
         if visible {
             subChromeClosing = false
             glass.layer.removeAllAnimations()
@@ -2188,9 +2218,28 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // message); before the first web report, fall back to the
         // system style at launch.
         let splashDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
-        let useDark = splashDark && UIImage(named: splashName + "Dark") != nil
+        // The dark variant counts as present if named lookup OR the
+        // explicit .jpg path finds it (26D104 — same miss that hit the
+        // load chain below).
+        let darkExists = UIImage(named: splashName + "Dark") != nil || Bundle.main.path(forResource: splashName + "Dark", ofType: "jpg") != nil
+        let useDark = splashDark && darkExists
         let splashImageName = useDark ? splashName + "Dark" : splashName
-        if let img = UIImage(named: splashImageName) ?? UIImage(named: splashName) ?? UIImage(named: "Splash") {
+        // Load chain (26D104): named lookup first (the bundle now also
+        // carries SplashST.png / SplashSTDark.png — same bytes, .png
+        // names, which named lookup resolves reliably here), then an
+        // explicit-path load of the .jpg files, and only then the
+        // original Beijing 'Splash' poster as the last resort. On
+        // 26D103 the .jpg-named pair was missed by named lookup on
+        // device, so the fallback Beijing poster is what users saw.
+        var splashImg = UIImage(named: splashImageName) ?? UIImage(named: splashName)
+        if splashImg == nil, let path = Bundle.main.path(forResource: splashImageName, ofType: "jpg") {
+            splashImg = UIImage(contentsOfFile: path)
+        }
+        if splashImg == nil, splashImageName != splashName, let path = Bundle.main.path(forResource: splashName, ofType: "jpg") {
+            splashImg = UIImage(contentsOfFile: path)
+        }
+        if splashImg == nil { splashImg = UIImage(named: "Splash") }
+        if let img = splashImg {
             iv.image = img
         }
         // Background follows the poster ACTUALLY shown, not the

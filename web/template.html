@@ -1459,7 +1459,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D103)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D104)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
@@ -1674,7 +1674,7 @@
 						<img class="more-about-icon" :src="appIcon" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D103)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D104)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -1816,19 +1816,19 @@ var I18N = {
   'tr.err.nocity': ['该城市没有这个车站', '該城市沒有這個車站', 'This city doesn\'t have that station'],
   'tr.err.luyang': ['暂无换乘方案：潞阳所在的 22 号线未画进这版配线图', '暫無換乘方案：潞陽所在的 22 號線未畫進這版配線圖', 'No route: Luyang is on Line 22, which is not drawn in this map'],
   'tr.err.nocoord': ['（配线图暂无该站坐标，无法定位）', '（配線圖暫無該站座標，無法定位）', '(no coordinates for this station on the map)'],
-  'transit.bj': ['打开一卡通', '打開一卡通', 'Open Yikatong'],
-  'transit.sy': ['打开盛京通', '打開盛京通', 'Open Shengjing Tong'],
-  'transit.sh': ['打开Metro大都会', '打開Metro大都會', 'Open Metro Daduhui'],
-  'transit.hb': ['打开哈尔滨城市通', '打開哈爾濱城市通', 'Open Harbin City Pass'],
-  'transit.dl': ['打开大连交通e出行', '打開大連交通e出行', 'Open Dalian e-Travel'],
-  'transit.jh': ['打开任我行', '打開任我行', 'Open Renwoxing'],
-  'transit.cz': ['打开常州地铁', '打開常州地鐵', 'Open Changzhou Metro'],
-  'transit.cq': ['打开渝畅行', '打開渝暢行', 'Open Yuchangxing'],
-  'transit.cc': ['打开长春E出行', '打開長春E出行', 'Open Changchun E-Travel'],
-  'transit.sz': ['打开深圳地铁', '打開深圳地鐵', 'Open Shenzhen Metro'],
-  'transit.cd': ['打开成都地铁', '打開成都地鐵', 'Open Chengdu Metro'],
-  'transit.qd': ['打开青岛地铁', '打開青島地鐵', 'Open Qingdao Metro'],
-  'transit.sjz': ['打开石慧行', '打開石慧行', 'Open Shihuihang'],
+  'transit.bj': ['一卡通', '一卡通', 'Yikatong'],
+  'transit.sy': ['盛京通', '盛京通', 'Shengjing Tong'],
+  'transit.sh': ['Metro大都会', 'Metro大都會', 'Metro Daduhui'],
+  'transit.hb': ['哈尔滨城市通', '哈爾濱城市通', 'Harbin City Pass'],
+  'transit.dl': ['大连交通e出行', '大連交通e出行', 'Dalian e-Travel'],
+  'transit.jh': ['任我行', '任我行', 'Renwoxing'],
+  'transit.cz': ['常州地铁', '常州地鐵', 'Changzhou Metro'],
+  'transit.cq': ['渝畅行', '渝暢行', 'Yuchangxing'],
+  'transit.cc': ['长春E出行', '長春E出行', 'Changchun E-Travel'],
+  'transit.sz': ['深圳地铁', '深圳地鐵', 'Shenzhen Metro'],
+  'transit.cd': ['成都地铁', '成都地鐵', 'Chengdu Metro'],
+  'transit.qd': ['青岛地铁', '青島地鐵', 'Qingdao Metro'],
+  'transit.sjz': ['石慧行', '石慧行', 'Shihuihang'],
   'more.reset': ['重置缩放', '重置縮放', 'Reset zoom'],
   'more.repo': ['项目主页', '項目主頁', 'Project home'],
   'more.pdf': ['下载PDF', '下載PDF', 'Download PDF'],
@@ -2376,7 +2376,7 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
-							{ v: '1.1.0 (26D103)', date: '2026-11-21', lines: [
+							{ v: '1.1.0 (26D104)', date: '2026-11-21', lines: [
 								['修复设置列表行高亮残留：点按「通用」返回后不再留灰块', '修復設定列表行高亮殘留：點按「通用」返回後不再留灰塊', 'Fixed a stuck row highlight in Settings after returning from a sub-page'],
 								['「关于」页恢复项目主页与作者行（GitHub / 抖音），项目主页指向作者仓库 Andy-transport/Subway-motion', '「關於」頁恢復項目主頁與作者行（GitHub / 抖音），項目主頁指向作者倉庫 Andy-transport/Subway-motion', 'Restored the project-home and author rows (GitHub / Douyin) on the About page; project home points to the author’s repo Andy-transport/Subway-motion'],
 								['新启动图：Subway Tools 深浅两版，全应用统一，不再按城市切换', '新啟動圖：Subway Tools 深淺兩版，全應用統一，不再按城市切換', 'New launch splash: one Subway Tools pair (light/dark) for the whole app, no longer per city'],
@@ -2386,6 +2386,11 @@ function titlePy(py) {
 								['设置中「外观」图标更换为新图标', '設定中「外觀」圖標更換為新圖標', 'New icon for the Appearance row in Settings'],
 								['更多城市的图标统一灰色显示', '更多城市的圖標統一灰色顯示', 'More-cities icons now display uniformly in grey'],
 								['设置页顺序调整：切换城市置顶，通用、关于、外观合并为一组', '設定頁順序調整：切換城市置頂，通用、關於、外觀合併為一組', 'Settings reordered: city switching on top; General, About and Appearance merged into one group'],
+								['Siri 图标深色版重做：只换底图，图标本体不变，边缘更干净', 'Siri 圖標深色版重做：只換底圖，圖標本體不變，邊緣更乾淨', 'Siri icon dark variant redone: background swapped only, artwork untouched, cleaner edges'],
+								['外观图标重新裁切，去掉多余边框', '外觀圖標重新裁切，去掉多餘邊框', 'Appearance icon re-cropped without the extra frame'],
+								['修复启动图未生效：新启动图现可正常加载（外观预览同步）', '修復啟動圖未生效：新啟動圖現可正常載入（外觀預覽同步）', 'Fixed the new launch splash not taking effect (Appearance previews fixed too)'],
+								['恢复左侧边缘滑动返回', '恢復左側邊緣滑動返回', 'Restored the left-edge swipe-back gesture'],
+								['乘车码按钮文字改为 App 名称', '乘車碼按鈕文字改為 App 名稱', 'Transit button label now shows just the app name'],
 							] },
 							{ v: '1.1.0 (26C104)', date: '2026-11-21', lines: [
 								['安装包名称改为 Subway Tools', '安裝包名稱改為 Subway Tools', 'Renamed the app bundle to Subway Tools'],

@@ -96,6 +96,12 @@ final class SearchConditionsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        // Left-edge swipe-back (26D104, restored): same action as the
+        // back button (backTapped). UIScreenEdgePan begins only from
+        // the left edge, so the pickers and controls are unaffected.
+        let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgePanBack(_:)))
+        edgePan.edges = .left
+        view.addGestureRecognizer(edgePan)
         mode = modeKeys.contains(initialMode) ? initialMode : "depart"
         payment = payKeys.contains(initialPayment) ? initialPayment : "cash"
 
@@ -238,6 +244,10 @@ final class SearchConditionsViewController: UIViewController {
 
     @objc private func backTapped() {
         dismiss(animated: true)
+    }
+
+    @objc private func edgePanBack(_ recognizer: UIScreenEdgePanGestureRecognizer) {
+        if recognizer.state == .began { backTapped() }
     }
 
     private func condDict(date: Date, time: Date, now: Bool = false) -> [String: Any] {

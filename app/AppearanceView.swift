@@ -268,10 +268,23 @@ final class PreviewCardView: UIView {
     // original Beijing poster.
     func refreshPoster(city: String = "bj") {
         let base = "SplashST"
+        // Load chain (26D104, mirrors refreshSplashImage): named lookup
+        // first (the bundle now also carries .png-named copies of the
+        // ST pair, which named lookup resolves reliably here), then an
+        // explicit-path load of the .jpg, and only then the original
+        // Beijing 'Splash' poster. On 26D103 the .jpg-named pair was
+        // missed by named lookup on device, so previews fell back to
+        // the Beijing poster.
         if dark, let img = UIImage(named: base + "Dark") {
             posterView.image = img
+        } else if dark, let path = Bundle.main.path(forResource: base + "Dark", ofType: "jpg"), let img = UIImage(contentsOfFile: path) {
+            posterView.image = img
+        } else if let img = UIImage(named: base) {
+            posterView.image = img
+        } else if let path = Bundle.main.path(forResource: base, ofType: "jpg"), let img = UIImage(contentsOfFile: path) {
+            posterView.image = img
         } else {
-            posterView.image = UIImage(named: base) ?? UIImage(named: "Splash")
+            posterView.image = UIImage(named: "Splash")
         }
     }
 

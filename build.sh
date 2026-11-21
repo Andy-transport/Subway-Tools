@@ -179,6 +179,12 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashDark.jpg',
 # possible later re-enable.
 python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashST.jpg','wb').write(base64.b64decode(open('app/splash-st.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashSTDark.jpg','wb').write(base64.b64decode(open('app/splash-st-dark.b64').read()))"
+# Same ST bytes under .png names (26D104): in this manually-assembled
+# bundle UIImage(named:) demonstrably resolves .png-named files (city
+# logos, TimetableIcon, Splash.png) but missed the .jpg-named ST pair on
+# device, so every splash load fell back to the Beijing 'Splash' poster.
+python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashST.png','wb').write(base64.b64decode(open('app/splash-st.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashSTDark.png','wb').write(base64.b64decode(open('app/splash-st-dark.b64').read()))"
 # Native launch splash (build 53): the Shenyang + Shanghai per-city splash
 # images, so the native splash view can show the right city's splash from
 # launch (same images as the web per-city splash, inlined from these .b64).
