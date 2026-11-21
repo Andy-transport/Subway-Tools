@@ -61,47 +61,27 @@ mkdir -p build/Payload/Metro.app/web
 # references to other app types), the build continues without Siri
 # metadata, exactly like builds #84-#86.
 mkdir -p build/obj
+# Siri experiment 4: write the const-extraction protocols list into the
+# build dir. Xcode's build system passes this list to swiftc via
+# -const-gather-protocols-list whenever SWIFT_EMIT_CONST_VALUE_PROTOCOLS
+# is non-empty; experiment 3 showed the flag makes swiftc EMIT
+# .swiftconstvalues (2-byte/empty for the old OpenURLIntent file).
+cat > build/Metro_const_extract_protocols.json <<'EOF'
+["AppIntent","AppEntity","AppEnum","AppShortcutsProvider","EntityQuery","EntityStringQuery","EnumerableEntityQuery","DynamicOptionsProvider","AppCollection","LiveActivityIntent"]
+EOF
 SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
+  -const-gather-protocols-list build/Metro_const_extract_protocols.json \
   -module-name Metro -c \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   app/AppIntents.swift -o build/obj/AppIntents-harvest.o \
   || echo "WARNING: AppIntents const-values harvest failed; continuing without Siri metadata"
+echo "== Siri experiment 4 =="
+echo "-- H1: solo-harvest const values (protocols list, restructured AppIntents.swift) --"
 ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
-
-echo "== Siri experiment 3: const-gather protocols list =="
-mkdir -p build/obj/exp3
-cat > build/obj/exp3/Metro_const_extract_protocols.json << 'PROTOEOF'
-["AppIntents.AppIntent","AppIntents.AppEntity","AppIntents.AppEnum","AppIntents.AppShortcutsProvider","AppIntents.EntityQuery","AppIntents.EntityStringQuery","AppIntents.EnumerableEntityQuery","AppIntents.DynamicOptionsProvider","AppIntents.AppCollection","AppIntents.LiveActivityIntent"]
-PROTOEOF
-echo "-- E3-A: protocols list + explicit -emit-const-values-path (iOS 16 target) --"
+for f in build/obj/*.swiftconstvalues; do if [ -f "$f" ]; then echo "H1 size: $f = $(wc -c < "$f") bytes"; fi; done
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
-  -emit-const-values-path build/obj/exp3/E3A.swiftconstvalues \
-  -const-gather-protocols-list build/obj/exp3/Metro_const_extract_protocols.json \
-  -module-name Metro -c \
-  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  app/AppIntents.swift -o build/obj/exp3/E3A.o \
-  || echo "E3A FAILED"
-echo "-- E3-B: protocols list, driver-chosen const-values path (iOS 16 target) --"
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
-  -const-gather-protocols-list build/obj/exp3/Metro_const_extract_protocols.json \
-  -module-name Metro -c \
-  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  app/AppIntents.swift -o build/obj/exp3/E3B.o \
-  || echo "E3B FAILED"
-echo "-- E3-C: protocols list + explicit path (iOS 18 target) --"
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios18.0 -O -parse-as-library -emit-const-values \
-  -emit-const-values-path build/obj/exp3/E3C.swiftconstvalues \
-  -const-gather-protocols-list build/obj/exp3/Metro_const_extract_protocols.json \
-  -module-name Metro -c \
-  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  app/AppIntents.swift -o build/obj/exp3/E3C.o \
-  || echo "E3C FAILED"
-echo "-- exp3 results --"
-ls -la build/obj/exp3
-find build -name "*.swiftconstvalues"
-for f in build/obj/exp3/E3A.swiftconstvalues build/obj/exp3/E3C.swiftconstvalues; do [ -f "$f" ] && cp "$f" build/obj/AppIntents.swiftconstvalues && echo "staged $f for the metadata processor"; done
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
+  -const-gather-protocols-list build/Metro_const_extract_protocols.json \
   -module-name Metro \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   $SWIFT_SOURCES -o build/Payload/Metro.app/Metro
@@ -109,8 +89,17 @@ xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emi
 # binary (Xcode leaves them in the products dir during its run); copy
 # any harvested file in for the extraction step; it is removed again
 # before packaging (see the rm after the processors below).
-find build/obj build/Payload/Metro.app -name "*.swiftconstvalues" -exec cp {} build/Payload/Metro.app/ \; 2>/dev/null || true
-ls build/Payload/Metro.app/*.swiftconstvalues 2>/dev/null || echo "WARNING: no swiftconstvalues beside the binary"
+# Siri experiment 4 staging: find EVERY .swiftconstvalues produced
+# anywhere under build/, echo paths+sizes, and copy them into the obj
+# dir, beside the Metro binary, and into the .app — all BEFORE the
+# metadata processor runs in section 2a below. (Beside the binary and
+# into the .app are the same directory here: the binary is
+# build/Payload/Metro.app/Metro.)
+echo "-- E4 staging: all .swiftconstvalues under build/ --"
+find build -name "*.swiftconstvalues" | while read -r f; do echo "found: $f = $(wc -c < "$f") bytes"; done
+find build -name "*.swiftconstvalues" -exec cp {} build/obj/ \; 2>/dev/null || true
+find build -name "*.swiftconstvalues" -exec cp {} build/Payload/Metro.app/ \; 2>/dev/null || true
+ls -la build/obj/*.swiftconstvalues build/Payload/Metro.app/*.swiftconstvalues 2>/dev/null || echo "WARNING: no swiftconstvalues staged"
 
 echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
 # A raw swiftc build skips Xcode's AppIntents metadata extraction, so
@@ -144,6 +133,8 @@ xcrun appintentsnltrainingprocessor \
   --output build/Payload/Metro.app/Metadata.appintents \
   || echo "WARNING: appintentsnltrainingprocessor failed - Siri phrases will not train"
 ls -la build/Payload/Metro.app/Metadata.appintents || true
+echo "-- E4 result: Metadata.appintents --"
+ls -la build/Payload/Metro.app/Metadata.appintents 2>/dev/null || echo "Metadata.appintents: ABSENT"
 # The const-values file was build-time input for the extraction step
 # only; it is not part of the app bundle Xcode would ship.
 rm -f build/Payload/Metro.app/*.swiftconstvalues

@@ -277,6 +277,7 @@ final class PreviewCardView: UIView {
         case "sz": base = "SplashSZ"
         case "cd": base = "SplashCD"
         case "qd": base = "SplashQD"
+        case "sjz": base = "SplashSJZ"
         default: base = "Splash"
         }
         if dark, let img = UIImage(named: base + "Dark") {

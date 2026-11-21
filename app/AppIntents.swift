@@ -5,18 +5,25 @@ import Foundation
 // "在设置里面加入Siri快捷指令功能").
 //
 // This is the iPhone's own Siri / Shortcuts app integration. There is
-// NO in-app AI search box or voice parser here: each intent simply
-// opens the app at a subwaymotion:// deep link, and
+// NO in-app AI search box or voice parser here: each intent brings
+// the app to the foreground and hands MapViewController the same
+// subwaymotion:// deep link the URL scheme would have delivered, and
 // MapViewController.handleDeepLink (AppDelegate.swift) routes it to
 // the right tab / web action. The 6 ids below are the contract with
 // the web Settings UI: the web posts {id} to the native "addShortcut"
-// handler, and SubwayToolsShortcuts exposes the same 6 intents to Siri
-// and the Shortcuts app.
+// handler, and SubwayToolsShortcuts exposes the same 6 intents to
+// Siri and the Shortcuts app.
 //
-// AppIntents itself is available from iOS 16.0, but OpenURLIntent (used
-// to open the subwaymotion:// deep link) needs iOS 18.0+, so the 6
-// intents and the provider are gated to iOS 18.0+. On iOS 16/17 the app
-// works normally, just without Siri shortcuts.
+// Style (26C101, following the user's supplied sample): plain
+// AppIntent structs with title / IntentDescription / @Parameter and
+// an in-process perform() — NOT OpenURLIntent. The old version used
+// OpenURLIntent, which needs iOS 18.0+, so every intent and the
+// provider carried a blanket @available(iOS 18.0, *). Plain
+// AppIntent only needs iOS 16.0 (the app's deployment target), so
+// the gate is gone. Foreground behaviour is declared both ways:
+// openAppWhenRun (iOS 16+) and, where the SDK provides it,
+// supportedModes = .foreground (iOS 26+; the property is
+// availability-scoped so the file still compiles for a 16.0 target).
 
 // The 6 shortcut ids (do not change — the web side posts these exact
 // strings to the "addShortcut" message handler).
@@ -30,7 +37,6 @@ enum SubwayShortcutID: String, CaseIterable {
 
     /// A fresh instance of the AppIntent for this shortcut, used for
     /// donation from the "addShortcut" handler.
-    @available(iOS 18.0, *)
     func makeIntent() -> any AppIntent {
         switch self {
         case .openApp: return OpenSubwayToolsIntent()
@@ -46,7 +52,7 @@ enum SubwayShortcutID: String, CaseIterable {
     /// shortTitles in SubwayToolsShortcuts below.
     var displayTitle: String {
         switch self {
-        case .openApp: return "打开 Subway tools"
+        case .openApp: return "打开城轨通"
         case .firstTrain: return "查询首班车"
         case .lastTrain: return "查询末班车"
         case .planRoute: return "规划路线"
@@ -56,10 +62,22 @@ enum SubwayShortcutID: String, CaseIterable {
     }
 }
 
-// Builds a subwaymotion:// deep link. Query values are percent-encoded
-// by URLComponents (station names are Chinese). The hosts are fixed
-// ASCII strings, so the fallback bare URL cannot fail either.
+// Builds a subwaymotion:// deep link and delivers it in-process.
+// Query values are percent-encoded by URLComponents (station names
+// are Chinese). The hosts are fixed ASCII strings, so the fallback
+// bare URL cannot fail either.
+//
+// Delivery mirrors the URL-open path exactly, so both entry points
+// converge on MapViewController.handleDeepLink:
+// - the running app is notified immediately (NotificationCenter);
+// - the URL is also stashed in UserDefaults, and
+//   MapViewController consumes the stash on didBecomeActive — this
+//   covers a cold start, where perform() can run before the view
+//   controller has registered its observer.
 enum SubwayDeepLink {
+    static let notification = Notification.Name("SubwayToolsDeepLink")
+    static let pendingKey = "metro-pending-deeplink"
+
     static func url(host: String, query: [String: String] = [:]) -> URL {
         var components = URLComponents()
         components.scheme = "subwaymotion"
@@ -69,55 +87,82 @@ enum SubwayDeepLink {
         }
         return components.url ?? URL(string: "subwaymotion://\(host)")!
     }
-}
 
-@available(iOS 18.0, *)
-struct OpenSubwayToolsIntent: AppIntent {
-    static var title: LocalizedStringResource = "打开 Subway tools"
-    static var description = IntentDescription("打开 Subway tools")
-    static var openAppWhenRun: Bool = true
+    /// Hand a deep link to the app (called from each intent's
+    /// perform()).
+    static func open(_ url: URL) {
+        UserDefaults.standard.set(url.absoluteString, forKey: pendingKey)
+        NotificationCenter.default.post(name: notification, object: nil, userInfo: ["url": url])
+    }
 
-    func perform() async throws -> some IntentResult & OpensIntent {
-        return .result(opensIntent: OpenURLIntent(SubwayDeepLink.url(host: "open")))
+    /// Read and clear the stashed deep link, if any.
+    static func consumePending() -> URL? {
+        guard let string = UserDefaults.standard.string(forKey: pendingKey) else { return nil }
+        UserDefaults.standard.removeObject(forKey: pendingKey)
+        return URL(string: string)
     }
 }
 
-@available(iOS 18.0, *)
+struct OpenSubwayToolsIntent: AppIntent {
+    static var title: LocalizedStringResource = "打开城轨通"
+    static var description = IntentDescription("打开城轨通")
+
+    // 如果需要打开App，设置为 .foreground
+    @available(iOS 26.0, *)
+    static let supportedModes: IntentModes = .foreground
+    static var openAppWhenRun: Bool = true
+
+    func perform() async throws -> some IntentResult {
+        SubwayDeepLink.open(SubwayDeepLink.url(host: "open"))
+        return .result()
+    }
+}
+
 struct FirstTrainIntent: AppIntent {
     static var title: LocalizedStringResource = "查询首班车"
     static var description = IntentDescription("查询所选车站的首班车时间")
+
+    @available(iOS 26.0, *)
+    static let supportedModes: IntentModes = .foreground
     static var openAppWhenRun: Bool = true
 
+    // 如果操作需要用户输入，用 @Parameter 定义参数
     @Parameter(title: "车站")
     var station: String?
 
-    func perform() async throws -> some IntentResult & OpensIntent {
+    func perform() async throws -> some IntentResult {
         var query: [String: String] = [:]
         if let station = station, !station.isEmpty { query["station"] = station }
-        return .result(opensIntent: OpenURLIntent(SubwayDeepLink.url(host: "first-train", query: query)))
+        SubwayDeepLink.open(SubwayDeepLink.url(host: "first-train", query: query))
+        return .result()
     }
 }
 
-@available(iOS 18.0, *)
 struct LastTrainIntent: AppIntent {
     static var title: LocalizedStringResource = "查询末班车"
     static var description = IntentDescription("查询所选车站的末班车时间")
+
+    @available(iOS 26.0, *)
+    static let supportedModes: IntentModes = .foreground
     static var openAppWhenRun: Bool = true
 
     @Parameter(title: "车站")
     var station: String?
 
-    func perform() async throws -> some IntentResult & OpensIntent {
+    func perform() async throws -> some IntentResult {
         var query: [String: String] = [:]
         if let station = station, !station.isEmpty { query["station"] = station }
-        return .result(opensIntent: OpenURLIntent(SubwayDeepLink.url(host: "last-train", query: query)))
+        SubwayDeepLink.open(SubwayDeepLink.url(host: "last-train", query: query))
+        return .result()
     }
 }
 
-@available(iOS 18.0, *)
 struct PlanRouteIntent: AppIntent {
     static var title: LocalizedStringResource = "规划路线"
     static var description = IntentDescription("规划从出发站到到达站的地铁路线")
+
+    @available(iOS 26.0, *)
+    static let supportedModes: IntentModes = .foreground
     static var openAppWhenRun: Bool = true
 
     @Parameter(title: "出发站")
@@ -126,49 +171,55 @@ struct PlanRouteIntent: AppIntent {
     @Parameter(title: "到达站")
     var to: String
 
-    func perform() async throws -> some IntentResult & OpensIntent {
+    func perform() async throws -> some IntentResult {
         let url = SubwayDeepLink.url(host: "route", query: ["from": from, "to": to])
-        return .result(opensIntent: OpenURLIntent(url))
+        SubwayDeepLink.open(url)
+        return .result()
     }
 }
 
-@available(iOS 18.0, *)
 struct NearestStationIntent: AppIntent {
     static var title: LocalizedStringResource = "最近的车站"
     static var description = IntentDescription("查找离你最近的地铁站")
+
+    @available(iOS 26.0, *)
+    static let supportedModes: IntentModes = .foreground
     static var openAppWhenRun: Bool = true
 
-    func perform() async throws -> some IntentResult & OpensIntent {
-        return .result(opensIntent: OpenURLIntent(SubwayDeepLink.url(host: "nearby")))
+    func perform() async throws -> some IntentResult {
+        SubwayDeepLink.open(SubwayDeepLink.url(host: "nearby"))
+        return .result()
     }
 }
 
-@available(iOS 18.0, *)
 struct TimetableIntent: AppIntent {
     static var title: LocalizedStringResource = "查看时刻表"
     static var description = IntentDescription("查看线路时刻表")
+
+    @available(iOS 26.0, *)
+    static let supportedModes: IntentModes = .foreground
     static var openAppWhenRun: Bool = true
 
     @Parameter(title: "线路")
     var line: String?
 
-    func perform() async throws -> some IntentResult & OpensIntent {
+    func perform() async throws -> some IntentResult {
         var query: [String: String] = [:]
         if let line = line, !line.isEmpty { query["line"] = line }
-        return .result(opensIntent: OpenURLIntent(SubwayDeepLink.url(host: "timetable", query: query)))
+        SubwayDeepLink.open(SubwayDeepLink.url(host: "timetable", query: query))
+        return .result()
     }
 }
 
 // Exposes the 6 intents to Siri and the Shortcuts app. No donation is
 // needed for these to appear: AppShortcutsProvider entries are listed
-// under Subway tools in the Shortcuts app automatically.
-@available(iOS 18.0, *)
+// under the app in the Shortcuts app automatically.
 struct SubwayToolsShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: OpenSubwayToolsIntent(),
-            phrases: ["打开 \(.applicationName)", "打开 Subway tools", "打开地铁工具"],
-            shortTitle: "打开 Subway tools",
+            phrases: ["打开 \(.applicationName)", "打开城轨通", "打开地铁工具"],
+            shortTitle: "打开城轨通",
             systemImageName: "app"
         )
         AppShortcut(
