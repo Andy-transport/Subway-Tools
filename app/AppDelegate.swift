@@ -987,9 +987,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // Animate the sub-view chrome (glass strip + title + back button)
     // in and out (user 2026-11-20 23:01: exiting a Settings sub-view
-    // snapped shut with no animation). The web content already slides
-    // over 0.28s (the .more-sub Vue transition), so the native chrome
-    // fades over the same 0.28s. Show: unhide at alpha 0, then fade to
+    // snapped shut with no animation). The web content's close slide
+    // runs 0.45s ease-out (26D105: the .more-sub Vue transition's
+    // leave), so the native chrome fades out over the same 0.45s.
+    // Show: unhide at alpha 0, then fade to
     // 1. Hide: fade to 0, then hide for real and restore alpha 1 so
     // the next show starts clean. A re-open during the fade-out
     // cancels it (subChromeClosing flag + removing the animations).
@@ -1019,7 +1020,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             guard !glass.isHidden || !button.isHidden else { return }
             subChromeClosing = true
-            UIView.animate(withDuration: 0.28, delay: 0, options: [.curveEaseInOut], animations: {
+            UIView.animate(withDuration: 0.45, delay: 0, options: [.curveEaseOut], animations: {
                 glass.alpha = 0
                 button.alpha = 0
             }) { [weak self] _ in
@@ -1091,7 +1092,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard let picker = appearanceView else { return }
         appearanceView = nil
         setSubViewBackButtonVisible(false)
-        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseIn], animations: {
+        // 26D105: slower, ease-out close (matches the shared back path).
+        UIView.animate(withDuration: 0.45, delay: 0, options: [.curveEaseOut], animations: {
             picker.alpha = 0
             picker.transform = CGAffineTransform(translationX: 24, y: 0)
         }, completion: { _ in picker.removeFromSuperview() })
@@ -1159,7 +1161,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard let picker = languageView else { return }
         languageView = nil
         setSubViewBackButtonVisible(false)
-        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseIn], animations: {
+        // 26D105: slower, ease-out close (matches the shared back path).
+        UIView.animate(withDuration: 0.45, delay: 0, options: [.curveEaseOut], animations: {
             picker.alpha = 0
             picker.transform = CGAffineTransform(translationX: 24, y: 0)
         }, completion: { _ in picker.removeFromSuperview() })

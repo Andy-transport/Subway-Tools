@@ -232,10 +232,13 @@ final class AppearanceView: UIView {
 }
 
 // One Light/Dark preview card: the universal splash poster for this
-// mode, filling the whole card. The image is the same bundle asset
-// the launch splash shows (SplashST / SplashSTDark since 26C105),
-// so the card always matches what starting the app in that mode
-// looks like.
+// mode, shown in full (aspect-fit, 26D105 — aspect-fill cropped the
+// poster's bottom 'Subway Tools' text at the card's edge). The image
+// is the same bundle asset the launch splash shows (SplashST /
+// SplashSTDark since 26C105), so the card always matches what
+// starting the app in that mode looks like. The card's own
+// black/white background matches the poster's, so the fit
+// letterbox is invisible.
 final class PreviewCardView: UIView {
     private let dark: Bool
     private let posterView = UIImageView()
@@ -247,7 +250,7 @@ final class PreviewCardView: UIView {
         applyAppleCorner(radius: 20)
         clipsToBounds = true
 
-        posterView.contentMode = .scaleAspectFill
+        posterView.contentMode = .scaleAspectFit
         posterView.clipsToBounds = true
         posterView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(posterView)
