@@ -127,6 +127,23 @@ else
   echo "WARNING: no harvest .swiftconstvalues found for experiment 5"
 fi
 
+echo "== Siri experiment 7: processor forensics =="
+# Siri experiment 7: experiments 4-6 proved the harvest emits a real
+# 57,128-byte .swiftconstvalues, yet appintentsmetadataprocessor still
+# reports 'No swiftconstvalues found' under every filename, location,
+# cwd, and with/without an emitted Metro.swiftmodule. Stop guessing:
+# dump the tool's own --help text and the path/format strings compiled
+# into its binary so the next step is based on what the tool actually
+# expects. Everything here is diagnostic only and non-fatal.
+TOOL=$(xcrun -f appintentsmetadataprocessor || true); echo "E7 tool: $TOOL"
+xcrun appintentsmetadataprocessor --help 2>&1 || true
+xcrun appintentsmetadataprocessor --version 2>&1 || true
+if [ -n "$TOOL" ]; then strings "$TOOL" | grep -n -i -C 3 'swiftconstvalues' || true; fi
+echo "-- E7 flag-like strings --"
+if [ -n "$TOOL" ]; then strings "$TOOL" | grep -E '^--[a-z]' | sort -u || true; fi
+echo "-- E7 path-like strings --"
+if [ -n "$TOOL" ]; then strings "$TOOL" | grep -iE 'objects-normal|deriveddata|intermediates|\.appintents|metadata' | head -60 || true; fi
+
 echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
 # A raw swiftc build skips Xcode's AppIntents metadata extraction, so
 # without this step iOS never registers SubwayToolsShortcuts and the
