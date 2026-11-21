@@ -1,5 +1,5 @@
 # Decode the bundled app icons (app/icons.json, base64 PNGs) into an .app bundle.
-# Usage: python3 app/decode_icons.py <path-to-Metro.app>
+# Usage: python3 app/decode_icons.py <path-to-Subway Tools.app>
 import base64, json, pathlib, sys
 
 APP = pathlib.Path(sys.argv[1])

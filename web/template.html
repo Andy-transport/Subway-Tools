@@ -1445,7 +1445,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C103)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C104)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card">
@@ -1662,7 +1662,7 @@
 						<img class="more-about-icon" :src="appIcon" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C103)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C104)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 				</div>
@@ -2355,6 +2355,9 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26C104)', date: '2026-11-21', lines: [
+								['安装包名称改为 Subway Tools', '安裝包名稱改為 Subway Tools', 'Renamed the app bundle to Subway Tools'],
+							] },
 							{ v: '1.1.0 (26C103)', date: '2026-11-21', lines: [
 								['修复 Siri 与快捷指令：语音短语现在能被 Siri 正确识别', '修復 Siri 與快捷指令：語音短語現在能被 Siri 正確識別', 'Fixed Siri & Shortcuts: voice phrases are now recognised by Siri'],
 							] },
