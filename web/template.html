@@ -1469,11 +1469,6 @@
 				<div class="more-card">
 					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showAboutSub = true"><span>{{ t('more.about') }}</span><span class="more-chev">›</span></div>
-					<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
-				</div>
-				<div class="more-section">{{ t('more.lang') }}</div>
-				<div class="more-card">
-					<div class="more-row" @click="openLanguage"><span>{{ t('more.lang') }}</span><span class="more-row-value">{{ langDisplayName }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-section">{{ t('more.more') }}</div>
 				<div class="more-card">
@@ -1643,6 +1638,10 @@
 					<div class="more-sub-head">
 						<button class="more-sub-back" @click="showGeneralSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
 						<div class="more-sub-title">{{ t('more.general') }}</div>
+					</div>
+					<div class="more-card">
+						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="openLanguage"><span>{{ t('more.lang') }}</span><span class="more-row-value">{{ langDisplayName }}</span><span class="more-chev">›</span></div>
 					</div>
 					<div class="more-section">{{ t('more.general') }}</div>
 					<div class="more-card">
@@ -2391,6 +2390,7 @@ function titlePy(py) {
 								['修复启动图未生效：新启动图现可正常加载（外观预览同步）', '修復啟動圖未生效：新啟動圖現可正常載入（外觀預覽同步）', 'Fixed the new launch splash not taking effect (Appearance previews fixed too)'],
 								['恢复左侧边缘滑动返回', '恢復左側邊緣滑動返回', 'Restored the left-edge swipe-back gesture'],
 								['乘车码按钮文字改为 App 名称', '乘車碼按鈕文字改為 App 名稱', 'Transit button label now shows just the app name'],
+								['语言与外观移入「通用」设置', '語言與外觀移入「通用」設定', 'Language and Appearance moved into General settings'],
 							] },
 							{ v: '1.1.0 (26C104)', date: '2026-11-21', lines: [
 								['安装包名称改为 Subway Tools', '安裝包名稱改為 Subway Tools', 'Renamed the app bundle to Subway Tools'],
