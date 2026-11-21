@@ -221,6 +221,12 @@ siri_icon_dark_b64 = (BASE.parent / "app" / "siri-icon-dark.b64").read_text(enco
 html = sub_once(r'/\*__SIRI_ICON__\*/', lambda _: siri_icon_b64, html, "siri icon")
 html = sub_once(r'/\*__SIRI_ICON_DARK__\*/', lambda _: siri_icon_dark_b64, html, "siri icon dark")
 
+# Appearance settings-row icon (26D103): the user's contrast-glyph
+# black tile (app/appearance-icon.b64); a single variant used in
+# both light and dark themes.
+appearance_icon_b64 = (BASE.parent / "app" / "appearance-icon.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__APPEARANCE_ICON__\*/', lambda _: appearance_icon_b64, html, "appearance icon")
+
 # N. inline the transit-app icons (App Store artwork, 120x120 PNG,
 # rounded corners, transparent background; see web/*-icon.b64).
 # Beijing Yikatong / Shenyang Shengjing Tong / Shanghai Metro大都会.
