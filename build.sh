@@ -173,7 +173,7 @@ cp web/offline/MTR2.8.0.pdf "build/Payload/Subway Tools.app/web/MTR2.8.0.pdf"
 python3 app/decode_icons.py "build/Payload/Subway Tools.app"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/Splash.png','wb').write(base64.b64decode(open('app/splash.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashDark.jpg','wb').write(base64.b64decode(open('app/splash-dark.b64').read()))"
-# Universal launch splash (26C105): ONE pair for the whole app —
+# Universal launch splash (26D100): ONE pair for the whole app —
 # user-supplied 'Subway Tools' posters, picked by dark/light only.
 # The per-city posters below stay in the bundle, unreferenced, for a
 # possible later re-enable.

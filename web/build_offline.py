@@ -205,13 +205,21 @@ sy_splash_dark_b64 = (BASE / "shenyang" / "splash-dark.b64").read_text(encoding=
 html = sub_once(r'/\*__BJ_SPLASH_DARK__\*/', lambda _: bj_splash_dark_b64, html, "bj splash dark")
 html = sub_once(r'/\*__SY_SPLASH_DARK__\*/', lambda _: sy_splash_dark_b64, html, "sy splash dark")
 
-# Universal launch splash (26C105): one pair for the whole app,
+# Universal launch splash (26D100): one pair for the whole app,
 # picked by dark/light only (app/splash-st.b64 / splash-st-dark.b64,
 # the same source files build.sh decodes into the bundle).
 st_splash_b64 = (BASE.parent / "app" / "splash-st.b64").read_text(encoding="utf-8").strip()
 st_splash_dark_b64 = (BASE.parent / "app" / "splash-st-dark.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__ST_SPLASH__\*/', lambda _: st_splash_b64, html, "st splash")
 html = sub_once(r'/\*__ST_SPLASH_DARK__\*/', lambda _: st_splash_dark_b64, html, "st splash dark")
+
+# Siri settings-row icon (26D100): the user's Siri-orb artwork as a
+# light tile / black tile pair (app/siri-icon.b64 / siri-icon-dark.b64),
+# swapped by theme in the page.
+siri_icon_b64 = (BASE.parent / "app" / "siri-icon.b64").read_text(encoding="utf-8").strip()
+siri_icon_dark_b64 = (BASE.parent / "app" / "siri-icon-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__SIRI_ICON__\*/', lambda _: siri_icon_b64, html, "siri icon")
+html = sub_once(r'/\*__SIRI_ICON_DARK__\*/', lambda _: siri_icon_dark_b64, html, "siri icon dark")
 
 # N. inline the transit-app icons (App Store artwork, 120x120 PNG,
 # rounded corners, transparent background; see web/*-icon.b64).

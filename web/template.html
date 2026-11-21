@@ -117,6 +117,8 @@
 			window.SJZ_SPLASH_DARK = "data:image/jpeg;base64,/*__SJZ_SPLASH_DARK__*/";
 			window.ST_SPLASH = "data:image/jpeg;base64,/*__ST_SPLASH__*/";
 			window.ST_SPLASH_DARK = "data:image/jpeg;base64,/*__ST_SPLASH_DARK__*/";
+		window.SIRI_ICON = "data:image/png;base64,/*__SIRI_ICON__*/";
+		window.SIRI_ICON_DARK = "data:image/png;base64,/*__SIRI_ICON_DARK__*/";
 			window.BJ_TIMETABLE = /*__BJ_TIMETABLE__*/{};
 			window.SY_TIMETABLE = /*__SY_TIMETABLE__*/{};
 			window.SH_TIMETABLE = /*__SH_TIMETABLE__*/{};
@@ -796,7 +798,7 @@
 		.more-main { animation: moreMainIn .35s cubic-bezier(.32,.72,0,1); }
 		@keyframes moreMainIn { from { transform: translateX(-24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 		/* Row press feedback (iOS table-cell highlight). JS-managed
-		   .pressing class since 26C105: WKWebView does not reliably
+		   .pressing class since 26D100: WKWebView does not reliably
 		   release the CSS :active state when a tap triggers a view
 		   change, which left a stuck gray block on the row after
 		   returning from a sub-page. The delegation + failsafe in
@@ -1453,7 +1455,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C105)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D100)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card">
@@ -1485,7 +1487,7 @@
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showTrainSub = true; loadTrains()"><img class="more-row-icon" :src="trainIcon" alt=""><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
-					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="aiIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="siriRowIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-credit">{{ t('more.credit') }}</div>
 				</div>
@@ -1670,7 +1672,7 @@
 						<img class="more-about-icon" :src="appIcon" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C105)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D100)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -1909,7 +1911,7 @@ var I18N = {
   'more.briefing': ['轨道交通信息简报', '軌道交通資訊簡報', 'Transit Briefing'],
   'more.briefing.updated': ['更新于 {d}', '更新於 {d}', 'Updated {d}'],
   'more.briefing.empty': ['暂无该城市简报', '暫無該城市簡報', 'No briefing for this city'],
-  'more.siri': ['Siri 快捷指令', 'Siri 快捷指令', 'Siri Shortcuts'],
+  'more.siri': ['Siri AI快捷指令', 'Siri AI快捷指令', 'Siri AI Shortcuts'],
   'more.siri.note': ['在 Siri 里说出下面的口令即可使用。点按一条可将其添加到 Siri。', '在 Siri 裡說出下面的口令即可使用。點按一條可將其加入 Siri。', 'Say the phrase below to Siri to use it. Tap an item to add it to Siri.'],
   'siri.nearbySmart': ['附近车站智能显示', '附近車站智能顯示', 'Smart Nearby Stations'],
   'siri.nearbySmart.desc': ['开启后，换乘页会根据定位智能显示 1.5 公里内的最近车站；关闭后只显示普通附近车站列表。', '開啟後，換乘頁會根據定位智能顯示 1.5 公里內的最近車站；關閉後只顯示普通附近車站列表。', 'When on, the Transfer tab smartly shows the nearest stations within 1.5 km based on your location; when off, only the regular nearby list is shown.'],
@@ -2292,6 +2294,8 @@ function titlePy(py) {
 						sjzSplashDark: (window.SJZ_SPLASH_DARK || ''),
 						stSplash: (window.ST_SPLASH || ''),
 						stSplashDark: (window.ST_SPLASH_DARK || ''),
+						siriOrb: (window.SIRI_ICON || ''),
+						siriOrbDark: (window.SIRI_ICON_DARK || ''),
 						sjzmIcon: (window.SJZM_ICON || ''),
 					soonLogos: (window.SOON_LOGOS || {}),
 						ttIcon: (window.TT_ICON || ''),
@@ -2370,10 +2374,11 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
-							{ v: '1.1.0 (26C105)', date: '2026-11-21', lines: [
+							{ v: '1.1.0 (26D100)', date: '2026-11-21', lines: [
 								['修复设置列表行高亮残留：点按「通用」返回后不再留灰块', '修復設定列表行高亮殘留：點按「通用」返回後不再留灰塊', 'Fixed a stuck row highlight in Settings after returning from a sub-page'],
-								['「关于」页恢复项目主页与作者行（GitHub / 抖音）', '「關於」頁恢復項目主頁與作者行（GitHub / 抖音）', 'Restored the project-home and author rows (GitHub / Douyin) on the About page'],
+								['「关于」页恢复项目主页与作者行（GitHub / 抖音），项目主页指向作者仓库 Andy-transport/Subway-motion', '「關於」頁恢復項目主頁與作者行（GitHub / 抖音），項目主頁指向作者倉庫 Andy-transport/Subway-motion', 'Restored the project-home and author rows (GitHub / Douyin) on the About page; project home points to the author’s repo Andy-transport/Subway-motion'],
 								['新启动图：Subway Tools 深浅两版，全应用统一，不再按城市切换', '新啟動圖：Subway Tools 深淺兩版，全應用統一，不再按城市切換', 'New launch splash: one Subway Tools pair (light/dark) for the whole app, no longer per city'],
+								['Siri 快捷指令更名为「Siri AI快捷指令」并更换图标', 'Siri 快捷指令更名為「Siri AI快捷指令」並更換圖標', 'Renamed Siri Shortcuts to Siri AI Shortcuts with a new icon'],
 							] },
 							{ v: '1.1.0 (26C104)', date: '2026-11-21', lines: [
 								['安装包名称改为 Subway Tools', '安裝包名稱改為 Subway Tools', 'Renamed the app bundle to Subway Tools'],
@@ -4523,13 +4528,13 @@ function titlePy(py) {
 
 					doPdf() { this.closeMore(); pdfDownload(); },
 					doDouyin() { this.closeMore(); openDouyin(); },
-					// About-page rows (restored 26C105 after the 26C101
+					// About-page rows (restored 26D100 after the 26C101
 					// merge dropped them): 项目主页 + 作者 GitHub open the
 					// repo via the same openRepo() the pre-merge rows
 					// used; 作者抖音 opens the author's Douyin profile.
 					aboutRepo() { openRepo(); },
 					aboutDouyin() { openDouyin(); },
-					// Row press highlight (26C105): remove every
+					// Row press highlight (26D100): remove every
 					// .pressing marker. Called by the touch failsafe,
 					// the anySubViewOpen watcher and visibilitychange,
 					// so a highlight can never survive a page change.
@@ -4585,7 +4590,7 @@ function titlePy(py) {
 					transitLabel() { return this.t('transit.' + this.city); },
 					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? this.szmIcon : (this.city === 'qd' ? this.qdmIcon : (this.city === 'sjz' ? ((this.sjzmIcon && this.sjzmIcon.indexOf('SJZM_ICON') === -1) ? this.sjzmIcon : '') : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : this.yktIcon))))))))))); },
 					splashImg() {
-						// Universal splash (26C105): ONE pair for the whole
+						// Universal splash (26D100): ONE pair for the whole
 						// app, picked by dark/light only — the per-city
 						// posters above stay in the data (and the bundle)
 						// unreferenced for a possible later re-enable.
@@ -4596,6 +4601,10 @@ function titlePy(py) {
 					// light swirl on a dark tile (suits dark mode), siriIcon is the
 					// colour swirl on white (suits light mode) — swap by theme.
 					aiIcon() { return this.darkNow ? this.smartIcon : this.siriIcon; },
+					// Siri settings-row icon (26D100): the user's Siri-orb
+					// artwork as a light tile / black tile pair (flood-filled
+					// outer background), swapped by theme like aiIcon.
+					siriRowIcon() { return this.darkNow ? (this.siriOrbDark || this.aiIcon) : (this.siriOrb || this.aiIcon); },
 					walkIconThemed() { return this.darkNow ? this.walkIcon : this.walkIconInk; },
 					pinIconThemed() { return this.darkNow ? this.pinIcon : this.pinIconInk; },
 					historyForCity() { var c = this.city; return (this.searchHistory || []).filter(function (h) { return h.city === c; }); },
@@ -4851,7 +4860,7 @@ function titlePy(py) {
 						_edgeX = null; _edgeY = null;
 						if (dx > 60 && dy <= 40) self.goBack();
 					}, { passive: true });
-					// Row press highlight (26C105): JS-managed .pressing
+					// Row press highlight (26D100): JS-managed .pressing
 					// class replacing CSS :active (WKWebView could leave
 					// :active painted after a tap opened a sub-page).
 					// Delegated on document so every .more-row /
@@ -5200,7 +5209,7 @@ function titlePy(py) {
 
 
 			function openRepo() {
-				openExternal("https://github.com/SierraQin/metro");
+				openExternal("https://github.com/Andy-transport/Subway-motion");
 			};
 
 
