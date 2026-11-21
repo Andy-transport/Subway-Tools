@@ -62,51 +62,53 @@ mkdir -p build/Payload/Metro.app/web
 # metadata, exactly like builds #84-#86.
 mkdir -p build/obj
 SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
-echo "== Siri experiment: const-values harvest diagnostics =="
-echo "-- harvest 1: AppIntents.swift solo (original method; compiler errors stay visible) --"
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -module-name Metro -c \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   app/AppIntents.swift -o build/obj/AppIntents-harvest.o \
-  || echo "HARVEST1 FAILED rc=$?"
-echo "-- swiftconstvalues anywhere after harvest 1 --"
-find . -name "*.swiftconstvalues" -not -path "./.git/*" 2>/dev/null || true
-ls -la build/obj/ || true
-echo "-- harvest 2: all sources, -emit-module with explicit -emit-const-values-path --"
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -parse-as-library -emit-module -emit-const-values \
-  -emit-const-values-path build/obj/Metro.swiftconstvalues \
-  -module-name Metro \
-  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  $SWIFT_SOURCES \
-  || echo "HARVEST2 FAILED rc=$?"
-echo "-- swiftconstvalues anywhere after harvest 2 --"
-find . -name "*.swiftconstvalues" -not -path "./.git/*" 2>/dev/null || true
-ls -la build/obj/ || true
-echo "-- toolchain const-values flags --"
-xcrun -sdk iphoneos swiftc -help 2>&1 | grep -i "const" || true
-echo "-- harvest 3: AppIntents.swift solo, iOS 18 target, -emit-module + explicit const path --"
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios18.0 -parse-as-library -emit-module -emit-const-values \
-  -emit-const-values-path build/obj/Metro18.swiftconstvalues \
-  -module-name Metro \
-  -framework AppIntents \
-  app/AppIntents.swift \
-  || echo "HARVEST3 FAILED rc=$?"
-echo "-- swiftconstvalues anywhere after harvest 3 --"
-find . -name "*.swiftconstvalues" -not -path "./.git/*" 2>/dev/null || true
-ls -la build/obj/ || true
-echo "-- harvest 4: AppIntents.swift solo, iOS 18 target, -c -o object (original shape, new target) --"
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios18.0 -O -parse-as-library -emit-const-values \
+  || echo "WARNING: AppIntents const-values harvest failed; continuing without Siri metadata"
+ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
+
+echo "== Siri experiment 3: const-gather protocols list =="
+mkdir -p build/obj/exp3
+cat > build/obj/exp3/Metro_const_extract_protocols.json << 'PROTOEOF'
+["AppIntents.AppIntent","AppIntents.AppEntity","AppIntents.AppEnum","AppIntents.AppShortcutsProvider","AppIntents.EntityQuery","AppIntents.EntityStringQuery","AppIntents.EnumerableEntityQuery","AppIntents.DynamicOptionsProvider","AppIntents.AppCollection","AppIntents.LiveActivityIntent"]
+PROTOEOF
+echo "-- E3-A: protocols list + explicit -emit-const-values-path (iOS 16 target) --"
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
+  -emit-const-values-path build/obj/exp3/E3A.swiftconstvalues \
+  -const-gather-protocols-list build/obj/exp3/Metro_const_extract_protocols.json \
   -module-name Metro -c \
-  -framework AppIntents \
-  app/AppIntents.swift -o build/obj/AppIntents18.o \
-  || echo "HARVEST4 FAILED rc=$?"
-echo "-- swiftconstvalues anywhere after harvest 4 --"
-find . -name "*.swiftconstvalues" -not -path "./.git/*" 2>/dev/null || true
-ls -la build/obj/ || true
+  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
+  app/AppIntents.swift -o build/obj/exp3/E3A.o \
+  || echo "E3A FAILED"
+echo "-- E3-B: protocols list, driver-chosen const-values path (iOS 16 target) --"
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
+  -const-gather-protocols-list build/obj/exp3/Metro_const_extract_protocols.json \
+  -module-name Metro -c \
+  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
+  app/AppIntents.swift -o build/obj/exp3/E3B.o \
+  || echo "E3B FAILED"
+echo "-- E3-C: protocols list + explicit path (iOS 18 target) --"
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios18.0 -O -parse-as-library -emit-const-values \
+  -emit-const-values-path build/obj/exp3/E3C.swiftconstvalues \
+  -const-gather-protocols-list build/obj/exp3/Metro_const_extract_protocols.json \
+  -module-name Metro -c \
+  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
+  app/AppIntents.swift -o build/obj/exp3/E3C.o \
+  || echo "E3C FAILED"
+echo "-- exp3 results --"
+ls -la build/obj/exp3
+find build -name "*.swiftconstvalues"
+for f in build/obj/exp3/E3A.swiftconstvalues build/obj/exp3/E3C.swiftconstvalues; do [ -f "$f" ] && cp "$f" build/obj/AppIntents.swiftconstvalues && echo "staged $f for the metadata processor"; done
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -module-name Metro \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   $SWIFT_SOURCES -o build/Payload/Metro.app/Metro
+# The metadata processor locates the module's const values beside the
+# binary (Xcode leaves them in the products dir during its run); copy
+# any harvested file in for the extraction step; it is removed again
+# before packaging (see the rm after the processors below).
 find build/obj build/Payload/Metro.app -name "*.swiftconstvalues" -exec cp {} build/Payload/Metro.app/ \; 2>/dev/null || true
 ls build/Payload/Metro.app/*.swiftconstvalues 2>/dev/null || echo "WARNING: no swiftconstvalues beside the binary"
 
@@ -200,6 +202,9 @@ python3 -c "import base64; open('build/Payload/Metro.app/SplashCD.jpg','wb').wri
 python3 -c "import base64; open('build/Payload/Metro.app/SplashCDDark.jpg','wb').write(base64.b64decode(open('web/chengdu/splash-dark.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/SplashQD.jpg','wb').write(base64.b64decode(open('web/qingdao/splash.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/SplashQDDark.jpg','wb').write(base64.b64decode(open('web/qingdao/splash-dark.b64').read()))"
+# Shijiazhuang splash (user-supplied real splash, web/shijiazhuang/splash.b64).
+python3 -c "import base64; open('build/Payload/Metro.app/SplashSJZ.jpg','wb').write(base64.b64decode(open('web/shijiazhuang/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashSJZDark.jpg','wb').write(base64.b64decode(open('web/shijiazhuang/splash-dark.b64').read()))"
 cp app/BeijingLogo.png app/ShenyangLogo.png app/ShanghaiLogo.png build/Payload/Metro.app/
 python3 -c "import base64; open('build/Payload/Metro.app/HarbinLogo.png','wb').write(base64.b64decode(open('web/harbin/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/DalianLogo.png','wb').write(base64.b64decode(open('web/dalian/logo.b64').read()))"
