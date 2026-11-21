@@ -1493,7 +1493,7 @@
 					<img class="more-appicon" :src="appIconNow" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D108)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D109)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
@@ -1707,7 +1707,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D108)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D109)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2410,9 +2410,10 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
-							{ v: '1.1.0 (26D108)', date: '2026-11-22', lines: [
+							{ v: '1.1.0 (26D109)', date: '2026-11-22', lines: [
 								['修复更新内容页标题显示异常', '修復更新內容頁標題顯示異常', 'Fixed the garbled title on the What\'s New page'],
 								['时刻表页面布局修正：搜索栏固定显示，列表不再被底部栏遮挡', '時刻表頁面佈局修正：搜尋欄固定顯示，列表不再被底部欄遮擋', 'Timetable layout fixed: search bar stays visible and the list is no longer covered by the bottom bar'],
+								['修复深色模式下桌面图标不切换为深色图标', '修復深色模式下桌面圖標不切換為深色圖標', 'Fixed the home-screen icon not switching to its dark variant in dark mode'],
 							] },
 							{ v: '1.1.0 (26D107)', date: '2026-11-22', lines: [
 								['再次修复时刻表列表底部裁切：最后一站现可完整显示', '再次修復時刻表列表底部裁切：最後一站現可完整顯示', 'Fixed timetable list bottom clipping for real: the last station now displays in full'],

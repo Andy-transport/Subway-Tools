@@ -234,6 +234,61 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/QingdaoLogo.png'
 python3 -c "import base64; open('build/Payload/Subway Tools.app/ShijiazhuangLogo.png','wb').write(base64.b64decode(open('web/shijiazhuang/logo.b64').read()))"
 python3 -c "import base64; [open('build/Payload/Subway Tools.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 
+echo "== 3a. app icon asset catalog (Assets.car, dark home-screen icon) =="
+# The loose icon files decoded in step 3 carry ~dark variants, but iOS
+# does not honour loose-file ~dark app icons in this hand-assembled
+# bundle (26D109: on device the home-screen icon stayed on the light
+# artwork even with the icon appearance set to Dark). The first-class
+# mechanism is a compiled asset catalog: generate an
+# AppIcon.appiconset (light + dark luminosity appearances) from the
+# same app/icons.json source, compile it into Assets.car with actool,
+# and merge actool's icon keys into the bundle's Info.plist (its
+# CFBundleIcons replaces the hand-written one — same files, now
+# catalog-backed; the loose files stay as fallback). FAIL LOUDLY on
+# any problem: a failed build we can fix beats silently shipping the
+# broken icon again.
+APP_DIR="build/Payload/Subway Tools.app"
+ICON_XCASSETS="build/Assets.xcassets"
+ICON_PARTIAL="$PWD/build/icon-partial.plist"
+rm -rf "$ICON_XCASSETS" "$ICON_PARTIAL"
+python3 app/make_iconset.py "$ICON_XCASSETS"
+ACTOOL="$(xcrun -f actool || true)"
+if [ -z "$ACTOOL" ] || [ ! -x "$ACTOOL" ]; then
+  echo "ERROR: actool not found (xcrun -f actool failed); cannot compile the app icon catalog" >&2
+  exit 1
+fi
+"$ACTOOL" --compile "$APP_DIR" \
+  --platform iphoneos \
+  --minimum-deployment-target 16.0 \
+  --target-device iphone --target-device ipad \
+  --app-icon AppIcon \
+  --output-partial-info-plist "$ICON_PARTIAL" \
+  "$ICON_XCASSETS"
+if [ ! -f "$APP_DIR/Assets.car" ]; then
+  echo "ERROR: actool produced no Assets.car in $APP_DIR" >&2
+  exit 1
+fi
+ls -l "$APP_DIR/Assets.car"
+python3 - "$APP_DIR/Info.plist" "$ICON_PARTIAL" <<'PYEOF'
+import plistlib, sys
+app_plist_path, partial_path = sys.argv[1], sys.argv[2]
+with open(partial_path, "rb") as f:
+    partial = plistlib.load(f)
+merged = {}
+for key in ("CFBundleIcons", "CFBundleIcons~ipad", "CFBundleIconName"):
+    if key in partial:
+        merged[key] = partial[key]
+primary = (merged.get("CFBundleIcons") or {}).get("CFBundlePrimaryIcon") or {}
+if primary.get("CFBundleIconName") != "AppIcon":
+    sys.exit("ERROR: actool partial plist lacks CFBundleIcons > CFBundlePrimaryIcon > CFBundleIconName == 'AppIcon': %r" % (partial,))
+with open(app_plist_path, "rb") as f:
+    app_plist = plistlib.load(f)
+app_plist.update(merged)
+with open(app_plist_path, "wb") as f:
+    plistlib.dump(app_plist, f)
+print("merged icon keys into the bundle Info.plist:", ", ".join(sorted(merged)))
+PYEOF
+
 echo "== 4. package IPA =="
 cd build
 # NOTE: the workflow's Upload IPA step (.github/workflows/build-ipa.yml on
