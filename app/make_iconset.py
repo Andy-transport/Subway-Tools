@@ -6,9 +6,18 @@
 # honour loose-file ~dark app icons in this hand-assembled bundle
 # (26D109), but it does honour a catalog-compiled AppIcon set.
 # Usage: python3 app/make_iconset.py <output Assets.xcassets dir>
-import base64, json, pathlib, sys
-from PIL import Image
-import io
+import base64, json, pathlib, struct, sys
+
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+def png_size(raw, filename):
+    # Pure-stdlib PNG dimension check (the CI runner's python3 has no
+    # Pillow): after the 8-byte signature comes the IHDR chunk — its
+    # length (4 bytes) and type (4 bytes) precede width/height as
+    # big-endian uint32 at bytes 16-24.
+    if len(raw) < 24 or raw[:8] != PNG_SIGNATURE or raw[12:16] != b"IHDR":
+        sys.exit("ERROR: %s is not a valid PNG (bad signature or missing IHDR)" % filename)
+    return struct.unpack(">II", raw[16:24])
 
 # (idiom, size, scale or None, light filename, dark filename)
 SLOTS = [
@@ -34,7 +43,7 @@ for idiom, size, scale, light, dark in SLOTS:
             sys.exit("ERROR: %s missing from icons.json" % filename)
         raw = base64.b64decode(DATA[filename])
         # Self-check: the decoded PNG must be exactly size x scale pixels.
-        w, h = Image.open(io.BytesIO(raw)).size
+        w, h = png_size(raw, filename)
         factor = int(scale[:-1]) if scale else 1
         expect = round(float(size.split("x")[0]) * factor)
         if (w, h) != (expect, expect):
