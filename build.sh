@@ -1,7 +1,7 @@
 #!/bin/bash
 # Build the Metro IPA on a macOS GitHub Actions runner.
 # 1. Assemble the offline web page (downloads map SVG/PDF/JS, inlines SVG)
-# 2. Compile the Swift shell with swiftc (no signing -> unsigned IPA)
+# 2. Compile the Swift shell with xcodebuild (Metro.xcodeproj; no signing -> unsigned IPA)
 # 3. Assemble Payload/Metro.app and zip it as an IPA
 set -e
 cd "$(dirname "$0")"
@@ -30,90 +30,41 @@ cd web
 python3 build_offline.py
 cd ..
 
-echo "== 2. compile Swift shell =="
+echo "== 2. compile Swift shell (xcodebuild) =="
 rm -rf build
+mkdir -p build/Payload
+# xcode-project migration (2026-11-21): the Swift shell is now built by
+# xcodebuild from Metro.xcodeproj instead of the hand-rolled swiftc
+# invocation below it in git history, so Xcode's build system runs its
+# native ExtractAppIntentsMetadata phase and generates
+# Metadata.appintents into the .app. Six hand-fed experiments (runs
+# #99-#107) proved a raw swiftc build can produce a real
+# .swiftconstvalues (protocols list + restructured AppIntents.swift)
+# but the standalone appintentsmetadataprocessor never finds it
+# outside Xcode's build system, whatever name/location/cwd/module is
+# used; the manual 2a processor step is therefore gone.
+# The project compiles exactly the sources the old swiftc line did
+# (app/AppDelegate.swift, app/AppIntents.swift,
+# app/SearchConditionsViewController.swift, app/AppearanceView.swift,
+# app/LanguageView.swift, app/LiveActivity/TripAttributes.swift),
+# links UIKit/WebKit/AppIntents/UserNotifications, and weak-links
+# ActivityKit (Frameworks phase, Weak attribute): ActivityKit does
+# not exist on iOS 16.0 (the deployment target), and every use is
+# guarded `if #available(iOS 16.1, *)`. TripAttributes.swift is
+# compiled into the app too, so AppDelegate can start/update the Live
+# Activity. No signing (unsigned IPA), same as before.
+xcodebuild -project Metro.xcodeproj -target Metro -configuration Release -sdk iphoneos -derivedDataPath build/dd CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+cp -R build/dd/Build/Products/Release-iphoneos/Metro.app build/Payload/Metro.app
+# Xcode emits a legacy PkgInfo file; the hand-rolled bundle never had
+# one, so drop it to keep the bundle layout identical to before.
+rm -f build/Payload/Metro.app/PkgInfo
 mkdir -p build/Payload/Metro.app/web
-# ActivityKit is weak-linked: it does not exist on iOS 16.0 (the app's
-# deployment target), and every use is guarded `if #available(iOS 16.1, *)`.
-# TripAttributes.swift is compiled into the app too, so AppDelegate can
-# start/update the Live Activity.
-# AppIntents.swift is compiled into the app too, so the 6 Siri Shortcuts
-# (AppIntents.swift, user 2026-11-18) are in the binary and the
-# AppShortcutsProvider is discovered. AppIntents exists on iOS 16.0+,
-# so it is linked normally, not weak.
-# Compile strategy (Siri round 6, 2026-11-21): back to the single
-# compile+link invocation that built every shipped IPA (#84-#86).
-# The round-5 per-file -primary-file batch compiles failed three
-# runs in a row (#87 "cannot specify -o when generating multiple
-# output files", #89 "filename AppDelegate.swift used twice", #90
-# the #87 error again): with this invocation shape the driver warns
-# "save unknown driver flag -primary-file as additional
-# swift-frontend flag" — it forwards -primary-file to the frontend
-# instead of honouring it, so the batch semantics never engage.
-# Do not reintroduce -primary-file here.
-# Const values: the metadata processor below needs a
-# .swiftconstvalues for the App Intents declarations. Harvest one
-# best-effort by compiling AppIntents.swift ALONE (single input, so
-# -c -o is legal and no -primary-file is needed) into a throwaway
-# object that is never linked; the real binary is compiled from all
-# sources by the main invocation right after. Non-fatal on purpose:
-# if the solo compile ever fails (e.g. AppIntents.swift gains
-# references to other app types), the build continues without Siri
-# metadata, exactly like builds #84-#86.
-mkdir -p build/obj
-SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
-  -module-name Metro -c \
-  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  app/AppIntents.swift -o build/obj/AppIntents-harvest.o \
-  || echo "WARNING: AppIntents const-values harvest failed; continuing without Siri metadata"
-ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
-  -module-name Metro \
-  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  $SWIFT_SOURCES -o build/Payload/Metro.app/Metro
-# The metadata processor locates the module's const values beside the
-# binary (Xcode leaves them in the products dir during its run); copy
-# any harvested file in for the extraction step; it is removed again
-# before packaging (see the rm after the processors below).
-find build/obj build/Payload/Metro.app -name "*.swiftconstvalues" -exec cp {} build/Payload/Metro.app/ \; 2>/dev/null || true
-ls build/Payload/Metro.app/*.swiftconstvalues 2>/dev/null || echo "WARNING: no swiftconstvalues beside the binary"
 
-echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
-# A raw swiftc build skips Xcode's AppIntents metadata extraction, so
-# without this step iOS never registers SubwayToolsShortcuts and the
-# Siri shortcuts do not exist on device (user 2026-11-19: still cannot
-# use them). Non-fatal on purpose: failures show in the build log and
-# the app still builds; the delivered IPA is checked for
-# Metadata.appintents.
-xcrun appintentsmetadataprocessor \
-  --toolchain-dir "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain" \
-  --module-name Metro \
-  --platform-family iOS \
-  --deployment-target 16.0 \
-  --bundle-identifier com.andytransport.metro \
-  --target-triple arm64-apple-ios16.0 \
-  --xcode-version "$(xcodebuild -version | tail -1 | awk '{print $NF}')" \
-  --sdk-root "$(xcrun -sdk iphoneos --show-sdk-path)" \
-  --binary-file build/Payload/Metro.app/Metro \
-  --source-files app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift \
-  --output build/Payload/Metro.app/Metadata.appintents \
-  || echo "WARNING: appintentsmetadataprocessor failed - Siri shortcuts will not register"
-# NL training only tunes phrase recognition; shortcut registration comes
-# from Metadata.appintents above. This processor requires
-# --extracted-metadata-path (run #81 log: the old --metadata-file /
-# --module-name / --bundle-identifier flags are unknown options to it).
-mkdir -p build/nl-training-temp
-xcrun appintentsnltrainingprocessor \
-  --extracted-metadata-path build/Payload/Metro.app/Metadata.appintents \
-  --infoplist-path app/Info.plist \
-  --temp-dir-path build/nl-training-temp \
-  --output build/Payload/Metro.app/Metadata.appintents \
-  || echo "WARNING: appintentsnltrainingprocessor failed - Siri phrases will not train"
-ls -la build/Payload/Metro.app/Metadata.appintents || true
-# The const-values file was build-time input for the extraction step
-# only; it is not part of the app bundle Xcode would ship.
-rm -f build/Payload/Metro.app/*.swiftconstvalues
+echo "== 2a. xcodebuild product check =="
+echo "-- Metro.app top level --"
+ls build/Payload/Metro.app
+echo "-- Metadata.appintents --"
+ls -la build/Payload/Metro.app/Metadata.appintents || echo "Metadata.appintents: ABSENT"
 
 echo "== 2b. Live Activity widget extension REMOVED (user 2026-11-18) =="
 # The Live Activity widget extension (LiveActivityWidget.appex) is

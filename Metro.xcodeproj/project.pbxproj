@@ -1,0 +1,323 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		500000000000000000000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000002 /* AppDelegate.swift */; };
+		500000000000000000000002 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000003 /* AppIntents.swift */; };
+		500000000000000000000003 /* SearchConditionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000004 /* SearchConditionsViewController.swift */; };
+		500000000000000000000004 /* AppearanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000005 /* AppearanceView.swift */; };
+		500000000000000000000005 /* LanguageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000006 /* LanguageView.swift */; };
+		500000000000000000000006 /* TripAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000007 /* TripAttributes.swift */; };
+		500000000000000000000007 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000009 /* LaunchScreen.storyboard */; };
+		500000000000000000000008 /* BeijingLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000A /* BeijingLogo.png */; };
+		500000000000000000000009 /* ShenyangLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000B /* ShenyangLogo.png */; };
+		50000000000000000000000A /* ShanghaiLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000C /* ShanghaiLogo.png */; };
+		50000000000000000000000B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 400000000000000000000001 /* InfoPlist.strings */; };
+		50000000000000000000000C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 400000000000000000000002 /* Localizable.strings */; };
+		50000000000000000000000D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 300000000000000000000013 /* UIKit.framework */; };
+		50000000000000000000000E /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 300000000000000000000014 /* WebKit.framework */; };
+		50000000000000000000000F /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 300000000000000000000015 /* AppIntents.framework */; };
+		500000000000000000000010 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 300000000000000000000016 /* UserNotifications.framework */; };
+		500000000000000000000011 /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 300000000000000000000017 /* ActivityKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		300000000000000000000001 /* Metro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Metro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		300000000000000000000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		300000000000000000000003 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
+		300000000000000000000004 /* SearchConditionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchConditionsViewController.swift; sourceTree = "<group>"; };
+		300000000000000000000005 /* AppearanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceView.swift; sourceTree = "<group>"; };
+		300000000000000000000006 /* LanguageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageView.swift; sourceTree = "<group>"; };
+		300000000000000000000007 /* TripAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripAttributes.swift; sourceTree = "<group>"; };
+		300000000000000000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		300000000000000000000009 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		30000000000000000000000A /* BeijingLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BeijingLogo.png; sourceTree = "<group>"; };
+		30000000000000000000000B /* ShenyangLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ShenyangLogo.png; sourceTree = "<group>"; };
+		30000000000000000000000C /* ShanghaiLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ShanghaiLogo.png; sourceTree = "<group>"; };
+		30000000000000000000000D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "en.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		30000000000000000000000E /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		30000000000000000000000F /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		300000000000000000000010 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "en.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		300000000000000000000011 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		300000000000000000000012 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		300000000000000000000013 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		300000000000000000000014 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		300000000000000000000015 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
+		300000000000000000000016 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		300000000000000000000017 /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = System/Library/Frameworks/ActivityKit.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		200000000000000000000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				50000000000000000000000D /* UIKit.framework in Frameworks */,
+				50000000000000000000000E /* WebKit.framework in Frameworks */,
+				50000000000000000000000F /* AppIntents.framework in Frameworks */,
+				500000000000000000000010 /* UserNotifications.framework in Frameworks */,
+				500000000000000000000011 /* ActivityKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		100000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000003 /* app */,
+				100000000000000000000006 /* Frameworks */,
+				100000000000000000000005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		100000000000000000000003 /* app */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000002 /* AppDelegate.swift */,
+				300000000000000000000003 /* AppIntents.swift */,
+				300000000000000000000004 /* SearchConditionsViewController.swift */,
+				300000000000000000000005 /* AppearanceView.swift */,
+				300000000000000000000006 /* LanguageView.swift */,
+				100000000000000000000004 /* LiveActivity */,
+				300000000000000000000008 /* Info.plist */,
+				300000000000000000000009 /* LaunchScreen.storyboard */,
+				30000000000000000000000A /* BeijingLogo.png */,
+				30000000000000000000000B /* ShenyangLogo.png */,
+				30000000000000000000000C /* ShanghaiLogo.png */,
+				400000000000000000000001 /* InfoPlist.strings */,
+				400000000000000000000002 /* Localizable.strings */,
+			);
+			path = app;
+			sourceTree = "<group>";
+		};
+		100000000000000000000004 /* LiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000007 /* TripAttributes.swift */,
+			);
+			path = LiveActivity;
+			sourceTree = "<group>";
+		};
+		100000000000000000000005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000001 /* Metro.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		100000000000000000000006 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000013 /* UIKit.framework */,
+				300000000000000000000014 /* WebKit.framework */,
+				300000000000000000000015 /* AppIntents.framework */,
+				300000000000000000000016 /* UserNotifications.framework */,
+				300000000000000000000017 /* ActivityKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		200000000000000000000001 /* Metro */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 600000000000000000000006 /* Build configuration list for PBXNativeTarget "Metro" */;
+			buildPhases = (
+				200000000000000000000002 /* Sources */,
+				200000000000000000000003 /* Frameworks */,
+				200000000000000000000004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Metro;
+			productName = Metro;
+			productReference = 300000000000000000000001 /* Metro.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		100000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					200000000000000000000001 = {
+						CreatedOnToolsVersion = 27.2;
+					};
+				};
+			};
+			buildConfigurationList = 600000000000000000000005 /* Build configuration list for PBXProject "Metro" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+				"zh-Hant",
+			);
+			mainGroup = 100000000000000000000002;
+			productRefGroup = 100000000000000000000005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				200000000000000000000001 /* Metro */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		200000000000000000000004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				500000000000000000000007 /* LaunchScreen.storyboard in Resources */,
+				500000000000000000000008 /* BeijingLogo.png in Resources */,
+				500000000000000000000009 /* ShenyangLogo.png in Resources */,
+				50000000000000000000000A /* ShanghaiLogo.png in Resources */,
+				50000000000000000000000B /* InfoPlist.strings in Resources */,
+				50000000000000000000000C /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		200000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				500000000000000000000001 /* AppDelegate.swift in Sources */,
+				500000000000000000000002 /* AppIntents.swift in Sources */,
+				500000000000000000000003 /* SearchConditionsViewController.swift in Sources */,
+				500000000000000000000004 /* AppearanceView.swift in Sources */,
+				500000000000000000000005 /* LanguageView.swift in Sources */,
+				500000000000000000000006 /* TripAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		400000000000000000000001 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				30000000000000000000000D /* en */,
+				30000000000000000000000E /* zh-Hans */,
+				30000000000000000000000F /* zh-Hant */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		400000000000000000000002 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				300000000000000000000010 /* en */,
+				300000000000000000000011 /* zh-Hans */,
+				300000000000000000000012 /* zh-Hant */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		600000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		600000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+		600000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = app/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.andytransport.metro;
+				PRODUCT_NAME = Metro;
+				SWIFT_ENABLE_EMIT_CONST_VALUES = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		600000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = app/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.andytransport.metro;
+				PRODUCT_NAME = Metro;
+				SWIFT_ENABLE_EMIT_CONST_VALUES = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		600000000000000000000005 /* Build configuration list for PBXProject "Metro" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				600000000000000000000001 /* Debug */,
+				600000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		600000000000000000000006 /* Build configuration list for PBXNativeTarget "Metro" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				600000000000000000000003 /* Debug */,
+				600000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 100000000000000000000001 /* Project object */;
+}
