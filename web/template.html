@@ -1029,6 +1029,13 @@
 		.ropt-line.ln-badge .ln-num, .tr-chip.ln-badge .ln-num { font-size: 19px; }
 		.ropt-line.ln-badge .ln-zh, .tr-chip.ln-badge .ln-zh { font-size: 10.5px; }
 		.ropt-line.ln-badge .ln-en, .tr-chip.ln-badge .ln-en { font-size: 7.5px; }
+		/* Named lines (no number: 西郊线, S1线, 大兴机场线...): name and 线 on ONE horizontal line at one size, English on the same baseline (user 2026-11-21). */
+		.ln-badge.named, .more-up-badge.named { gap: 7px; }
+		.ln-badge.named .ln-txt, .more-up-badge.named .ln-txt { flex-direction: row; align-items: baseline; gap: 6px; }
+		.ln-badge.named .ln-zh { font-size: 54px; font-weight: 800; line-height: 1; }
+		.tt-badge.ln-badge.named .ln-zh { font-size: 34px; }
+		.ropt-line.ln-badge.named .ln-zh, .tr-chip.ln-badge.named .ln-zh { font-size: 19px; }
+		.more-up-badge.named .ln-zh { font-size: 16px; font-weight: 800; line-height: 1; }
 		.tt-dir { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 15px; }
 		.tt-dir-name { flex: 1; color: #222; }
 		.tt-time { color: #555; white-space: nowrap; }
@@ -1227,7 +1234,7 @@
 					<div class="sp-count">{{ ttQuery ? t('tt.foundLines', {n: ttLineFiltered.length}) : t('tt.totalLines', {n: ttLineList.length}) }}</div>
 					<div class="sp-list">
 						<div class="sp-row" v-for="ln in ttLineFiltered" :key="ln.key" @click="pickTtLine(ln.key)">
-							<div class="sp-name"><span class="tt-badge ln-badge" :style="{ background: '#' + ln.color, color: ln.text }"><span class="ln-num">{{ badgeParts(ln).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ln).top }}</span><span class="ln-en">{{ badgeParts(ln).bottom }}</span></span></span></div>
+							<div class="sp-name"><span class="tt-badge ln-badge" :class="{ named: badgeParts(ln).named }" :style="{ background: '#' + ln.color, color: ln.text }"><span class="ln-num">{{ badgeParts(ln).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ln).top }}</span><span class="ln-en">{{ badgeParts(ln).bottom }}</span></span></span></div>
 							<div class="sp-py">{{ ln.loop ? t('tt.loop') : (stNameStr(ln.stations[0]) + ' — ' + stNameStr(ln.stations[ln.stations.length - 1])) }}</div>
 						</div>
 						<div class="sp-empty" v-if="ttLineFiltered.length === 0">{{ t('tt.noLines') }}</div>
@@ -1236,7 +1243,7 @@
 				<div v-else class="tt-view">
 					<div class="tt-title">
 						<button class="tt-back" @click="ttLine=null; ttQuery=''"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
-						<span class="tt-badge ln-badge" :style="{ background: '#' + ttLineInfo.color, color: ttLineInfo.text }"><span class="ln-num">{{ badgeParts(ttLineInfo).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ttLineInfo).top }}</span><span class="ln-en">{{ badgeParts(ttLineInfo).bottom }}</span></span></span>
+						<span class="tt-badge ln-badge" :class="{ named: badgeParts(ttLineInfo).named }" :style="{ background: '#' + ttLineInfo.color, color: ttLineInfo.text }"><span class="ln-num">{{ badgeParts(ttLineInfo).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ttLineInfo).top }}</span><span class="ln-en">{{ badgeParts(ttLineInfo).bottom }}</span></span></span>
 						<span class="tt-count">{{ t('tt.stations', {n: ttLineStationFiltered.length}) }}</span>
 					</div>
 					<div class="tt-lines">
@@ -1271,14 +1278,14 @@
 						<span class="tr-dot from"></span>
 						<span class="tr-label" @click="openPick('from')">{{ t('tr.depart') }}</span>
 						<input class="tr-input" type="text" v-model="fromQuery" @focus="suggestFor = 'from'" @input="onQueryInput('from', $event)" @blur="hideSuggest" :placeholder="t('tr.phFrom')" autocomplete="off" autocapitalize="off" spellcheck="false">
-						<span class="tr-line-pick ln-badge" :style="{ background: '#' + fromLine.color, color: fromLine.text }" v-if="fromLine" @click="clearLine('from')"><span class="ln-num">{{ badgeParts(fromLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(fromLine).top }}</span><span class="ln-en">{{ badgeParts(fromLine).bottom }}</span></span></span>
+						<span class="tr-line-pick ln-badge" :class="{ named: badgeParts(fromLine).named }" :style="{ background: '#' + fromLine.color, color: fromLine.text }" v-if="fromLine" @click="clearLine('from')"><span class="ln-num">{{ badgeParts(fromLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(fromLine).top }}</span><span class="ln-en">{{ badgeParts(fromLine).bottom }}</span></span></span>
 						<button class="tr-clear" v-if="fromQuery" @click="clearStation('from')">✕</button>
 					</div>
 					<div class="tr-field">
 						<span class="tr-dot to"></span>
 						<span class="tr-label" @click="openPick('to')">{{ t('tr.arrive') }}</span>
 						<input class="tr-input" type="text" v-model="toQuery" @focus="suggestFor = 'to'" @input="onQueryInput('to', $event)" @blur="hideSuggest" :placeholder="t('tr.phTo')" autocomplete="off" autocapitalize="off" spellcheck="false">
-						<span class="tr-line-pick ln-badge" :style="{ background: '#' + toLine.color, color: toLine.text }" v-if="toLine" @click="clearLine('to')"><span class="ln-num">{{ badgeParts(toLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(toLine).top }}</span><span class="ln-en">{{ badgeParts(toLine).bottom }}</span></span></span>
+						<span class="tr-line-pick ln-badge" :class="{ named: badgeParts(toLine).named }" :style="{ background: '#' + toLine.color, color: toLine.text }" v-if="toLine" @click="clearLine('to')"><span class="ln-num">{{ badgeParts(toLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(toLine).top }}</span><span class="ln-en">{{ badgeParts(toLine).bottom }}</span></span></span>
 						<button class="tr-clear" v-if="toQuery" @click="clearStation('to')">✕</button>
 					</div>
 					<button class="tr-swap" @click="swapStations" :aria-label="t('tr.swap')">
@@ -1288,7 +1295,7 @@
 				<div class="tr-suggest glass" v-if="suggestFor">
 					<div class="tr-sug-row" v-for="opt in suggestList" :key="opt.st.n + '|' + opt.line.key" @click="pickSuggest(opt)">
 						<span class="tr-sug-name">{{ stName(opt.st) }}</span>
-						<span class="tr-sug-lines"><span class="ln-badge" :style="{ background: '#' + opt.line.color, color: opt.line.text }"><span class="ln-num">{{ badgeParts(opt.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(opt.line).top }}</span><span class="ln-en">{{ badgeParts(opt.line).bottom }}</span></span></span></span>
+						<span class="tr-sug-lines"><span class="ln-badge" :class="{ named: badgeParts(opt.line).named }" :style="{ background: '#' + opt.line.color, color: opt.line.text }"><span class="ln-num">{{ badgeParts(opt.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(opt.line).top }}</span><span class="ln-en">{{ badgeParts(opt.line).bottom }}</span></span></span></span>
 						<span class="tr-sug-py">{{ opt.st.py }}</span>
 					</div>
 					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? (fromQueryLive || fromQuery) : (toQueryLive || toQuery)) ? t('tr.noStation') : t('tr.typeHint') }}</div>
@@ -1331,7 +1338,7 @@
 							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ t('tr.minutes', {n: r.minutes}) }}</span></div>
 							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>{{ t('tr.transfers', {n: r.transfers}) }} · {{ t('tr.km', {n: r.km}) }}</div>
 							<div class="ropt-opwarn" v-if="routeOpWarning(r)">⚠ {{ routeOpWarning(r) }}</div>
-							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span><span v-else-if="transferEstFor(r, si+1) && transferEstFor(r, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(r, si+1)) }}</span></span></template></div>
+							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span><span v-else-if="transferEstFor(r, si+1) && transferEstFor(r, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(r, si+1)) }}</span></span></template></div>
 						</div>
 						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="r.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="r.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 					</div>
@@ -1348,14 +1355,14 @@
 						</div>
 						<div class="tr-transfer-detail" v-if="transferFocus === i">
 							<div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div>
-							<div class="tr-td-lines"><span class="tr-chip ln-badge" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div>
+							<div class="tr-td-lines"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div>
 							<div class="tr-td-walk" v-if="virtualDistFor(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(routeResult, i)}) }}</div>
 							<div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div>
 							<div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div>
 							<div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div>
 						</div>
 						<div class="tr-seg" @click="goSegment(seg)">
-							<span class="tr-chip ln-badge" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span>
+							<span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span>
 							<span class="tr-seg-txt">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</span>
 							<span class="tr-seg-n">{{ t('tr.stops', {n: seg.stops}) }}</span>
 						</div>
@@ -1494,7 +1501,7 @@
 					</div>
 					<div class="more-section">{{ cityName }}</div>
 					<div class="more-card">
-						<div class="more-up-row" v-for="u in currentCityUpcoming()" :key="u.key"><span class="more-up-badge" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }"><span class="ln-num">{{ upBadgeParts(u).left }}</span><span class="ln-txt"><span class="ln-zh">{{ upBadgeParts(u).top }}</span><span class="ln-en">{{ upBadgeParts(u).bottom }}</span></span></span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
+						<div class="more-up-row" v-for="u in currentCityUpcoming()" :key="u.key"><span class="more-up-badge" :class="{ named: upBadgeParts(u).named }" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }"><span class="ln-num">{{ upBadgeParts(u).left }}</span><span class="ln-txt"><span class="ln-zh">{{ upBadgeParts(u).top }}</span><span class="ln-en">{{ upBadgeParts(u).bottom }}</span></span></span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
 						<div class="more-up-note" v-if="!currentCityUpcoming().length">{{ t('more.upcoming.none') }}</div>
 					</div>
 					<div class="more-up-note" v-if="city === 'sh'">{{ t('upcoming.note.sh22') }}</div>
@@ -2296,6 +2303,7 @@ function titlePy(py) {
 								['搜索记录按城市分开显示，切换城市只看该城市的记录', '搜尋記錄按城市分開顯示，切換城市只看該城市的記錄', 'Search history is now per city — each city shows only its own records'],
 								['iPhone Duo 展开时改用右侧竖向栏，界面铺满全屏', 'iPhone Duo 展開時改用右側豎向欄，界面鋪滿全屏', 'On iPhone Duo unfolded, navigation moves to a vertical right sidebar and the UI fills the full screen'],
 								['换乘页出发/到达交换按钮图标优化', '換乘頁出發/到達交換按鈕圖標優化', 'Polished the swap button on the Transfer tab'],
+								['无数字的线路标识改为单行：站名与「线」同行同字号', '無數字的線路標識改為單行：站名與「線」同行同字號', 'Named-line badges (no number) now sit on a single line'],
 							] },
 							{ v: '1.1.0B', date: '2026-11-21', lines: [
 								['车型搜索覆盖 12 个城市，共 331 列列车', '車型搜尋覆蓋 12 個城市，共 331 列列車', 'Train model search covers 331 trains across all 12 cities'],
@@ -2428,7 +2436,7 @@ function titlePy(py) {
 							bottom = 'Line ' + key;
 						}
 						if (this.lang === 'zh-Hant') { left = toHant(left); top = toHant(top); }
-						return { left: left, top: top, bottom: bottom };
+						return { left: left, top: top, bottom: bottom, named: !m };
 					},
 					upBadgeParts(u) {
 						// Upcoming-line badge in the official format
@@ -2438,7 +2446,7 @@ function titlePy(py) {
 						// (the line identifier itself is untouched).
 						var top = /^\d+$/.test(u.badge) ? '号线' : '线';
 						if (this.lang === 'zh-Hant') top = toHant(top);
-						return { left: u.badge, top: top, bottom: 'Line ' + u.badge };
+						return { left: u.badge, top: top, bottom: 'Line ' + u.badge, named: !/^\d+$/.test(u.badge) };
 					},
 					lineNameByKey(key) {
 						var list = this.ttLineList || [];
