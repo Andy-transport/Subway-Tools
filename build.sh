@@ -237,10 +237,9 @@ python3 -c "import base64; [open('build/Payload/Subway Tools.app/TimetableIcon' 
 echo "== 4. package IPA =="
 cd build
 # NOTE: the workflow's Upload IPA step (.github/workflows/build-ipa.yml on
-# GitHub) expects build/Convenient-transportation-1.0.3-unsigned.ipa — keep
-# this name in sync with it. (The workflow still says 1.0.3 even though the
-# app is 1.0.4; the deliverable is renamed to
-# Convenient-transportation-1.0.4-unsigned.ipa when handed to the user.)
-zip -r -y Convenient-transportation-1.0.3-unsigned.ipa Payload
-ls -l Convenient-transportation-1.0.3-unsigned.ipa
-unzip -l Convenient-transportation-1.0.3-unsigned.ipa
+# GitHub) uploads artifact 'Subway Tools' from build/Subway Tools.ipa
+# (renamed 26D106, user 2026-11-21: package name is the app name) — keep
+# this name in sync with it.
+zip -r -y "Subway Tools.ipa" Payload
+ls -l "Subway Tools.ipa"
+unzip -l "Subway Tools.ipa"
