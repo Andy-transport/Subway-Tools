@@ -101,6 +101,28 @@ find build -name "*.swiftconstvalues" -exec cp {} build/obj/ \; 2>/dev/null || t
 find build -name "*.swiftconstvalues" -exec cp {} build/Payload/Metro.app/ \; 2>/dev/null || true
 ls -la build/obj/*.swiftconstvalues build/Payload/Metro.app/*.swiftconstvalues 2>/dev/null || echo "WARNING: no swiftconstvalues staged"
 
+echo "== Siri experiment 5: candidate names =="
+# Siri experiment 5: experiment 4 proved the solo harvest emits a real
+# (57 KB) .swiftconstvalues, but it is named after the harvest object
+# (AppIntents-harvest.swiftconstvalues), which matches no source file —
+# and appintentsmetadataprocessor still reported 'No swiftconstvalues
+# found'. Hypothesis: the processor only recognises const values named
+# after a SOURCE file (AppIntents.swiftconstvalues) or after the MODULE
+# (Metro.swiftconstvalues). Stage the harvest content under all four
+# candidate names/locations before section 2a runs.
+E5_HARVEST=""
+for f in build/obj/*harvest*.swiftconstvalues; do if [ -f "$f" ]; then E5_HARVEST="$f"; break; fi; done
+if [ -z "$E5_HARVEST" ]; then for f in build/obj/*.swiftconstvalues; do if [ -f "$f" ]; then E5_HARVEST="$f"; break; fi; done; fi
+if [ -n "$E5_HARVEST" ]; then
+  echo "E5 harvest source: $E5_HARVEST = $(wc -c < "$E5_HARVEST") bytes"
+  for dest in build/Payload/Metro.app/AppIntents.swiftconstvalues build/Payload/Metro.app/Metro.swiftconstvalues build/obj/AppIntents.swiftconstvalues build/obj/Metro.swiftconstvalues; do
+    if [ "$E5_HARVEST" != "$dest" ]; then cp "$E5_HARVEST" "$dest" || true; fi
+    echo "E5 staged: $dest = $(wc -c < "$dest") bytes"
+  done
+else
+  echo "WARNING: no harvest .swiftconstvalues found for experiment 5"
+fi
+
 echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
 # A raw swiftc build skips Xcode's AppIntents metadata extraction, so
 # without this step iOS never registers SubwayToolsShortcuts and the
