@@ -230,6 +230,10 @@ szm_b64 = (BASE / "szmetro-icon.b64").read_text(encoding="utf-8").strip()
 qdm_b64 = (BASE / "qdmetro-icon.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__SZM_ICON__\*/', lambda _: szm_b64, html, "shenzhen metro app icon")
 html = sub_once(r'/\*__QDM_ICON__\*/', lambda _: qdm_b64, html, "qingdao metro app icon")
+sjzm_icon_path = BASE / "sjzmetro-icon.b64"
+if sjzm_icon_path.exists():
+    sjzm_b64 = sjzm_icon_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__SJZM_ICON__\*/', lambda _: sjzm_b64, html, "shijiazhuang metro app icon")
 
 # O. inline the Shanghai Metro data (22 operating lines, 413 stations).
 # Same pattern as Shenyang (step K): precomputed stations/routes from
@@ -455,6 +459,42 @@ if qd_splash_dark_path.exists():
 else:
     print("WARNING: web/qingdao/splash-dark.b64 missing; Qingdao dark splash will be empty")
 
+# S9. inline the Shijiazhuang Metro data (3 operating lines, 60 stations).
+# Same pattern as Qingdao: precomputed stations/routes from the RMP
+# Gallery map v56 (see shijiazhuang/NOTES.md); the unopened Line 1
+# extension stations (东上泽/东洋/上庄/槐安路) and Lines 4/5/6 are NOT
+# in the data files.
+sjz_stations = (BASE / "shijiazhuang" / "stations.json").read_text(encoding="utf-8")
+sjz_routes = (BASE / "shijiazhuang" / "routes.json").read_text(encoding="utf-8")
+sjz_map = (BASE / "shijiazhuang" / "map.svg").read_text(encoding="utf-8")
+assert "</script" not in sjz_stations, "sjz stations json must not contain </script"
+assert "</script" not in sjz_routes, "sjz routes json must not contain </script"
+assert "</script" not in sjz_map, "sjz map svg must not contain </script"
+html = sub_once(r'/\*__SJZ_STATIONS__\*/\[\]', lambda _: sjz_stations, html, "sjz stations json")
+html = sub_once(r'/\*__SJZ_ROUTES__\*/null', lambda _: sjz_routes, html, "sjz routes json")
+html = sub_once(r'/\*__SJZ_MAP__\*/""', lambda _: _json.dumps(sjz_map), html, "sjz map svg")
+# Shijiazhuang logo: the official original is not prepared yet (see
+# shijiazhuang/NOTES.md) — substitute only when the file appears,
+# mirroring the Shenzhen logo pattern (placeholder default is '').
+sjz_logo_path = BASE / "shijiazhuang" / "logo.b64"
+if sjz_logo_path.exists():
+    sjz_logo_b64 = sjz_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__SJZ_LOGO__\*/''", lambda _: "'data:image/png;base64," + sjz_logo_b64 + "'", html, "sjz logo")
+else:
+    print("WARNING: web/shijiazhuang/logo.b64 missing; Shijiazhuang logo will be empty")
+sjz_splash_path = BASE / "shijiazhuang" / "splash.b64"
+if sjz_splash_path.exists():
+    sjz_splash_b64 = sjz_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__SJZ_SPLASH__\*/', lambda _: sjz_splash_b64, html, "sjz splash")
+else:
+    print("WARNING: web/shijiazhuang/splash.b64 missing; Shijiazhuang splash will be empty")
+sjz_splash_dark_path = BASE / "shijiazhuang" / "splash-dark.b64"
+if sjz_splash_dark_path.exists():
+    sjz_splash_dark_b64 = sjz_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__SJZ_SPLASH_DARK__\*/', lambda _: sjz_splash_dark_b64, html, "sjz splash dark")
+else:
+    print("WARNING: web/shijiazhuang/splash-dark.b64 missing; Shijiazhuang dark splash will be empty")
+
 # S3. inline the Chongqing Rail Transit data (14 lines, 282 stations).
 # Same pattern as Jinhua/Changzhou: precomputed stations/routes from the
 # user's system-plan map (see chongqing/NOTES.md); the logo is cropped
@@ -511,6 +551,8 @@ sz_tt = (BASE / "timetable" / "sz.json").read_text(encoding="utf-8")
 cd_tt = (BASE / "timetable" / "cd.json").read_text(encoding="utf-8")
 qd_tt_path = BASE / "timetable" / "qd.json"
 qd_tt = qd_tt_path.read_text(encoding="utf-8") if qd_tt_path.exists() else "{}"
+sjz_tt_path = BASE / "timetable" / "sjz.json"
+sjz_tt = sjz_tt_path.read_text(encoding="utf-8") if sjz_tt_path.exists() else "{}"
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
@@ -524,6 +566,7 @@ assert "</script" not in cc_tt, "cc timetable json must not contain </script"
 assert "</script" not in sz_tt, "sz timetable json must not contain </script"
 assert "</script" not in cd_tt, "cd timetable json must not contain </script"
 assert "</script" not in qd_tt, "qd timetable json must not contain </script"
+assert "</script" not in sjz_tt, "sjz timetable json must not contain </script"
 html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
 html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
 html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
@@ -536,6 +579,7 @@ html = sub_once(r'/\*__CC_TIMETABLE__\*/\{\}', lambda _: cc_tt, html, "cc timeta
 html = sub_once(r'/\*__SZ_TIMETABLE__\*/\{\}', lambda _: sz_tt, html, "sz timetable json")
 html = sub_once(r'/\*__CD_TIMETABLE__\*/\{\}', lambda _: cd_tt, html, "cd timetable json")
 html = sub_once(r'/\*__QD_TIMETABLE__\*/\{\}', lambda _: qd_tt, html, "qd timetable json")
+html = sub_once(r'/\*__SJZ_TIMETABLE__\*/\{\}', lambda _: sjz_tt, html, "sjz timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 # U. inline verified station lat/lng (web/latlng/latlng-{city}.json,
@@ -556,6 +600,7 @@ cc_ll = (BASE / "latlng" / "latlng-cc.json").read_text(encoding="utf-8")
 sz_ll = (BASE / "latlng" / "latlng-sz.json").read_text(encoding="utf-8")
 cd_ll = (BASE / "latlng" / "latlng-cd.json").read_text(encoding="utf-8")
 qd_ll = (BASE / "latlng" / "latlng-qd.json").read_text(encoding="utf-8")
+sjz_ll = (BASE / "latlng" / "latlng-sjz.json").read_text(encoding="utf-8")
 assert "</script" not in bj_ll, "bj latlng json must not contain </script"
 assert "</script" not in sy_ll, "sy latlng json must not contain </script"
 assert "</script" not in sh_ll, "sh latlng json must not contain </script"
@@ -568,6 +613,7 @@ assert "</script" not in cc_ll, "cc latlng json must not contain </script"
 assert "</script" not in sz_ll, "sz latlng json must not contain </script"
 assert "</script" not in cd_ll, "cd latlng json must not contain </script"
 assert "</script" not in qd_ll, "qd latlng json must not contain </script"
+assert "</script" not in sjz_ll, "sjz latlng json must not contain </script"
 html = sub_once(r'/\*__BJ_LATLNG__\*/\{\}', lambda _: bj_ll, html, "bj latlng json")
 html = sub_once(r'/\*__SY_LATLNG__\*/\{\}', lambda _: sy_ll, html, "sy latlng json")
 html = sub_once(r'/\*__SH_LATLNG__\*/\{\}', lambda _: sh_ll, html, "sh latlng json")
@@ -580,6 +626,7 @@ html = sub_once(r'/\*__CC_LATLNG__\*/\{\}', lambda _: cc_ll, html, "cc latlng js
 html = sub_once(r'/\*__SZ_LATLNG__\*/\{\}', lambda _: sz_ll, html, "sz latlng json")
 html = sub_once(r'/\*__CD_LATLNG__\*/\{\}', lambda _: cd_ll, html, "cd latlng json")
 html = sub_once(r'/\*__QD_LATLNG__\*/\{\}', lambda _: qd_ll, html, "qd latlng json")
+html = sub_once(r'/\*__SJZ_LATLNG__\*/\{\}', lambda _: sjz_ll, html, "sjz latlng json")
 
 # S8. inline the verified official metro logos for the not-yet-
 # supported cities (web/upcoming-logos/, see its MANIFEST.md): the

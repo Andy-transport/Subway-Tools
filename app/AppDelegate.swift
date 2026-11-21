@@ -235,6 +235,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // official published value.
     let qingdaoGreen = UIColor(red: 49.0 / 255.0, green: 124.0 / 255.0, blue: 91.0 / 255.0, alpha: 1)
     let qingdaoGreenDark = UIColor(red: 39.0 / 255.0, green: 99.0 / 255.0, blue: 73.0 / 255.0, alpha: 1)
+    // Shijiazhuang Metro Line 1 red #E53E30 (official line colour,
+    // RMP palette). Darker #B53126 is derived (x0.79), not an
+    // official published value.
+    let shijiazhuangRed = UIColor(red: 229.0 / 255.0, green: 62.0 / 255.0, blue: 48.0 / 255.0, alpha: 1)
+    let shijiazhuangRedDark = UIColor(red: 181.0 / 255.0, green: 49.0 / 255.0, blue: 38.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -290,6 +295,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "city.sz": ["深圳", "深圳", "Shenzhen"],
         "city.cd": ["成都", "成都", "Chengdu"],
         "city.qd": ["青岛", "青島", "Qingdao"],
+        "city.sjz": ["石家庄", "石家莊", "Shijiazhuang"],
         "native.cancel": ["取消", "取消", "Cancel"],
         "tr.tab.rec": ["推荐", "推薦", "Recommended"],
         "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
@@ -426,7 +432,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = rootBackgroundColor() // Theme-following (white in light, #0c0f16 in dark): on the unfolded Duo the area beside the sidebar blends with the page instead of showing as a black edge (user 2026-11-21).
@@ -1172,6 +1178,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sz" { return shenzhenGreen }
         if currentCity == "cd" { return chengduBlue }
         if currentCity == "qd" { return qingdaoGreen }
+        if currentCity == "sjz" { return shijiazhuangRed }
         return subwayBlue
     }
 
@@ -1189,6 +1196,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sz" { return shenzhenGreenDark }
         if currentCity == "cd" { return chengduBlueDark }
         if currentCity == "qd" { return qingdaoGreenDark }
+        if currentCity == "sjz" { return shijiazhuangRedDark }
         return subwayBlue
     }
 
@@ -1209,6 +1217,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sz" { return shenzhenGreen }
         if currentCity == "cd" { return chengduBlue }
         if currentCity == "qd" { return qingdaoGreen }
+        if currentCity == "sjz" { return shijiazhuangRed }
         return accentColor()
     }
 
@@ -1234,6 +1243,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "sz": name = "ShenzhenLogo"
         case "cd": name = "ChengduLogo"
         case "qd": name = "QingdaoLogo"
+        case "sjz": name = "ShijiazhuangLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -1347,7 +1357,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let qd = UIAction(title: L("city.qd"), image: cityLogoImage(for: "qd")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "qd" ? .on : .off) { [weak self] _ in
             self?.pickCity("qd")
         }
-        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd, qd])
+        let sjz = UIAction(title: L("city.sjz"), image: cityLogoImage(for: "sjz")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sjz" ? .on : .off) { [weak self] _ in
+            self?.pickCity("sjz")
+        }
+        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd, qd, sjz])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -1379,6 +1392,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         sheet.addAction(cityAction("sz"))
         sheet.addAction(cityAction("cd"))
         sheet.addAction(cityAction("qd"))
+        sheet.addAction(cityAction("sjz"))
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
@@ -2055,6 +2069,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "sz": splashName = "SplashSZ"
         case "cd": splashName = "SplashCD"
         case "qd": splashName = "SplashQD"
+        case "sjz": splashName = "SplashSJZ"
         default: splashName = "Splash"
         }
         // Dark variant when the web's last-known effective appearance
@@ -2205,6 +2220,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "sz": id = "848926994"
         case "cd": id = "1303414976"
         case "qd": id = "1373547573"
+        case "sjz": id = "6444716093"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
@@ -2784,7 +2800,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
-                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd"].contains(city) {
+                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(city) {
             // The web switched cities (user switch or the startup
             // restore). Mirror it natively; the web already switched,
             // so do NOT call switchCity here (that would loop).

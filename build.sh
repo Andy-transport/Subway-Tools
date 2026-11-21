@@ -169,6 +169,9 @@ python3 -c "import base64; open('build/Payload/Metro.app/SplashCD.jpg','wb').wri
 python3 -c "import base64; open('build/Payload/Metro.app/SplashCDDark.jpg','wb').write(base64.b64decode(open('web/chengdu/splash-dark.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/SplashQD.jpg','wb').write(base64.b64decode(open('web/qingdao/splash.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/SplashQDDark.jpg','wb').write(base64.b64decode(open('web/qingdao/splash-dark.b64').read()))"
+# Shijiazhuang splash (user-supplied real splash, web/shijiazhuang/splash.b64).
+python3 -c "import base64; open('build/Payload/Metro.app/SplashSJZ.jpg','wb').write(base64.b64decode(open('web/shijiazhuang/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Metro.app/SplashSJZDark.jpg','wb').write(base64.b64decode(open('web/shijiazhuang/splash-dark.b64').read()))"
 cp app/BeijingLogo.png app/ShenyangLogo.png app/ShanghaiLogo.png build/Payload/Metro.app/
 python3 -c "import base64; open('build/Payload/Metro.app/HarbinLogo.png','wb').write(base64.b64decode(open('web/harbin/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Metro.app/DalianLogo.png','wb').write(base64.b64decode(open('web/dalian/logo.b64').read()))"
