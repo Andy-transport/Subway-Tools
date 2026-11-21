@@ -205,6 +205,14 @@ sy_splash_dark_b64 = (BASE / "shenyang" / "splash-dark.b64").read_text(encoding=
 html = sub_once(r'/\*__BJ_SPLASH_DARK__\*/', lambda _: bj_splash_dark_b64, html, "bj splash dark")
 html = sub_once(r'/\*__SY_SPLASH_DARK__\*/', lambda _: sy_splash_dark_b64, html, "sy splash dark")
 
+# Universal launch splash (26C105): one pair for the whole app,
+# picked by dark/light only (app/splash-st.b64 / splash-st-dark.b64,
+# the same source files build.sh decodes into the bundle).
+st_splash_b64 = (BASE.parent / "app" / "splash-st.b64").read_text(encoding="utf-8").strip()
+st_splash_dark_b64 = (BASE.parent / "app" / "splash-st-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__ST_SPLASH__\*/', lambda _: st_splash_b64, html, "st splash")
+html = sub_once(r'/\*__ST_SPLASH_DARK__\*/', lambda _: st_splash_dark_b64, html, "st splash dark")
+
 # N. inline the transit-app icons (App Store artwork, 120x120 PNG,
 # rounded corners, transparent background; see web/*-icon.b64).
 # Beijing Yikatong / Shenyang Shengjing Tong / Shanghai Metro大都会.

@@ -3,9 +3,10 @@ import UIKit
 // Native Appearance picker (user 2026-11-19, 外观 → Apple UI SDK 27.2):
 // two preview cards (Light / Dark) side by side with radio circles below,
 // plus an 自动 (Automatic) row with a UISwitch. The preview cards show
-// the CURRENT city's own splash poster (user 2026-11-20: 这个图按切换的
-// 城市调整） — the light card the light poster, the dark card the dark
-// poster, loaded from the same bundle images the launch splash uses.
+// the universal launch splash poster (26C105: one 'Subway Tools' pair
+// for the whole app — the light card the light poster, the dark card
+// the dark poster), loaded from the same bundle images the launch
+// splash uses.
 // The view's own background follows the current appearance
 // (.systemBackground); the two preview cards are FIXED light/dark so
 // they show what each mode looks like.
@@ -230,12 +231,11 @@ final class AppearanceView: UIView {
     }
 }
 
-// One Light/Dark preview card: the CURRENT city's splash poster for
-// this mode, filling the whole card (user 2026-11-20: the previews
-// follow the selected city, and the posters no longer carry the
-// 配线查询 block). The image is the same bundle asset the launch
-// splash shows (SplashXX / SplashXXDark), so the card always matches
-// what starting the app in that city + mode looks like.
+// One Light/Dark preview card: the universal splash poster for this
+// mode, filling the whole card. The image is the same bundle asset
+// the launch splash shows (SplashST / SplashSTDark since 26C105),
+// so the card always matches what starting the app in that mode
+// looks like.
 final class PreviewCardView: UIView {
     private let dark: Bool
     private let posterView = UIImageView()
@@ -260,26 +260,14 @@ final class PreviewCardView: UIView {
         refreshPoster()
     }
 
-    // Load this card's poster for the given city key, mirroring
-    // refreshSplashImage()'s naming: SplashXX, dark prefers
-    // SplashXXDark and falls back to the light poster, then Beijing.
+    // Load this card's poster, mirroring refreshSplashImage()'s
+    // naming: since 26C105 the splash is ONE universal pair
+    // (SplashST / SplashSTDark) for the whole app, so the city key
+    // callers still pass no longer selects anything. Dark prefers
+    // SplashSTDark and falls back to the light poster, then the
+    // original Beijing poster.
     func refreshPoster(city: String = "bj") {
-        let base: String
-        switch city {
-        case "sy": base = "SplashSY"
-        case "sh": base = "SplashSH"
-        case "hb": base = "SplashHB"
-        case "dl": base = "SplashDL"
-        case "jh": base = "SplashJH"
-        case "cz": base = "SplashCZ"
-        case "cq": base = "SplashCQ"
-        case "cc": base = "SplashCC"
-        case "sz": base = "SplashSZ"
-        case "cd": base = "SplashCD"
-        case "qd": base = "SplashQD"
-        case "sjz": base = "SplashSJZ"
-        default: base = "Splash"
-        }
+        let base = "SplashST"
         if dark, let img = UIImage(named: base + "Dark") {
             posterView.image = img
         } else {

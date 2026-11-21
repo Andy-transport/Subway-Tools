@@ -115,6 +115,8 @@
 			window.CD_SPLASH_DARK = "data:image/jpeg;base64,/*__CD_SPLASH_DARK__*/";
 			window.QD_SPLASH_DARK = "data:image/jpeg;base64,/*__QD_SPLASH_DARK__*/";
 			window.SJZ_SPLASH_DARK = "data:image/jpeg;base64,/*__SJZ_SPLASH_DARK__*/";
+			window.ST_SPLASH = "data:image/jpeg;base64,/*__ST_SPLASH__*/";
+			window.ST_SPLASH_DARK = "data:image/jpeg;base64,/*__ST_SPLASH_DARK__*/";
 			window.BJ_TIMETABLE = /*__BJ_TIMETABLE__*/{};
 			window.SY_TIMETABLE = /*__SY_TIMETABLE__*/{};
 			window.SH_TIMETABLE = /*__SH_TIMETABLE__*/{};
@@ -793,9 +795,15 @@
 		.more-sub-enter-from, .more-sub-leave-to { transform: translateX(48px); opacity: 0; }
 		.more-main { animation: moreMainIn .35s cubic-bezier(.32,.72,0,1); }
 		@keyframes moreMainIn { from { transform: translateX(-24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-		/* Row press feedback (iOS table-cell highlight). */
-		.more-row:active, .more-city-row:active { background: rgba(0,0,0,0.06); }
-		html.dark .more-row:active, html.dark .more-city-row:active { background: rgba(255,255,255,0.08); }
+		/* Row press feedback (iOS table-cell highlight). JS-managed
+		   .pressing class since 26C105: WKWebView does not reliably
+		   release the CSS :active state when a tap triggers a view
+		   change, which left a stuck gray block on the row after
+		   returning from a sub-page. The delegation + failsafe in
+		   mounted() and the clear in the anySubViewOpen watcher
+		   guarantee the highlight is removed. */
+		.more-row.pressing, .more-city-row.pressing { background: rgba(0,0,0,0.06); }
+		html.dark .more-row.pressing, html.dark .more-city-row.pressing { background: rgba(255,255,255,0.08); }
 		html.dark .more-check { color: #fff; }
 		.more-credit { text-align: center; font-size: 12px; color: #aaa; padding: 8px 0 0; }
 		.more-new-row { display: flex; align-items: flex-start; gap: 8px; padding: 9px 2px; font-size: 14px; color: #333; border-bottom: 1px solid rgba(0,0,0,0.06); }
@@ -1445,7 +1453,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C104)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C105)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card">
@@ -1662,9 +1670,14 @@
 						<img class="more-about-icon" :src="appIcon" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C104)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26C105)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
+					<div class="more-card">
+						<div class="more-row" @click="aboutRepo"><span>{{ t('more.repo') }}</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="aboutRepo"><span>{{ t('more.about.github') }}</span><span class="more-row-value">Andy-transport</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="aboutDouyin"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">351453703</span><span class="more-chev">›</span></div>
+					</div>
 				</div>
 				</transition>
 			</div>
@@ -2277,6 +2290,8 @@ function titlePy(py) {
 						sjzLatLng: (window.SJZ_LATLNG || {}),
 						sjzSplash: (window.SJZ_SPLASH || ''),
 						sjzSplashDark: (window.SJZ_SPLASH_DARK || ''),
+						stSplash: (window.ST_SPLASH || ''),
+						stSplashDark: (window.ST_SPLASH_DARK || ''),
 						sjzmIcon: (window.SJZM_ICON || ''),
 					soonLogos: (window.SOON_LOGOS || {}),
 						ttIcon: (window.TT_ICON || ''),
@@ -2355,6 +2370,11 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26C105)', date: '2026-11-21', lines: [
+								['修复设置列表行高亮残留：点按「通用」返回后不再留灰块', '修復設定列表行高亮殘留：點按「通用」返回後不再留灰塊', 'Fixed a stuck row highlight in Settings after returning from a sub-page'],
+								['「关于」页恢复项目主页与作者行（GitHub / 抖音）', '「關於」頁恢復項目主頁與作者行（GitHub / 抖音）', 'Restored the project-home and author rows (GitHub / Douyin) on the About page'],
+								['新启动图：Subway Tools 深浅两版，全应用统一，不再按城市切换', '新啟動圖：Subway Tools 深淺兩版，全應用統一，不再按城市切換', 'New launch splash: one Subway Tools pair (light/dark) for the whole app, no longer per city'],
+							] },
 							{ v: '1.1.0 (26C104)', date: '2026-11-21', lines: [
 								['安装包名称改为 Subway Tools', '安裝包名稱改為 Subway Tools', 'Renamed the app bundle to Subway Tools'],
 							] },
@@ -4503,6 +4523,23 @@ function titlePy(py) {
 
 					doPdf() { this.closeMore(); pdfDownload(); },
 					doDouyin() { this.closeMore(); openDouyin(); },
+					// About-page rows (restored 26C105 after the 26C101
+					// merge dropped them): 项目主页 + 作者 GitHub open the
+					// repo via the same openRepo() the pre-merge rows
+					// used; 作者抖音 opens the author's Douyin profile.
+					aboutRepo() { openRepo(); },
+					aboutDouyin() { openDouyin(); },
+					// Row press highlight (26C105): remove every
+					// .pressing marker. Called by the touch failsafe,
+					// the anySubViewOpen watcher and visibilitychange,
+					// so a highlight can never survive a page change.
+					clearPressing() {
+						if (this._pressTimer) { clearTimeout(this._pressTimer); this._pressTimer = null; }
+						try {
+							var els = document.querySelectorAll('.more-row.pressing, .more-city-row.pressing');
+							for (var i = 0; i < els.length; i++) els[i].classList.remove('pressing');
+						} catch (e) {}
+					},
 
 					openAppearance() {
 						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openAppearance);
@@ -4548,10 +4585,12 @@ function titlePy(py) {
 					transitLabel() { return this.t('transit.' + this.city); },
 					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? this.szmIcon : (this.city === 'qd' ? this.qdmIcon : (this.city === 'sjz' ? ((this.sjzmIcon && this.sjzmIcon.indexOf('SJZM_ICON') === -1) ? this.sjzmIcon : '') : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : this.yktIcon))))))))))); },
 					splashImg() {
-						var light = { bj: this.bjSplash, sy: this.sySplash, sh: this.shSplash, hb: this.hbSplash, dl: this.dlSplash, jh: this.jhSplash, cz: this.czSplash, cq: this.cqSplash, cc: this.ccSplash, sz: this.szSplash, cd: this.cdSplash, qd: this.qdSplash, sjz: this.sjzSplash };
-						var dark = { bj: this.bjSplashDark, sy: this.sySplashDark, sh: this.shSplashDark, hb: this.hbSplashDark, dl: this.dlSplashDark, jh: this.jhSplashDark, cz: this.czSplashDark, cq: this.cqSplashDark, cc: this.ccSplashDark, sz: this.szSplashDark, cd: this.cdSplashDark, qd: this.qdSplashDark, sjz: this.sjzSplashDark };
-						if (this.darkNow && dark[this.city]) return dark[this.city];
-						return light[this.city] || this.bjSplash;
+						// Universal splash (26C105): ONE pair for the whole
+						// app, picked by dark/light only — the per-city
+						// posters above stay in the data (and the bundle)
+						// unreferenced for a possible later re-enable.
+						if (this.darkNow && this.stSplashDark) return this.stSplashDark;
+						return this.stSplash || this.bjSplash;
 					},
 					// Apple Intelligence icon (user 2026-11-19): smartIcon is the
 					// light swirl on a dark tile (suits dark mode), siriIcon is the
@@ -4670,7 +4709,7 @@ function titlePy(py) {
 					}
 				},
 				watch: {
-					anySubViewOpen(open) { this.notifySubView(open); }
+					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); }
 				},
 				updated: function() {
 					this.syncHtmlClasses();
@@ -4812,6 +4851,30 @@ function titlePy(py) {
 						_edgeX = null; _edgeY = null;
 						if (dx > 60 && dy <= 40) self.goBack();
 					}, { passive: true });
+					// Row press highlight (26C105): JS-managed .pressing
+					// class replacing CSS :active (WKWebView could leave
+					// :active painted after a tap opened a sub-page).
+					// Delegated on document so every .more-row /
+					// .more-city-row — main list and sub-pages alike —
+					// is covered. touchstart paints + arms a 400 ms
+					// failsafe; touchend removes after ~80 ms so the
+					// tap still reads; touchcancel and any sub-view
+					// change (watcher) clear immediately.
+					document.addEventListener('touchstart', function(e) {
+						var row = null;
+						try { row = e.target && e.target.closest ? e.target.closest('.more-row, .more-city-row') : null; } catch (err) {}
+						self.clearPressing();
+						if (row) {
+							row.classList.add('pressing');
+							self._pressTimer = setTimeout(function() { self.clearPressing(); }, 400);
+						}
+					}, { passive: true });
+					document.addEventListener('touchend', function() {
+						if (self._pressTimer) { clearTimeout(self._pressTimer); }
+						self._pressTimer = setTimeout(function() { self.clearPressing(); }, 80);
+					}, { passive: true });
+					document.addEventListener('touchcancel', function() { self.clearPressing(); }, { passive: true });
+					document.addEventListener('visibilitychange', function() { if (document.hidden) self.clearPressing(); });
 					// Location permission row (Settings): ask native for the
 					// current state on launch so the row shows the right
 					// state. Query only — never prompts here.

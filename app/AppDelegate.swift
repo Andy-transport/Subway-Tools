@@ -2182,30 +2182,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // UserDefaults, which the web refreshes only when it reports in;
     // if the two stores ever diverge (web store reset, a switch whose
     // report never landed), the native poster stays on the default.
-    // The web's launch sequence always reports cityChanged and
-    // themeState from mounted() BEFORE it posts splashDone, so the
-    // handlers call this while the splash is still up and the poster
-    // is corrected in place. Falls back to the Beijing poster if a
-    // city's image is ever missing, so the launch screen is never
-    // blank (Chengdu and Qingdao had no native poster in 1.0.5).
+    // The web's launch sequence always reports themeState from
+    // mounted() BEFORE it posts splashDone, so the handlers call
+    // this while the splash is still up and the poster is corrected
+    // in place. Falls back to the original Beijing poster if the
+    // image is ever missing, so the launch screen is never blank.
     func refreshSplashImage() {
         guard splashShowing, let iv = splashImageView else { return }
-        let splashName: String
-        switch currentCity {
-        case "sy": splashName = "SplashSY"
-        case "sh": splashName = "SplashSH"
-        case "hb": splashName = "SplashHB"
-        case "dl": splashName = "SplashDL"
-        case "jh": splashName = "SplashJH"
-        case "cz": splashName = "SplashCZ"
-        case "cq": splashName = "SplashCQ"
-        case "cc": splashName = "SplashCC"
-        case "sz": splashName = "SplashSZ"
-        case "cd": splashName = "SplashCD"
-        case "qd": splashName = "SplashQD"
-        case "sjz": splashName = "SplashSJZ"
-        default: splashName = "Splash"
-        }
+        // Universal splash (26C105): ONE pair for the whole app —
+        // the user-supplied 'Subway Tools' posters, picked by
+        // dark/light only (no per-city selection anymore). The
+        // per-city posters stay in the bundle unreferenced for a
+        // possible later re-enable.
+        let splashName = "SplashST"
         // Dark variant when the web's last-known effective appearance
         // is dark ("metro-dark", persisted via the themeState
         // message); before the first web report, fall back to the
