@@ -1455,7 +1455,7 @@
 					<img class="more-appicon" :src="appIcon" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D100)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D103)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card">
@@ -1672,7 +1672,7 @@
 						<img class="more-about-icon" :src="appIcon" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D100)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26D103)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2374,11 +2374,13 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
-							{ v: '1.1.0 (26D100)', date: '2026-11-21', lines: [
+							{ v: '1.1.0 (26D103)', date: '2026-11-21', lines: [
 								['修复设置列表行高亮残留：点按「通用」返回后不再留灰块', '修復設定列表行高亮殘留：點按「通用」返回後不再留灰塊', 'Fixed a stuck row highlight in Settings after returning from a sub-page'],
 								['「关于」页恢复项目主页与作者行（GitHub / 抖音），项目主页指向作者仓库 Andy-transport/Subway-motion', '「關於」頁恢復項目主頁與作者行（GitHub / 抖音），項目主頁指向作者倉庫 Andy-transport/Subway-motion', 'Restored the project-home and author rows (GitHub / Douyin) on the About page; project home points to the author’s repo Andy-transport/Subway-motion'],
 								['新启动图：Subway Tools 深浅两版，全应用统一，不再按城市切换', '新啟動圖：Subway Tools 深淺兩版，全應用統一，不再按城市切換', 'New launch splash: one Subway Tools pair (light/dark) for the whole app, no longer per city'],
 								['Siri 快捷指令更名为「Siri AI快捷指令」并更换图标', 'Siri 快捷指令更名為「Siri AI快捷指令」並更換圖標', 'Renamed Siri Shortcuts to Siri AI Shortcuts with a new icon'],
+								['补上石家庄地铁官方图标', '補上石家莊地鐵官方圖標', 'Added the official Shijiazhuang Metro logo'],
+								['城市目录预留雄安（暂未开通，灰色显示）', '城市目錄預留雄安（暫未開通，灰色顯示）', 'Added Xiong\'an to the city directory as an upcoming (greyed-out) entry'],
 							] },
 							{ v: '1.1.0 (26C104)', date: '2026-11-21', lines: [
 								['安装包名称改为 Subway Tools', '安裝包名稱改為 Subway Tools', 'Renamed the app bundle to Subway Tools'],
@@ -4584,7 +4586,7 @@ function titlePy(py) {
 					// total, as of 2026-09-30; no new city in Q4 2026). The 9
 					// supported cities are excluded here.
 					soonCityList() {
-						return ['天津', '广州', '武汉', '南京', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '无锡', '南昌', '兰州', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '贵阳', '厦门', '温州', '济南', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '洛阳', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌'];
+						return ['天津', '广州', '武汉', '南京', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '无锡', '南昌', '兰州', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '贵阳', '厦门', '温州', '济南', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '洛阳', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌', '雄安'];
 					},
 					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : (this.city === 'sz' ? this.szLogo : (this.city === 'cd' ? this.cdLogo : (this.city === 'qd' ? this.qdLogo : (this.city === 'sjz' ? this.sjzLogo : this.bjLogo))))))))))); },
 					transitLabel() { return this.t('transit.' + this.city); },

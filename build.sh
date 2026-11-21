@@ -225,6 +225,7 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/ChangchunLogo.pn
 python3 -c "import base64; open('build/Payload/Subway Tools.app/ShenzhenLogo.png','wb').write(base64.b64decode(open('web/shenzhen/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/ChengduLogo.png','wb').write(base64.b64decode(open('web/chengdu/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/QingdaoLogo.png','wb').write(base64.b64decode(open('web/qingdao/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/ShijiazhuangLogo.png','wb').write(base64.b64decode(open('web/shijiazhuang/logo.b64').read()))"
 python3 -c "import base64; [open('build/Payload/Subway Tools.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 
 echo "== 4. package IPA =="
