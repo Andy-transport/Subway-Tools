@@ -40,7 +40,7 @@ final class AppearanceView: UIView {
         titleLabel.textColor = .label
 
         cardView.backgroundColor = .secondarySystemBackground
-        cardView.layer.cornerRadius = 28
+        cardView.applyAppleCorner(radius: 28)
         cardView.clipsToBounds = true
 
         lightNameLabel.text = lightTitle
@@ -242,7 +242,7 @@ final class PreviewCardView: UIView {
         self.dark = dark
         super.init(frame: .zero)
         backgroundColor = dark ? .black : .white
-        layer.cornerRadius = 20
+        applyAppleCorner(radius: 20)
         clipsToBounds = true
 
         posterView.contentMode = .scaleAspectFill

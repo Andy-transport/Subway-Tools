@@ -66,6 +66,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
+
+// SDK 26+ Apple corners: UICornerConfiguration gives the system corner
+// curve and is the supported way to round glass effect views on
+// iOS 26+; older systems fall back to a continuous layer corner.
+extension UIView {
+    func applyAppleCorner(radius: CGFloat) {
+        if #available(iOS 26.0, *) {
+            cornerConfiguration = .corners(radius: .fixed(radius))
+        } else {
+            layer.cornerRadius = radius
+            layer.cornerCurve = .continuous
+        }
+    }
+}
+
 class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegate, WKScriptMessageHandler, UITextFieldDelegate, CLLocationManagerDelegate {
     var webView: WKWebView!
     var backButton: UIButton!
@@ -114,6 +129,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // UI reference the user sent. The two icon buttons live inside it.
     var mapToolsPill: UIView!
     var locateButton: UIButton!
+    var resetZoomButton: UIButton!
     var searchPill: UIButton!
     // Native Liquid Glass route-sort tabs (build 33): a UISegmentedControl
     // (Liquid Glass on iOS 26+) overlaid on the web panel's tab row.
@@ -1089,11 +1105,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         searchPill.translatesAutoresizingMaskIntoConstraints = false
         searchPill.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
         searchPill.addTarget(self, action: #selector(openStationSearch), for: .touchUpInside)
+        resetZoomButton = UIButton(type: .system)
+        resetZoomButton.translatesAutoresizingMaskIntoConstraints = false
+        resetZoomButton.setImage(UIImage(systemName: "arrow.counterclockwise"), for: .normal)
+        resetZoomButton.addTarget(self, action: #selector(resetMapZoom), for: .touchUpInside)
+        let divider2 = UIView()
+        divider2.translatesAutoresizingMaskIntoConstraints = false
+        divider2.backgroundColor = UIColor(white: 1, alpha: 0.35)
         let divider = UIView()
         divider.translatesAutoresizingMaskIntoConstraints = false
         divider.backgroundColor = UIColor(white: 1, alpha: 0.35)
         mapToolsPill.addSubview(locateButton)
         mapToolsPill.addSubview(divider)
+        mapToolsPill.addSubview(resetZoomButton)
+        mapToolsPill.addSubview(divider2)
         mapToolsPill.addSubview(searchPill)
         cityPill.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(cityPill)
@@ -1115,7 +1140,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             divider.centerYAnchor.constraint(equalTo: mapToolsPill.centerYAnchor),
             divider.widthAnchor.constraint(equalToConstant: 1),
             divider.heightAnchor.constraint(equalToConstant: 20),
-            searchPill.leadingAnchor.constraint(equalTo: divider.trailingAnchor),
+            resetZoomButton.leadingAnchor.constraint(equalTo: divider.trailingAnchor),
+            resetZoomButton.topAnchor.constraint(equalTo: mapToolsPill.topAnchor),
+            resetZoomButton.bottomAnchor.constraint(equalTo: mapToolsPill.bottomAnchor),
+            resetZoomButton.widthAnchor.constraint(equalToConstant: 44),
+            divider2.leadingAnchor.constraint(equalTo: resetZoomButton.trailingAnchor),
+            divider2.centerYAnchor.constraint(equalTo: mapToolsPill.centerYAnchor),
+            divider2.widthAnchor.constraint(equalToConstant: 1),
+            divider2.heightAnchor.constraint(equalToConstant: 20),
+            searchPill.leadingAnchor.constraint(equalTo: divider2.trailingAnchor),
             searchPill.trailingAnchor.constraint(equalTo: mapToolsPill.trailingAnchor, constant: -4),
             searchPill.topAnchor.constraint(equalTo: mapToolsPill.topAnchor),
             searchPill.bottomAnchor.constraint(equalTo: mapToolsPill.bottomAnchor),
@@ -1242,7 +1275,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             cityPill.setImage(cityLogoImage(), for: .normal)
             cityPill.setTitleColor(accentColor(), for: .normal)
             cityPill.backgroundColor = UIColor(white: 1, alpha: 0.72)
-            cityPill.layer.cornerRadius = 18
+            cityPill.applyAppleCorner(radius: 18)
             cityPill.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 12)
         }
         // UIMenu anchored to this pill (top-left): tapping the pill pops
@@ -1258,8 +1291,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         mapToolsPill.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
         let effectView = makeGlassEffectView()
         effectView.translatesAutoresizingMaskIntoConstraints = false
-        effectView.layer.cornerRadius = 18
-        effectView.clipsToBounds = true
+        effectView.applyAppleCorner(radius: 18)
         mapToolsPill.insertSubview(effectView, at: 0)
         NSLayoutConstraint.activate([
             effectView.leadingAnchor.constraint(equalTo: mapToolsPill.leadingAnchor),
@@ -1267,9 +1299,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             effectView.topAnchor.constraint(equalTo: mapToolsPill.topAnchor),
             effectView.bottomAnchor.constraint(equalTo: mapToolsPill.bottomAnchor),
         ])
-        mapToolsPill.layer.cornerRadius = 18
+        mapToolsPill.applyAppleCorner(radius: 18)
         mapToolsPill.clipsToBounds = true
         locateButton.tintColor = accentColor()
+        resetZoomButton.tintColor = accentColor()
         searchPill.tintColor = accentColor()
     }
 
@@ -1391,6 +1424,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // Top-right pill location arrow: find nearby stations from the
     // user's current location (same as the Settings nearby feature).
+    @objc func resetMapZoom() {
+        webView.evaluateJavaScript("if (window.resetView) { window.resetView(); }", completionHandler: nil)
+    }
+
     @objc func centerOnMyLocation() {
         requestNearbyLocation()
     }

@@ -688,7 +688,7 @@
 		html.is-pad #stationPanel, html.is-pad #transferPanel, html.is-pad #timetablePanel { padding-top: calc(env(safe-area-inset-top) + 72px); padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 		.more-title { font-size: 34px; font-weight: 700; color: #000; margin: 8px 4px 16px; }
 		html.dark .more-title { color: #fff; }
-		.more-appcard { display: flex; align-items: center; gap: 14px; background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 24px; }
+		.more-appcard { display: flex; align-items: center; gap: 14px; background: #ffffff; border-radius: 28px; padding: 16px; margin-bottom: 24px; }
 		html.dark .more-appcard { background: #1c1c1e; }
 		.more-appicon { width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0; }
 		.more-appname { font-size: 18px; font-weight: 700; color: #000; }
@@ -697,7 +697,7 @@
 		html.dark .more-appver { color: #aaa; }
 		.more-section { font-size: 13px; font-weight: 400; color: #6d6d72; margin: 0 4px 8px; }
 		html.dark .more-section { color: #8e8e93; }
-		.more-card { background: #ffffff; border-radius: 10px; padding: 4px 16px; margin-bottom: 24px; overflow: hidden; }
+		.more-card { background: #ffffff; border-radius: 28px; padding: 4px 16px; margin-bottom: 24px; overflow: hidden; }
 		html.dark .more-card { background: #1c1c1e; }
 		.more-city-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; font-size: 17px; font-weight: 400; color: #000; cursor: pointer; border-bottom: 1px solid rgba(60,60,67,0.12); }
 		.more-city-row:last-child { border-bottom: none; }
@@ -1372,10 +1372,6 @@
 				</div>
 				<div class="more-section">{{ t('more.more') }}</div>
 				<div class="more-card">
-					<div class="more-row" @click="doReset">
-						<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" fill="currentColor"/></svg>
-						<span>{{ t('more.reset') }}</span>
-					</div>
 					<div class="more-row" @click="doRepo">
 						<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"/></svg>
 						<span>{{ t('more.repo') }}</span><span class="more-chev">›</span>
@@ -1447,7 +1443,7 @@
 					<div class="more-new-head"><span class="more-new-ver">1.1.0B</span><span class="more-new-date">{{ t('more.whatsnew.date') }}</span></div>
 					<div class="more-section">{{ t('more.new.features') }}</div>
 					<div class="more-card">
-						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18','more.new.19','more.new.20','more.new.21','more.new.22','more.new.23']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
+						<div class="more-new-row" v-for="k in ['more.new.1','more.new.2','more.new.5','more.new.6','more.new.7','more.new.9','more.new.13','more.new.14','more.new.15','more.new.16','more.new.17','more.new.18','more.new.19','more.new.20','more.new.21','more.new.22','more.new.23','more.new.24']" :key="k"><span class="more-new-dot"></span><span>{{ t(k) }}</span></div>
 					</div>
 					<div class="more-section">{{ t('more.new.improvements') }}</div>
 					<div class="more-card">
@@ -1773,6 +1769,7 @@ var I18N = {
   'more.new.21': ['北京换乘方案新增步行距离与时间预估（标注「预估」）', '北京換乘方案新增步行距離與時間預估（標註「預估」）', 'Beijing route results now show estimated transfer walking distances and times (labelled as estimates)'],
   'more.new.22': ['车型检索新增深圳、成都、青岛，12 个城市全部覆盖', '車型檢索新增深圳、成都、青島，12 個城市全部覆蓋', 'Train Model Search adds Shenzhen, Chengdu and Qingdao — all 12 cities now covered'],
   'more.new.23': ['12 个城市启用全新启动图，随深浅模式自动切换', '12 個城市啟用全新啟動圖，隨深淺模式自動切換', 'All-new launch posters for all 12 cities, switching automatically with light and dark appearance'],
+  'more.new.24': ['设置卡片改用更大的 Apple 圆角；重置缩放移到地图右上角工具条', '設定卡片改用更大的 Apple 圓角；重置縮放移到地圖右上角工具列', 'Settings cards get larger Apple rounded corners; reset zoom moved to the map toolbar'],
   'more.bugfix': ['问题修复', '問題修復', 'Bug Fixes'],
   'more.new.features': ['新功能', '新功能', 'New Features'],
   'more.new.improvements': ['改进', '改進', 'Improvements'],

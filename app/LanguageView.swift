@@ -29,7 +29,7 @@ final class LanguageView: UIView {
         titleLabel.textColor = .label
 
         cardView.backgroundColor = .secondarySystemBackground
-        cardView.layer.cornerRadius = 28
+        cardView.applyAppleCorner(radius: 28)
         cardView.clipsToBounds = true
 
         let titles = [systemTitle, hansTitle, hantTitle, enTitle]
