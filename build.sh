@@ -151,19 +151,74 @@ echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
 # use them). Non-fatal on purpose: failures show in the build log and
 # the app still builds; the delivered IPA is checked for
 # Metadata.appintents.
+echo "== Siri experiment 8 =="
+# Siri experiment 8: experiment 7's --help dump revealed the REAL
+# interface of Xcode 27.2's appintentsmetadataprocessor — its USAGE
+# takes LIST FILES, not the inline --binary-file/--source-files args
+# every previous build used (those flags exist only as binary strings,
+# likely another mode; the documented options list does not include
+# them). That is why the processor never found any swiftconstvalues:
+# it was never told where they are. Correct shape:
+#   appintentsmetadataprocessor --output <output> --toolchain-dir <dir>
+#     --module-name <name> --sdk-root <sdk> --xcode-version <ver>
+#     --platform-family <fam> --deployment-target <dt>
+#     --target-triple <triple> --source-file-list <file>
+#     --swift-const-vals-list <file> [--force]
+# Build the two list files with ABSOLUTE paths (one path per line):
+# the source list is exactly SWIFT_SOURCES (the set compiled above);
+# the const-vals list is the exp4 harvest output first, plus every
+# other .swiftconstvalues the E4/E5 staging gathered into build/obj/.
+ROOT="$PWD"
+: > build/obj/e8-sources.txt
+for src in $SWIFT_SOURCES; do echo "$ROOT/$src" >> build/obj/e8-sources.txt; done
+: > build/obj/e8-constvals.txt
+for f in build/obj/*harvest*.swiftconstvalues; do if [ -f "$f" ]; then echo "$ROOT/$f" >> build/obj/e8-constvals.txt; fi; done
+for f in build/obj/*.swiftconstvalues; do if [ -f "$f" ]; then grep -qxF "$ROOT/$f" build/obj/e8-constvals.txt || echo "$ROOT/$f" >> build/obj/e8-constvals.txt; fi; done
+echo "-- E8 source-file-list (build/obj/e8-sources.txt) --"
+cat build/obj/e8-sources.txt
+echo "-- E8 swift-const-vals-list (build/obj/e8-constvals.txt) --"
+cat build/obj/e8-constvals.txt
+# Toolchain dir = two levels up from the tool's bin dir
+# (.../XcodeDefault.xctoolchain/usr/bin/<tool> -> .../XcodeDefault.xctoolchain).
+E8_TOOL_PATH=$(xcrun -f appintentsmetadataprocessor || true)
+TOOLCHAIN_DIR=$(cd "$(dirname "$E8_TOOL_PATH")/../.." 2>/dev/null && pwd || true)
+SDK_ROOT=$(xcrun --sdk iphoneos --show-sdk-path)
+XCODE_VERSION=$(xcodebuild -version | tail -1 | awk '{print $NF}')
+echo "E8 TOOLCHAIN_DIR: $TOOLCHAIN_DIR"
+echo "E8 SDK_ROOT: $SDK_ROOT"
+echo "E8 XCODE_VERSION: $XCODE_VERSION"
 xcrun appintentsmetadataprocessor \
-  --toolchain-dir "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain" \
+  --output "$ROOT/build/Payload/Metro.app/Metadata.appintents" \
+  --toolchain-dir "$TOOLCHAIN_DIR" \
   --module-name Metro \
+  --sdk-root "$SDK_ROOT" \
+  --xcode-version "$XCODE_VERSION" \
   --platform-family iOS \
   --deployment-target 16.0 \
-  --bundle-identifier com.andytransport.metro \
   --target-triple arm64-apple-ios16.0 \
-  --xcode-version "$(xcodebuild -version | tail -1 | awk '{print $NF}')" \
-  --sdk-root "$(xcrun -sdk iphoneos --show-sdk-path)" \
-  --binary-file build/Payload/Metro.app/Metro \
-  --source-files app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift \
-  --output build/Payload/Metro.app/Metadata.appintents \
+  --source-file-list "$ROOT/build/obj/e8-sources.txt" \
+  --swift-const-vals-list "$ROOT/build/obj/e8-constvals.txt" \
+  --force \
   || echo "WARNING: appintentsmetadataprocessor failed - Siri shortcuts will not register"
+echo "-- E8 alt: no --force, with --bundle-identifier --"
+# Fallback variant: identical except WITHOUT --force and WITH
+# --bundle-identifier appended (the exp7 strings dump showed the flag
+# exists in the tool). Writes to its own output so the verdicts are
+# distinguishable.
+xcrun appintentsmetadataprocessor \
+  --output "$ROOT/build/exp8-alt.appintents" \
+  --toolchain-dir "$TOOLCHAIN_DIR" \
+  --module-name Metro \
+  --sdk-root "$SDK_ROOT" \
+  --xcode-version "$XCODE_VERSION" \
+  --platform-family iOS \
+  --deployment-target 16.0 \
+  --target-triple arm64-apple-ios16.0 \
+  --source-file-list "$ROOT/build/obj/e8-sources.txt" \
+  --swift-const-vals-list "$ROOT/build/obj/e8-constvals.txt" \
+  --bundle-identifier com.andytransport.metro \
+  || echo "WARNING: E8 alt appintentsmetadataprocessor failed"
+ls -la build/exp8-alt.appintents 2>/dev/null && echo "E8 alt: EXISTS" || echo "E8 alt: ABSENT"
 # NL training only tunes phrase recognition; shortcut registration comes
 # from Metadata.appintents above. This processor requires
 # --extracted-metadata-path (run #81 log: the old --metadata-file /
