@@ -62,20 +62,30 @@ mkdir -p build/Payload/Metro.app/web
 # metadata, exactly like builds #84-#86.
 mkdir -p build/obj
 SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
+echo "== Siri experiment: const-values harvest diagnostics =="
+echo "-- harvest 1: AppIntents.swift solo (original method; compiler errors stay visible) --"
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -module-name Metro -c \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   app/AppIntents.swift -o build/obj/AppIntents-harvest.o \
-  || echo "WARNING: AppIntents const-values harvest failed; continuing without Siri metadata"
-ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
+  || echo "HARVEST1 FAILED rc=$?"
+echo "-- swiftconstvalues anywhere after harvest 1 --"
+find . -name "*.swiftconstvalues" -not -path "./.git/*" 2>/dev/null || true
+ls -la build/obj/ || true
+echo "-- harvest 2: all sources, -emit-module with explicit -emit-const-values-path --"
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -parse-as-library -emit-module -emit-const-values \
+  -emit-const-values-path build/obj/Metro.swiftconstvalues \
+  -module-name Metro \
+  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
+  $SWIFT_SOURCES \
+  || echo "HARVEST2 FAILED rc=$?"
+echo "-- swiftconstvalues anywhere after harvest 2 --"
+find . -name "*.swiftconstvalues" -not -path "./.git/*" 2>/dev/null || true
+ls -la build/obj/ || true
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -module-name Metro \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   $SWIFT_SOURCES -o build/Payload/Metro.app/Metro
-# The metadata processor locates the module's const values beside the
-# binary (Xcode leaves them in the products dir during its run); copy
-# any harvested file in for the extraction step; it is removed again
-# before packaging (see the rm after the processors below).
 find build/obj build/Payload/Metro.app -name "*.swiftconstvalues" -exec cp {} build/Payload/Metro.app/ \; 2>/dev/null || true
 ls build/Payload/Metro.app/*.swiftconstvalues 2>/dev/null || echo "WARNING: no swiftconstvalues beside the binary"
 
