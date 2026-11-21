@@ -82,6 +82,27 @@ xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -parse-as-library -emit-m
 echo "-- swiftconstvalues anywhere after harvest 2 --"
 find . -name "*.swiftconstvalues" -not -path "./.git/*" 2>/dev/null || true
 ls -la build/obj/ || true
+echo "-- toolchain const-values flags --"
+xcrun -sdk iphoneos swiftc -help 2>&1 | grep -i "const" || true
+echo "-- harvest 3: AppIntents.swift solo, iOS 18 target, -emit-module + explicit const path --"
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios18.0 -parse-as-library -emit-module -emit-const-values \
+  -emit-const-values-path build/obj/Metro18.swiftconstvalues \
+  -module-name Metro \
+  -framework AppIntents \
+  app/AppIntents.swift \
+  || echo "HARVEST3 FAILED rc=$?"
+echo "-- swiftconstvalues anywhere after harvest 3 --"
+find . -name "*.swiftconstvalues" -not -path "./.git/*" 2>/dev/null || true
+ls -la build/obj/ || true
+echo "-- harvest 4: AppIntents.swift solo, iOS 18 target, -c -o object (original shape, new target) --"
+xcrun -sdk iphoneos swiftc -target arm64-apple-ios18.0 -O -parse-as-library -emit-const-values \
+  -module-name Metro -c \
+  -framework AppIntents \
+  app/AppIntents.swift -o build/obj/AppIntents18.o \
+  || echo "HARVEST4 FAILED rc=$?"
+echo "-- swiftconstvalues anywhere after harvest 4 --"
+find . -name "*.swiftconstvalues" -not -path "./.git/*" 2>/dev/null || true
+ls -la build/obj/ || true
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -module-name Metro \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
