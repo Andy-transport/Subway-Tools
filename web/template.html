@@ -1319,9 +1319,9 @@
 				</div>
 				<div class="tr-nearby-msg" v-if="nearbyMsg">{{ nearbyMsg }}</div>
 				<div class="tr-nearby-note" v-if="nearbyNote">{{ nearbyNote }}</div>
-				<div class="tr-history" v-if="searchHistory.length">
+				<div class="tr-history" v-if="historyForCity.length">
 					<div class="tr-history-head"><span>{{ t('tr.history') }}</span><button @click="clearSearchHistory">{{ t('tr.history.clear') }}</button></div>
-					<div class="tr-history-item" v-for="(h, i) in searchHistory" :key="i" @click="runHistory(h)"><span class="tr-history-route">{{ stNameStr(h.from) }} → {{ stNameStr(h.to) }}</span><span class="tr-history-city">{{ cityNameFor(h.city) }}</span><button class="tr-history-del" @click.stop="deleteHistoryItem(i)">×</button></div>
+					<div class="tr-history-item" v-for="h in historyForCity" :key="h.city + '|' + h.from + '|' + h.to + '|' + h.ts" @click="runHistory(h)"><span class="tr-history-route">{{ stNameStr(h.from) }} → {{ stNameStr(h.to) }}</span><button class="tr-history-del" @click.stop="deleteHistoryItem(h)">×</button></div>
 				</div>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
 				<div class="tr-routes" v-if="routeList.length">
@@ -2293,6 +2293,7 @@ function titlePy(py) {
 								['「打开地铁」按钮加上官方 App 图标（深圳、青岛）', '「打開地鐵」按鈕加上官方 App 圖標（深圳、青島）', 'Official app icons added to the Open Metro buttons (Shenzhen, Qingdao)'],
 								['附近车站按钮换用定位图钉图标，随深浅模式自动适配', '附近車站按鈕換用定位圖釘圖標，隨深淺模式自動適配', 'Nearby Stations button gets a location-pin icon that adapts to light and dark mode'],
 								['Siri 与智能搜索页新增「附近车站智能显示」开关', 'Siri 與智能搜尋頁新增「附近車站智能顯示」開關', 'New Smart Nearby Stations toggle on the Siri & Smart Search page'],
+								['搜索记录按城市分开显示，切换城市只看该城市的记录', '搜尋記錄按城市分開顯示，切換城市只看該城市的記錄', 'Search history is now per city — each city shows only its own records'],
 							] },
 							{ v: '1.1.0B', date: '2026-11-21', lines: [
 								['车型搜索覆盖 12 个城市，共 331 列列车', '車型搜尋覆蓋 12 個城市，共 331 列列車', 'Train model search covers 331 trains across all 12 cities'],
@@ -3742,7 +3743,7 @@ function titlePy(py) {
 						return 2 * R * Math.asin(Math.sqrt(a));
 					},
 					// 搜索记录 (build 63): every route search with a from + to is saved
-					// to localStorage ('metro-search-history'), most recent first, cap 10.
+					// to localStorage ('metro-search-history'), most recent first, cap 10 per city.
 					// Same from→to in the same city moves to the top, not duplicated.
 					saveSearchHistory() {
 						if (!this.fromStation || !this.toStation) return;
@@ -3750,7 +3751,9 @@ function titlePy(py) {
 						var list = this.searchHistory || [];
 						for (var i = list.length - 1; i >= 0; i--) { if (list[i].city === entry.city && list[i].from === entry.from && list[i].to === entry.to) list.splice(i, 1); }
 						list.unshift(entry);
-						this.searchHistory = list.slice(0, 10);
+						var counts = {}; var kept = [];
+						for (var j = 0; j < list.length; j++) { var k = list[j].city; counts[k] = (counts[k] || 0) + 1; if (counts[k] <= 10) kept.push(list[j]); }
+						this.searchHistory = kept;
 						try { window.localStorage.setItem('metro-search-history', JSON.stringify(this.searchHistory)); } catch (e) {}
 					},
 					// Tap a history entry: switch to that entry's city first if needed,
@@ -3765,10 +3768,13 @@ function titlePy(py) {
 						this.doSearch();
 					},
 					clearSearchHistory() {
-						this.searchHistory = [];
-						try { window.localStorage.removeItem('metro-search-history'); } catch (e) {}
+						var c = this.city;
+						this.searchHistory = (this.searchHistory || []).filter(function (h) { return h.city !== c; });
+						try { window.localStorage.setItem('metro-search-history', JSON.stringify(this.searchHistory)); } catch (e) {}
 					},
-					deleteHistoryItem(i) {
+					deleteHistoryItem(h) {
+						var i = (this.searchHistory || []).indexOf(h);
+						if (i < 0) return;
 						this.searchHistory.splice(i, 1);
 						try { window.localStorage.setItem('metro-search-history', JSON.stringify(this.searchHistory)); } catch (e) {}
 					},
@@ -4360,6 +4366,7 @@ function titlePy(py) {
 					aiIcon() { return this.darkNow ? this.smartIcon : this.siriIcon; },
 					walkIconThemed() { return this.darkNow ? this.walkIcon : this.walkIconInk; },
 					pinIconThemed() { return this.darkNow ? this.pinIcon : this.pinIconInk; },
+					historyForCity() { var c = this.city; return (this.searchHistory || []).filter(function (h) { return h.city === c; }); },
 					filteredStations() {
 						var q = this.query.trim().toLowerCase();
 						var list;
