@@ -262,6 +262,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // animation for 2s. Keep them hidden until the web says the splash
     // is done (or the fallback timer fires).
     var splashShowing = true
+    // Status bar during the splash (26D104): separate flag from
+    // splashShowing because splashFinished() flips splashShowing at
+    // the moment the web overlay STARTS its 0.4s fade — restoring
+    // the bar then popped the time/status bar in over the still-
+    // fading splash. This flag stays true until the fade has fully
+    // completed (see splashFinished()), so the bar stays hidden
+    // across BOTH splash phases and the handoff between them. It
+    // starts true, and UIStatusBarHidden=true in Info.plist covers
+    // the launch-screen phase before this controller even exists.
+    var splashStatusBarHidden = true
     // Native launch splash view (build 53): shows the current city's
     // splash image from launch, covering the white gap before the web
     // page loads and its own splash appears. Hidden in splashFinished().
@@ -793,8 +803,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // image. It comes back once the splash fades and the app content
     // is shown. Only the in-app splash — the LaunchScreen is already
     // a plain blank screen and is untouched.
+    // 26D104 (user 2026-11-21, on the new universal splash: "启动图
+    // 加载的时候，上面显示时间和状态栏"): the build-63 version of
+    // this override returned splashShowing, but two gaps remained —
+    // (1) with no UIStatusBarHidden in Info.plist the system showed
+    // the bar during the launch-screen / page-load phase before
+    // this controller's appearance took over, and (2) splashShowing
+    // flips false when the web overlay's fade STARTS, so the bar
+    // popped back in over the fading poster. Now driven by
+    // splashStatusBarHidden, which only clears after the fade has
+    // fully completed; UIViewControllerBasedStatusBarAppearance is
+    // set explicitly in Info.plist so this override is authoritative.
     override var prefersStatusBarHidden: Bool {
-        return splashShowing
+        return splashStatusBarHidden
     }
 
     // Fold/unfold (and rotation) change the view width: re-evaluate
@@ -2228,8 +2249,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard splashShowing else { return }
         splashShowing = false
         hideNearbySmartSwitch()
-        // Status bar comes back now that the splash is done (build 63).
-        setNeedsStatusBarAppearanceUpdate()
+        // Status bar restore (26D104): NOT immediate. splashDone is
+        // posted at the moment the web overlay starts its 0.4s fade
+        // (#splashOverlay transition in the page), so restoring here
+        // popped the time/status bar in over the still-fading splash
+        // — the user's 2026-11-21 report. Wait out the fade (0.4s +
+        // a small margin), then clear the flag and re-evaluate, so
+        // the bar appears only once both splash layers are fully
+        // gone. In the fallback-timer path (web never posted) the
+        // extra 0.45s is harmless.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { [weak self] in
+            guard let self = self else { return }
+            self.splashStatusBarHidden = false
+            self.setNeedsStatusBarAppearanceUpdate()
+        }
         // Reveal the tab bar or the Duo sidebar, whichever the current
         // layout uses (build 63).
         updateSideBarLayout()
