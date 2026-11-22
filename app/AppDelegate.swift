@@ -200,6 +200,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var structSearchButton: UIButton!
     var structExitButton: UIButton!
     let structKindKeys = ["spatial", "plan"]
+    // Whether the web structure panel is currently open (26E112:
+    // the panel is a Settings sub-page, so currentTab stays "more"
+    // while it is up; the web reports the panel state with every
+    // "structFrame" post as "panel"). Drives the chrome gate in
+    // placeStructChrome and the Duo sidebar strip colour in
+    // rootBackgroundColor (the panel's dark background is #101420,
+    // not the Settings black).
+    var structPanelOpen = false
     // Native Apple UI Liquid Glass dark-mode picker (build 44, 3 glass
     // buttons since build 52): 3 separate glass buttons
     // (跟随系统/浅色/深色) overlaid on the settings panel's
@@ -270,57 +278,57 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var actionPinIconURL = ""
     var actionPinIcon: UIImage?
     // Web tab keys, in the same order as the native tab bar items.
-    // TEST-BUILD GATE (test/structure branch, 2026-11-22): the 6th
-    // "structure" tab exists ONLY in test builds — CFBundleVersion in
-    // the 26E test train (e.g. 26E106). Release builds (A-train, e.g.
-    // A26106) keep the original 5 tabs, and the web structure panel
-    // stays unreachable from native chrome. This branch is never
-    // merged to main; the gate is a second line of defence.
+    // TEST-BUILD GATE (test/structure branch, 2026-11-22): test
+    // builds (CFBundleVersion in the 26E test train, e.g. 26E112)
+    // are told apart from release builds (A-train, e.g. A26106) by
+    // isTestBuild. 26E106–26E111 carried a 6th "structure" tab behind
+    // this gate; 26E112 removes it again (user: back to the 5-tab
+    // reference bar) — the structure panel now lives as a Settings
+    // sub-page, and isTestBuild remains as the gate for its native
+    // chrome (placeStructChrome). This branch is never merged to
+    // main; the gate is a second line of defence.
     var isTestBuild: Bool {
         let v = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
         return v.hasPrefix("26E")
     }
     var tabKeys: [String] {
-        isTestBuild
-            ? ["transfer", "map", "stations", "timetable", "structure", "more"]
-            : ["transfer", "map", "stations", "timetable", "more"]
+        ["transfer", "map", "stations", "timetable", "more"]
     }
-    // Titles / images aligned with tabKeys ("structure" inserted
-    // before "more" only when the test gate is open).
+    // Titles / images aligned with tabKeys.
     func tabTitles() -> [String] {
-        var t = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable")]
-        if isTestBuild { t.append(L("tab.structure")) }
-        t.append(L("tab.more"))
-        return t
+        [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
     }
     func tabImages() -> [UIImage?] {
         // Solid-filled glyphs (26E110, user: the 26E109 bar still
         // read as thin outline icons; match the reference app's
         // filled set). SF Symbols with a true .fill variant use it
-        // (map.fill / cube.fill / gearshape.fill — all verified in
-        // the SF Symbols catalog). Two tabs have NO fill variant in
+        // (map.fill / gearshape.fill — all verified in the SF
+        // Symbols catalog). Two tabs have NO fill variant in
         // the catalog (verified): arrow.triangle.2.circlepath (only
         // .camera/.circle/.doc variants) and magnifyingglass — those
         // read solid through the BOLD symbol configuration applied
         // where the images are rendered (tabBarItemImage for the
         // tab bars, sideBarButtonConfig for the Duo sidebar). The
         // timetable stays the bundled PNG, regenerated solid in
-        // 26E110 (see tabBarItemImage).
-        var im: [UIImage?] = [
+        // 26E110 (see tabBarItemImage). (The cube.fill that rode
+        // along for the structure tab until 26E111 left with it in
+        // 26E112; the Settings 车站结构 row is web-rendered.)
+        [
             UIImage(systemName: "arrow.triangle.2.circlepath"),
             UIImage(systemName: "map.fill"),
             UIImage(systemName: "magnifyingglass"),
             UIImage(named: "TimetableIcon"),
+            UIImage(systemName: "gearshape.fill"),
         ]
-        if isTestBuild { im.append(UIImage(systemName: "cube.fill")) }
-        im.append(UIImage(systemName: "gearshape.fill"))
-        return im
     }
     // Tab-bar glyph sizing (test/structure, user 2026-11-22): with
-    // 6 tabs the TAB BAR items render at a fixed glyph size —
-    // symbols at 26pt since 26E109 (21pt until 26E108; user: the
-    // bar should match the iOS 26 floating-glass reference —
-    // icons big and full, titles a normal size). This is applied
+    // tabs the TAB BAR items render at a fixed glyph size —
+    // symbols at 24pt since 26E112 (26pt in 26E109/26E110, 21pt
+    // until 26E108): the user measured the reference floating
+    // capsule at ~62pt total and called the current bar too tall,
+    // so 26E112 pins the iPhone bar's capsule height to 62pt (see
+    // the height constraint where the bar is laid out) and tightens
+    // the glyphs to ~24pt to match. This is applied
     // only where the tab bar items are created; tabImages() itself
     // is shared with the Duo sidebar, which keeps its own sizing
     // and is NOT touched here.
@@ -354,7 +362,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // stroke-based glyphs (transfer arrows, magnifier) have
             // no .fill variant and only read as solid at bold
             // weight; the .fill variants stay filled at any weight.
-            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: 26, weight: .bold))
+            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: 24, weight: .bold))
         }
         guard image.size.width > 0, image.size.height > 0 else { return image }
         // Glyph box as fractions of the image size (measured alpha
@@ -362,7 +370,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // asset decoded from web/timetable-icon@3x.b64 — the solid
         // 26E110 redraw — padded ~0.02-0.03 a side).
         let glyph = CGRect(x: 0.04, y: 0.14, width: 0.92, height: 0.77)
-        let targetHeight: CGFloat = 26
+        let targetHeight: CGFloat = 24
         let canvas = CGSize(width: targetHeight * (glyph.width / glyph.height) * (image.size.width / image.size.height),
                             height: targetHeight)
         let scale = targetHeight / (image.size.height * glyph.height)
@@ -732,7 +740,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // tab bar; this bar is the only one the user sees.
         tabBar = UITabBar()
         tabBar.delegate = self
-        tabBar.tintColor = accentColor()
+        // Selected tab = system blue (26E112, user with reference
+        // shot: blue icon + blue title on the grey selection
+        // capsule), NOT the city accent — the bar no longer turns
+        // red/blue with the city's theme colour.
+        tabBar.tintColor = .systemBlue
         let _titles = tabTitles()
         let _images = tabImages()
         var items: [UITabBarItem] = []
@@ -758,8 +770,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // adaptive system material instead: light mode is a light
             // translucent glass, dark mode the dark glass. Unselected items
             // use .secondaryLabel so they stay legible in both modes; the
-            // selected item keeps the city accent via tabBar.tintColor
-            // (updated per city in refreshCityUI).
+            // selected item is system blue via tabBar.tintColor
+            // (26E112: no longer the city accent).
             let appearance = UITabBarAppearance()
             appearance.configureWithTransparentBackground()
             appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
@@ -767,17 +779,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             appearance.shadowColor = .clear
             appearance.stackedLayoutAppearance.normal.iconColor = .secondaryLabel
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.secondaryLabel]
-            // Roomier 6-tab layout (test/structure, user 2026-11-22,
+            // Roomier tab layout (test/structure, user 2026-11-22,
             // aligned to the user's reference shot — near-full-width
-            // capsule, six items spread evenly): pin the title font
+            // capsule, items spread evenly): pin the title font
             // in both states on every layout appearance, so the
             // labels keep even breathing room instead of the system
             // default. 11pt since 26E109 (10pt until 26E108),
             // matching the 26pt icons (tabBarItemImage) the user
             // asked for against the iOS 26 reference bar. Selected
-            // keeps the city accent colour (no foreground override,
-            // tint still drives it). The bar's height is intrinsic
-            // and grows with the larger glyphs/titles on its own.
+            // keeps the system-blue tint colour (no foreground
+            // override, tint still drives it; 26E112). The bar's
+            // height is intrinsic and grows with the larger
+            // glyphs/titles on its own.
             let tabTitleFont = UIFont.systemFont(ofSize: 11)
             let tabTitleFontSelected = UIFont.systemFont(ofSize: 11, weight: .medium)
             for layout in [appearance.stackedLayoutAppearance, appearance.inlineLayoutAppearance, appearance.compactInlineLayoutAppearance] {
@@ -800,7 +813,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // Side insets (test/structure, user 2026-11-22 "底栏不要那么
         // 拥挤", reference shot is a near-full-width capsule): iPhone
         // insets go 16 -> 8pt so the capsule nearly spans the screen
-        // and the six items spread evenly with clear gaps. iPad keeps
+        // and the items spread evenly with clear gaps. iPad keeps
         // 16pt — its bar floats at the top as a compact capsule and
         // the wider inset is part of that look; not changed.
         let barSideInset: CGFloat = isPadBar ? 16 : 8
@@ -825,6 +838,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // bars. iPhone portrait only — the iPad top bar and the
             // Duo sidebar are separate layouts, untouched.
             barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10))
+            // Capsule height 62pt (26E112, user 2026-11-22 with a
+            // measured reference shot: the reference floating capsule
+            // is ~62pt tall including its inner padding and the
+            // current bar reads too tall). Before 26E112 the bar had
+            // NO explicit height — it took UITabBar's intrinsic
+            // height from the 26pt glyphs + 11pt titles. Now the
+            // iPhone bottom bar is pinned to exactly 62pt and the
+            // glyphs are tightened to 24pt (tabBarItemImage), so the
+            // icon/title stack sits inside with ~7-8pt of breathing
+            // room top and bottom and the system's selection capsule
+            // insets to match. iPhone bottom bar ONLY: the iPad top
+            // capsule and the Duo sidebar are different forms and
+            // keep their intrinsic height.
+            barConstraints.append(tabBar.heightAnchor.constraint(equalToConstant: 62))
         }
         NSLayoutConstraint.activate(barConstraints)
         // iPhone Duo sidebar (build 63): created here so the web view
@@ -1806,12 +1833,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         present(sheet, animated: true)
     }
 
-    // Shared city-UI refresh (build 37): tab-bar tint, back-button
+    // Shared city-UI refresh (build 37): back-button
     // color, pills and transfer controls for the current city. Used
     // by pickCity() (native-initiated) and the cityChanged handler
-    // (web-initiated, incl. the startup restore).
+    // (web-initiated, incl. the startup restore). (The tab-bar tint
+    // is NOT refreshed here any more: 26E112 pins it to system blue,
+    // independent of the city.)
     func refreshCityUI() {
-        tabBar.tintColor = accentColor()
         backButton.layer.borderColor = accentDark().cgColor
         backButton.setTitleColor(accentDark(), for: .normal)
         updateCityPill()
@@ -2064,7 +2092,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 && r.minX >= -2 && r.minY >= -2
                 && r.maxX <= bounds.width + 2 && r.maxY <= headerLimit
         }
-        let active = currentTab == "structure" && isTestBuild
+        // 26E112: the panel is a Settings sub-page now, so the gate
+        // is the web-reported panel state ("panel" in every post),
+        // no longer currentTab == "structure" (that tab is gone).
+        let active = isTestBuild && ((dict["panel"] as? Bool) ?? false)
+        structPanelOpen = active
         // Segmented control: full-width header row under the title.
         let segOK = active && plausible(segR, 120, max(bounds.width, 120), 24, 64)
         if segOK {
@@ -3329,7 +3361,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         updateTransferVisibility()
         updateSideBarSelection()
         if key != "transfer" { sortTabs.isHidden = true }
-        if key != "structure" { hideStructChrome() }
+        // The structure panel lives under "more" since 26E112:
+        // leaving the Settings tab hides its native chrome at once
+        // (the web closes the panel in the same setTab pass and its
+        // next structFrame post reports panel: false).
+        if key != "more" { hideStructChrome() }
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
     }
 
@@ -3462,7 +3498,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func rootBackgroundColor() -> UIColor {
         let dark = splashDarkResolved()
         if dark {
-            if currentTab == "transfer" || currentTab == "stations" || currentTab == "structure" {
+            if currentTab == "transfer" || currentTab == "stations" || structPanelOpen {
                 return UIColor(red: 16.0 / 255.0, green: 20.0 / 255.0, blue: 32.0 / 255.0, alpha: 1) // #101420
             }
             return .black // #000000

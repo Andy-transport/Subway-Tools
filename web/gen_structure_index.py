@@ -2,13 +2,14 @@
 """Build web/structure/index.json for the TEST-BUILD "structure" tab.
 
 Sources of truth:
-- The user's own photos for Beijing Pingguoyuan (spatial + plan),
-  hardcoded below and never overwritten by census data.
 - census-*.json files in the same directory, produced by the source
   census: each entry names a station, the downloaded file and the
   source URL it was verified against. Only entries whose file exists
   on disk are compiled in. Stations absent from the index show the
   "being prepared" placeholder in the app — nothing is fabricated.
+  (26E112: the user's own Pingguoyuan photos that used to be
+  hardcoded here were removed at the user's request; Pingguoyuan
+  now shows the placeholder like any station without diagrams.)
 
 Index shape (consumed by template.html via build_offline.py):
   { "<cityKey>:<station>": {"spatial": <file|null>, "plan": <file|null>,
@@ -36,11 +37,8 @@ def put(city, station, kind, file, source):
     entry[kind] = file
     entry["sources"][kind] = source
 
-# 1. User's own photos — Beijing Pingguoyuan, always first.
-put("bj", "苹果园", "spatial", "bj-苹果园-spatial.jpg", "user-photo")
-put("bj", "苹果园", "plan", "bj-苹果园-plan.jpg", "user-photo")
-
-# 2. Census downloads.
+# Census downloads. (The hardcoded Pingguoyuan entries that used
+# to sit here were removed in 26E112 — see the header note.)
 for census_path in sorted(SDIR.glob("census-*.json")):
     data = json.loads(census_path.read_text(encoding="utf-8"))
     for city in data.get("cities", []):

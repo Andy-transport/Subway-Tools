@@ -1,12 +1,4 @@
 {
- "bj:苹果园": {
-  "spatial": "bj-苹果园-spatial.jpg",
-  "plan": "bj-苹果园-plan.jpg",
-  "sources": {
-   "spatial": "user-photo",
-   "plan": "user-photo"
-  }
- },
  "bj:七里庄": {
   "spatial": "bj-七里庄-spatial.jpg",
   "plan": "bj-七里庄-plan.jpg",

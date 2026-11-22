@@ -1016,7 +1016,9 @@
 		.more-up-badge .ln-txt { display: flex; flex-direction: column; line-height: 1.15; }
 		.more-up-badge .ln-zh { font-size: 9px; font-weight: 700; }
 		.more-up-badge .ln-en { font-size: 6.5px; font-weight: 600; opacity: 0.92; }
-		.more-up-name { flex: 1; font-weight: 600; color: #222; }
+		.more-up-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+		.more-up-name { font-weight: 600; color: #222; }
+		.more-up-meta { font-size: 12px; color: #888; margin-top: 2px; }
 		.more-up-date { flex: none; font-size: 13px; color: #888; }
 		html.dark .more-up-row { border-color: rgba(255,255,255,0.08); }
 		html.dark .more-up-name { color: #eee; }
@@ -1085,6 +1087,10 @@
 		.more-loc-status { margin-left: auto; font-size: 14px; font-weight: 400; color: #888; }
 		html.dark .more-loc-status { color: #aaa; }
 		.more-loc-hint { padding: 8px 0 4px; font-size: 13px; line-height: 1.5; color: #888; }
+		/* 26E112: inside the fused Settings card the hint sits mid-card,
+		   so it carries the same hairline separator as the rows. */
+		.more-card .more-loc-hint { border-bottom: 1px solid rgba(60, 60, 67, 0.12); }
+		html.dark .more-card .more-loc-hint { border-bottom-color: rgba(84, 84, 88, 0.36); }
 		html.dark .more-loc-hint { color: #aaa; }
 		.more-ver { padding: 10px 12px 6px; font-size: 11px; color: rgba(0, 51, 128, 0.6); text-align: center; }
 		.more-theme { padding: 10px 0; }
@@ -1301,10 +1307,19 @@
 		.ln-txt { display: flex; flex-direction: column; line-height: 1.15; }
 		.ln-zh { font-size: 20px; font-weight: 700; }
 		.ln-en { font-size: 11px; font-weight: 600; opacity: 0.92; }
-		.tt-badge.ln-badge { padding: 6px 12px 6px 10px; border-radius: 10px; gap: 7px; }
-		.tt-badge.ln-badge .ln-num { font-size: 34px; }
-		.tt-badge.ln-badge .ln-zh { font-size: 15px; }
-		.tt-badge.ln-badge .ln-en { font-size: 9px; }
+		/* 26E112 (user, all cities): the timetable line-picker badge
+		   takes the SAME compact spec as the station-search
+		   suggestion badge (.tr-sug-lines above, the 26E110 size):
+		   numeral 16px, 号线 10.5px, Line X 7.5px, padding 5/10,
+		   radius 8, gap 6 — rendered height ≈31px, matching the
+		   suggestion rows exactly. The timetable detail header
+		   shares .tt-badge and follows the same spec. nowrap keeps
+		   long named lines on one line so a badge can never stretch
+		   its row. */
+		.tt-badge.ln-badge { padding: 5px 10px 5px 9px; border-radius: 8px; gap: 6px; white-space: nowrap; }
+		.tt-badge.ln-badge .ln-num { font-size: 16px; }
+		.tt-badge.ln-badge .ln-zh { font-size: 10.5px; }
+		.tt-badge.ln-badge .ln-en { font-size: 7.5px; }
 		.ropt-line.ln-badge, .tr-chip.ln-badge { padding: 4px 9px; gap: 6px; border-radius: 8px; height: auto; }
 		.ropt-line.ln-badge .ln-num, .tr-chip.ln-badge .ln-num { font-size: 19px; }
 		.ropt-line.ln-badge .ln-zh, .tr-chip.ln-badge .ln-zh { font-size: 10.5px; }
@@ -1330,7 +1345,8 @@
 		.ln-badge.named, .more-up-badge.named { gap: 7px; }
 		.ln-badge.named .ln-txt, .more-up-badge.named .ln-txt { flex-direction: row; align-items: baseline; gap: 6px; }
 		.ln-badge.named .ln-zh { font-size: 54px; font-weight: 800; line-height: 1; }
-		.tt-badge.ln-badge.named .ln-zh { font-size: 34px; }
+		.tt-badge.ln-badge.named { padding: 6px 10px; }
+		.tt-badge.ln-badge.named .ln-zh { font-size: 16px; }
 		.ropt-line.ln-badge.named .ln-zh, .tr-chip.ln-badge.named .ln-zh { font-size: 19px; }
 		.more-up-badge.named .ln-zh { font-size: 16px; font-weight: 800; line-height: 1; }
 		.tt-dir { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 15px; }
@@ -1527,10 +1543,6 @@
 				<div class="tab" :class="{ active: tab==='timetable' }" @click="setTab('timetable')">
 					<img class="tt-tab-icon" :src="ttIcon" width="25" height="25">
 					<span>{{ t('tab.timetable') }}</span>
-				</div>
-				<div class="tab" :class="{ active: tab==='structure' }" @click="setTab('structure')">
-					<svg viewBox="0 0 24 24" width="25" height="25"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM12 4.5l6.5 3.71L12 11.92 5.5 8.21 12 4.5zM5 9.79l6 3.43v6.53l-6-3.43V9.79zm8 9.96v-6.53l6-3.43v6.53l-6 3.43z" fill="currentColor"/></svg>
-					<span>{{ t('tab.structure') }}</span>
 				</div>
 				<div class="tab" :class="{ active: tab==='more' }" @click="setTab('more')">
 					<svg viewBox="0 0 24 24" width="25" height="25"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
@@ -1764,13 +1776,13 @@
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
 			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen }" v-show="showMore">
-				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub">
+				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub && !showStructSub">
 				<div class="more-title">{{ t('app.name') }}</div>
 				<div class="more-appcard">
 					<img class="more-appicon" :src="appIconNow" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E111)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E112)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card more-account" @click="openProfile()">
@@ -1784,28 +1796,29 @@
 					</div>
 					<span class="more-chev">›</span>
 				</div>
-				<div class="more-section">{{ t('more.switchCity') }}</div>
+				<!-- 26E112: the Settings home groups are fused into ONE card
+					 (user 2026-11-22): city switch, General, About, Location,
+					 What's New, Opening Soon, Briefing, Train Models, Station
+					 Structure and Siri all live in a single .more-card with the
+					 usual hairline separators; the “切换城市” and “更多” group
+					 titles are gone. The App card and account card above stay
+					 separate; the credit line below is unchanged. -->
 				<div class="more-card">
 					<div class="more-row" @click="showCitySub = true"><img class="more-city-logo" :src="cityLogo" alt=""><span>{{ cityName }}</span><span class="more-chev">›</span></div>
-				</div>
-				<div class="more-card">
 					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showAboutSub = true"><span>{{ t('more.about') }}</span><span class="more-chev">›</span></div>
-				</div>
-				<div class="more-section">{{ t('more.more') }}</div>
-				<div class="more-card">
 					<div class="more-row" @click="requestLocPerm">
 						<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
 						<span>{{ t('more.loc') }}</span>
 						<span class="more-loc-status">{{ locPermText() }}</span>
+						<span class="more-chev">›</span>
 					</div>
 					<div class="more-loc-hint" v-if="locPermHint">{{ t('more.loc.hint') }}</div>
-				</div>
-				<div class="more-card">
 					<div class="more-row" @click="relSel = -1; showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showTrainSub = true; loadTrains()"><span class="more-train-icon"></span><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="openStructSub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8 L20.5 7.4 V16.6 L12 21.2 L3.5 16.6 V7.4 Z"/><path d="M3.5 7.4 L12 12 L20.5 7.4"/><path d="M12 12 V21.2"/></svg><span>{{ t('more.structure') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="siriRowIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-credit">{{ t('more.credit', {c: t('city.' + city)}) }}</div>
@@ -1884,7 +1897,7 @@
 					</div>
 					<div class="more-section">{{ cityName }}</div>
 					<div class="more-card">
-						<div class="more-up-row" v-for="u in currentCityUpcoming()" :key="u.key"><span class="more-up-badge" :class="{ named: upBadgeParts(u).named }" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }"><span class="ln-num">{{ upBadgeParts(u).left }}</span><span class="ln-txt"><span class="ln-zh">{{ upBadgeParts(u).top }}</span><span class="ln-en">{{ upBadgeParts(u).bottom }}</span></span></span><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
+						<div class="more-up-row" v-for="u in currentCityUpcoming()" :key="u.key"><span class="more-up-badge" :class="{ named: upBadgeParts(u).named }" :style="{ background: '#' + u.color, color: lineTextColor(u.color) }"><span class="ln-num">{{ upBadgeParts(u).left }}</span><span class="ln-txt"><span class="ln-zh">{{ upBadgeParts(u).top }}</span><span class="ln-en">{{ upBadgeParts(u).bottom }}</span></span></span><span class="more-up-main"><span class="more-up-name">{{ t('upcoming.' + u.key) }}</span><span class="more-up-meta" v-if="upcomingMeta(u)">{{ upcomingMeta(u) }}</span></span><span class="more-up-date">{{ t('upcoming.date.' + u.date) }}</span></div>
 						<div class="more-up-note" v-if="!currentCityUpcoming().length">{{ t('more.upcoming.none') }}</div>
 					</div>
 					<div class="more-up-note" v-if="city === 'sh'">{{ t('upcoming.note.sh22') }}</div>
@@ -1996,7 +2009,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E111)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E112)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2213,7 +2226,7 @@ var I18N = {
   'profile.defaultName': ['乘客', '乘客', 'Passenger'],
   'profile.tapLogin': ['登录后可设置头像与昵称', '登入後可設定頭像與暱稱', 'Log in to set an avatar and nickname'],
   'more.about.desc': ['城市轨道交通出行工具', '城市軌道交通出行工具', 'A metro and rail transit tool'],
-  'more.loc': ['定位权限', '定位權限', 'Location Permission'],
+  'more.loc': ['定位', '定位', 'Location'],
   'more.loc.unknown': ['未请求', '未請求', 'Not Requested'],
   'more.loc.granted': ['已允许', '已允許', 'Allowed'],
   'more.loc.denied': ['已拒绝', '已拒絕', 'Denied'],
@@ -2311,6 +2324,7 @@ var I18N = {
   'siri.timetable.desc': ['查看线路的时刻表', '查看線路的時刻表', 'View a line’s timetable'],
   'siri.timetable.voice': ['“查看时刻表”', '“查看時刻表”', '“Show the timetable”'],
   'more.trains': ['车型检索', '車型檢索', 'Train Model Search'],
+  'more.structure': ['车站结构', '車站結構', 'Station Structure'],
   'more.trains.ph': ['输入城市名、列车型号或线路（如沈阳地铁1号线）', '輸入城市名、列車型號或線路（如瀋陽地鐵1號線）', 'Enter a city, train model or line (e.g. Shenyang Metro Line 1)'],
   'more.trains.hint': ['输入城市名（如北京）、列车型号（如 DKZ4）或线路（如沈阳地铁1号线）进行搜索。', '輸入城市名（如北京）、列車型號（如 DKZ4）或線路（如瀋陽地鐵1號線）進行搜尋。', 'Enter a city (e.g. Beijing), a train model (e.g. DKZ4) or a line (e.g. Shenyang Metro Line 1) to search.'],
   'more.trains.none': ['未找到相关列车。仅支持北京、沈阳、上海、哈尔滨、大连、金华、常州、重庆、长春、深圳、成都、青岛、石家庄 13 个城市。', '未找到相關列車。僅支援北京、瀋陽、上海、哈爾濱、大連、金華、常州、重慶、長春、深圳、成都、青島、石家莊 13 個城市。', 'No matching train. Only Beijing, Shenyang, Shanghai, Harbin, Dalian, Jinhua, Changzhou, Chongqing, Changchun, Shenzhen, Chengdu, Qingdao and Shijiazhuang are covered.'],
@@ -2321,6 +2335,7 @@ var I18N = {
   'more.cache.cleared': ['已清除', '已清除', 'Cleared'],
   'more.cache.note': ['清除网页缓存与已缓存的简报数据，不会删除城市、语言、主题设置或搜索记录。', '清除網頁快取與已快取的簡報資料，不會刪除城市、語言、主題設定或搜尋記錄。', 'Clears the web cache and cached briefing data. Your city, language, theme and search history are kept.'],
   'upcoming.bj22': ['北京22号线', '北京22號線', 'Beijing Line 22'],
+  'upcoming.bjjx': ['京雄快线（一期）', '京雄快線（一期）', 'Jingxiong Express (Phase 1)'],
   'upcoming.sh22': ['上海22号线', '上海22號線', 'Shanghai Line 22'],
   'upcoming.gz12': ['广州12号线中段', '廣州12號線中段', 'Guangzhou Line 12 (middle section)'],
   'upcoming.gz13': ['广州13号线二期西段', '廣州13號線二期西段', 'Guangzhou Line 13 Phase 2 (west section)'],
@@ -2332,6 +2347,9 @@ var I18N = {
   'upcoming.tjZ2': ['天津Z2线', '天津Z2線', 'Tianjin Line Z2'],
   'upcoming.date.2026': ['预计2026年底', '預計2026年底', 'Expected end of 2026'],
   'upcoming.date.2027': ['预计2027', '預計2027', 'Expected 2027'],
+  'upcoming.date.2026y': ['预计2026年', '預計2026年', 'Expected 2026'],
+  'upcoming.meta.stations': ['{n} 座车站', '{n} 座車站', '{n} stations'],
+  'upcoming.meta.interchanges': ['{n} 座换乘站', '{n} 座換乘站', '{n} transfer stations'],
   'upcoming.note.sh22': ['上海22号线另有消息称2029年开通，日期尚未确认。', '上海22號線另有消息稱2029年開通，日期尚未確認。', 'Another source gives 2029 for Shanghai Line 22; the date is unconfirmed.'],
   'more.lang': ['语言', '語言', 'Language'],
   'more.lang.hans': ['简体中文', '簡體中文', 'Simplified Chinese'],
@@ -2531,6 +2549,14 @@ function titlePy(py) {
 						tab: 'map',
 						showStations: false,
 						showStructure: false,
+						// Structure as a Settings sub-page (26E112): the
+						// panel left the tab bar and now opens from the
+						// Settings home's 车站结构 row, over the 'more'
+						// tab. showStructure still drives the panel's
+						// own visibility; showStructSub marks it as the
+						// open Settings sub-view (home hidden, home-lock
+						// released, goBack/edge-swipe armed).
+						showStructSub: false,
 						structQuery: '',
 						structStation: null,
 						structKind: 'spatial',
@@ -2688,14 +2714,23 @@ function titlePy(py) {
 						// colour (the blue "2号线" image was only a badge
 						// template) and is never used here.
 						upcomingLines: [
-							{ key: 'bj22', badge: '22', color: 'F4C1CA', date: '2026' },
-							{ key: 'sh22', badge: '22', color: '401AA6', date: '2026' },
-							{ key: 'gz12', badge: '12', color: '59621D', date: '2026' },
-							{ key: 'gz13', badge: '13', color: '888600', date: '2026' },
+							{ key: 'bj22', badge: '22', color: 'F4C1CA', date: '2026', st: 20 },
+							// 京雄快线 (一期) 大兴机场—雄安航站楼, 86.21 km, 预计 2026 年,
+							// through-running with the Daxing Airport Express, same
+							// operator (北京市轨道交通运营管理有限公司). COLOUR UNVERIFIED:
+							// no official line colour could be confirmed from public
+							// sources (checked 2026-11-22), so the badge uses the
+							// neutral system grey 8E8E93 as a placeholder — it is NOT
+							// the line's colour. Preview list only: the line is not
+							// in search or routing (unopened, as always).
+							{ key: 'bjjx', badge: 'R1', color: '8E8E93', date: '2026y', km: 86.21, st: 8, tr: 1 },
+							{ key: 'sh22', badge: '22', color: '401AA6', date: '2026', km: 42.9, approx: true, st: 8 },
+							{ key: 'gz12', badge: '12', color: '59621D', date: '2026', km: 8.8, st: 7 },
+							{ key: 'gz13', badge: '13', color: '888600', date: '2026', km: 25.3, st: 19 },
 							{ key: 'sy6', badge: '6', color: 'FEDC00', date: '2027' },
 							{ key: 'sy9', badge: '9', color: '0095D2', date: '2027' },
-							{ key: 'sz13', badge: '13', color: 'DE7C00', date: '2027' },
-							{ key: 'cq27', badge: '27', color: '0057B8', date: '2027' },
+							{ key: 'sz13', badge: '13', color: 'DE7C00', date: '2027', km: 4.1, approx: true, st: 3 },
+							{ key: 'cq27', badge: '27', color: '0057B8', date: '2027', km: 56, approx: true, st: 15 },
 							{ key: 'cdS5', badge: 'S5', color: 'A7C6ED', date: '2027' },
 							{ key: 'tjZ2', badge: 'Z2', color: '006BA6', date: '2027' }
 						],
@@ -2757,6 +2792,14 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E112)', date: '2026-11-22', lines: [
+								['底部栏回到五个标签，整体压低到 62pt，选中改为系统蓝色', '底部欄回到五個標籤，整體壓低到 62pt，選中改為系統藍色', 'The tab bar is back to five tabs, slimmed down to 62pt, and the selected tab is now system blue'],
+								['「车站结构」移入设置页，与车型检索并列，内容不变；结构详情页可从左边缘滑动返回', '「車站結構」移入設定頁，與車型檢索並列，內容不變；結構詳情頁可從左邊緁滑動返回', 'Station Structure moves into Settings next to Train Model Search \u2014 same content \u2014 and its detail page now swipes back from the left edge'],
+								['设置首页融合为一张大卡片；「定位」点开直接跳系统设置', '設定首頁融合為一張大卡片；「定位」點開直接跳系統設定', 'The Settings home is fused into one big card, and Location now opens this app\u2019s system Settings page'],
+								['石家庄线路图换成与其他城市统一的画风', '石家莊線路圖換成與其他城市統一的畫風', 'The Shijiazhuang map is redrawn in the same style as the other cities'],
+								['苹果园站的两张示意图已下架', '蘋果園站的兩張示意圖已下架', 'Pingguoyuan\u2019s two station diagrams have been removed'],
+								['北京「即将开通」新增京雄快线（一期）：大兴机场—雄安航站楼，86.21 公里，预计 2026 年开通，将与大兴机场线贯通运营', '北京「即將開通」新增京雄快線（一期）：大興機場—雄安航站樓，86.21 公里，預計 2026 年開通，將與大興機場線貫通運營', 'Beijing\u2019s Opening Soon list adds the Jingxiong Express (Phase 1): Daxing Airport \u2014 Xiong\u2019an Terminal, 86.21 km, expected to open in 2026 with through-running onto the Daxing Airport Express'],
+							] },
 							{ v: '1.1.0 (26E111)', date: '2026-11-22', lines: [
 								['北京结构图再扩充：新增京港地铁 12 个车站（14 号线西段、16 号线北段）和慈寿寺、公主坟两站，北京收录增至 116 个车站', '北京結構圖再擴充：新增京港地鐵 12 個車站（14 號線西段、16 號線北段）和慈壽寺、公主墳兩站，北京收錄增至 116 個車站', 'Beijing structure diagrams grow again: 12 more MTR stations (Line 14 west, Line 16 north) plus Cishousi and Gongzhufen \u2014 116 Beijing stations in the library'],
 								['两处虚拟换乘修正：木樨地 1 号线↔16 号线按出站虚拟换乘标注；广安门内（7 号线）↔牛街（19 号线）新增虚拟换乘，出站步行即可直接衔接，不再只能绕行', '兩處虛擬換乘修正：木樨地 1 號線↔16 號線按出站虛擬換乘標註；廣安門內（7 號線）↔牛街（19 號線）新增虛擬換乘，出站步行即可直接銜接，不再只能繞行', 'Two virtual-transfer fixes: Muxidi Line 1 <-> Line 16 is now labelled an out-of-station virtual transfer, and Guang\u2019anmennei (Line 7) <-> Niujie (Line 19) gains a virtual transfer \u2014 exit and walk to connect directly instead of only detouring'],
@@ -2907,6 +2950,20 @@ function titlePy(py) {
 						if (this.lang === 'zh-Hant') { left = toHant(left); top = toHant(top); }
 						return { left: left, top: top, bottom: bottom, named: !m };
 					},
+					// 26E112: the four-fact line under an upcoming entry —
+					// length, station count, interchange count (the date
+					// is the row's right-hand field, as before). Only
+					// facts already on record are stored on the entry
+					// (briefing.json summaries / user-verified figures);
+					// a missing field is simply not shown — nothing is
+					// invented to complete the set.
+					upcomingMeta(u) {
+						var parts = [];
+						if (u.km) parts.push((u.approx ? '≈' : '') + u.km + ' km');
+						if (u.st) parts.push(this.t('upcoming.meta.stations', { n: u.st }));
+						if (u.tr) parts.push(this.t('upcoming.meta.interchanges', { n: u.tr }));
+						return parts.join(' · ');
+					},
 					upBadgeParts(u) {
 						// Upcoming-line badge in the official format
 						// (user 2026-11-20): big label on the left,
@@ -2980,18 +3037,14 @@ function titlePy(py) {
 					},
 					showSoonCity(c) { this.soonNote = c; if (this._soonTimer) clearTimeout(this._soonTimer); this._soonTimer = setTimeout(() => { this.soonNote = ''; }, 2500); },
 					setTab(t) {
-						if (t === 'structure') {
-							this.tab = 'structure';
-							this.showStructure = true;
-							this.showStations = false;
-							this.showTransfer = false;
-							this.showMore = false;
-							this.showTimetable = false;
-							var selfS = this;
-							this.$nextTick(function() {
-								if (selfS.$refs.structInput) selfS.$refs.structInput.focus();
-							});
-						} else if (t === 'stations') {
+						// The structure panel is a Settings sub-page
+						// since 26E112, never a tab: every tab switch
+						// closes it (its Settings entry point reopens
+						// it via openStructSub, which does not come
+						// through here).
+						this.showStructure = false;
+						this.showStructSub = false;
+						if (t === 'stations') {
 							this.tab = 'stations';
 							this.showStations = true;
 							this.showStructure = false;
@@ -3222,9 +3275,27 @@ function titlePy(py) {
 						this.setTab('map');
 					},
 					closeStructure() {
+						// 26E112: the panel is a Settings sub-page —
+						// 取消 returns to the Settings home (the tab
+						// stays 'more'); until 26E111 this went to
+						// the map tab, where the panel used to live.
 						this.structQuery = '';
 						this.structStation = null;
-						this.setTab('map');
+						this.showStructSub = false;
+						this.showStructure = false;
+					},
+					// Settings home 车站结构 row (26E112): open the
+					// structure panel as a Settings sub-page, on the
+					// station list, and focus its search field —
+					// the same entry behaviour the old tab had.
+					openStructSub() {
+						this.showStructSub = true;
+						this.showStructure = true;
+						this.structStation = null;
+						var self = this;
+						this.$nextTick(function() {
+							if (self.$refs.structInput) self.$refs.structInput.focus();
+						});
 					},
 					structEntryFor(name) {
 						var idx = window.STRUCTURE_INDEX || {};
@@ -3270,11 +3341,18 @@ function titlePy(py) {
 					reportStructFrame() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.structFrame;
 						if (!h) return;
-						var zero = { seg: { x: 0, y: 0, width: 0, height: 0 }, actions: { x: 0, y: 0, width: 0, height: 0 }, exit: { x: 0, y: 0, width: 0, height: 0 }, kind: this.structKind };
-						if (!this.showStructure || !this.structStation) { h.postMessage(zero); return; }
+						// 26E112: every post also carries "panel" —
+						// whether the structure panel is open at all
+						// (it is a Settings sub-page now, so the
+						// native side can no longer infer it from
+						// the current tab). List state posts panel
+						// with zero frames (no detail chrome there).
+						var zero = { panel: false, seg: { x: 0, y: 0, width: 0, height: 0 }, actions: { x: 0, y: 0, width: 0, height: 0 }, exit: { x: 0, y: 0, width: 0, height: 0 }, kind: this.structKind };
+						if (!this.showStructure) { h.postMessage(zero); return; }
+						if (!this.structStation) { var zl = Object.assign({}, zero); zl.panel = true; h.postMessage(zl); return; }
 						var seg = document.querySelector('#structurePanel .struct-seg');
 						var act = document.querySelector('#structurePanel .struct-actions');
-						if (!seg || !act) { h.postMessage(zero); return; }
+						if (!seg || !act) { var zb = Object.assign({}, zero); zb.panel = true; h.postMessage(zb); return; }
 						var r1 = seg.getBoundingClientRect();
 						var r2 = act.getBoundingClientRect();
 						// Exit (26E108): the native circular glass chevron
@@ -3291,6 +3369,15 @@ function titlePy(py) {
 						});
 					},
 					resetStructView() { this.structView = { s: 1, x: 0, y: 0 }; this._structPtrs = {}; },
+					// Whether the detail image sits at its rest
+					// transform (26E112): the edge-swipe back in the
+					// structure detail is armed only at rest — while
+					// the image is zoomed or panned, a left-edge
+					// drag must move the image, never pop the page.
+					structAtRest() {
+						var v = this.structView || { s: 1, x: 0, y: 0 };
+						return Math.abs(v.s - 1) < 0.01 && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1;
+					},
 					structPointerDown(e) {
 						if (!this._structPtrs) this._structPtrs = {};
 						this._structPtrs[e.pointerId] = { x: e.clientX, y: e.clientY };
@@ -3372,6 +3459,14 @@ function titlePy(py) {
 					},
 					goBack() {
 						try {
+							// Structure sub-page first (26E112): it is
+							// the topmost layer — detail collapses to
+							// the station list, the list closes back
+							// to the Settings home.
+							if (this.showStructSub) {
+								if (this.structStation) { this.structStation = null; return true; }
+								this.showStructSub = false; this.showStructure = false; return true;
+							}
 							if (this.showCitySub) { this.bjMapExpanded = false; this.showCitySub = false; return true; }
 							if (this.showLangSub) { this.showLangSub = false; return true; }
 							if (this.showWhatsNewSub) { this.showWhatsNewSub = false; return true; }
@@ -3408,6 +3503,7 @@ function titlePy(py) {
 								else if (this.showBriefingSub) expT = this.t('more.briefing');
 								else if (this.showUpcomingSub) expT = this.t('more.upcoming');
 								else if (this.showTrainSub) expT = this.t('more.trains');
+								else if (this.showStructSub) expT = this.t('more.structure');
 								else if (this.showAppearanceSub) expT = this.t('more.appearance');
 								else if (this.showLangSub) expT = this.t('more.lang');
 							} catch (e) {}
@@ -4642,14 +4738,24 @@ function titlePy(py) {
 					// instead of re-prompting. Never crashes or hangs when the
 					// permission is undetermined: it just asks.
 					requestLocPerm() {
-						if (this.locPerm === 'denied' || this.locPerm === 'restricted') { this.locPermHint = true; var _h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openURL; if (_h) _h.postMessage({ url: 'app-settings', fallback: '' }); return; }
-						this.locPermHint = false;
-						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.requestLocationPermission;
-						if (h) { h.postMessage({}); return; }
-						if (navigator.geolocation) {
-							var self = this;
-							navigator.geolocation.getCurrentPosition(function () { self.locPerm = 'granted'; }, function (e) { self.locPerm = (e && e.code === 1) ? 'denied' : 'unknown'; if (self.locPerm === 'denied') self.locPermHint = true; }, { timeout: 10000 });
-						}
+						// 26E112 (user: the 定位 row “点不开”): the row is a
+						// navigation row now — tapping it opens this app's page
+						// in the system Settings (where the location permission
+						// actually lives) through the same openExternal /
+						// openURL 'app-settings' bridge the map's location
+						// prompt already uses. Before, only the denied state
+						// went there; every other state fired a bare permission
+						// request with no visible page, which read as broken.
+						// The row's status text is unchanged, and the hint
+						// still explains a denied/restricted state.
+						// (openExternal is a page-global helper, not a Vue
+						// method — templates reach it through the render
+						// proxy, methods must call the bare global or post
+						// the bridge directly.)
+						if (this.locPerm === 'denied' || this.locPerm === 'restricted') this.locPermHint = true;
+						if (typeof openExternal === 'function') { openExternal('app-settings'); return; }
+						var _h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openURL;
+						if (_h) _h.postMessage({ url: 'app-settings', fallback: '' });
 					},
 					// Ask native for the current permission state without
 					// prompting (called on launch so the Settings row shows the
@@ -4745,7 +4851,7 @@ function titlePy(py) {
 					cityNameFor(c) { return this.t('city.' + c); },
 					// City key for an upcoming-line key (bj22->bj, gz12->gz…).
 					upcomingCityKey(key) {
-						var m = { bj22: 'bj', sh22: 'sh', gz12: 'gz', gz13: 'gz', sy6: 'sy', sy9: 'sy', sz13: 'sz', cq27: 'cq', cdS5: 'cd', tjZ2: 'tj' };
+						var m = { bj22: 'bj', bjjx: 'bj', sh22: 'sh', gz12: 'gz', gz13: 'gz', sy6: 'sy', sy9: 'sy', sz13: 'sz', cq27: 'cq', cdS5: 'cd', tjZ2: 'tj' };
 						return m[key] || '';
 					},
 					currentCityUpcoming() {
@@ -5550,7 +5656,7 @@ function titlePy(py) {
 						});
 					},
 					anySubViewOpen() {
-						var settingsSub = this.showCitySub || this.showLangSub || this.showWhatsNewSub || this.showUpcomingSub || this.showAppearanceSub || this.showSiriSub || this.showTrainSub || this.showGeneralSub || this.showBriefingSub || this.showAboutSub || this.showProfileSub;
+						var settingsSub = this.showCitySub || this.showLangSub || this.showWhatsNewSub || this.showUpcomingSub || this.showAppearanceSub || this.showSiriSub || this.showTrainSub || this.showGeneralSub || this.showBriefingSub || this.showAboutSub || this.showProfileSub || this.showStructSub;
 						if (this.tab === 'more' && settingsSub) return true;
 						if (this.tab === 'timetable' && this.ttLine != null) return true;
 						return false;
@@ -5891,7 +5997,13 @@ function titlePy(py) {
 					var _edgeX = null, _edgeY = null;
 					document.addEventListener('touchstart', function(e) {
 						var t = e.changedTouches && e.changedTouches[0];
-						if (t && t.clientX <= 24 && self.anySubViewOpen) { _edgeX = t.clientX; _edgeY = t.clientY; }
+						// 26E112: the structure DETAIL is a sub-view too, but
+						// while its image is zoomed/panned the image's own
+						// drag must win — only arm the edge swipe there when
+						// the image is at rest (structAtRest). Every other
+						// sub-view keeps the exact 26D106 behaviour.
+						var structZoomed = self.showStructSub && self.structStation && !self.structAtRest();
+						if (t && t.clientX <= 24 && self.anySubViewOpen && !structZoomed) { _edgeX = t.clientX; _edgeY = t.clientY; }
 						else { _edgeX = null; _edgeY = null; }
 					}, { passive: true });
 					document.addEventListener('touchend', function(e) {
