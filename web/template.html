@@ -686,7 +686,21 @@
 		   overlays .struct-seg (frame reported via structFrame) and two
 		   native glass buttons overlay .struct-actions — the web
 		   controls stay laid out (no jump) but invisible. */
-		.struct-actions { margin-left: auto; width: 148px; height: 34px; flex: none; }
+		/* 26E109: the actions slot is a 40x40 SQUARE — the native
+		   search button is now an icon-only circular glass button
+		   (magnifyingglass, no 「搜索」 title) centred on this slot,
+		   the same 40pt circle as the exit chevron on the left. */
+		.struct-actions { margin-left: auto; width: 40px; height: 40px; flex: none; }
+		/* 26E109 (exit-button offset fix): the structure detail's
+		   title row gets the same 16px horizontal inset the
+		   timetable's .tt-view gives its title row. Without it the
+		   .tt-back placeholder sat flush at x=0 (this panel's own
+		   padding-left is only the safe-area inset, 0 in portrait)
+		   and the native 40pt exit circle, centred on the 34px
+		   placeholder, spilled off the left screen edge. With the
+		   inset the placeholder spans x 16-50 and the circle lands
+		   at x 13-53, fully on screen like the settings sub-pages. */
+		#structurePanel .tt-title { padding: 8px 16px 12px; }
 		.native-app .struct-seg { background: transparent; }
 		.native-app .struct-seg button { visibility: hidden; }
 		.struct-seg button { flex: 1; border: none; background: transparent; padding: 7px 0; font-size: 14px; font-weight: 600; color: #333; border-radius: 8px; cursor: pointer; font-family: inherit; }
@@ -838,6 +852,39 @@
 		.more-chev { color: #c7c7cc; font-size: 20px; font-weight: 400; line-height: 1; flex: none; }
 		.more-row-value { font-size: 15px; font-weight: 400; color: #8e8e93; }
 		.more-row > span:first-of-type { flex: 1; }
+		/* Train row fix (26E109): the 车型检索 row's icon is a
+		   <span class="more-train-icon"> (a CSS-mask glyph), so it —
+		   not the title — matched span:first-of-type above and got
+		   flex: 1: the icon box stretched across the row, the mask
+		   glyph centred inside it, and the title was pushed right
+		   (the Siri row is unaffected: its icon is an <img>, so its
+		   title span is the first-of-type). Keep the icon at its
+		   fixed 28px and give the slack to the title span instead,
+		   restoring the standard icon-left / title / chevron-right
+		   layout. Higher specificity than the flex: 1 rule on
+		   purpose. */
+		.more-row > span.more-train-icon:first-of-type { flex: none; }
+		.more-row > span.more-train-icon + span { flex: 1; }
+		/* Local profile (26E109): account card at the top of Settings
+		   (iOS Settings Apple-account card layout) + profile page. */
+		.more-account { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; }
+		.more-account-avatar { width: 52px; height: 52px; border-radius: 50%; flex: none; object-fit: cover; }
+		span.more-account-avatar { display: inline-flex; align-items: center; justify-content: center; }
+		.more-account-initial { background: #8e8e93; color: #ffffff; font-size: 24px; font-weight: 600; }
+		.more-account-guest { background: rgba(120,120,128,0.30); color: #ffffff; }
+		.more-account-text { flex: 1; min-width: 0; }
+		.more-account-name { font-size: 19px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+		html.dark .more-account-name { color: #fff; }
+		.more-account-sub { font-size: 13px; color: #8e8e93; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+		.more-profile-head { display: flex; flex-direction: column; align-items: center; padding: 18px 0 14px; gap: 8px; }
+		.more-profile-avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; cursor: pointer; }
+		span.more-profile-avatar { display: inline-flex; align-items: center; justify-content: center; font-size: 34px; }
+		.more-profile-hint { font-size: 13px; color: #007aff; cursor: pointer; }
+		.more-profile-input { flex: 1; min-width: 0; text-align: right; border: none; outline: none; background: transparent; font-size: 16px; font-family: inherit; color: inherit; padding: 0; }
+		.more-profile-save { justify-content: center; }
+		.more-profile-save > span { flex: none; text-align: center; color: #007aff; font-weight: 600; }
+		.more-profile-logout { justify-content: center; }
+		.more-profile-logout > span { flex: none; text-align: center; color: #ff3b30; }
 		.more-city-row .more-city-name { flex: 1; }
 		.more-city-row .more-check { margin-left: 8px; }
 		.more-bj-type { padding-left: 36px; font-size: 15px; }
@@ -868,16 +915,42 @@
 		   returning from a sub-page. The delegation + failsafe in
 		   mounted() and the clear in the anySubViewOpen watcher
 		   guarantee the highlight is removed. */
-		/* 26E108 (user, iOS Settings reference): the press highlight
-		   is an INSET ROUNDED rect floating inside the row — gaps on
-		   all four sides, corners rounded — not a full-bleed block.
-		   The row creates a stacking context (position + z-index: 0)
-		   and the highlight ::after sits at z-index: -1: above the
-		   card, below the row's text. Coverage extends to the
-		   功能介绍 list rows (.more-rel-row) via the same .pressing
-		   mechanism (delegation + clearPressing below). */
+		/* 26E109 (user, with two iOS Settings screenshots — this
+		   supersedes the 26E108 inset rounded block): the press
+		   highlight is the SYSTEM Settings full-coverage grey. The
+		   ::after covers the row's whole box (inset: 0, square
+		   corners), and inside a .more-card it extends sideways
+		   over the card's 16px horizontal padding to the card's
+		   edges; a first/last row in the card also extends over
+		   the card's 4px vertical padding, and the card's own
+		   overflow: hidden + border-radius: 28px clips the grey to
+		   the card's rounded corners — so edge rows get exactly
+		   the card's radius, middle rows stay square, exactly like
+		   iOS. The row creates a stacking context (position +
+		   z-index: 0) and the highlight sits at z-index: -1: above
+		   the row's own background AND its bottom separator border
+		   (the separator is covered while pressing, as on iOS),
+		   below the row's text/icons/chevron, which are never
+		   tinted. Coverage extends to the 功能介绍 list rows
+		   (.more-rel-row, not card-grouped, so plain inset: 0) via
+		   the same .pressing mechanism (delegation + clearPressing
+		   below). The 26E108 geometry misread on device because the
+		   inset block was measured against the row box inside the
+		   card padding — left edge landed at the first character
+		   while the right edge neared the card edge. */
 		.more-row, .more-city-row, .more-rel-row { position: relative; z-index: 0; }
-		.more-row.pressing::after, .more-city-row.pressing::after, .more-rel-row.pressing::after { content: ''; position: absolute; inset: 4px 6px; border-radius: 12px; background: rgba(120,120,128,0.16); z-index: -1; pointer-events: none; }
+		.more-row.pressing::after, .more-city-row.pressing::after, .more-rel-row.pressing::after { content: ''; position: absolute; inset: 0; border-radius: 0; background: rgba(120,120,128,0.16); z-index: -1; pointer-events: none; }
+		.more-card > .more-row.pressing::after, .more-card > .more-city-row.pressing::after { inset: 0 -16px; }
+		.more-card > .more-row:first-child.pressing::after, .more-card > .more-city-row:first-child.pressing::after { top: -4px; }
+		.more-card > .more-row:last-child.pressing::after, .more-card > .more-city-row:last-child.pressing::after { bottom: -4px; }
+		/* Supported-city rows sit one wrapper deeper (a v-for div per
+		   city inside the card): give them the same reach to the card
+		   edges, with the vertical bleed keyed to the wrapper's place
+		   in the card. (The nested Beijing map-type sub-rows keep the
+		   plain full-row inset — they are mid-list rows.) */
+		.more-card > div > .more-city-row.pressing::after { inset: 0 -16px; }
+		.more-card > div:first-child > .more-city-row.pressing::after { top: -4px; }
+		.more-card > div:last-child > .more-city-row.pressing::after { bottom: -4px; }
 		html.dark .more-row.pressing::after, html.dark .more-city-row.pressing::after, html.dark .more-rel-row.pressing::after { background: rgba(120,120,128,0.28); }
 		html.dark .more-check { color: #fff; }
 		.more-credit { text-align: center; font-size: 12px; color: #aaa; padding: 8px 0 0; }
@@ -1620,14 +1693,25 @@
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
 			<div id="moreSheet" class="glass" v-show="showMore">
-				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub">
+				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub">
 				<div class="more-title">{{ t('app.name') }}</div>
 				<div class="more-appcard">
 					<img class="more-appicon" :src="appIconNow" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E108)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E109)' : '1.1.0'}) }}</div>
 					</div>
+				</div>
+				<div class="more-card more-account" @click="openProfile()">
+					<img class="more-account-avatar" v-if="profile && profile.avatar" :src="profile.avatar" alt="">
+					<span class="more-account-avatar more-account-initial" v-else-if="profile">{{ profileInitial }}</span>
+					<span class="more-account-avatar more-account-guest" v-else><svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.9 0-8 2-8 4.5V20h16v-1.5C20 16 15.9 14 12 14z" fill="currentColor"/></svg></span>
+					<div class="more-account-text">
+						<div class="more-account-name">{{ profile ? profile.name : t('profile.login') }}</div>
+						<div class="more-account-sub" v-if="profile">ID: {{ profile.id }} · {{ t('profile.since') }}: {{ profile.since }}</div>
+						<div class="more-account-sub" v-else>{{ t('profile.tapLogin') }}</div>
+					</div>
+					<span class="more-chev">›</span>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
 				<div class="more-card">
@@ -1841,15 +1925,42 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E108)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E109)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
 						<div class="more-row" @click="aboutRepo"><span>{{ t('more.repo') }}</span><span class="more-chev">›</span></div>
 						<div class="more-row" @click="aboutRepo"><span>{{ t('more.about.github') }}</span><span class="more-row-value">Andy-transport</span><span class="more-chev">›</span></div>
-						<div class="more-row" @click="aboutDouyin"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">351453703</span><span class="more-chev">›</span></div>
-						<div class="more-row" @click="aboutDouyin2"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">xlcty199</span><span class="more-chev">›</span></div>
-						<div class="more-row" @click="aboutDouyin3"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">75387112248</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="aboutDouyin"><span>{{ t('more.about.compile') }}</span><span class="more-row-value">351453703</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="aboutDouyin2"><span>{{ t('more.about.test') }}</span><span class="more-row-value">xlcty199</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="aboutDouyin3"><span>{{ t('more.about.debug') }}</span><span class="more-row-value">75387112248</span><span class="more-chev">›</span></div>
+					</div>
+				</div>
+				</transition>
+				<transition name="more-sub">
+				<div class="more-sub more-sub-static" v-show="showProfileSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showProfileSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
+						<div class="more-sub-title">{{ t('profile.title') }}</div>
+					</div>
+					<div class="more-profile-head">
+						<img class="more-profile-avatar" v-if="profileAvatarShown" :src="profileAvatarShown" alt="" @click="pickAvatar()">
+						<span class="more-profile-avatar more-account-initial" v-else-if="profileDraftInitial" @click="pickAvatar()">{{ profileDraftInitial }}</span>
+						<span class="more-profile-avatar more-account-guest" v-else @click="pickAvatar()"><svg viewBox="0 0 24 24" width="44" height="44"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.9 0-8 2-8 4.5V20h16v-1.5C20 16 15.9 14 12 14z" fill="currentColor"/></svg></span>
+						<div class="more-profile-hint" @click="pickAvatar()">{{ t('profile.avatarHint') }}</div>
+						<input ref="avatarInput" type="file" accept="image/*" style="display:none" @change="onAvatarFile">
+					</div>
+					<div class="more-card">
+						<div class="more-row"><span>{{ t('profile.name') }}</span><input class="more-profile-input" type="text" v-model="profileNameDraft" :placeholder="t('profile.namePh')" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+						<div class="more-row" v-if="profile"><span>ID</span><span class="more-row-value">{{ profile.id }}</span></div>
+						<div class="more-row" v-if="profile"><span>{{ t('profile.since') }}</span><span class="more-row-value">{{ profile.since }}</span></div>
+						<div class="more-row" v-if="!profile"><span>ID</span><span class="more-row-value">{{ t('profile.idAuto') }}</span></div>
+					</div>
+					<div class="more-card">
+						<div class="more-row more-profile-save" @click="saveProfile()"><span>{{ profile ? t('profile.save') : t('profile.login') }}</span></div>
+					</div>
+					<div class="more-card" v-if="profile">
+						<div class="more-row more-profile-logout" @click="askLogout()"><span>{{ logoutArm ? t('profile.logoutConfirm') : t('profile.logout') }}</span></div>
 					</div>
 				</div>
 				</transition>
@@ -2014,6 +2125,21 @@ var I18N = {
   'more.about': ['关于', '關於', 'About'],
   'more.about.github': ['作者 GitHub', '作者 GitHub', 'Author on GitHub'],
   'more.about.douyin': ['作者抖音', '作者抖音', 'Author on Douyin'],
+  'more.about.compile': ['编译', '編譯', 'Compile'],
+  'more.about.test': ['测试', '測試', 'Test'],
+  'more.about.debug': ['调试', '調試', 'Debug'],
+  'profile.title': ['个人资料', '個人資料', 'Profile'],
+  'profile.login': ['登录', '登入', 'Log In'],
+  'profile.logout': ['退出登录', '退出登入', 'Log Out'],
+  'profile.logoutConfirm': ['再次点击确认退出', '再次點擊確認退出', 'Tap again to confirm'],
+  'profile.save': ['保存', '儲存', 'Save'],
+  'profile.name': ['昵称', '暱稱', 'Nickname'],
+  'profile.namePh': ['输入昵称', '輸入暱稱', 'Enter a nickname'],
+  'profile.since': ['登录日期', '登入日期', 'Login date'],
+  'profile.avatarHint': ['点击更换头像', '點擊更換頭像', 'Tap to change avatar'],
+  'profile.idAuto': ['登录后自动生成', '登入後自動生成', 'Generated on login'],
+  'profile.defaultName': ['乘客', '乘客', 'Passenger'],
+  'profile.tapLogin': ['登录后可设置头像与昵称', '登入後可設定頭像與暱稱', 'Log in to set an avatar and nickname'],
   'more.about.desc': ['城市轨道交通出行工具', '城市軌道交通出行工具', 'A metro and rail transit tool'],
   'more.loc': ['定位权限', '定位權限', 'Location Permission'],
   'more.loc.unknown': ['未请求', '未請求', 'Not Requested'],
@@ -2559,6 +2685,12 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E109)', date: '2026-11-22', lines: [
+								['结构图大扩充：收录车站从 90 个增至 381 个（北京 102、深圳 168、哈尔滨 23、金华 29、上海 45 等），空间结构图与平面示意图分开标注来源', '結構圖大擴充：收錄車站從 90 個增至 381 個（北京 102、深圳 168、哈爾濱 23、金華 29、上海 45 等），空間結構圖與平面示意圖分開標註來源', 'Structure diagrams, greatly expanded: 381 stations, up from 90 (Beijing 102, Shenzhen 168, Harbin 23, Jinhua 29, Shanghai 45 and more), with sources labelled separately for spatial and plan diagrams'],
+								['底栏向 iOS 26 参考样式看齐：图标放大、标题更清晰；时刻表图标修正裁切，日历与右下角钟表完整显示', '底欄向 iOS 26 參考樣式看齊：圖示放大、標題更清晰；時刻表圖示修正裁切，日曆與右下角鐘錶完整顯示', 'The tab bar now follows the iOS 26 reference: larger icons and clearer titles, and the timetable icon\u2019s crop is fixed so the calendar and the clock at its corner show in full'],
+								['切换城市后默认回到「换乘」页；结构详情页的搜索按钮改为纯图标圆形按钮；关于页三位作者按分工标注：编译 / 测试 / 调试', '切換城市後默認回到「換乘」頁；結構詳情頁的搜尋按鈕改為純圖示圓形按鈕；關於頁三位作者按分工標註：編譯 / 測試 / 調試', 'Switching city now lands on the Transfer tab; the structure detail page\u2019s search button is an icon-only circle; the About page credits the three authors by role: Compile / Test / Debug'],
+								['「更多城市」补齐 18 座城市的官方标志（天津、太原、呼和浩特、苏州、南通、宁波、绍兴、合肥、厦门、郑州、洛阳、武汉、佛山、东莞、贵阳、昆明、兰州、乌鲁木齐），统一灰色显示；石家庄线路图站名改回黑体', '「更多城市」補齊 18 座城市的官方標誌（天津、太原、呼和浩特、蘇州、南通、寧波、紹興、合肥、廈門、鄭州、洛陽、武漢、佛山、東莞、貴陽、昆明、蘭州、烏魯木齊），統一灰色顯示；石家莊線路圖站名改回黑體', 'More Cities gains official logos for 18 cities (Tianjin, Taiyuan, Hohhot, Suzhou, Nantong, Ningbo, Shaoxing, Hefei, Xiamen, Zhengzhou, Luoyang, Wuhan, Foshan, Dongguan, Guiyang, Kunming, Lanzhou and Ürümqi), all shown in grey; Shijiazhuang map station names are back in a hei typeface'],
+							] },
 							{ v: '1.1.0 (26E108)', date: '2026-11-22', lines: [
 								['本页是测试版的「功能介绍」：集中介绍测试版的功能，标题下方标注日期，只收录测试版自己的说明', '本頁是測試版的「功能介紹」：集中介紹測試版的功能，標題下方標註日期，只收錄測試版自己的說明', 'This page is the test build\u2019s feature introduction \u2014 what the test build can do, dated under the title, with test-build notes only'],
 							] },
@@ -2575,6 +2707,15 @@ function titlePy(py) {
 								showBriefingSub: false,
 					showSiriSub: false,
 					showAboutSub: false,
+					showProfileSub: false,
+					// Local profile (26E109, user: 设置里加登录/个人资料):
+					// on-device only — no server, no password. Stored in
+					// localStorage 'metro-profile' as {name, avatar, id,
+					// since}; null = logged out. The id ('CT' + 10 digits)
+					// and the login date are minted once at first save
+					// and never change afterwards (logout clears all).
+					profile: (function() { try { var p = JSON.parse(window.localStorage.getItem('metro-profile') || 'null'); return (p && p.id && p.name) ? p : null; } catch (e) { return null; } })(),
+					profileNameDraft: '', profileAvatarDraft: '', logoutArm: false,
 						siriShortcuts: [
 							{ id: 'openApp', nameKey: 'siri.openApp', descKey: 'siri.openApp.desc', voiceKey: 'siri.openApp.voice' },
 							{ id: 'firstTrain', nameKey: 'siri.firstTrain', descKey: 'siri.firstTrain.desc', voiceKey: 'siri.firstTrain.voice' },
@@ -2721,11 +2862,15 @@ function titlePy(py) {
 						return l.indexOf(r) >= 0 || r.indexOf(l) >= 0;
 					},
 					openStations() { this.setTab('stations'); },
-					// City switch from the settings page (build 63): switchCity goes to
-					// the map tab, so come back to settings so the user sees the
-					// checkmark move. setTab posts tabChanged, so the native tab bar
-					// ends on 'more'.
-					switchCityKeepSettings(c) { this.switchCity(c); this.setTab('more'); },
+					// City switch from the settings page. Build 63 came
+					// back to settings afterwards (setTab('more')) so the
+					// user saw the checkmark move; 26E109 supersedes
+					// that (user: after switching city the app must land
+					// on the 换乘 tab, whichever tab the switch started
+					// from — settings included). switchCity itself now
+					// ends on the transfer tab, so this is just a plain
+					// switch; the name is kept for its existing callers.
+					switchCityKeepSettings(c) { this.switchCity(c); },
 					onCityRowTap(key) {
 						// Beijing row expands to its two map types instead
 						// of switching; other cities switch at once.
@@ -2965,7 +3110,18 @@ function titlePy(py) {
 						// no lat/lng and are skipped by the nearest search).
 						this.applyLatLng();
 						window._metroNeedFit = true;
-						this.setTab('map');
+						// Land on the 换乘 (transfer) tab after every
+						// city switch (26E109, user: the default page
+						// after switching city is 换乘， whichever tab
+						// was showing before — map/search/timetable/
+						// structure/settings). setTab posts tabChanged,
+						// so the native tab bar's selection moves with
+						// the web panel. Every switch entry point
+						// funnels through here (settings city rows,
+						// the native city menu, search history, launch
+						// restore), so this one line covers them all.
+						// Was setTab('map') until 26E108.
+						this.setTab('transfer');
 						// Persist the city (build 37): relaunch opens on this
 						// city and shows that city's splash. No splash flash
 						// here — switching cities must not show the launch page.
@@ -3145,6 +3301,7 @@ function titlePy(py) {
 							if (this.showGeneralSub) { this.showGeneralSub = false; return true; }
 							if (this.showBriefingSub) { this.showBriefingSub = false; return true; }
 							if (this.showAboutSub) { this.showAboutSub = false; return true; }
+							if (this.showProfileSub) { this.showProfileSub = false; return true; }
 							if (this.ttLine != null) { this.ttLine = null; this.ttQuery = ''; return true; }
 						} catch (e) {}
 						return false;
@@ -3165,6 +3322,7 @@ function titlePy(py) {
 								if (this.showWhatsNewSub) expT = (this.relSel >= 0) ? this.t('more.whatsnew.title') : this.t('more.whatsnew', {v: '1.1.0'});
 								else if (this.showSiriSub) expT = this.t('more.siri');
 								else if (this.showAboutSub) expT = this.t('more.about');
+							else if (this.showProfileSub) expT = this.t('profile.title');
 								else if (this.showGeneralSub) expT = this.t('more.general');
 								else if (this.showBriefingSub) expT = this.t('more.briefing');
 								else if (this.showUpcomingSub) expT = this.t('more.upcoming');
@@ -3172,7 +3330,7 @@ function titlePy(py) {
 								else if (this.showAppearanceSub) expT = this.t('more.appearance');
 								else if (this.showLangSub) expT = this.t('more.lang');
 							} catch (e) {}
-							var expStatic = !!(this.showAboutSub || this.showGeneralSub || this.showAppearanceSub || this.showLangSub);
+							var expStatic = !!(this.showAboutSub || this.showGeneralSub || this.showAppearanceSub || this.showLangSub || this.showProfileSub);
 							this.$nextTick(function() {
 								var msg = { open: true };
 								if (expStatic) msg.static = true;
@@ -4834,6 +4992,75 @@ function titlePy(py) {
 					aboutDouyin() { openDouyin(); },
 				aboutDouyin2() { openDouyin2(); },
 				aboutDouyin3() { openDouyin3(); },
+					// Local profile (26E109): purely on-device — no
+					// server, no email/password, nothing leaves the
+					// phone. The ID ('CT' + 10 digits) and the login
+					// date are minted at the first save and never
+					// change while logged in; logout wipes all four
+					// fields, so a later login mints a fresh ID/date.
+					fmtDate(iso) {
+						if (!iso) return '';
+						var d = new Date(iso);
+						if (isNaN(d.getTime())) return String(iso).slice(0, 10);
+						var mm = ('0' + (d.getMonth() + 1)).slice(-2), dd = ('0' + d.getDate()).slice(-2);
+						return d.getFullYear() + '-' + mm + '-' + dd;
+					},
+					genAppUid() { var s = 'CT'; for (var i = 0; i < 10; i++) s += Math.floor(Math.random() * 10); return s; },
+					openProfile() {
+						this.profileNameDraft = this.profile ? this.profile.name : '';
+						this.profileAvatarDraft = this.profile ? (this.profile.avatar || '') : '';
+						this.logoutArm = false;
+						this.showProfileSub = true;
+					},
+					pickAvatar() { var i = this.$refs.avatarInput; if (i) i.click(); },
+					onAvatarFile(e) {
+						var f = e.target && e.target.files && e.target.files[0];
+						if (!f) return;
+						var self = this;
+						var rd = new FileReader();
+						rd.onload = function() {
+							var img = new Image();
+							img.onload = function() {
+								var max = 256, w = img.width, h = img.height;
+								if (w > max || h > max) { var s = max / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+								var cv = document.createElement('canvas');
+								cv.width = w; cv.height = h;
+								var cx = cv.getContext('2d');
+								cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, w, h);
+								cx.drawImage(img, 0, 0, w, h);
+								try { self.profileAvatarDraft = cv.toDataURL('image/jpeg', 0.85); } catch (err) {}
+							};
+							img.src = rd.result;
+						};
+						rd.readAsDataURL(f);
+						e.target.value = '';
+					},
+					saveProfile() {
+						var name = (this.profileNameDraft || '').trim() || this.t('profile.defaultName');
+						var id = this.profile ? this.profile.id : '';
+						var since = this.profile ? this.profile.since : '';
+						if (!id) {
+							id = this.genAppUid();
+							since = this.fmtDate(new Date().toISOString());
+						}
+						this.profile = { name: name, avatar: this.profileAvatarDraft || '', id: id, since: since };
+						try { window.localStorage.setItem('metro-profile', JSON.stringify(this.profile)); } catch (err) {}
+						this.showProfileSub = false;
+					},
+					askLogout() {
+						if (!this.logoutArm) {
+							this.logoutArm = true;
+							var self = this;
+							setTimeout(function() { self.logoutArm = false; }, 3000);
+							return;
+						}
+						this.profile = null;
+						this.profileNameDraft = '';
+						this.profileAvatarDraft = '';
+						this.logoutArm = false;
+						try { window.localStorage.removeItem('metro-profile'); } catch (err) {}
+						this.showProfileSub = false;
+					},
 					// Row press highlight (26D100): remove every
 					// .pressing marker. Called by the touch failsafe,
 					// the anySubViewOpen watcher and visibilitychange,
@@ -4867,12 +5094,18 @@ function titlePy(py) {
 						});
 					},
 					anySubViewOpen() {
-						var settingsSub = this.showCitySub || this.showLangSub || this.showWhatsNewSub || this.showUpcomingSub || this.showAppearanceSub || this.showSiriSub || this.showTrainSub || this.showGeneralSub || this.showBriefingSub || this.showAboutSub;
+						var settingsSub = this.showCitySub || this.showLangSub || this.showWhatsNewSub || this.showUpcomingSub || this.showAppearanceSub || this.showSiriSub || this.showTrainSub || this.showGeneralSub || this.showBriefingSub || this.showAboutSub || this.showProfileSub;
 						if (this.tab === 'more' && settingsSub) return true;
 						if (this.tab === 'timetable' && this.ttLine != null) return true;
 						return false;
 					},
 					langDisplayName() { return this.lang === 'zh-Hant' ? this.t('more.lang.hant') : (this.lang === 'en' ? this.t('more.lang.en') : this.t('more.lang.hans')); },
+					// Local profile (26E109): avatar initial = first
+					// character of the nickname; the profile page shows
+					// the draft avatar (fresh pick or saved) if any.
+					profileInitial() { return (this.profile && this.profile.name) ? this.profile.name.charAt(0) : ''; },
+					profileDraftInitial() { var n = (this.profileNameDraft || '').trim() || (this.profile ? this.profile.name : ''); return n ? n.charAt(0) : ''; },
+					profileAvatarShown() { return this.profileAvatarDraft || (this.profile ? (this.profile.avatar || '') : ''); },
 					// Cities for the settings switcher (build 63). Jinhua ('jh'),
 					// Changzhou ('cz') and Chongqing ('cq') joined when their
 					// wiring landed.

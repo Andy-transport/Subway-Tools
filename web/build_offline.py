@@ -690,14 +690,24 @@ html = sub_once(r'/\*__SJZ_LATLNG__\*/\{\}', lambda _: sjz_ll, html, "sjz latlng
 # S8. inline the verified official metro logos for the not-yet-
 # supported cities (web/upcoming-logos/, see its MANIFEST.md): the
 # Settings "即将支持" rows show the real logo instead of the generic
-# grey M icon. Only visually verified files are listed; Tianjin is
-# held back (its Wikimedia source is named "Old Logo" — currency not
-# yet confirmed). Cities without a verified logo keep the M icon.
+# grey M icon. Only visually verified files are listed. Cities
+# without a verified logo keep the M icon. 26E109: 18 more cities
+# cut from the user's own logo-collage photo (same method as the
+# main line's collage pass: per-cell crop, white background
+# flood-filled to transparency, artwork untouched, no city-name
+# text) — including Tianjin, whose collage glyph is the same red
+# roundel as the previously held-back Wikimedia file.
 _SOON_LOGO_FILES = {
     "广州": "guangzhou.b64", "南京": "nanjing.b64", "西安": "xian.b64",
     "杭州": "hangzhou.b64", "长沙": "changsha.b64", "无锡": "wuxi.b64",
     "南昌": "nanchang.b64", "福州": "fuzhou.b64", "南宁": "nanning.b64",
     "温州": "wenzhou.b64", "济南": "jinan.b64", "徐州": "xuzhou.b64",
+    "天津": "tianjin.b64", "太原": "taiyuan.b64", "呼和浩特": "huhehaote.b64",
+    "苏州": "suzhou.b64", "南通": "nantong.b64", "宁波": "ningbo.b64",
+    "绍兴": "shaoxing.b64", "合肥": "hefei.b64", "厦门": "xiamen.b64",
+    "郑州": "zhengzhou.b64", "洛阳": "luoyang.b64", "武汉": "wuhan.b64",
+    "佛山": "foshan.b64", "东莞": "dongguan.b64", "贵阳": "guiyang.b64",
+    "昆明": "kunming.b64", "兰州": "lanzhou.b64", "乌鲁木齐": "wulumuqi.b64",
 }
 _soon_logos = {}
 for _name, _fn in _SOON_LOGO_FILES.items():
