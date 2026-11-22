@@ -160,6 +160,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // (Liquid Glass on iOS 26+) overlaid on the web panel's tab row.
     var sortTabs: UISegmentedControl!
     let sortTabKeys = ["rec", "early", "fewest", "cheap"]
+    // Native structure-detail chrome (test/structure, 26E107): a
+    // UISegmentedControl for 空间结构/平面示意 plus glass 搜索/退出
+    // buttons, overlaid on the web detail header from "structFrame"
+    // reports — same overlay pattern as sortTabs. Test builds only:
+    // the web panel itself is unreachable in release builds.
+    var structSeg: UISegmentedControl!
+    var structSearchButton: UIButton!
+    var structExitButton: UIButton!
+    let structKindKeys = ["spatial", "plan"]
     // Native Apple UI Liquid Glass dark-mode picker (build 44, 3 glass
     // buttons since build 52): 3 separate glass buttons
     // (跟随系统/浅色/深色) overlaid on the settings panel's
@@ -257,6 +266,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if isTestBuild { im.append(UIImage(systemName: "cube")) }
         im.append(UIImage(systemName: "gearshape"))
         return im
+    }
+    // Tab-bar glyph sizing (test/structure, user 2026-11-22): with
+    // 6 tabs the default glyphs crowd each other, so the TAB BAR
+    // items render one notch smaller — symbols at 21pt, the
+    // timetable PNG scaled to the same 21pt height (drawn at 3x so
+    // it stays crisp). This is applied only where the tab bar items
+    // are created; tabImages() itself is shared with the Duo
+    // sidebar, which keeps its own sizing and is NOT touched here.
+    func tabBarItemImage(_ image: UIImage?) -> UIImage? {
+        guard let image = image else { return nil }
+        if image.isSymbolImage {
+            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: 21, weight: .regular))
+        }
+        let targetHeight: CGFloat = 21
+        guard image.size.height > 0, abs(image.size.height - targetHeight) > 0.5 else { return image }
+        let newSize = CGSize(width: image.size.width * targetHeight / image.size.height, height: targetHeight)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+        return renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: newSize)) }
     }
     // Siri / deep-link routing (user 2026-11-18, Siri Shortcuts): a
     // subwaymotion:// link that arrives before the offline page has
@@ -368,6 +397,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "tab.stations": ["搜索", "搜索", "Search"],
         "tab.timetable": ["时刻表", "時刻表", "Timetable"],
         "tab.structure": ["结构", "結構", "Structure"],
+        "struct.spatial": ["空间结构", "空間結構", "Spatial Layout"],
+        "struct.plan": ["平面示意", "平面示意", "Plan Diagram"],
+        "struct.exit": ["退出", "退出", "Exit"],
         "tab.more": ["设置", "設定", "Settings"],
         "city.bj": ["北京", "北京", "Beijing"],
         "city.sy": ["沈阳", "瀋陽", "Shenyang"],
@@ -510,6 +542,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             sortTabs.setTitle(L("tr.tab.fewest"), forSegmentAt: 2)
             sortTabs.setTitle(L("tr.tab.cheap"), forSegmentAt: 3)
         }
+        refreshStructChromeTitles()
         let themeTitles = [L("more.theme.system"), L("more.theme.light"), L("more.theme.dark")]
         for (i, btn) in themeButtons.enumerated() where i < themeTitles.count {
             var cfg = btn.configuration ?? themeButtonConfig()
@@ -544,6 +577,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "tabChanged")
         config.userContentController.add(self, name: "cityMenu")
         config.userContentController.add(self, name: "tabsFrame")
+        config.userContentController.add(self, name: "structFrame")
         config.userContentController.add(self, name: "transferFrame")
         config.userContentController.add(self, name: "themeFrame")
         config.userContentController.add(self, name: "switchFrame")
@@ -598,7 +632,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let _images = tabImages()
         var items: [UITabBarItem] = []
         for i in 0..<tabKeys.count {
-            items.append(UITabBarItem(title: _titles[i], image: _images[i], tag: i))
+            items.append(UITabBarItem(title: _titles[i], image: tabBarItemImage(_images[i]), tag: i))
         }
         tabBar.items = items
         tabBar.selectedItem = items[1] // default tab is the map, same as the web page
@@ -628,6 +662,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             appearance.shadowColor = .clear
             appearance.stackedLayoutAppearance.normal.iconColor = .secondaryLabel
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.secondaryLabel]
+            // Roomier 6-tab layout (test/structure, user 2026-11-22,
+            // aligned to the user's reference shot — near-full-width
+            // capsule, six items spread evenly): pin the title font
+            // at 10pt in both states on every layout appearance, so
+            // the labels keep even breathing room instead of the
+            // larger system default. Selected keeps the city accent
+            // colour (no foreground override, tint still drives it).
+            let tabTitleFont = UIFont.systemFont(ofSize: 10)
+            let tabTitleFontSelected = UIFont.systemFont(ofSize: 10, weight: .medium)
+            for layout in [appearance.stackedLayoutAppearance, appearance.inlineLayoutAppearance, appearance.compactInlineLayoutAppearance] {
+                layout.normal.titleTextAttributes[.font] = tabTitleFont
+                layout.selected.titleTextAttributes = [.font: tabTitleFontSelected]
+            }
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
         }
@@ -641,9 +688,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // The web view is full-screen, so there is no white strip
         // behind the bar.
         let isPadBar = UIDevice.current.userInterfaceIdiom == .pad
+        // Side insets (test/structure, user 2026-11-22 "底栏不要那么
+        // 拥挤", reference shot is a near-full-width capsule): iPhone
+        // insets go 16 -> 8pt so the capsule nearly spans the screen
+        // and the six items spread evenly with clear gaps. iPad keeps
+        // 16pt — its bar floats at the top as a compact capsule and
+        // the wider inset is part of that look; not changed.
+        let barSideInset: CGFloat = isPadBar ? 16 : 8
         var barConstraints = [
-            tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: barSideInset),
+            tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -barSideInset),
         ]
         if isPadBar {
             barConstraints.append(tabBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10))
@@ -858,6 +912,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             self?.splashFinished()
         }
         setupSortTabs()
+        setupStructChrome()
         setupThemeButtons()
         setupNearbySmartSwitch()
         setupTransferControls()
@@ -1737,6 +1792,127 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             sortTabs.isHidden = true
         }
+    }
+
+    // MARK: - Native structure-detail chrome (test/structure, 26E107)
+
+    // The structure detail's 空间结构/平面示意 switch is a native
+    // UISegmentedControl (Liquid Glass on iOS 26+), and its header
+    // carries two native glass capsule buttons — 搜索 (magnifyingglass,
+    // back to the search list + focus the input) and 退出 (xmark, back
+    // to the search list). Same overlay pattern as sortTabs: the web
+    // keeps invisible placeholders (.struct-seg / .struct-actions),
+    // reports their frames via "structFrame", and the native controls
+    // sit exactly on top. Both segments stay enabled even when that
+    // kind has no diagram — the web then shows its 正在整理 placeholder,
+    // which keeps the control's behaviour predictable.
+    func setupStructChrome() {
+        structSeg = UISegmentedControl(items: [L("struct.spatial"), L("struct.plan")])
+        structSeg.selectedSegmentIndex = 0
+        structSeg.translatesAutoresizingMaskIntoConstraints = true
+        structSeg.isHidden = true
+        structSeg.addTarget(self, action: #selector(structSegChanged(_:)), for: .valueChanged)
+        let attrs: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 14, weight: .semibold)]
+        structSeg.setTitleTextAttributes(attrs, for: .normal)
+        structSeg.setTitleTextAttributes(attrs, for: .selected)
+        view.addSubview(structSeg)
+        structSearchButton = UIButton(configuration: structButtonConfig(title: L("tab.stations"), symbol: "magnifyingglass"))
+        structSearchButton.translatesAutoresizingMaskIntoConstraints = true
+        structSearchButton.isHidden = true
+        structSearchButton.addTarget(self, action: #selector(structSearchTapped), for: .touchUpInside)
+        view.addSubview(structSearchButton)
+        structExitButton = UIButton(configuration: structButtonConfig(title: L("struct.exit"), symbol: "xmark"))
+        structExitButton.translatesAutoresizingMaskIntoConstraints = true
+        structExitButton.isHidden = true
+        structExitButton.addTarget(self, action: #selector(structExitTapped), for: .touchUpInside)
+        view.addSubview(structExitButton)
+    }
+
+    // Glass capsule button config for the structure header buttons:
+    // same Liquid Glass pattern as themeButtonConfig — the .glass()
+    // call stays inside the #available check (iOS 16 target).
+    func structButtonConfig(title: String, symbol: String) -> UIButton.Configuration {
+        var cfg: UIButton.Configuration
+        if #available(iOS 26.0, *) {
+            cfg = UIButton.Configuration.glass()
+        } else {
+            cfg = UIButton.Configuration.filled()
+        }
+        cfg.title = title
+        cfg.image = UIImage(systemName: symbol)
+        cfg.imagePadding = 4
+        cfg.cornerStyle = .capsule
+        cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+            var a = attrs
+            a.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+            return a
+        }
+        return cfg
+    }
+
+    func refreshStructChromeTitles() {
+        if structSeg != nil {
+            structSeg.setTitle(L("struct.spatial"), forSegmentAt: 0)
+            structSeg.setTitle(L("struct.plan"), forSegmentAt: 1)
+        }
+        if structSearchButton != nil {
+            structSearchButton.configuration = structButtonConfig(title: L("tab.stations"), symbol: "magnifyingglass")
+        }
+        if structExitButton != nil {
+            structExitButton.configuration = structButtonConfig(title: L("struct.exit"), symbol: "xmark")
+        }
+    }
+
+    func hideStructChrome() {
+        if structSeg != nil { structSeg.isHidden = true }
+        if structSearchButton != nil { structSearchButton.isHidden = true }
+        if structExitButton != nil { structExitButton.isHidden = true }
+    }
+
+    // Place the native structure chrome over the web detail's reported
+    // frames. Zero-size rects (list state, other tabs, release builds)
+    // hide all three controls.
+    func placeStructChrome(frame dict: [String: Any]) {
+        guard structSeg != nil else { return }
+        let seg = dict["seg"] as? [String: Any] ?? [:]
+        let act = dict["actions"] as? [String: Any] ?? [:]
+        let sw = (seg["width"] as? Double) ?? 0
+        let sh = (seg["height"] as? Double) ?? 0
+        let aw = (act["width"] as? Double) ?? 0
+        let ah = (act["height"] as? Double) ?? 0
+        if sw > 0 && sh > 0 && aw > 0 && ah > 0 && currentTab == "structure" && isTestBuild {
+            structSeg.frame = CGRect(x: ((seg["x"] as? Double) ?? 0) + webOffset.x,
+                                     y: ((seg["y"] as? Double) ?? 0) + webOffset.y,
+                                     width: sw, height: sh)
+            structSeg.isHidden = false
+            if let kind = dict["kind"] as? String, let idx = structKindKeys.firstIndex(of: kind) {
+                structSeg.selectedSegmentIndex = idx
+            }
+            let ax = ((act["x"] as? Double) ?? 0) + webOffset.x
+            let ay = ((act["y"] as? Double) ?? 0) + webOffset.y
+            let gap: CGFloat = 8
+            let searchW = (aw - gap) * 0.55
+            structSearchButton.frame = CGRect(x: ax, y: ay, width: searchW, height: ah)
+            structExitButton.frame = CGRect(x: ax + searchW + gap, y: ay, width: aw - searchW - gap, height: ah)
+            structSearchButton.isHidden = false
+            structExitButton.isHidden = false
+        } else {
+            hideStructChrome()
+        }
+    }
+
+    @objc func structSegChanged(_ sender: UISegmentedControl) {
+        let idx = sender.selectedSegmentIndex
+        guard idx >= 0 && idx < structKindKeys.count else { return }
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setStructKind('\(structKindKeys[idx])')", completionHandler: nil)
+    }
+
+    @objc func structSearchTapped() {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.structSearch()", completionHandler: nil)
+    }
+
+    @objc func structExitTapped() {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.structExit()", completionHandler: nil)
     }
 
     // MARK: - Native Apple UI dark-mode picker (build 44, 3 glass buttons since build 52)
@@ -2881,6 +3057,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         updateTransferVisibility()
         updateSideBarSelection()
         if key != "transfer" { sortTabs.isHidden = true }
+        if key != "structure" { hideStructChrome() }
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
     }
 
@@ -3340,6 +3517,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "tabsFrame",
                   let dict = message.body as? [String: Any] {
             placeSortTabs(frame: dict)
+        } else if message.name == "structFrame",
+                  let dict = message.body as? [String: Any] {
+            placeStructChrome(frame: dict)
         } else if message.name == "transferFrame",
                   let dict = message.body as? [String: Any] {
             placeTransfer(frame: dict)

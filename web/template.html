@@ -674,6 +674,13 @@
 		}
 		html.dark #structurePanel { background: #101420; }
 		.struct-seg { display: flex; background: rgba(120, 120, 128, 0.16); border-radius: 10px; padding: 2px; margin: 10px 12px 4px; flex: none; }
+		/* Native chrome (26E107): in the app a native UISegmentedControl
+		   overlays .struct-seg (frame reported via structFrame) and two
+		   native glass buttons overlay .struct-actions — the web
+		   controls stay laid out (no jump) but invisible. */
+		.struct-actions { margin-left: auto; width: 148px; height: 34px; flex: none; }
+		.native-app .struct-seg { background: transparent; }
+		.native-app .struct-seg button { visibility: hidden; }
 		.struct-seg button { flex: 1; border: none; background: transparent; padding: 7px 0; font-size: 14px; font-weight: 600; color: #333; border-radius: 8px; cursor: pointer; font-family: inherit; }
 		.struct-seg button.on { background: #ffffff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18); color: #000; }
 		html.dark .struct-seg button { color: #ddd; }
@@ -1457,6 +1464,7 @@
 					<div class="tt-title">
 						<button class="tt-back" @click="structStation=null"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
 						<span class="tt-count" style="font-size:17px;font-weight:700">{{ stNameStr(structStation.n) }}</span>
+						<div class="struct-actions"></div>
 					</div>
 					<div class="struct-seg">
 						<button :class="{ on: structKind==='spatial' }" @click="setStructKind('spatial')">{{ t('struct.spatial') }}</button>
@@ -1466,7 +1474,7 @@
 						<img :src="structImg" :style="structImgStyle" draggable="false" @pointerdown="structPointerDown" @pointermove="structPointerMove" @pointerup="structPointerUp" @pointercancel="structPointerUp" @wheel.prevent="structWheel">
 					</div>
 					<div class="struct-pending" v-else>{{ structKind==='spatial' ? t('struct.pendingSpatial') : t('struct.pendingPlan') }}</div>
-					<div class="struct-src" v-if="structImg && structSource">{{ t('struct.source') }}: {{ structSource }}</div>
+					<div class="struct-src" v-if="structImg && structSource">{{ t('struct.source') }}: {{ structSourceLabel }}</div>
 				</template>
 			</div>
 
@@ -1593,7 +1601,7 @@
 					<img class="more-appicon" :src="appIconNow" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E106)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E107)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
@@ -1807,7 +1815,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E106)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E107)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -1855,6 +1863,7 @@ var I18N = {
   'struct.pendingPlan': ['该站平面示意图正在整理', '該站平面示意圖正在整理', 'The plan diagram for this station is being prepared'],
   'struct.pendingShort': ['正在整理', '正在整理', 'In preparation'],
   'struct.source': ['来源', '來源', 'Source'],
+  'struct.src.userphoto': ['用户提供照片', '用戶提供照片', 'Photo provided by the user'],
   'tab.more': ['设置', '設置', 'Settings'],
   'search.ph': ['车站、拼音或首字母', '車站、拼音或首字母', 'Station, pinyin or initials'],
   'search.cancel': ['取消', '取消', 'Cancel'],
@@ -2522,6 +2531,10 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E107)', date: '2026-11-22', lines: [
+								['1.1.0 测试版：底栏间距优化 — 胶囊加宽、六个栏目分布更均匀，不再拥挤', '1.1.0 測試版：底欄間距優化 — 膠囊加寬、六個欄目分佈更均勻，不再擁擠', '1.1.0 test build: roomier tab bar — wider capsule, six tabs spread evenly'],
+								['结构详情页：空间/平面切换改为原生分段控件，并新增原生「搜索 / 退出」按钮；结构图来源标注改用来源名称显示', '結構詳情頁：空間/平面切換改為原生分段控件，並新增原生「搜索 / 退出」按鈕；結構圖來源標註改用來源名稱顯示', 'Structure detail: native segmented control for Spatial/Plan, new native Search / Exit buttons, and source labels now show source names'],
+							] },
 							{ v: '1.1.0 (26E106)', date: '2026-11-22', lines: [
 								['1.1.0 测试版：新增『结构』栏目 — 搜车站看空间结构图与平面示意图（首批 90 站）', '1.1.0 測試版：新增『結構』欄目 — 搜車站看空間結構圖與平面示意圖（首批 90 站）', '1.1.0 test build: new Structure tab — search a station to view its spatial structure diagram and plan diagram (first batch: 90 stations)'],
 							] },
@@ -2970,6 +2983,42 @@ function titlePy(py) {
 					setStructKind(k) {
 						this.structKind = k;
 						this.resetStructView();
+					},
+					// Native chrome entry points (26E107): the native
+					// 搜索 / 退出 buttons in the detail header call these.
+					structExit() {
+						this.structStation = null;
+					},
+					structSearch() {
+						this.structStation = null;
+						var self = this;
+						this.$nextTick(function() {
+							var i = self.$refs.structInput;
+							if (i && i.focus) i.focus();
+						});
+					},
+					// Native app (26E107): report the structure detail's
+					// seg row + header-actions frames so the native shell
+					// can overlay its UISegmentedControl and the glass
+					// 搜索/退出 buttons (same pattern as reportTabsFrame).
+					// Zero-size rects hide the native chrome (list state,
+					// other tabs). Also carries the current kind so the
+					// native control's selection stays in sync.
+					reportStructFrame() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.structFrame;
+						if (!h) return;
+						var zero = { seg: { x: 0, y: 0, width: 0, height: 0 }, actions: { x: 0, y: 0, width: 0, height: 0 }, kind: this.structKind };
+						if (!this.showStructure || !this.structStation) { h.postMessage(zero); return; }
+						var seg = document.querySelector('#structurePanel .struct-seg');
+						var act = document.querySelector('#structurePanel .struct-actions');
+						if (!seg || !act) { h.postMessage(zero); return; }
+						var r1 = seg.getBoundingClientRect();
+						var r2 = act.getBoundingClientRect();
+						h.postMessage({
+							seg: { x: r1.left, y: r1.top, width: r1.width, height: r1.height },
+							actions: { x: r2.left, y: r2.top, width: r2.width, height: r2.height },
+							kind: this.structKind
+						});
 					},
 					resetStructView() { this.structView = { s: 1, x: 0, y: 0 }; this._structPtrs = {}; },
 					structPointerDown(e) {
@@ -4864,6 +4913,27 @@ function titlePy(py) {
 						if (!e || !e.sources) return '';
 						return e.sources[this.structKind] || '';
 					},
+					// Display-only mapping (user 2026-11-22: the raw
+					// string "user-photo" / a bare CDN URL must never
+					// reach the screen). Index data is unchanged.
+					structSourceLabel() {
+						var s = this.structSource;
+						if (!s) return '';
+						if (s === 'user-photo') return this.t('struct.src.userphoto');
+						var host = '';
+						try { host = new URL(s).hostname; } catch (e) { return s; }
+						var names = {
+							'service.shmetro.com': '上海地铁官网',
+							'cdnwww.mtr.bj.cn': '京港地铁官网',
+							'zrzyj.shenyang.gov.cn': '沈阳市自然资源局公示',
+							'static.wikia.nocookie.net': '深圳交通百科',
+							'www.jhmtr.net': '金华轨道交通官网',
+							'imgcdn.scol.com.cn': '四川在线',
+							'imgbdb3.bendibao.com': '本地宝',
+							'imgbdb4.bendibao.com': '本地宝'
+						};
+						return names[host] || host;
+					},
 					structImgStyle() {
 						var v = this.structView;
 						return { transform: 'translate(-50%, -50%) translate(' + v.x + 'px, ' + v.y + 'px) scale(' + v.s + ')' };
@@ -4982,9 +5052,9 @@ function titlePy(py) {
 					}
 					if (this.nativeApp) {
 						var self = this;
-						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); });
+						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); });
 						clearTimeout(window._metroTabsTimer);
-						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); }, 300);
+						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); }, 300);
 					}
 				},
 				mounted: function() {
@@ -5380,6 +5450,7 @@ function titlePy(py) {
 				_metroResizeTimer = setTimeout(function () {
 					if (panzoom) panzoom.resize();
 					if (window.metroApp && window.metroApp.reportTabsFrame) window.metroApp.reportTabsFrame();
+					if (window.metroApp && window.metroApp.reportStructFrame) window.metroApp.reportStructFrame();
 				}, 120);
 			});
 
