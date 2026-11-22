@@ -7,22 +7,28 @@ Logos are official Wikimedia files used as-is (API thumbnails, `iiurlwidth=480`;
 no redrawing or alteration). Every saved logo was visually verified against the
 downloaded image before being copied here.
 
-**Status of this run (2026-11-22, third pass):** STOPPED EARLY — HTTP 429 again.
-The API (commons.wikimedia.org / zh.wikipedia.org) answered normally and all 8
-previously located candidates were CONFIRMED present as zh.wikipedia local
-files (exact URLs now recorded below). But the first image download from
-upload.wikimedia.org returned **HTTP 429**, so per the hard rate-limit rule all
-Wikimedia requests were stopped immediately — no retries, no endpoint
-switching. Nothing was downloaded or visually verified in this pass, and the
-24 unsearched cities were not searched. 天津's logo currency is still
-unconfirmed. A later pass (after the rate limit clears) can go straight to
-downloading the 8 confirmed files below.
+**Status of this run (2026-11-22, fourth pass):** WIKIMEDIA STILL BLOCKED —
+the single probe download (郑州, from the banked URL below) returned
+**HTTP 429** again, so per the hard rate-limit rule all Wikimedia downloads
+were stopped immediately — no retries, no endpoint switching. The 8 banked
+cities below are still NOT downloaded, and the 24 unsearched cities were
+still not searched (any logo found on Commons could not be downloaded or
+visually verified anyway). One addition WAS possible without Wikimedia:
+天津 (see its row — added at the user's explicit "都加上" request, with a
+currency verdict of CONTRADICTED recorded there).
+
+**Third pass (2026-11-22, earlier):** the API (commons.wikimedia.org /
+zh.wikipedia.org) answered normally and all 8 previously located candidates
+were CONFIRMED present as zh.wikipedia local files (exact URLs recorded
+below), but the first image download from upload.wikimedia.org returned
+HTTP 429 and everything stopped. A later pass (after the rate limit clears)
+can go straight to downloading the 8 confirmed files below.
 
 ## Saved & verified (13)
 
 | City | File | Wikimedia source file |
 |---|---|---|
-| 天津 Tianjin | `tianjin.png` | File:Tianjin Metro Old Logo.svg — ⚠️ source file is named "Old Logo"; it is the red Tianjin Metro roundel shown in the 天津地铁 article, but whether it is the *current* logo could not be re-checked (rate limit). Parent: confirm before shipping. |
+| 天津 Tianjin | `tianjin.png` | File:Tianjin Metro Old Logo.svg — ⚠️ **CURRENCY VERDICT (fourth pass, 2026-11-22): CONTRADICTED.** This red T+M roundel is the *early/old* Tianjin Metro mark, not the current one: (1) the current zh.wikipedia 天津地铁 article (crawled 2026-11-10) uses File:TianjinMetro.svg as its infobox 天津地铁标志 and shows this file in its history section captioned 天津地铁早期标志 ("early logo"); (2) the official 天津轨道交通集团 site (www.tjgdjt.com, crawled 2026-11-22) brands itself with a blue "TRT 天津轨道交通 / TIANJIN RAIL TRANSIT" lockup (its images/logo.png), not this roundel. The current TianjinMetro.svg could not be downloaded for comparison (upload.wikimedia.org HTTP 429). Included anyway at the user's explicit "都加上" instruction (2026-11-22); the parent/user may want to pull it or swap it once the current mark can be fetched. |
 | 广州 Guangzhou | `guangzhou.png` | File:Guangzhou Metro logo.svg |
 | 南京 Nanjing | `nanjing.png` | File:Nanjing Metro Logo.svg |
 | 西安 Xi'an | `xian.png` | File:Xi'an Metro Logo.png |

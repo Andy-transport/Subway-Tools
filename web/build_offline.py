@@ -653,14 +653,18 @@ html = sub_once(r'/\*__SJZ_LATLNG__\*/\{\}', lambda _: sjz_ll, html, "sjz latlng
 # S8. inline the verified official metro logos for the not-yet-
 # supported cities (web/upcoming-logos/, see its MANIFEST.md): the
 # Settings "即将支持" rows show the real logo instead of the generic
-# grey M icon. Only visually verified files are listed; Tianjin is
-# held back (its Wikimedia source is named "Old Logo" — currency not
-# yet confirmed). Cities without a verified logo keep the M icon.
+# grey M icon. Only visually verified files are listed. Tianjin is
+# included at the user's explicit request ("都加上", 2026-11-22)
+# even though its Wikimedia source is the "Old Logo" file and the
+# currency check contradicted it being the current mark — see
+# MANIFEST.md for the verdict. Cities without a verified logo keep
+# the M icon.
 _SOON_LOGO_FILES = {
     "广州": "guangzhou.b64", "南京": "nanjing.b64", "西安": "xian.b64",
     "杭州": "hangzhou.b64", "长沙": "changsha.b64", "无锡": "wuxi.b64",
     "南昌": "nanchang.b64", "福州": "fuzhou.b64", "南宁": "nanning.b64",
     "温州": "wenzhou.b64", "济南": "jinan.b64", "徐州": "xuzhou.b64",
+    "天津": "tianjin.b64",
 }
 _soon_logos = {}
 for _name, _fn in _SOON_LOGO_FILES.items():
