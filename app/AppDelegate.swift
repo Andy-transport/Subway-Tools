@@ -892,8 +892,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // subview on top of the bar's own glass, so the glass showed
         // TWICE (user 2026-11-15 "为啥有玻璃重复"). Do NOT add a glass
         // view here.
-        tabBar.layer.cornerRadius = 25
-        tabBar.layer.masksToBounds = true
+        // 26E119: the corner clip is iPad-only now. On iPhone the
+        // system's own background draws the capsule with its own
+        // fully rounded ends (the reference bar's look); the manual
+        // 25pt clip dates from the custom-appearance era and can
+        // only flatten the system's own rounding. The iPad top
+        // capsule still gets its rounded shape from this clip (its
+        // appearance is a transparent material over the bar bounds).
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            tabBar.layer.cornerRadius = 25
+            tabBar.layer.masksToBounds = true
+        }
         tabBar.isTranslucent = true
         if #available(iOS 26.0, *) {
             // Light-mode fix (user 2026-11-18, iPad branch only since
@@ -968,7 +977,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and the items spread evenly with clear gaps. iPad keeps
         // 16pt — its bar floats at the top as a compact capsule and
         // the wider inset is part of that look; not changed.
-        let barSideInset: CGFloat = isPadBar ? 16 : 8
+        // 26E119 (user: match the reference bar's margins): measured
+        // on the 26E117 device shot, the VISIBLE capsule sits ~24pt
+        // in from the screen edges — the 8pt frame inset plus ~16pt
+        // the system background keeps inside a standalone UITabBar
+        // frame (no public API moves that inner inset). The
+        // reference bar's visible inset measures ~17pt, so the
+        // frame now spans the full width (inset 0) and the visible
+        // capsule is expected at ~16pt, within ~1pt of the
+        // reference. iPad unchanged.
+        let barSideInset: CGFloat = isPadBar ? 16 : 0
         var barConstraints = [
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: barSideInset),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -barSideInset),
@@ -989,7 +1007,22 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // snug above the home indicator like Apple's own floating
             // bars. iPhone portrait only — the iPad top bar and the
             // Duo sidebar are separate layouts, untouched.
-            barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10))
+            // Lowered to the reference (26E119, user: match the
+            // reference bar's margins/height): the -10 above was the
+            // FRAME's bottom edge, but the visible capsule does not
+            // reach it — measured on the 26E117 device shot, the
+            // capsule's bottom edge sits ~21pt above the frame's
+            // bottom edge inside a standalone UITabBar (frame bottom
+            // -10 -> capsule bottom 31pt above the screen bottom),
+            // which is why the bar still floated high. The frame now
+            // extends 8pt PAST the screen bottom (+8), so the
+            // capsule is expected to land ~13pt above the screen
+            // bottom, floating just over the home indicator like the
+            // reference. The off-screen frame strip draws nothing —
+            // the system background lives in the capsule region —
+            // and reportBarFrame derives the web clearance from the
+            // real frame, so page clearances follow automatically.
+            barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 8))
             // 26E115: on iPhone THIS UITabBar is the visible bottom
             // bar again — the system bar with its own Liquid Glass
             // and sliding selection capsule (see the appearance
