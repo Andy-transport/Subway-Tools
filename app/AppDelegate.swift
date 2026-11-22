@@ -369,6 +369,36 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // shifted/scaled so the padded glyph box fills a 26pt-tall
     // canvas, aligning the glyph's height with the symbols.
     // Render-time only — the source asset is untouched.
+    // (26E118: that alignment assumption was wrong — the raw
+    // symbols' glyphs are ~29pt at pointSize 24, not 24. The
+    // symbols are normalized by their glyph boxes too now; see
+    // the 26E118 note inside tabBarItemImage.)
+    // 26E118 (user, on the 26E116 device shot): the four symbols
+    // still read BIGGER than the timetable — "四大一小". Measured
+    // on the user's own screenshot of the running bar (glyph alpha
+    // heights, fringe-thresholded, @3x px): transfer 89, map 86,
+    // search 88, settings 90 vs timetable 66. The symbols were
+    // handed to the bar as raw pointSize-24-bold symbol images,
+    // whose glyphs fill ~0.94 of a ~31pt-tall canvas (~29pt glyph);
+    // the PNG is placed by its padded glyph box on a 24pt canvas,
+    // so its TRUE glyph is only 24 x 0.9178 = 22.0pt (the @3x asset
+    // measures x 5-69 / y 13-65 on 75x75 = fractions 0.8667 x
+    // 0.7067; the padded box below is 0.92 x 0.77, so the true
+    // glyph occupies 0.8667/0.92 = 0.9420 of the canvas width and
+    // 0.7067/0.77 = 0.9178 of the canvas height — and 66px on the
+    // device shot is 22.0pt, confirming the model end to end).
+    // Fix: the symbols now go through the SAME glyph-box
+    // normalization as the PNG. Each symbol's alpha bbox is
+    // measured at render time (symbolGlyphFractions), padded by
+    // the timetable's own ratios (glyph = 0.9420 of the padded
+    // width, 0.9178 of the padded height, centred), and the padded
+    // box is mapped onto a canvas of height `size` — so all five
+    // tabs end with a true glyph 22.0pt tall occupying identical
+    // fractions of their canvases. Render-time only, exactly like
+    // the PNG path; no artwork is redrawn, the symbol is only
+    // scaled/translated into its canvas. One image per tab is
+    // enough: the bar tints the same image for the normal and
+    // selected states (no separate selected set exists).
     func tabBarItemImage(_ image: UIImage?, size: CGFloat = 24) -> UIImage? {
         guard let image = image else { return nil }
         if image.isSymbolImage {
@@ -376,7 +406,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // stroke-based glyphs (transfer arrows, magnifier) have
             // no .fill variant and only read as solid at bold
             // weight; the .fill variants stay filled at any weight.
-            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: size, weight: .bold))
+            let configured = image.withConfiguration(UIImage.SymbolConfiguration(pointSize: size, weight: .bold))
+            return glyphNormalizedSymbolImage(configured, size: size) ?? configured
         }
         guard image.size.width > 0, image.size.height > 0 else { return image }
         // Glyph box as fractions of the image size (measured alpha
@@ -396,6 +427,79 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         format.scale = 3
         let renderer = UIGraphicsImageRenderer(size: canvas, format: format)
         return renderer.image { _ in image.draw(in: drawRect) }
+    }
+    // 26E118: the timetable glyph's share of its finished canvas
+    // (measured on the bundled @3x asset vs the padded box the PNG
+    // branch renders by — see tabBarItemImage). The symbol
+    // normalization pads each symbol's measured glyph box by these
+    // same ratios, so every tab's glyph lands at the same size and
+    // the same canvas fractions as the timetable's.
+    static let tabGlyphWidthShare: CGFloat = 0.9420  // 0.8667 / 0.92
+    static let tabGlyphHeightShare: CGFloat = 0.9178 // 0.7067 / 0.77
+    // Alpha bbox of a rendered image as fractions of its pixel
+    // size, in top-left (UIKit) coordinates. Same fringe threshold
+    // as the offline timetable measurement (alpha > 32 past the
+    // resampling fringe). Nil when the image has no drawable
+    // CGImage or no pixel passes the threshold.
+    func symbolGlyphFractions(_ image: UIImage) -> CGRect? {
+        guard let cg = image.cgImage else { return nil }
+        let w = cg.width, h = cg.height
+        guard w > 0, h > 0 else { return nil }
+        guard let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                  space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue),
+              let data = ctx.data else { return nil }
+        ctx.clear(CGRect(x: 0, y: 0, width: w, height: h))
+        ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+        let px = data.bindMemory(to: UInt8.self, capacity: w * h * 4)
+        var minX = w, maxX = -1, minRow = h, maxRow = -1
+        for row in 0..<h {
+            for x in 0..<w where px[(row * w + x) * 4 + 3] > 32 {
+                if x < minX { minX = x }
+                if x > maxX { maxX = x }
+                if row < minRow { minRow = row }
+                if row > maxRow { maxRow = row }
+            }
+        }
+        guard maxX >= minX, maxRow >= minRow else { return nil }
+        // Bitmap-context memory rows run bottom-up (Quartz space);
+        // convert the row extent to top-left fractions. The x extent
+        // is unaffected.
+        let topRow = h - 1 - maxRow
+        return CGRect(x: CGFloat(minX) / CGFloat(w),
+                      y: CGFloat(topRow) / CGFloat(h),
+                      width: CGFloat(maxX - minX + 1) / CGFloat(w),
+                      height: CGFloat(maxRow - minRow + 1) / CGFloat(h))
+    }
+    // 26E118: render a configured symbol the way the PNG branch
+    // renders the timetable — by its glyph box. The measured glyph
+    // box is padded around its centre by the timetable's shares
+    // (above), then the padded box is mapped onto a canvas of
+    // height `size`, so the finished glyph is `size` x 0.9178 tall
+    // (= 22.0pt at the default 24), the timetable's exact size.
+    // Falls back to nil (caller uses the raw configured symbol) if
+    // the glyph cannot be measured.
+    func glyphNormalizedSymbolImage(_ image: UIImage, size: CGFloat) -> UIImage? {
+        guard let glyph = symbolGlyphFractions(image),
+              image.size.width > 0, image.size.height > 0 else { return nil }
+        let padW = glyph.width / Self.tabGlyphWidthShare
+        let padH = glyph.height / Self.tabGlyphHeightShare
+        let padded = CGRect(x: glyph.midX - padW / 2, y: glyph.midY - padH / 2, width: padW, height: padH)
+        let canvas = CGSize(width: size * (padded.width / padded.height) * (image.size.width / image.size.height),
+                            height: size)
+        let scale = size / (image.size.height * padded.height)
+        let drawRect = CGRect(x: -padded.minX * image.size.width * scale,
+                              y: -padded.minY * image.size.height * scale,
+                              width: image.size.width * scale,
+                              height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let renderer = UIGraphicsImageRenderer(size: canvas, format: format)
+        let rendered = renderer.image { _ in image.draw(in: drawRect) }
+        // Keep the symbol's template behaviour in the bar (the raw
+        // symbol was a template image; the rendered copy must tint
+        // the same way for the normal and selected states).
+        return rendered.withRenderingMode(.alwaysTemplate)
     }
     // Siri / deep-link routing (user 2026-11-18, Siri Shortcuts): a
     // subwaymotion:// link that arrives before the offline page has

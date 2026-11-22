@@ -2163,7 +2163,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E117)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E118)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2199,7 +2199,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E117)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E118)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -3128,6 +3128,9 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E118)', date: '2026-11-22', lines: [
+								['底部栏五个图标大小统一：换乘、线路图、搜索、设置四个图标此前偏大，现全部按时刻表图标的大小对齐', '底部欄五個圖示大小統一：換乘、線路圖、搜尋、設定四個圖示此前偏大，現全部按時刻表圖示的大小對齊', 'All five bottom-bar icons are now the same size: Transfer, Line Map, Search and Settings were larger than Timetable — they are now aligned to the Timetable icon’s size'],
+							] },
 							{ v: '1.1.0 (26E117)', date: '2026-11-22', lines: [
 								['设置页布局调整：登录卡移到最上方，App 名称与版本并入「通用」；页脚不再被底部栏遮挡；无锡标志在小图标处改用红色符号，显示更清晰', '設定頁佈局調整：登入卡移到最上方，App 名稱與版本併入「通用」；頁腳不再被底部欄遮擋；無錫標誌在小圖示處改用紅色符號，顯示更清晰', 'Settings layout refresh: the sign-in card moves to the top and the app name and version move into General; the footer is no longer covered by the bottom bar; the Wuxi logo now uses its red symbol at small sizes, so it stays clear'],
 							] },
