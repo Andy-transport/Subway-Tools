@@ -618,6 +618,18 @@ if wx_logo_path.exists():
     html = sub_once(r"/\*__WX_LOGO__\*/''", lambda _: "'data:image/png;base64," + wx_logo_b64 + "'", html, "wx logo")
 else:
     print("WARNING: web/wuxi/logo.b64 missing; Wuxi logo will be empty")
+# 26E117: small-slot mark for Wuxi — the red symbol cropped out of the
+# official lockup (crop only, artwork untouched; the full lockup above
+# stays for large placements like the splash). The horizontal lockup
+# shrank to illegibility in the 23-26px circular slots and its black
+# text vanished on dark backgrounds; the symbol alone reads clearly
+# at any size in both appearances.
+wx_mark_path = BASE / "wuxi" / "logo-mark.b64"
+if wx_mark_path.exists():
+    wx_mark_b64 = wx_mark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__WX_MARK__\*/''", lambda _: "'data:image/png;base64," + wx_mark_b64 + "'", html, "wx mark")
+else:
+    print("WARNING: web/wuxi/logo-mark.b64 missing; Wuxi small-slot logo falls back to the lockup")
 wx_splash_path = BASE / "wuxi" / "splash.b64"
 if wx_splash_path.exists():
     wx_splash_b64 = wx_splash_path.read_text(encoding="utf-8").strip()

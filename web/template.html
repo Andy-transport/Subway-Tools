@@ -71,6 +71,7 @@
 			window.SJZ_LOGO = /*__SJZ_LOGO__*/'';
 			window.TJ_LOGO = /*__TJ_LOGO__*/'';
 			window.WX_LOGO = /*__WX_LOGO__*/'';
+			window.WX_MARK = /*__WX_MARK__*/'';
 			window.CDM_ICON = "data:image/png;base64,/*__CDM_ICON__*/";
 			window.SZM_ICON = "data:image/png;base64,/*__SZM_ICON__*/";
 			window.QDM_ICON = "data:image/png;base64,/*__QDM_ICON__*/";
@@ -902,15 +903,43 @@
 		   released (see the #moreSheet class binding) and the
 		   sheet scrolls with its normal 100+safe bottom pad, so
 		   the credit can always be scrolled clear of the bar
-		   and no row is ever clipped. */
+		   and no row is ever clipped.
+		   26E117 ROOT CAUSE (the 26E115 fix did NOT hold on
+		   device — user screenshot, 402x874, Wuxi, dark): the
+		   column was modelled at 699pt but MEASURES ~741pt on
+		   device (title zone 50 not 42, fused card 494 not 484,
+		   every block a few pt taller than its CSS arithmetic —
+		   real line boxes beat the model by ~42pt in total), so
+		   even with the bar's real clearance (~91pt: capsule top
+		   at ~783pt in the shot) the box was ~706pt and the
+		   credit overflowed it by ~35pt. With margin-top:auto
+		   already at 0 and every child flex:none, the overflow
+		   had nowhere to go: the credit simply rendered past
+		   the box, into the bottom padding, behind the floating
+		   bar — and home-lock (overflow:hidden) offered no
+		   scroll escape. Native reporting was NOT at fault:
+		   didFinish resets lastBarClearance, so the real frame
+		   does reach the page. Fixes: (a) the standalone App
+		   card is gone from home (name + version moved into
+		   General), freeing ~87pt — the column is now title 50
+		   + account 81 + fused 506 + credit 17 = ~654pt
+		   device-measured, ~52pt under the 706 box; (b) the
+		   locked bottom pad grows 8 -> 14pt of margin over the
+		   reported clearance; (c) the lock now GUARDS ITSELF:
+		   checkHomeFit() measures the real content against the
+		   real box after layout and, if it ever overflows
+		   (shorter phone, bigger text, future rows), releases
+		   the lock into .home-scroll — a normally scrollable
+		   sheet whose bottom pad (bar-clear + safe + 24)
+		   always lets the credit scroll fully above the bar.
+		   A budget comment can drift again; a measurement
+		   cannot. */
 		@media (orientation: portrait) and (min-height: 800px) {
-			#moreSheet.home-lock { overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(var(--bar-clear) + 8px); }
+			#moreSheet.home-lock { overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(var(--bar-clear) + 14px); }
 			#moreSheet.home-lock .more-main { display: flex; flex-direction: column; height: 100%; }
 			#moreSheet.home-lock .more-main .more-credit { margin-top: auto; }
 		}
 		#moreSheet.home-lock .more-title { font-size: 30px; margin: 0 4px 4px; }
-		#moreSheet.home-lock .more-appcard { padding: 13px 16px; margin-bottom: 12px; border-radius: 32px; }
-		#moreSheet.home-lock .more-appicon { width: 44px; height: 44px; }
 		#moreSheet.home-lock .more-card { margin-bottom: 12px; border-radius: 32px; padding: 2px 16px; }
 		#moreSheet.home-lock .more-account { padding: 10px 16px; }
 		#moreSheet.home-lock .more-account-avatar { width: 42px; height: 42px; }
@@ -922,6 +951,14 @@
 		   its last row). */
 		#moreSheet.home-lock .more-main > * { flex: none; }
 		#moreSheet.home-lock .more-credit { padding-top: 0; }
+		/* 26E117: the released state of the home lock (see the
+		   recount above). When checkHomeFit() finds the home
+		   column taller than the locked box, the sheet drops
+		   .home-lock for .home-scroll: normal scrolling with a
+		   bottom pad that clears the bar by a wide margin, so
+		   the credit can ALWAYS be scrolled fully above the
+		   bar — the footer is never left pinned under it. */
+		#moreSheet.home-scroll { padding-bottom: calc(var(--bar-clear) + env(safe-area-inset-bottom) + 24px); }
 		/* iPad top tab bar (build 74): the native floating tab bar sits at
 		   the TOP (safe-area top + 10, ~49pt tall), so the full-screen panels
 		   need top clearance there and no bottom-bar clearance. iPhone is
@@ -931,13 +968,6 @@
 		html.is-pad #stationPanel, html.is-pad #transferPanel, html.is-pad #timetablePanel, html.is-pad #structurePanel { padding-top: calc(env(safe-area-inset-top) + 72px); padding-bottom: calc(16px + env(safe-area-inset-bottom)); bottom: 0; } /* bottom: 0 cancels #timetablePanel's phone bottom inset on iPad (26D108; its tab bar is at the top) — a no-op restatement for the other two, which keep inset: 0. */
 		.more-title { font-size: 34px; font-weight: 700; color: #000; margin: 8px 4px 16px; }
 		html.dark .more-title { color: #fff; }
-		.more-appcard { display: flex; align-items: center; gap: 14px; background: #ffffff; border-radius: 28px; padding: 16px; margin-bottom: 24px; }
-		html.dark .more-appcard { background: #1c1c1e; }
-		.more-appicon { width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0; }
-		.more-appname { font-size: 18px; font-weight: 700; color: #000; }
-		html.dark .more-appname { color: #fff; }
-		.more-appver { font-size: 14px; color: #888; margin-top: 2px; }
-		html.dark .more-appver { color: #aaa; }
 		.more-section { font-size: 13px; font-weight: 400; color: #6d6d72; margin: 0 4px 8px; }
 		html.dark .more-section { color: #8e8e93; }
 		.more-card { background: #ffffff; border-radius: 28px; padding: 4px 16px; margin-bottom: 24px; overflow: hidden; }
@@ -1914,16 +1944,14 @@
 			</div>
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
-			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen && !locPermHint }" v-show="showMore">
+			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen && !locPermHint && !homeOverflow, 'home-scroll': showMore && !anySubViewOpen && homeOverflow }" v-show="showMore">
 				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub && !showStructSub && !showRankingSub">
 				<div class="more-title">{{ t('app.name') }}</div>
-				<div class="more-appcard">
-					<img class="more-appicon" :src="appIconNow" alt="">
-					<div>
-						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E116)' : '1.1.0'}) }}</div>
-					</div>
-				</div>
+				<!-- 26E117: the account (login) card is FIRST on the
+					 Settings home (user 2026-11-22), and the standalone
+					 App card that used to sit here is gone — the app
+					 name + version rows moved into the General sub-page
+					 (user: 「城轨通」融入通用). -->
 				<div class="more-card more-account" @click="openProfile()">
 					<img class="more-account-avatar" v-if="profile && profile.avatar" :src="profile.avatar" alt="">
 					<span class="more-account-avatar more-account-initial" v-else-if="profile">{{ profileInitial }}</span>
@@ -1940,8 +1968,9 @@
 					 What's New, Opening Soon, Briefing, Train Models, Station
 					 Structure and Siri all live in a single .more-card with the
 					 usual hairline separators; the “切换城市” and “更多” group
-					 titles are gone. The App card and account card above stay
-					 separate; the credit line below is unchanged. -->
+					 titles are gone. The account card above stays separate
+					 (26E117: it is now the FIRST card; the old App card moved
+					 into General); the credit line below is unchanged. -->
 				<div class="more-card">
 					<div class="more-row" @click="showCitySub = true"><img class="more-city-logo" :src="cityLogo" alt=""><span>{{ cityName }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showGeneralSub = true"><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
@@ -2128,6 +2157,14 @@
 						<button class="more-sub-back" @click="showGeneralSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
 						<div class="more-sub-title">{{ t('more.general') }}</div>
 					</div>
+					<!-- 26E117: the app name + version rows live at the
+						 top of General now (the standalone App card left
+						 the Settings home); the version row keeps its
+						 tap-to-reveal-build behaviour. -->
+					<div class="more-card">
+						<div class="more-row"><span>{{ t('app.name') }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E117)' : '1.1.0'}) }}</span></div>
+					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
 						<div class="more-row" @click="openLanguage"><span>{{ t('more.lang') }}</span><span class="more-row-value">{{ langDisplayName }}</span><span class="more-chev">›</span></div>
@@ -2162,7 +2199,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E116)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E117)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2928,6 +2965,7 @@ function titlePy(py) {
 						wxStations: (window.WX_STATIONS || []),
 						wxRoutes: (window.WX_ROUTES || null),
 						wxLogo: (window.WX_LOGO || ''),
+						wxMark: (window.WX_MARK || ''),
 						wxMap: (window.WX_MAP || ''),
 						wxTimetable: (window.WX_TIMETABLE || {}),
 						wxLatLng: (window.WX_LATLNG || {}),
@@ -3078,6 +3116,7 @@ function titlePy(py) {
 						nearbyNote: '',
 						locPerm: 'unknown',
 						locPermHint: false,
+						homeOverflow: false,
 						searchHistory: (function () { try { var h = JSON.parse(window.localStorage.getItem('metro-search-history') || '[]'); return Array.isArray(h) ? h : []; } catch (e) { return []; } })(),
 						theme: (function() { try { var it = window._metroInitTheme; if (it === 'light' || it === 'dark' || it === 'system') return it; var t = window.localStorage.getItem('metro-theme'); return (t === 'light' || t === 'dark' || t === 'system') ? t : 'system'; } catch (e) { return 'system'; } })(),
 						darkNow: (typeof window._metroInitDark === 'boolean') ? window._metroInitDark : false,
@@ -3089,6 +3128,9 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E117)', date: '2026-11-22', lines: [
+								['设置页布局调整：登录卡移到最上方，App 名称与版本并入「通用」；页脚不再被底部栏遮挡；无锡标志在小图标处改用红色符号，显示更清晰', '設定頁佈局調整：登入卡移到最上方，App 名稱與版本併入「通用」；頁腳不再被底部欄遮擋；無錫標誌在小圖示處改用紅色符號，顯示更清晰', 'Settings layout refresh: the sign-in card moves to the top and the app name and version move into General; the footer is no longer covered by the bottom bar; the Wuxi logo now uses its red symbol at small sizes, so it stays clear'],
+							] },
 							{ v: '1.1.0 (26E116)', date: '2026-11-22', lines: [
 								['新增天津、无锡两城支持：线路图、路线规划、票价与首末班车时刻表一并适配（天津 12 条线 229 站，无锡 5 条线 89 站）', '新增天津、無錫兩城支持：線路圖、路線規劃、票價與首末班車時刻表一併適配（天津 12 條線 229 站，無錫 5 條線 89 站）', 'Tianjin and Wuxi are now supported: line maps, route planning, fares and first/last-train timetables included (Tianjin: 12 lines, 229 stations; Wuxi: 5 lines, 89 stations)'],
 							] },
@@ -5357,7 +5399,7 @@ function titlePy(py) {
 					// Logo for the city switcher rows (build 65): the official
 					// metro logo already inlined for the city pill, shown
 					// circular via CSS. Jinhua joins when its wiring lands.
-					cityLogoFor(k) { return k === 'sy' ? this.syLogo : (k === 'sh' ? this.shLogo : (k === 'hb' ? this.hbLogo : (k === 'dl' ? this.dlLogo : (k === 'jh' ? this.jhLogo : (k === 'cz' ? this.czLogo : (k === 'cq' ? this.cqLogo : (k === 'cc' ? this.ccLogo : (k === 'sz' ? this.szLogo : (k === 'cd' ? this.cdLogo : (k === 'qd' ? this.qdLogo : (k === 'sjz' ? this.sjzLogo : (k === 'tj' ? this.tjLogo : (k === 'wx' ? this.wxLogo : this.bjLogo))))))))))))); },
+					cityLogoFor(k) { return k === 'sy' ? this.syLogo : (k === 'sh' ? this.shLogo : (k === 'hb' ? this.hbLogo : (k === 'dl' ? this.dlLogo : (k === 'jh' ? this.jhLogo : (k === 'cz' ? this.czLogo : (k === 'cq' ? this.cqLogo : (k === 'cc' ? this.ccLogo : (k === 'sz' ? this.szLogo : (k === 'cd' ? this.cdLogo : (k === 'qd' ? this.qdLogo : (k === 'sjz' ? this.sjzLogo : (k === 'tj' ? this.tjLogo : (k === 'wx' ? (this.wxMark || this.wxLogo) : this.bjLogo))))))))))))); },
 					// Operating-hours prompt (build 63). Timetable data is NOT changed
 					// here — this only reads first/last times and says whether the line
 					// is running at a given moment. A last train after midnight (00:00)
@@ -5572,6 +5614,43 @@ function titlePy(py) {
 						if (!(n >= 0)) return;
 						window._metroBarClearance = n;
 						document.documentElement.style.setProperty('--bar-clear', n + 'px');
+						// 26E117: a new clearance changes the home-lock
+						// box — re-run the fit guard against it (a value
+						// that arrives while a sub-view is open is
+						// picked up by the anySubViewOpen watcher when
+						// the user returns home).
+						this.resetHomeFit();
+					},
+					// Settings home-lock fit guard (26E117): measure
+					// the REAL home column against the REAL locked
+					// box after layout. The 26E115/26E116 budgets were
+					// CSS arithmetic and drifted ~42pt short of the
+					// device truth, so the credit overflowed the box
+					// and sat behind the floating tab bar with no way
+					// to scroll it clear (home-lock is overflow:
+					// hidden). If the content ever exceeds the box —
+					// shorter phone, larger text, a future row — the
+					// lock releases into .home-scroll, whose bottom
+					// padding always lets the credit scroll fully
+					// above the bar. Runs from updated(); one-way
+					// (setting homeOverflow re-renders unlocked,
+					// after which this early-returns), and reset by
+					// resetHomeFit() whenever the home is re-entered
+					// or the geometry changes.
+					checkHomeFit() {
+						if (this.homeOverflow || !this.showMore || this.anySubViewOpen || this.locPermHint) return;
+						var el = document.getElementById('moreSheet');
+						if (!el || !el.classList.contains('home-lock')) return;
+						var main = el.querySelector('.more-main');
+						if (!main) return;
+						var cs = window.getComputedStyle(el);
+						var avail = el.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
+						if (avail > 0 && main.scrollHeight > avail + 1) this.homeOverflow = true;
+					},
+					resetHomeFit() {
+						if (this.homeOverflow) this.homeOverflow = false;
+						var self = this;
+						this.$nextTick(function() { self.checkHomeFit(); });
 					},
 					// Native app (build 33): report the sort-tab row's frame
 					// to the native shell so it can place its Liquid Glass
@@ -6193,7 +6272,7 @@ function titlePy(py) {
 					soonCityList() {
 						return ['广州', '武汉', '南京', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '南昌', '兰州', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '贵阳', '厦门', '温州', '济南', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '洛阳', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌', '雄安'];
 					},
-					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : (this.city === 'sz' ? this.szLogo : (this.city === 'cd' ? this.cdLogo : (this.city === 'qd' ? this.qdLogo : (this.city === 'sjz' ? this.sjzLogo : (this.city === 'tj' ? this.tjLogo : (this.city === 'wx' ? this.wxLogo : this.bjLogo))))))))))))); },
+					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : (this.city === 'sz' ? this.szLogo : (this.city === 'cd' ? this.cdLogo : (this.city === 'qd' ? this.qdLogo : (this.city === 'sjz' ? this.sjzLogo : (this.city === 'tj' ? this.tjLogo : (this.city === 'wx' ? (this.wxMark || this.wxLogo) : this.bjLogo))))))))))))); },
 					transitLabel() { return this.t('transit.' + this.city); },
 					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? this.szmIcon : (this.city === 'qd' ? this.qdmIcon : (this.city === 'sjz' ? ((this.sjzmIcon && this.sjzmIcon.indexOf('SJZM_ICON') === -1) ? this.sjzmIcon : '') : (this.city === 'tj' ? ((this.tjmIcon && this.tjmIcon.indexOf('TJM_ICON') === -1) ? this.tjmIcon : '') : (this.city === 'wx' ? ((this.msxIcon && this.msxIcon.indexOf('MSX_ICON') === -1) ? this.msxIcon : '') : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : this.yktIcon))))))))))))); },
 					splashImg() {
@@ -6383,12 +6462,13 @@ function titlePy(py) {
 					}
 				},
 				watch: {
-					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (this.tab === 'more') { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } },
+					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (this.tab === 'more') { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); },
 					structStation() { this.ensureStructImg(); },
 					structKind() { this.ensureStructImg(); }
 				},
 				updated: function() {
 					this.syncHtmlClasses();
+					this.checkHomeFit();
 					var el = document.getElementById('svg8');
 					if (el && window._metroSvgEl !== el) {
 						window._metroSvgEl = el;
@@ -6836,6 +6916,9 @@ function titlePy(py) {
 					if (window.metroApp && window.metroApp.reportTransferFrame) window.metroApp.reportTransferFrame();
 					if (window.metroApp && window.metroApp.reportThemeFrame) window.metroApp.reportThemeFrame();
 					if (window.metroApp && window.metroApp.reportSwitchFrame) window.metroApp.reportSwitchFrame();
+					// 26E117: rotation/resize changes the home-lock box —
+					// re-run the fit guard at the new geometry.
+					if (window.metroApp && window.metroApp.resetHomeFit) window.metroApp.resetHomeFit();
 				}, 120);
 			});
 

@@ -313,7 +313,7 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/ChengduLogo.png'
 python3 -c "import base64; open('build/Payload/Subway Tools.app/QingdaoLogo.png','wb').write(base64.b64decode(open('web/qingdao/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/ShijiazhuangLogo.png','wb').write(base64.b64decode(open('web/shijiazhuang/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/TianjinLogo.png','wb').write(base64.b64decode(open('web/tianjin/logo.b64').read()))"
-python3 -c "import base64; open('build/Payload/Subway Tools.app/WuxiLogo.png','wb').write(base64.b64decode(open('web/wuxi/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/WuxiLogo.png','wb').write(base64.b64decode(open('web/wuxi/logo-mark.b64').read()))" # 26E117: the native pill/menu slot is 26pt — use the cropped red symbol, not the full lockup (see web/build_offline.py)
 python3 -c "import base64; [open('build/Payload/Subway Tools.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 
 echo "== 3a. app icon asset catalog (Assets.car, dark home-screen icon) =="
