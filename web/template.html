@@ -695,6 +695,20 @@
 			padding-right: env(safe-area-inset-right);
 		}
 		html.dark #structurePanel { background: #101420; }
+		/* 26E114: in the native app the structure panel is a Settings
+		   sub-view, so the native sub-view header strip (safe area +
+		   44pt, AppDelegate applySubScrollState) overlays its top —
+		   it takes the same clearance the timetable panel already
+		   takes (safe + 52 = strip + 8pt gap), so the search head
+		   sits fully below the glass and stays tappable. Without it
+		   the search row hid behind the strip (user 2026-11-22). */
+		html.native-app #structurePanel { padding-top: calc(env(safe-area-inset-top) + 52px); }
+		/* 26E114: the structure list claims vertical pans itself and
+		   never chains them to the Settings sheet scroller beneath
+		   the panel — this panel is the only station list that lives
+		   inside the sub-view state (sheet displayed + native sub
+		   chrome active), where its pans were being lost on device. */
+		#structurePanel .sp-list { touch-action: pan-y; overscroll-behavior: contain; }
 		.struct-seg { display: flex; background: rgba(120, 120, 128, 0.16); border-radius: 10px; padding: 2px; margin: 10px 12px 4px; flex: none; }
 		/* Native chrome (26E107): in the app a native UISegmentedControl
 		   overlays .struct-seg (frame reported via structFrame) and two
@@ -811,7 +825,22 @@
 		   box 695pt; the tightened home content measures ~646pt,
 		   and .more-main is a full-height flex column whose credit
 		   footer is pinned by margin-top:auto, so slack lands
-		   above the footer, never as a scrollable gap. */
+		   above the footer, never as a scrollable gap.
+		   26E114 recount (the 26E113 "~673pt" figure was wrong):
+		   title 44 + app card 82 + account card 74 + fused card
+		   (11 rows: contents incl. hairlines 268 + padding) +
+		   credit 17. At the 26E113 row padding of 9px the fused
+		   card alone is 474 and the column totals ~703pt — OVER
+		   the 695 box. Worse, .more-card carries overflow:hidden,
+		   which zeroes a flex item's automatic minimum size, so
+		   the overflow shrank the CARD and clipped its last row:
+		   the Siri row vanished on device while the credit (held
+		   by margin-top:auto) stayed visible. Rows are back to
+		   7px padding (fused card 430, column ~659pt, ~36pt of
+		   slack — even the location hint, ~+33 when shown, fits)
+		   and the home blocks keep their natural height via
+		   flex:none below, so a future overflow can never again
+		   be absorbed silently by the card. */
 		@media (orientation: portrait) and (min-height: 800px) {
 			#moreSheet.home-lock { overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
 			#moreSheet.home-lock .more-main { display: flex; flex-direction: column; height: 100%; }
@@ -824,7 +853,12 @@
 		#moreSheet.home-lock .more-account { padding: 10px 16px; }
 		#moreSheet.home-lock .more-account-avatar { width: 42px; height: 42px; }
 		#moreSheet.home-lock .more-section { margin-bottom: 2px; }
-		#moreSheet.home-lock .more-row { padding: 9px 0; }
+		#moreSheet.home-lock .more-row { padding: 7px 0; }
+		/* 26E114: home blocks keep their natural height — see the
+		   recount in the home-lock comment above (an overflow may
+		   no longer shrink the overflow:hidden fused card and clip
+		   its last row). */
+		#moreSheet.home-lock .more-main > * { flex: none; }
 		#moreSheet.home-lock .more-credit { padding-top: 0; }
 		/* iPad top tab bar (build 74): the native floating tab bar sits at
 		   the TOP (safe-area top + 10, ~49pt tall), so the full-screen panels
@@ -1032,6 +1066,14 @@
 		.rank-no { width: 30px; flex: none; text-align: right; color: #8e8e93; font-size: 14px; font-variant-numeric: tabular-nums; }
 		.rank-row.top .rank-no { color: #007aff; font-weight: 700; }
 		.rank-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+		/* Ranking row logos (26E114, user): supported cities show
+		   their colour logo (the cityLogoFor asset, round like the
+		   city list); other ranked cities show their 'More cities'
+		   logo in the directory's grey spec (grayscale + 0.55, the
+		   .more-soon-logo treatment). Cities with no real logo are
+		   not listed at all — no placeholder. */
+		.rank-logo { width: 23px; height: 23px; border-radius: 50%; object-fit: contain; flex: none; }
+		.rank-logo.grey { width: auto; max-width: 44px; border-radius: 0; filter: grayscale(1); opacity: 0.55; }
 		.rank-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 		.rank-city { font-weight: 500; font-size: 15px; }
 		.rank-row.top .rank-city { font-weight: 700; }
@@ -1365,6 +1407,11 @@
 		.tt-badge.ln-badge.named .ln-zh { font-size: 16px; }
 		.ropt-line.ln-badge.named .ln-zh, .tr-chip.ln-badge.named .ln-zh { font-size: 19px; }
 		.more-up-badge.named .ln-zh { font-size: 16px; font-weight: 800; line-height: 1; }
+		/* 26E114: named badges carry the whole name （西郊线） in
+		   .ln-num and leave .ln-zh empty — drop the empty span so
+		   the .ln-txt row adds no gap of its own before the English
+		   label. */
+		.ln-badge.named .ln-zh:empty, .more-up-badge.named .ln-zh:empty { display: none; }
 		.tt-dir { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 15px; }
 		.tt-dir-name { flex: 1; color: #222; }
 		.tt-time { color: #555; white-space: nowrap; }
@@ -1800,7 +1847,7 @@
 					<img class="more-appicon" :src="appIconNow" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E113)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E114)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card more-account" @click="openProfile()">
@@ -1930,7 +1977,7 @@
 						<div class="more-sub-title">{{ t('more.ranking') }}</div>
 					</div>
 					<div class="more-card">
-						<div class="rank-row" v-for="r in rankingList" :key="r.n" :class="{ top: r.r <= 3 }"><span class="rank-no">{{ r.r }}</span><span class="rank-dot" v-if="r.c" :style="{ background: '#' + r.c }"></span><span class="rank-main"><span class="rank-city">{{ r.k ? t('city.' + r.k) : r.n }}</span><span class="rank-src">{{ t('ranking.src', {s: r.src, d: r.date}) }}<template v-if="r.note"> · {{ r.note }}</template></span></span><span class="rank-km">{{ t('ranking.km', {n: r.km}) }}</span></div>
+						<div class="rank-row" v-for="r in rankingList" :key="r.n" :class="{ top: r.r <= 3 }"><span class="rank-no">{{ r.r }}</span><img class="rank-logo" :class="{ grey: !r.k }" :src="rankLogoFor(r)" alt=""><span class="rank-main"><span class="rank-city">{{ r.k ? t('city.' + r.k) : r.n }}</span><span class="rank-src">{{ t('ranking.src', {s: r.src, d: r.date}) }}<template v-if="r.note"> · {{ r.note }}</template></span></span><span class="rank-km">{{ t('ranking.km', {n: r.km}) }}</span></div>
 					</div>
 					<div class="more-up-note">{{ t('ranking.note') }}</div>
 				</div>
@@ -2041,7 +2088,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E113)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E114)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2833,7 +2880,16 @@ function titlePy(py) {
 						// sourced. The 4 cross-city segment units （咸阳/昆山/
 						// 海宁/句容） are NOT ranked (their mileage is already
 						// inside the parent networks' headlines; see the page
-						// footnote) — 50 ranked rows. The withdrawn CAMET-Q3
+						// footnote) — 50 ranked rows in the verified
+						// table. 26E114 (user): the DISPLAY list drops
+						// every row whose city has no real logo asset
+						// （芜湖/天水/黄石/淮安/嘉兴/文山州/红河州/三亚 —
+						// no logo in the supported set, in SOON_LOGOS,
+						// or in the user's collage; never a placeholder,
+						// never a substitute) — 42 rows shown, each
+						// keeping its verified rank number. The full
+						// verified table is unchanged in verified.md.
+						// The withdrawn CAMET-Q3
 						// table (1042.0/982.3/869.7) is NOT used anywhere.
 						rankingList: [
 							{ r: 1, n: '北京', km: '909.0', k: 'bj', c: '005ab4', src: '北京市交通委', date: '2025 年底' },
@@ -2875,17 +2931,9 @@ function titlePy(py) {
 							{ r: 37, n: '常州', km: '54.0', k: 'cz', c: 'cd5c5c', src: '常州市政府', date: '2021-06-28' },
 							{ r: 38, n: '太原', km: '52.4', src: '中文维基', date: '2025-02-22' },
 							{ r: 39, n: '呼和浩特', km: '49.0', src: '中文维基', date: '2020-10-01 起' },
-							{ r: 40, n: '芜湖', km: '46.3', src: '中安在线', date: '2026-01-19' },
 							{ r: 41, n: '乌鲁木齐', km: '45.5', src: '中文维基', date: '2026-11-15' },
 							{ r: 42, n: '洛阳', km: '43.6', src: '中文维基', date: '2021-12-26' },
 							{ r: 43, n: '兰州', km: '35.0', src: '兰州市轨道交通有限公司官网', date: '2026-06' },
-							{ r: 44, n: '天水', km: '32.7', src: '城轨协会 2026 上半年统计', date: '2026-06-30' },
-							{ r: 45, n: '黄石', km: '26.9', src: '中文维基', date: '2026-06-30' },
-							{ r: 46, n: '淮安', km: '20.1', src: '淮安市政协', date: '2026-06-30' },
-							{ r: 47, n: '嘉兴', km: '13.8', src: '中文维基', date: '2022-06-25' },
-							{ r: 48, n: '文山州', km: '13.4', src: '城轨协会 2026 上半年统计', date: '2026-06-30' },
-							{ r: 48, n: '红河州', km: '13.4', src: '中文维基', date: '2026-06-30' },
-							{ r: 50, n: '三亚', km: '8.4', src: '中文维基', date: '2026-06-30' },
 						],
 						// Transit briefing (build 70): seeded from the inlined
 						// briefing.json; refreshed from the live file on GitHub
@@ -2945,6 +2993,11 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E114)', date: '2026-11-22', lines: [
+								['修复车站结构列表无法滑动、顶部搜索框被顶栏遮挡的问题；设置首页恢复完整显示，Siri 行不再被裁掉', '修復車站結構列表無法滑動、頂部搜尋框被頂欄遮擋的問題；設定首頁恢復完整顯示，Siri 行不再被裁掉', 'Fixed the Station Structure list not scrolling and its search box hiding under the top bar; the Settings home displays in full again — the Siri row is no longer clipped'],
+								['命名线路徽章改为名字与「线」紧贴：西郊线、亦庄线、S1线等不再有间隙', '命名線路徽章改為名字與「線」緊貼：西郊線、亦莊線、S1線等不再有間隙', 'Named-line badges now hug their text: the line name and 线 sit together with no gap (Xijiao Line, Yizhuang Line, S1 Line and more)'],
+								['运营里程排行榜每行加上城市标志：已适配城市用彩色标志，未适配城市用灰色标志；暂无真实标志的城市不再列入', '營運里程排行榜每行加上城市標誌：已適配城市用彩色標誌，未適配城市用灰色標誌；暫無真實標誌的城市不再列入', 'Every Operating Mileage Ranking row now carries its city logo — in colour for supported cities, grey for the rest; cities without a real logo are no longer listed'],
+							] },
 							{ v: '1.1.0 (26E113)', date: '2026-11-22', lines: [
 								['车站结构图改为打开时按需下载：看过的图会自动缓存，下次没网也能看；安装包明显变小', '車站結構圖改為打開時按需下載：看過的圖會自動快取，下次沒網路也能看；安裝包明顯變小', 'Station structure diagrams now download on demand when you open a station; diagrams you have viewed are cached, so they open offline too — and the app is much smaller'],
 ['新增「运营里程排行榜」：按各市官方头条运营总里程排名，逐城标注来源与参考日期（咸阳、昆山、海宁、句容等跨市属地段不单独列名次）', '新增「營運里程排行榜」：按各市官方頭條營運總里程排名，逐城標註來源與參考日期（咸陽、昆山、海寧、句容等跨市屬地段不單獨列名次）', 'New Operating Mileage Ranking: cities ranked by their official headline operating mileage, each row with its source and reference date (cross-city segments such as Xianyang, Kunshan, Haining and Jurong are not ranked separately)'],
@@ -3099,8 +3152,16 @@ function titlePy(py) {
 							top = '号线' + (m[2] || '');
 							bottom = 'Line ' + m[1];
 						} else if (name.slice(-1) === '线') {
-							left = name.slice(0, -1);
-							top = '线';
+							// 26E114 (user): a named line's name and 线
+							// render as ONE run in .ln-num. Splitting
+							// them across .ln-num / .ln-zh put the
+							// badge's flex gaps between them （西郊 线）.
+							// top stays empty and the empty .ln-zh is
+							// display:none (see the .named CSS), so
+							// the badge hugs its content at every
+							// render site; numeric badges unchanged.
+							left = name;
+							top = '';
 							bottom = 'Line ' + key;
 						} else {
 							left = key;
@@ -3130,9 +3191,14 @@ function titlePy(py) {
 						// 号线/线 above, "Line X" below — the badgeParts
 						// layout, driven by the entry's own badge text
 						// (the line identifier itself is untouched).
-						var top = /^\d+$/.test(u.badge) ? '号线' : '线';
-						if (this.lang === 'zh-Hant') top = toHant(top);
-						return { left: u.badge, top: top, bottom: 'Line ' + u.badge, named: !/^\d+$/.test(u.badge) };
+						var numeric = /^\d+$/.test(u.badge);
+						// 26E114: named badges (R1/S5/Z2…) put badge +
+						// 线 in .ln-num as one run, like badgeParts —
+						// no flex gap between the identifier and 线.
+						var left = numeric ? u.badge : (u.badge + '线');
+						var top = numeric ? '号线' : '';
+						if (this.lang === 'zh-Hant') { left = toHant(left); top = toHant(top); }
+						return { left: left, top: top, bottom: 'Line ' + u.badge, named: !numeric };
 					},
 					lineNameByKey(key) {
 						var list = this.ttLineList || [];
@@ -3446,16 +3512,18 @@ function titlePy(py) {
 					},
 					// Settings home 车站结构 row (26E112): open the
 					// structure panel as a Settings sub-page, on the
-					// station list, and focus its search field —
-					// the same entry behaviour the old tab had.
+					// station list. 26E114: the search field is NO
+					// longer auto-focused on open — in the sub-view
+					// state (sheet beneath + native sub chrome) the
+					// programmatic focus left the station list
+					// refusing pans on device; the field now sits
+					// fully below the native header strip (see the
+					// #structurePanel clearance CSS) and the user
+					// taps it to search, like every other sub-page.
 					openStructSub() {
 						this.showStructSub = true;
 						this.showStructure = true;
 						this.structStation = null;
-						var self = this;
-						this.$nextTick(function() {
-							if (self.$refs.structInput) self.$refs.structInput.focus();
-						});
 					},
 					structEntryFor(name) {
 						var idx = window.STRUCTURE_INDEX || {};
@@ -5060,6 +5128,13 @@ function titlePy(py) {
 						try { window.localStorage.setItem('metro-search-history', JSON.stringify(this.searchHistory)); } catch (e) {}
 					},
 					cityNameFor(c) { return this.t('city.' + c); },
+					// Ranking row logo (26E114): supported cities use
+					// their colour logo (cityLogoFor — the same asset
+					// as the city list and the top pill); other ranked
+					// cities use their 'More cities' logo, shown grey
+					// via the .grey class. Rows whose city has no real
+					// logo asset are not in rankingList at all.
+					rankLogoFor(r) { return r.k ? this.cityLogoFor(r.k) : (this.soonLogos[r.n] || ''); },
 					// City key for an upcoming-line key (bj22->bj, gz12->gz…).
 					upcomingCityKey(key) {
 						var m = { bj22: 'bj', bjjx: 'bj', sh22: 'sh', gz12: 'gz', gz13: 'gz', sy6: 'sy', sy9: 'sy', sz13: 'sz', cq27: 'cq', cdS5: 'cd', tjZ2: 'tj' };

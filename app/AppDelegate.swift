@@ -3,6 +3,7 @@ import WebKit
 import CoreLocation
 import ActivityKit
 import UserNotifications
+import AppIntents
 
 // 北京市轨道交通线路配置图 (SierraQin/metro, CC0 1.0)
 // Shell: a full-screen WKWebView loading the bundled offline page,
@@ -19,6 +20,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // lifecycle, so the window must be created in
     // scene(_:willConnectTo:options:).
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Register the App Shortcuts on the launch path (26E114
+        // audit): until now the SubwayToolsShortcuts provider class
+        // merely EXISTED in AppIntents.swift — nothing in the app
+        // ever called the registration API, so whether the six
+        // phrases were live depended entirely on the system's
+        // implicit discovery. updateAppShortcutParameters() is the
+        // documented launch-path call; it is idempotent for static
+        // shortcuts. (The intents' metadata has shipped at the
+        // canonical app-root path since 26E113 — build.sh
+        // hard-fails the build otherwise.)
+        SubwayToolsShortcuts.updateAppShortcutParameters()
         return true
     }
 
