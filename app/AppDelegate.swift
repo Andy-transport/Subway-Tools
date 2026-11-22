@@ -189,10 +189,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // "openLanguage" post. Nil while closed.
     var languageView: LanguageView?
     var tabBar: UITabBar!
-    // iPhone-only custom bottom bar (26E113, PhoneTabBarView at the
-    // end of this file). Nil on iPad, which keeps the UITabBar
-    // capsule floating at the top.
-    var phoneBar: PhoneTabBarView?
+    // Last bottom-clearance value reported to the web (26E115,
+    // reportBarFrame): the distance from the screen's bottom edge
+    // to the system tab bar's top edge, in points. -1 = nothing
+    // reported yet. (The 26E113 hand-drawn iPhone bar is retired;
+    // its class survives at the end of this file but is never
+    // instantiated or shown.)
+    var lastBarClearance: CGFloat = -1
     var cityPill: UIButton!
     // Map tools pill (top-right, build 74): a single Liquid Glass capsule
     // holding the my-location arrow + station search, matching the Apple
@@ -339,12 +342,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
     // Tab-bar glyph sizing (test/structure, user 2026-11-22): the
     // glyph size is a parameter of tabBarItemImage — 24pt for the
-    // UITabBar items (which since 26E113 are the iPad top capsule
-    // only) and 30pt for the iPhone PhoneTabBarView cells (66pt
-    // capsule, 30pt icons, 11pt titles). This is applied only
-    // where the bar items are
-    // created; tabImages() itself is shared with the Duo sidebar,
-    // which keeps its own sizing and is NOT touched here.
+    // UITabBar items (the iPad top capsule and, since 26E115, the
+    // iPhone bottom bar again). This is applied only where the bar
+    // items are created; tabImages() itself is shared with the Duo
+    // sidebar, which keeps its own sizing and is NOT touched here.
     // The only non-symbol tab icon is the timetable PNG, and it has
     // transparent margins. The asset was REGENERATED SOLID in
     // 26E110 (heavy calendar: solid header band with binder holes,
@@ -661,7 +662,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if let items = tabBar?.items {
             for (i, item) in items.enumerated() where i < titles.count { item.title = titles[i] }
         }
-        phoneBar?.reloadTitles(titles)
         updateCityPill()
         if sortTabs != nil {
             sortTabs.setTitle(L("tr.tab.rec"), forSegmentAt: 0)
@@ -778,19 +778,39 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         tabBar.layer.masksToBounds = true
         tabBar.isTranslucent = true
         if #available(iOS 26.0, *) {
-            // Light-mode fix (user 2026-11-18): configureWithDefaultBackground()
-            // rendered as a flat medium-grey capsule in light mode, with
-            // white unselected icons. Use a transparent background with the
+            // Light-mode fix (user 2026-11-18, iPad branch only since
+            // 26E115): configureWithDefaultBackground() rendered as a
+            // flat medium-grey capsule in light mode, with white
+            // unselected icons. Use a transparent background with the
             // adaptive system material instead: light mode is a light
-            // translucent glass, dark mode the dark glass. Unselected items
-            // use .secondaryLabel so they stay legible in both modes; the
-            // selected item is system blue via tabBar.tintColor
-            // (26E112: no longer the city accent).
+            // translucent glass, dark mode the dark glass. Unselected
+            // items use .secondaryLabel so they stay legible in both
+            // modes; the selected item is system blue via
+            // tabBar.tintColor (26E112: no longer the city accent).
             let appearance = UITabBarAppearance()
-            appearance.configureWithTransparentBackground()
-            appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
-            appearance.backgroundColor = .clear
-            appearance.shadowColor = .clear
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                // iPad top capsule — UNCHANGED (26E115 does not touch
+                // the iPad bar): the transparent background with the
+                // adaptive system material from the light-mode fix
+                // below (user 2026-11-18).
+                appearance.configureWithTransparentBackground()
+                appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
+                appearance.backgroundColor = .clear
+                appearance.shadowColor = .clear
+            } else {
+                // iPhone (26E115, user: the hand-drawn 26E113 bar
+                // "is not Apple UI Liquid Glass and cannot slide"):
+                // the visible bar is THIS system UITabBar again, with
+                // the system's OWN default background — on iOS 26
+                // that IS Liquid Glass, with the system selection
+                // capsule that slides between items on tap. Do NOT
+                // override backgroundEffect / backgroundColor here:
+                // the systemMaterial override is exactly what made
+                // the bar read as a flat fake. (Info.plist carries
+                // no UIDesignRequiresCompatibility opt-out, so a
+                // stock bar adopts the glass by itself.)
+                appearance.configureWithDefaultBackground()
+            }
             appearance.stackedLayoutAppearance.normal.iconColor = .secondaryLabel
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.secondaryLabel]
             // Roomier tab layout (test/structure, user 2026-11-22,
@@ -852,45 +872,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // bars. iPhone portrait only — the iPad top bar and the
             // Duo sidebar are separate layouts, untouched.
             barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10))
-            // 26E113: on iPhone this UITabBar is NEVER shown — the
-            // visible bottom bar is the custom PhoneTabBarView
-            // created below (58pt capsule whose icon/title layout is
-            // computed in code). The 26E112 experiment of pinning
-            // THIS bar to 62pt overflowed UITabBar's internal item
-            // layout and clipped the titles in half (user screenshot
-            // 2026-11-22). No height pin here any more; the hidden
-            // bar keeps its constraints so anchors referencing it
-            // stay sane, and its selectedItem is still maintained as
-            // state (the swipe handler and deep links read it).
+            // 26E115: on iPhone THIS UITabBar is the visible bottom
+            // bar again — the system bar with its own Liquid Glass
+            // and sliding selection capsule (see the appearance
+            // branch above). The 26E113 hand-drawn replacement bar
+            // is retired (the user ruled it "not Apple UI Liquid
+            // Glass, cannot slide"). NO height constraint is set:
+            // the bar lays out at its own intrinsic height (the
+            // 26E112 experiment of pinning it to 62pt overflowed
+            // its internal item layout and clipped the titles).
+            // Its real frame is reported to the web (reportBarFrame)
+            // so page bottom clearances follow the true bar, in
+            // portrait and landscape alike.
         }
         NSLayoutConstraint.activate(barConstraints)
-        // iPhone custom bottom bar (26E113): 66pt glass capsule,
-        // 13pt side margins, floating 10pt above the safe-area
-        // bottom. (First cut at 58pt was enlarged on the user's
-        // word — "不用那么小，稍微扩大一点" — to 66pt with 30pt
-        // icons and 11pt titles.) See PhoneTabBarView for the
-        // in-cell layout math.
-        if !isPadBar {
-            let phoneBarView = PhoneTabBarView()
-            phoneBarView.translatesAutoresizingMaskIntoConstraints = false
-            phoneBarView.onSelect = { [weak self] idx in self?.phoneTabTapped(idx) }
-            view.addSubview(phoneBarView)
-            NSLayoutConstraint.activate([
-                phoneBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 13),
-                phoneBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -13),
-                phoneBarView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-                phoneBarView.heightAnchor.constraint(equalToConstant: 66),
-            ])
-            phoneBarView.configure(titles: tabTitles(), images: tabImages().map { tabBarItemImage($0, size: 30) }, selected: 1)
-            phoneBarView.isHidden = true
-            phoneBar = phoneBarView
-            let pbSwipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleTabSwipe(_:)))
-            pbSwipeLeft.direction = .left
-            phoneBarView.addGestureRecognizer(pbSwipeLeft)
-            let pbSwipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleTabSwipe(_:)))
-            pbSwipeRight.direction = .right
-            phoneBarView.addGestureRecognizer(pbSwipeRight)
-        }
         // iPhone Duo sidebar (build 63): created here so the web view
         // trailing constraint below can anchor to it.
         setupSideBar()
@@ -948,9 +943,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.isHidden = true
         view.addSubview(backButton)
-        // Above the floating bottom bar: the custom phone bar on
-        // iPhone (26E113), the UITabBar capsule on iPad.
-        let backButtonBarAnchor: NSLayoutYAxisAnchor = isPadBar ? tabBar.topAnchor : phoneBar!.topAnchor
+        // Above the floating tab bar (the system UITabBar on every
+        // device since 26E115).
+        let backButtonBarAnchor: NSLayoutYAxisAnchor = tabBar.topAnchor
         NSLayoutConstraint.activate([
             backButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             backButton.bottomAnchor.constraint(equalTo: backButtonBarAnchor, constant: -16),
@@ -1150,6 +1145,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // splash is up: re-evaluate fill vs fit (26C101).
             refreshSplashImage()
         }
+        // Every layout pass (rotation included, where only the
+        // height may move): keep the web's --bar-clear in sync with
+        // the system bar's real frame (26E115). Self-guarded:
+        // unchanged values are not re-posted.
+        reportBarFrame()
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -1310,7 +1310,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         cover.backgroundColor = rootBackgroundColor()
         view.insertSubview(cover, aboveSubview: webView)
         view.bringSubviewToFront(tabBar)
-        if let pb = phoneBar { view.bringSubviewToFront(pb) }
         if let glass = subHeaderGlass { view.bringSubviewToFront(glass) }
         if let button = subViewBackButton { view.bringSubviewToFront(button) }
     }
@@ -3391,18 +3390,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         setWebTab(index: item.tag)
     }
 
-    // iPhone custom bottom bar tap (26E113): the same switch path
-    // as the UITabBar delegate and the Duo sidebar buttons.
-    func phoneTabTapped(_ idx: Int) {
-        phoneBar?.setSelected(idx)
-        setWebTab(index: idx)
-    }
-
     func setWebTab(index: Int) {
         guard index >= 0 && index < tabKeys.count else { return }
         let key = tabKeys[index]
         currentTab = key
-        phoneBar?.setSelected(index)
         view.backgroundColor = rootBackgroundColor() // Sidebar strip follows the tab's page background.
         updatePillVisibility()
         updateTransferVisibility()
@@ -3426,7 +3417,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         if next != current {
             tabBar.selectedItem = tabBar.items?[next]
-            phoneBar?.setSelected(next)
             setWebTab(index: next)
         }
     }
@@ -3591,17 +3581,43 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 webViewTrailingToView.isActive = true
             }
         }
-        if let pb = phoneBar {
-            // iPhone (26E113): the custom bar is the visible bottom
-            // bar; the UITabBar stays hidden for good. The Duo
-            // sidebar still replaces the bottom bar when unfolded.
-            pb.isHidden = show || splashShowing
-            tabBar.isHidden = true
-        } else {
-            tabBar.isHidden = show || splashShowing
-        }
+        // One bar system on every device (26E115): the system
+        // UITabBar is the visible bar (bottom on iPhone, top
+        // capsule on iPad); the Duo sidebar replaces it on a wide
+        // iPhone, and the splash gate hides both.
+        tabBar.isHidden = show || splashShowing
         sideBar.isHidden = !show || splashShowing
         updateSideBarSelection()
+        reportBarFrame()
+    }
+
+    // Report the system tab bar's REAL frame to the web (26E115):
+    // the page's bottom clearances (the Settings home-lock bottom
+    // padding, the timetable panel's bottom inset and its
+    // background extension) are driven by a --bar-clear CSS
+    // variable, so they must follow the bar the system actually
+    // laid out — its height is intrinsic (never pinned) and
+    // differs between portrait and landscape. The reported value
+    // is the distance from the screen's bottom edge to the bar's
+    // top edge; it is 0 whenever no bottom bar is on screen (iPad
+    // top bar, Duo sidebar, splash), where the page's own iPad /
+    // sidebar rules own the clearances. Called from
+    // viewDidLayoutSubviews (every layout pass), updateSideBarLayout
+    // (visibility flips) and didFinish (fresh page); unchanged
+    // values are not re-posted.
+    func reportBarFrame() {
+        guard tabBar != nil, webView != nil else { return }
+        var clearance: CGFloat = 0
+        if UIDevice.current.userInterfaceIdiom == .phone && !sideBarActive && !tabBar.isHidden {
+            let f = tabBar.frame
+            if f.height > 0 && f.minY > 0 {
+                clearance = max(0, view.bounds.height - f.minY)
+            }
+        }
+        if abs(clearance - lastBarClearance) < 0.5 { return }
+        lastBarClearance = clearance
+        let v = String(format: "%.1f", clearance)
+        webView.evaluateJavaScript("window._metroBarClearance = \(v); if (window.metroApp && window.metroApp.setBarClearance) { window.metroApp.setBarClearance(\(v)); }", completionHandler: nil)
     }
 
     // Keep the sidebar's selected highlight in sync with currentTab
@@ -3811,7 +3827,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             updatePillVisibility()
             updateTransferVisibility()
             tabBar.selectedItem = tabBar.items?[idx]
-            phoneBar?.setSelected(idx)
             updateSideBarSelection()
             // The native Siri-page switch only exists on the
             // Settings tab (26C101).
@@ -4064,6 +4079,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         webPageReady = true
+        // Fresh page: force a bar-frame report even if the value
+        // has not changed since the last page (26E115).
+        lastBarClearance = -1
+        reportBarFrame()
         flushPendingDeepLink()
     }
 
@@ -4231,7 +4250,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 }
 
-// MARK: - iPhone floating tab bar (26E113)
+// MARK: - iPhone floating tab bar (26E113) — RETIRED in 26E115
+//
+// This class is NOT instantiated anywhere since 26E115: the user
+// ruled the hand-drawn bar "not Apple UI Liquid Glass, cannot
+// slide", and the iPhone bottom bar is the system UITabBar again
+// (see the tab bar setup in viewDidLoad). Kept only as a record of
+// the 26E113–26E114 implementation; do not resurrect it as the
+// visible bar.
 //
 // Custom-drawn replacement for the iPhone bottom UITabBar, built to
 // the user's measured reference (402pt-wide device screenshot):

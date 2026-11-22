@@ -636,6 +636,17 @@
 		.map-loc-msg span { flex: 1; }
 		.map-loc-msg button { border: none; background: #007aff; color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; }
 		.map-loc-msg button.map-loc-x { background: transparent; color: #888; padding: 4px 6px; }
+		/* 26E115: the native shell reports the system tab bar's REAL
+		   frame into --bar-clear (the distance from the screen's
+		   bottom edge to the bar's top edge; metroApp.setBarClearance,
+		   fed by AppDelegate reportBarFrame). Bottom clearances that
+		   must clear the bar consume it, so they follow the bar the
+		   system actually laid out — its height is intrinsic, never
+		   pinned, and differs between portrait and landscape. The
+		   fallback is the retired hand-drawn bar's clearance; it
+		   applies only until the first report lands (and in a plain
+		   browser, where no bar overlays the page at all). */
+		:root { --bar-clear: 110px; }
 		#tabBar {
 			position: fixed;
 			left: 0;
@@ -840,20 +851,43 @@
 		   slack — even the location hint, ~+33 when shown, fits)
 		   and the home blocks keep their natural height via
 		   flex:none below, so a future overflow can never again
-		   be absorbed silently by the card. */
+		   be absorbed silently by the card.
+		   26E115 recount (bar is the system UITabBar again; the
+		   user also asked for the fused rows BIGGER, and the
+		   26E114 device shot showed the credit footer half under
+		   the floating bar): the bottom pad is no longer a fixed
+		   76+34 guess — it is the bar's REAL reported frame
+		   (--bar-clear, AppDelegate reportBarFrame) + 8pt, so the
+		   credit always lands fully above the bar. Modelled at
+		   402x874 with the iOS 26 system bar (frame 83 = 49
+		   content + 34 safe area, floating 10 above the bottom
+		   -> clearance 93): bottom pad 101, content box 704pt.
+		   Rows grow 7px -> 9px padding (the fused card grows by
+		   44); the title's bottom margin (6 -> 4) and the fused
+		   card's own vertical padding (4 -> 2) fund it. Column:
+		   title 42 + app card 82 + account card 74 + fused card
+		   (11 rows: contents 260 + hairlines 10 + row padding
+		   198 + card padding 4 + margin 12 = 484) + credit 17
+		   = 699pt <= 704, slack lands above the credit as
+		   before. The location hint (~+33) no longer has to fit
+		   the locked box: while it is shown the home-lock is
+		   released (see the #moreSheet class binding) and the
+		   sheet scrolls with its normal 100+safe bottom pad, so
+		   the credit can always be scrolled clear of the bar
+		   and no row is ever clipped. */
 		@media (orientation: portrait) and (min-height: 800px) {
-			#moreSheet.home-lock { overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+			#moreSheet.home-lock { overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(var(--bar-clear) + 8px); }
 			#moreSheet.home-lock .more-main { display: flex; flex-direction: column; height: 100%; }
 			#moreSheet.home-lock .more-main .more-credit { margin-top: auto; }
 		}
-		#moreSheet.home-lock .more-title { font-size: 30px; margin: 0 4px 6px; }
+		#moreSheet.home-lock .more-title { font-size: 30px; margin: 0 4px 4px; }
 		#moreSheet.home-lock .more-appcard { padding: 13px 16px; margin-bottom: 12px; border-radius: 32px; }
 		#moreSheet.home-lock .more-appicon { width: 44px; height: 44px; }
-		#moreSheet.home-lock .more-card { margin-bottom: 12px; border-radius: 32px; }
+		#moreSheet.home-lock .more-card { margin-bottom: 12px; border-radius: 32px; padding: 2px 16px; }
 		#moreSheet.home-lock .more-account { padding: 10px 16px; }
 		#moreSheet.home-lock .more-account-avatar { width: 42px; height: 42px; }
 		#moreSheet.home-lock .more-section { margin-bottom: 2px; }
-		#moreSheet.home-lock .more-row { padding: 7px 0; }
+		#moreSheet.home-lock .more-row { padding: 9px 0; }
 		/* 26E114: home blocks keep their natural height — see the
 		   recount in the home-lock comment above (an overflow may
 		   no longer shrink the overflow:hidden fused card and clip
@@ -1282,8 +1316,11 @@
 		.tr-history-del { border: none; background: none; font-size: 18px; line-height: 1; color: #bbb; cursor: pointer; padding: 0 2px; }
 		/* iPad (build 37): on wide screens keep the transfer/search
 		   panels to a centered readable column; the map tab stays
-		   full-bleed. Applies to any viewport >= 700px wide (iPad
-		   portrait/landscape, iPhone landscape). */
+		   full-bleed. Since 26E115 the >= 700px rule below is scoped
+		   to iPad (html.is-pad): a landscape iPhone is also >= 700px
+		   wide, and the user flagged its transfer card squeezed into
+		   a centered 640px column with the right side empty — on
+		   iPhone the panels use the full width in every orientation. */
 		#timetablePanel {
 			position: fixed;
 			top: 0;
@@ -1293,12 +1330,17 @@
 			   then the search bar, then the station timetable info):
 			   the panel is a SHEET ending above the floating tab bar,
 			   not a full-screen page whose list slides under the pill.
-			   Bottom inset = pill height (49pt UITabBar content +
-			   safe-area bottom) + its 10pt bottom offset (AppDelegate
-			   tabBar: bottomAnchor = view.bottom - 10) + 12pt margin.
-			   The page behind shows in the strip below the panel.
+			   Bottom inset (26E115) = the bar's REAL reported frame
+			   (--bar-clear: screen bottom to the system bar's top
+			   edge) + 12pt margin. The 26D108 formula (49pt content
+			   + safe area + 10 offset + 12) is what --bar-clear
+			   reduces to for the iOS 26 system bar, but it now
+			   follows the actual frame in portrait and landscape
+			   alike. The strip below the panel's box is covered by
+			   the panel's own background (see ::before below), so
+			   the map never shows through there any more.
 			   iPad restores bottom: 0 (its tab bar floats at the top). */
-			bottom: calc(71px + env(safe-area-inset-bottom));
+			bottom: calc(var(--bar-clear) + 12px);
 			z-index: 99925;
 			background: #ffffff;
 			display: flex;
@@ -1313,31 +1355,32 @@
 			padding-left: env(safe-area-inset-left);
 			padding-right: env(safe-area-inset-right);
 		}
-		/* Landscape phone (2026-11-22 fix): the panel box ends above the
-		   floating tab bar by design (bottom inset above), and in
-		   portrait the exposed strip below it is almost fully covered
-		   by the near-full-width pill. In landscape the pill is narrow
-		   and centred, so the map showed through in wide patches left
-		   and right of it — the bottom-left map patch the user flagged.
-		   Extend the panel's OWN opaque background down over that band
-		   (a ::before layer of the panel itself, exactly the bottom
-		   inset tall). The panel box, the scrollers and their clearance
-		   are untouched, so no row can rest or pass under the pill, and
-		   portrait (media query) and iPad (bottom: 0 there, excluded)
-		   render exactly as before. */
-		@media (orientation: landscape) {
-			html:not(.is-pad) #timetablePanel::before {
-				content: '';
-				position: absolute;
-				left: 0;
-				right: 0;
-				top: 100%;
-				height: calc(71px + env(safe-area-inset-bottom));
-				background: #ffffff;
-				pointer-events: none;
-			}
-			html.dark:not(.is-pad) #timetablePanel::before { background: #000000; }
+		/* Panel background reaches the screen's bottom edge (the
+		   2026-11-22 landscape fix, generalised to ALL orientations
+		   in 26E115): the panel box ends above the floating tab bar
+		   by design (bottom inset above), and the strip below it
+		   used to show the page behind — in portrait the near-
+		   full-width pill covered most of it, but the user still
+		   caught the map showing through below the bar on the
+		   Harbin timetable picker. So the panel's OWN opaque
+		   background extends down over that whole band in every
+		   orientation (a ::before layer of the panel itself,
+		   exactly the bottom inset tall): the background box's
+		   bottom edge IS the viewport's bottom edge. The panel
+		   box, the scrollers and their clearance are untouched, so
+		   no row can rest or pass under the bar. iPad is excluded
+		   (bottom: 0 there — nothing to extend). */
+		html:not(.is-pad) #timetablePanel::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 100%;
+			height: calc(var(--bar-clear) + 12px);
+			background: #ffffff;
+			pointer-events: none;
 		}
+		html.dark:not(.is-pad) #timetablePanel::before { background: #000000; }
 		.tab img.tt-tab-icon { width: 25px; height: 25px; opacity: .55; }
 		.tab.active img.tt-tab-icon { opacity: 1; }
 		.tt-view { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 0; }
@@ -1478,8 +1521,11 @@
 		html.lang-hant-hk #moreSheet { font-family: 'PingFang HK', 'PingFang TC', -apple-system, sans-serif; }
 		.more-sub-back svg, .tt-back svg { width: 20px; height: 20px; flex: none; }
 		@media (min-width: 700px) {
-			#transferPanel, #stationPanel, #structurePanel { align-items: center; }
-			#transferPanel > *, #stationPanel > *, #structurePanel > * { width: 100%; max-width: 640px; }
+			/* 26E115: the centered-column cap is iPad-only now
+			   (html.is-pad) — a landscape iPhone also matches this
+			   width query, and its panels must use the full width. */
+			html.is-pad #transferPanel, html.is-pad #stationPanel, html.is-pad #structurePanel { align-items: center; }
+			html.is-pad #transferPanel > *, html.is-pad #stationPanel > *, html.is-pad #structurePanel > * { width: 100%; max-width: 640px; }
 			/* iPad top tab bar (build 45): the native tab bar sits at the top on iPad and would cover the panels search field. In the native app, push both panels down below it. */
 		}
 		.tr-fare.warn { color: #b26a00; }
@@ -1840,14 +1886,14 @@
 			</div>
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
-			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen }" v-show="showMore">
+			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen && !locPermHint }" v-show="showMore">
 				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub && !showStructSub && !showRankingSub">
 				<div class="more-title">{{ t('app.name') }}</div>
 				<div class="more-appcard">
 					<img class="more-appicon" :src="appIconNow" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E114)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E115)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card more-account" @click="openProfile()">
@@ -2088,7 +2134,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E114)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E115)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2993,6 +3039,9 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E115)', date: '2026-11-22', lines: [
+								['底部栏改用系统原生液态玻璃：点按时选中胶囊滑动切换，也可在栏上滑动切页；设置首页卡片放大、页脚不再被底栏遮挡，时刻表面板背景铺满屏幕底部，横屏下换乘页恢复全宽显示', '底部欄改用系統原生液態玻璃：點按時選中膠囊滑動切換，也可在欄上滑動切頁；設定首頁卡片放大、頁腳不再被底欄遮擋，時刻表面板背景鋪滿螢幕底部，橫屏下換乘頁恢復全寬顯示', 'The bottom bar is now the system-native Liquid Glass tab bar: the selection capsule slides as you switch, and you can swipe across the bar to change tabs. The Settings home cards are larger and its footer is no longer covered by the bar, the timetable panel background now reaches the bottom edge of the screen, and the transfer page uses the full width in landscape'],
+							] },
 							{ v: '1.1.0 (26E114)', date: '2026-11-22', lines: [
 								['修复车站结构列表无法滑动、顶部搜索框被顶栏遮挡的问题；设置首页恢复完整显示，Siri 行不再被裁掉', '修復車站結構列表無法滑動、頂部搜尋框被頂欄遮擋的問題；設定首頁恢復完整顯示，Siri 行不再被裁掉', 'Fixed the Station Structure list not scrolling and its search box hiding under the top bar; the Settings home displays in full again — the Siri row is no longer clipped'],
 								['命名线路徽章改为名字与「线」紧贴：西郊线、亦庄线、S1线等不再有间隙', '命名線路徽章改為名字與「線」緊貼：西郊線、亦莊線、S1線等不再有間隙', 'Named-line badges now hug their text: the line name and 线 sit together with no gap (Xijiao Line, Yizhuang Line, S1 Line and more)'],
@@ -5349,6 +5398,23 @@ function titlePy(py) {
 						d.setHours(parseInt(p[0], 10), parseInt(p[1], 10), 0, 0);
 						return d;
 					},
+					// Native shell (26E115): the system tab bar's real
+					// frame, reported by AppDelegate.reportBarFrame —
+					// the distance from the screen's bottom edge to
+					// the bar's top edge, in CSS px. Drives the
+					// --bar-clear variable consumed by the Settings
+					// home-lock bottom padding and the timetable
+					// panel's bottom inset / background extension, so
+					// both follow the bar the system actually laid
+					// out, in portrait and in landscape. 0 = no
+					// bottom bar on screen (iPad / Duo sidebar /
+					// splash); the page's own rules own those cases.
+					setBarClearance(v) {
+						var n = parseFloat(v);
+						if (!(n >= 0)) return;
+						window._metroBarClearance = n;
+						document.documentElement.style.setProperty('--bar-clear', n + 'px');
+					},
 					// Native app (build 33): report the sort-tab row's frame
 					// to the native shell so it can place its Liquid Glass
 					// UISegmentedControl exactly over the web tab row.
@@ -6185,6 +6251,12 @@ function titlePy(py) {
 					// web tab row visible under the native segmented control.
 					this.nativeApp = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu);
 					var self = this;
+					// Bar clearance (26E115): if the native shell already
+					// reported the system tab bar's frame before this page
+					// mounted (it posts window._metroBarClearance on every
+					// layout pass), adopt it now; later reports arrive via
+					// setBarClearance.
+					if (typeof window._metroBarClearance === 'number') this.setBarClearance(window._metroBarClearance);
 					// Re-report the overlay frames while the transfer panel
 					// scrolls (build 37): the panel is overflow-y:auto and
 					// updated() does not fire on scroll, so the native sort
@@ -6584,6 +6656,14 @@ function titlePy(py) {
 			// the map keeps working at the new size. resize() preserves the
 			// current zoom/pan (no fit/center), so the station the user is
 			// looking at stays put. Debounced so a fold animation fires once.
+			// 26E115: a resize also means ROTATION on a plain phone — and the
+			// native overlay frames (transfer card + its three glass buttons,
+			// theme picker, city switch) are placed from web-reported rects
+			// that nothing re-reported after a rotation, so in landscape they
+			// kept their stale portrait geometry and landed on top of the
+			// tab bar (user screenshot, Beijing transfer page). Re-report
+			// ALL overlay frames after every resize; each reporter hides
+			// its overlay when its panel is not on screen.
 			var _metroResizeTimer = null;
 			window.addEventListener('resize', function () {
 				if (_metroResizeTimer) clearTimeout(_metroResizeTimer);
@@ -6591,6 +6671,9 @@ function titlePy(py) {
 					if (panzoom) panzoom.resize();
 					if (window.metroApp && window.metroApp.reportTabsFrame) window.metroApp.reportTabsFrame();
 					if (window.metroApp && window.metroApp.reportStructFrame) window.metroApp.reportStructFrame();
+					if (window.metroApp && window.metroApp.reportTransferFrame) window.metroApp.reportTransferFrame();
+					if (window.metroApp && window.metroApp.reportThemeFrame) window.metroApp.reportThemeFrame();
+					if (window.metroApp && window.metroApp.reportSwitchFrame) window.metroApp.reportSwitchFrame();
 				}, 120);
 			});
 
