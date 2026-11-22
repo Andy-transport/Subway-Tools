@@ -609,6 +609,14 @@
 		html.dark .map-strip-chip { background: #2c2c2e; color: #fff; }
 		.map-strip-none { background: #fff; color: #000; border-radius: 12px; padding: 10px 14px; font-size: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
 		html.dark .map-strip-none { background: #2c2c2e; color: #fff; }
+		/* No long-press callouts anywhere (26E108, user: 取消 App 内
+		   所有长按调用): no iOS text-selection loupe / Copy-Lookup-
+		   Translate menu on labels, no image Save menu. Inputs and
+		   textareas are excluded — they keep text selection, cursor
+		   placement and the system editing menu. The contextmenu
+		   half is in mounted() (JS preventDefault, same exception). */
+		html, body, body *:not(input):not(textarea) { -webkit-touch-callout: none; }
+		body *:not(input):not(textarea) { -webkit-user-select: none; user-select: none; }
 		.map-loc-msg { position: fixed; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 99900; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.95); color: #000; border-radius: 12px; padding: 10px 12px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
 		html.dark .map-loc-msg { background: rgba(44,44,46,0.95); color: #fff; }
 		.map-loc-msg span { flex: 1; }
@@ -789,6 +797,13 @@
 		.more-city-row.soon .more-soon-logo { filter: grayscale(1); opacity: 0.55; }
 		html.dark .more-soon-icon { background: rgba(255,255,255,0.12); color: #8e8e93; }
 		.more-row-icon { width: 28px; height: 28px; border-radius: 7px; flex: none; margin-right: 10px; }
+		/* Train Model Search row icon (26E108, user-supplied glyph):
+		   the photo's luminance became an alpha template, rendered as
+		   a CSS mask over a theme-coloured box — dark grey on light,
+		   light grey on dark, so it follows the appearance like the
+		   neighbouring rows' icons. Only this row uses it. */
+		.more-train-icon { width: 28px; height: 28px; flex: none; margin-right: 10px; background: #3a3a3c; -webkit-mask-image: url('data:image/png;base64,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'); -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; mask-image: url('data:image/png;base64,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'); mask-repeat: no-repeat; mask-position: center; mask-size: contain; }
+		html.dark .more-train-icon { background: #e9e9ee; }
 		/* 'More cities' chip grid (build 65): supported cities are tappable
 		   chips in the theme colour; not-yet-supported cities are greyed out. */
 		.more-city-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 2px 6px; }
@@ -853,8 +868,17 @@
 		   returning from a sub-page. The delegation + failsafe in
 		   mounted() and the clear in the anySubViewOpen watcher
 		   guarantee the highlight is removed. */
-		.more-row.pressing, .more-city-row.pressing { background: rgba(0,0,0,0.06); }
-		html.dark .more-row.pressing, html.dark .more-city-row.pressing { background: rgba(255,255,255,0.08); }
+		/* 26E108 (user, iOS Settings reference): the press highlight
+		   is an INSET ROUNDED rect floating inside the row — gaps on
+		   all four sides, corners rounded — not a full-bleed block.
+		   The row creates a stacking context (position + z-index: 0)
+		   and the highlight ::after sits at z-index: -1: above the
+		   card, below the row's text. Coverage extends to the
+		   功能介绍 list rows (.more-rel-row) via the same .pressing
+		   mechanism (delegation + clearPressing below). */
+		.more-row, .more-city-row, .more-rel-row { position: relative; z-index: 0; }
+		.more-row.pressing::after, .more-city-row.pressing::after, .more-rel-row.pressing::after { content: ''; position: absolute; inset: 4px 6px; border-radius: 12px; background: rgba(120,120,128,0.16); z-index: -1; pointer-events: none; }
+		html.dark .more-row.pressing::after, html.dark .more-city-row.pressing::after, html.dark .more-rel-row.pressing::after { background: rgba(120,120,128,0.28); }
 		html.dark .more-check { color: #fff; }
 		.more-credit { text-align: center; font-size: 12px; color: #aaa; padding: 8px 0 0; }
 		.more-new-row { display: flex; align-items: flex-start; gap: 8px; padding: 9px 2px; font-size: 14px; color: #333; border-bottom: 1px solid rgba(0,0,0,0.06); }
@@ -1626,7 +1650,7 @@
 					<div class="more-row" @click="relSel = -1; showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
-					<div class="more-row" @click="showTrainSub = true; loadTrains()"><img class="more-row-icon" :src="trainIcon" alt=""><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showTrainSub = true; loadTrains()"><span class="more-train-icon"></span><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="siriRowIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-credit">{{ t('more.credit') }}</div>
@@ -3007,16 +3031,23 @@ function titlePy(py) {
 					reportStructFrame() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.structFrame;
 						if (!h) return;
-						var zero = { seg: { x: 0, y: 0, width: 0, height: 0 }, actions: { x: 0, y: 0, width: 0, height: 0 }, kind: this.structKind };
+						var zero = { seg: { x: 0, y: 0, width: 0, height: 0 }, actions: { x: 0, y: 0, width: 0, height: 0 }, exit: { x: 0, y: 0, width: 0, height: 0 }, kind: this.structKind };
 						if (!this.showStructure || !this.structStation) { h.postMessage(zero); return; }
 						var seg = document.querySelector('#structurePanel .struct-seg');
 						var act = document.querySelector('#structurePanel .struct-actions');
 						if (!seg || !act) { h.postMessage(zero); return; }
 						var r1 = seg.getBoundingClientRect();
 						var r2 = act.getBoundingClientRect();
+						// Exit (26E108): the native circular glass chevron
+						// centres on the web back button's box — the
+						// .tt-back in the title row, already visibility:
+						// hidden in the native app, pure placeholder.
+						var back = document.querySelector('#structurePanel .tt-back');
+						var r3 = back ? back.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
 						h.postMessage({
 							seg: { x: r1.left, y: r1.top, width: r1.width, height: r1.height },
 							actions: { x: r2.left, y: r2.top, width: r2.width, height: r2.height },
+							exit: { x: r3.left, y: r3.top, width: r3.width, height: r3.height },
 							kind: this.structKind
 						});
 					},
@@ -4806,7 +4837,7 @@ function titlePy(py) {
 					clearPressing() {
 						if (this._pressTimer) { clearTimeout(this._pressTimer); this._pressTimer = null; }
 						try {
-							var els = document.querySelectorAll('.more-row.pressing, .more-city-row.pressing');
+							var els = document.querySelectorAll('.more-row.pressing, .more-city-row.pressing, .more-rel-row.pressing');
 							for (var i = 0; i < els.length; i++) els[i].classList.remove('pressing');
 						} catch (e) {}
 					},
@@ -5186,9 +5217,21 @@ function titlePy(py) {
 					// failsafe; touchend removes after ~80 ms so the
 					// tap still reads; touchcancel and any sub-view
 					// change (watcher) clear immediately.
+					// No long-press menus anywhere (26E108): kill the
+					// contextmenu (image Save sheet, text Copy/Lookup/
+					// Translate) globally — EXCEPT inside inputs and
+					// textareas, which keep the system editing menu so
+					// typing, cursor placement and paste stay intact.
+					// Taps, scrolling and the map/structure gestures do
+					// not consume contextmenu and are unaffected.
+					document.addEventListener('contextmenu', function(e) {
+						var t = e.target;
+						if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+						e.preventDefault();
+					});
 					document.addEventListener('touchstart', function(e) {
 						var row = null;
-						try { row = e.target && e.target.closest ? e.target.closest('.more-row, .more-city-row') : null; } catch (err) {}
+						try { row = e.target && e.target.closest ? e.target.closest('.more-row, .more-city-row, .more-rel-row') : null; } catch (err) {}
 						self.clearPressing();
 						if (row) {
 							row.classList.add('pressing');
