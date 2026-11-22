@@ -293,6 +293,13 @@
 			margin: 0;
 			padding: 0;
 			overflow: hidden;
+			/* 26E121 F: the document itself never scrolls and never
+			   rubber-bands; only the panels' own list regions scroll
+			   (below). overscroll-behavior stops any edge overscroll
+			   from chaining up to the web view's root bounce, which
+			   dragged the whole fixed UI (and desynced the native
+			   glass overlays from the web rows under them). */
+			overscroll-behavior: none;
 			background: #fff;
 			color-scheme: light dark;
 		}
@@ -494,6 +501,13 @@
 		.tr-sug-lines .ln-badge { height: auto; }
 		.tr-sug-line { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; }
 		.tr-line-pick { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; flex: none; cursor: pointer; }
+		/* 26E121 G: a pinned line's badge carries a green check disc
+		   (the suggestion row's badge for the locked line, and the
+		   field badge itself, which only renders while a line is
+		   pinned). The native glass pills mirror the same state
+		   with a check in their title (AppDelegate applyBadges). */
+		.ln-badge.locked { position: relative; }
+		.ln-badge.locked::after { content: '✓'; position: absolute; top: -7px; right: -7px; width: 15px; height: 15px; border-radius: 50%; background: #34c759; color: #ffffff; font-size: 10px; font-weight: 800; line-height: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); z-index: 2; }
 		html.dark .tr-tabs { background: rgba(255,255,255,0.08); }
 		html.dark .tr-tabs button { color: #fff; }
 		html.dark .tr-tabs button.on { background: rgba(255,255,255,0.16); color: #fff; }
@@ -1293,13 +1307,37 @@
 			display: flex;
 			flex-direction: column;
 			padding-top: max(10px, env(safe-area-inset-top));
-			padding-bottom: calc(120px + env(safe-area-inset-bottom));
+			padding-bottom: 0;
 			padding-left: env(safe-area-inset-left);
 			padding-right: env(safe-area-inset-right);
-			overflow-y: auto;
-			-webkit-overflow-scrolling: touch;
+			/* 26E121 F: the panel is a fixed chrome column now and
+			   does NOT scroll as a whole. It used to be the scroller
+			   (overflow-y: auto): a drag anywhere — or a rubber-band
+			   at its top edge with the keyboard up — moved the whole
+			   page as one sheet while the native glass card / search
+			   / action overlays (placed from web rects, refreshed
+			   only on scroll events whose scrollTop never changes
+			   during a bounce) stayed behind, smearing the page and
+			   ghosting the rows through the glass (user screenshot).
+			   Only .tr-scroll below scrolls; the head, fields card,
+			   suggestion dropdown, tabs, search and action rows are
+			   fixed chrome (flex: none), so the overlays' anchors
+			   can never be dragged out from under them. */
+			overflow-x: hidden;
+			overflow-y: hidden;
+			overscroll-behavior: none;
 		}
-		#transferPanel::after { content: ''; flex: none; height: calc(104px + env(safe-area-inset-bottom)); }
+		#transferPanel > .tr-head, #transferPanel > .tr-fields, #transferPanel > .tr-suggest, #transferPanel > .tr-tabs, #transferPanel > .tr-search, #transferPanel > .tr-actions { flex: none; }
+		/* 26E121 F: the transfer page's ONLY scroller — history,
+		   nearby, errors, route options and the route detail live
+		   here. It absorbs all vertical shrinkage (flex: 1 +
+		   min-height: 0) and contains its own overscroll, so its
+		   rubber-band can never reach the panel or the page. */
+		.tr-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+		/* Bottom room inside the scroller (was the panel's ::after
+		   spacer in the whole-panel-scroll model): the last row can
+		   always scroll clear of the floating tab bar. */
+		.tr-scroll-pad { height: calc(104px + env(safe-area-inset-bottom)); }
 		.tr-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 4px; }
 		.tr-city { display: flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 700; color: #000; }
 		.tr-city img { width: 26px; height: 26px; border-radius: 50%; display: block; }
@@ -1317,7 +1355,14 @@
 		.tr-input { flex: 1; min-width: 0; border: none; background: transparent; outline: none; font-size: 17px; font-weight: 600; color: #111; -webkit-text-fill-color: #111; caret-color: #111; padding: 0; -webkit-appearance: none; }
 		.tr-input::placeholder { color: #aaa; font-weight: 400; }
 		.tr-clear { flex: none; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(0, 0, 0, 0.08); color: #666; font-size: 12px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center; }
-		.tr-suggest { margin: 8px 16px 0; border-radius: 16px; max-height: 264px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+		/* 26E121 A: flex: none is load-bearing. The dropdown is an
+		   overflow-y: auto flex item in the panel's column; without
+		   it, its automatic minimum size is 0 and flex-shrink
+		   crushes it to a sliver of its first row whenever the
+		   column runs short (keyboard up) instead of leaving the
+		   space to .tr-scroll. Keep the internal scroll for >6
+		   rows: max-height caps it, the rows scroll inside. */
+		.tr-suggest { flex: none; margin: 8px 16px 0; border-radius: 16px; max-height: 264px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 		.tr-sug-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; }
 		.tr-sug-row + .tr-sug-row { border-top: 1px solid rgba(0, 0, 0, 0.06); }
 		.tr-sug-name { font-size: 16px; font-weight: 600; color: #111; }
@@ -1346,10 +1391,25 @@
 		.trd-body { margin-top: 10px; }
 		.trd-node { display: flex; gap: 10px; align-items: flex-start; background: rgba(0, 0, 0, 0.03); border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
 		html.dark .trd-node { background: rgba(255, 255, 255, 0.05); }
-		.trd-dot { flex: none; width: 13px; height: 13px; border-radius: 50%; border: 3px solid #999; margin-top: 3px; }
+		.trd-dot { flex: none; width: 13px; height: 13px; border-radius: 50%; border: 3px solid #999; margin-top: 3px; position: relative; }
 		.dot-origin { border-color: #1faa59; }
 		.dot-dest { border-color: #e5484d; }
 		.dot-transfer { border-color: #888; }
+		/* 26E121 D: station dots take the colour of the line they
+		   serve (inline borderColor from the segment data — origin =
+		   first leg's line, destination = last leg's line). A
+		   transfer station serves two lines, so its ring is two half
+		   rings: the conic background paints the departing leg's
+		   colour on the bottom half and the arriving leg's colour
+		   on the top half (from 90deg, the first sweep passes
+		   through the bottom), meeting the rails above and below
+		   the dot in their own colours; the hole punches the ring
+		   hollow with the node card's composited colour. The split
+		   dot drops the border, so it grows to the bordered dots'
+		   full 19px footprint (13 + 2x3) to stay the same size. */
+		.trd-dot.dot-split { width: 19px; height: 19px; border: none; }
+		.trd-dot-hole { position: absolute; inset: 3px; border-radius: 50%; background: #f7f7f7; }
+		html.dark .trd-dot-hole { background: #1c202b; }
 		.dot-walk { border-color: #b26a00; }
 		html.dark .dot-walk { border-color: #e8a33d; }
 		.trd-stname { font-size: 16px; font-weight: 700; color: #111; }
@@ -1893,14 +1953,14 @@
 						<span class="tr-dot from"></span>
 						<span class="tr-label" @click="openPick('from')">{{ t('tr.depart') }}</span>
 						<input class="tr-input" type="text" v-model="fromQuery" @focus="suggestFor = 'from'" @input="onQueryInput('from', $event)" @blur="hideSuggest" :placeholder="t('tr.phFrom')" autocomplete="off" autocapitalize="off" spellcheck="false">
-						<span class="tr-line-pick ln-badge" :class="{ named: badgeParts(fromLine).named }" :style="{ background: '#' + fromLine.color, color: fromLine.text }" v-if="fromLine" @click="clearLine('from')"><span class="ln-num">{{ badgeParts(fromLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(fromLine).top }}</span><span class="ln-en">{{ badgeParts(fromLine).bottom }}</span></span></span>
+						<span class="tr-line-pick ln-badge" :class="{ named: badgeParts(fromLine).named, locked: true }" :style="{ background: '#' + fromLine.color, color: fromLine.text }" v-if="fromLine" @click="clearLine('from')"><span class="ln-num">{{ badgeParts(fromLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(fromLine).top }}</span><span class="ln-en">{{ badgeParts(fromLine).bottom }}</span></span></span>
 						<button class="tr-clear" v-if="fromQuery" @click="clearStation('from')">✕</button>
 					</div>
 					<div class="tr-field">
 						<span class="tr-dot to"></span>
 						<span class="tr-label" @click="openPick('to')">{{ t('tr.arrive') }}</span>
 						<input class="tr-input" type="text" v-model="toQuery" @focus="suggestFor = 'to'" @input="onQueryInput('to', $event)" @blur="hideSuggest" :placeholder="t('tr.phTo')" autocomplete="off" autocapitalize="off" spellcheck="false">
-						<span class="tr-line-pick ln-badge" :class="{ named: badgeParts(toLine).named }" :style="{ background: '#' + toLine.color, color: toLine.text }" v-if="toLine" @click="clearLine('to')"><span class="ln-num">{{ badgeParts(toLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(toLine).top }}</span><span class="ln-en">{{ badgeParts(toLine).bottom }}</span></span></span>
+						<span class="tr-line-pick ln-badge" :class="{ named: badgeParts(toLine).named, locked: true }" :style="{ background: '#' + toLine.color, color: toLine.text }" v-if="toLine" @click="clearLine('to')"><span class="ln-num">{{ badgeParts(toLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(toLine).top }}</span><span class="ln-en">{{ badgeParts(toLine).bottom }}</span></span></span>
 						<button class="tr-clear" v-if="toQuery" @click="clearStation('to')">✕</button>
 					</div>
 					<button class="tr-swap" @click="swapStations" :aria-label="t('tr.swap')">
@@ -1910,7 +1970,7 @@
 				<div class="tr-suggest glass" v-if="suggestFor">
 					<div class="tr-sug-row" v-for="opt in suggestList" :key="opt.st.n" @click="pickSuggest(opt)">
 						<span class="tr-sug-name">{{ stName(opt.st) }}</span>
-						<span class="tr-sug-lines"><span class="ln-badge" v-for="ln in opt.lines" :key="ln.key" :class="{ named: badgeParts(ln).named }" :style="{ background: '#' + ln.color, color: ln.text }"><span class="ln-num">{{ badgeParts(ln).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ln).top }}</span><span class="ln-en">{{ badgeParts(ln).bottom }}</span></span></span></span>
+						<span class="tr-sug-lines"><span class="ln-badge" v-for="ln in opt.lines" :key="ln.key" :class="{ named: badgeParts(ln).named, locked: sugLineLocked(opt, ln) }" :style="{ background: '#' + ln.color, color: ln.text }" @click.stop="pickSuggestLine(opt, ln)"><span class="ln-num">{{ badgeParts(ln).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ln).top }}</span><span class="ln-en">{{ badgeParts(ln).bottom }}</span></span></span></span>
 						<span class="tr-sug-py">{{ opt.st.py }}</span>
 					</div>
 					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? (fromQueryLive || fromQuery) : (toQueryLive || toQuery)) ? t('tr.noStation') : t('tr.typeHint') }}</div>
@@ -1927,6 +1987,10 @@
 					<button class="tr-action-btn" @click="requestNearbyStations"><img :src="pinIconThemed" alt=""><span>{{ t('tr.nearby') }}</span><span v-if="nearbyLoading">{{ t('tr.nearby.locating') }}</span></button>
 					<button class="tr-action-btn" @click="openApplePay"><span>{{ t('tr.applepay') }}</span></button>
 				</div>
+				<!-- 26E121 F: everything below the fixed chrome (head /
+					 fields / suggestions / tabs / search / actions) lives
+					 in the panel's only scroller. -->
+				<div class="tr-scroll">
 				<div class="tr-smart" v-if="nearbySmart && (nearbyList.length || nearbyMsg)">
 					<div class="tr-smart-head"><img v-if="aiIcon" :src="aiIcon" alt=""><span>{{ t('tr.smart.title') }}</span></div>
 					<div v-if="userLat != null && smartList.length">
@@ -1966,13 +2030,13 @@
 						<div class="tr-fare" :class="{ warn: fareWarn() }"><img :src="fareIcon" alt=""><span>{{ fareText() }}</span></div>
 					</div>
 					<div class="trd-body">
-						<div class="trd-node trd-origin"><span class="trd-dot dot-origin"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[0].from) }}</span></div>
+						<div class="trd-node trd-origin"><span class="trd-dot dot-origin" :style="routeResult.segments[0].virtual ? null : { borderColor: '#' + routeResult.segments[0].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[0].from) }}</span></div>
 						<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
-							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-transfer"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div></div></div></div>
+							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-split" :style="{ background: 'conic-gradient(from 90deg, #' + seg.color + ' 0deg 180deg, #' + routeResult.segments[i - 1].color + ' 180deg 360deg)' }"><span class="trd-dot-hole"></span></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div></div></div></div>
 							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div></div></div></div>
 							<div class="trd-seg" v-if="!seg.virtual" @click="goSegment(seg)"><span class="trd-rail" :style="{ background: '#' + seg.color }"></span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span class="trd-dir" v-if="segDirection(seg)">{{ t('trd.toward', {st: stNameStr(segDirection(seg))}) }}</span><span class="trd-ride">{{ t('trd.ride', {n: seg.stops, min: seg.stops * 2}) }}</span></div>
 						</template>
-						<div class="trd-node trd-dest"><span class="trd-dot dot-dest"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[routeResult.segments.length - 1].to) }}</span></div>
+						<div class="trd-node trd-dest"><span class="trd-dot dot-dest" :style="routeResult.segments[routeResult.segments.length - 1].virtual ? null : { borderColor: '#' + routeResult.segments[routeResult.segments.length - 1].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[routeResult.segments.length - 1].to) }}</span></div>
 					</div>
 					<div class="tr-hint">{{ t('tr.hint') }}</div>
 				</div>
@@ -1990,6 +2054,8 @@
 						<div class="fast-note-body">{{ t(fastNoteEntry.noteKey) }}</div>
 						<button class="fast-note-btn" @click="fastNoteEntry = null">{{ t('tr.fastOk') }}</button>
 					</div>
+				</div>
+				<div class="tr-scroll-pad"></div>
 				</div>
 			</div>
 
@@ -2213,7 +2279,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E120)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E121)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2249,7 +2315,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E120)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E121)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -3188,6 +3254,13 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E121)', date: '2026-11-22', lines: [
+							['修复北京 1 号线公主坟站缺失：公主坟恢复为 1 号线 / 10 号线换乘站，站序、距离与搜索徽章一并修正（1 号线在该站的首末班时刻暂无可核实来源，页面显示暂无数据）', '修復北京 1 號線公主墳站缺失：公主墳恢復為 1 號線 / 10 號線換乘站，站序、距離與搜尋徽章一併修正（1 號線在該站的首末班時刻暫無可核實來源，頁面顯示暫無數據）', 'Beijing Line 1’s Gongzhufen station is restored: it is once again a Line 1 / Line 10 interchange, with station order, distances and search badges corrected (no verifiable source exists yet for its Line 1 first/last trains, so that row shows no data)'],
+							['换乘站可选线锁定：联想行里点某条线的徽章即按该线选站，徽章打勾，输入框同步显示；点已打勾的徽章取消锁定，规划按锁定的出发线 × 到达线计算', '換乘站可選線鎖定：聯想行裡點某條線的徽章即按該線選站，徽章打勾，輸入框同步顯示；點已打勾的徽章取消鎖定，規劃按鎖定的出發線 × 到達線計算', 'Pick a line at an interchange: tap a line badge on the merged suggestion row to select the station on that line — the badge gets a check and the field mirrors it; tap the checked badge again to unlock. Planning then runs on the locked origin-line x destination-line pairing'],
+							['路线详情时间轴的车站圆点改用线路颜色：起点、终点取所在线路色，换乘站圆环上半环为到达线颜色、下半环为出发线颜色，与上下脊线接续', '路線詳情時間軸的車站圓點改用線路顏色：起點、終點取所在線路色，換乘站圓環上半環為到達線顏色、下半環為出發線顏色，與上下脊線接續', 'Route-detail timeline dots now use line colours: origin and destination take their line’s colour, and a transfer station’s ring is two half rings — the arriving line’s colour on top, the departing line’s colour below — joining the rails above and below'],
+							['修复换乘页联想列表被压成一条缝、页面拖动时整屏涂抹重影的问题：联想列表完整显示，页面只有记录与路线区域可滚动；底部栏略微抬高，与 Home 指示条留出间隙；修复 Siri 子页开关滑出屏幕的问题', '修復換乘頁聯想列表被壓成一條縫、頁面拖動時整屏塗抹重影的問題：聯想列表完整顯示，頁面只有記錄與路線區域可滾動；底部欄略微抬高，與 Home 指示條留出間隙；修復 Siri 子頁開關滑出螢幕的問題', 'Fixed the transfer page’s suggestion list being crushed to a sliver and the whole page smearing when dragged: suggestions now show in full and only the history/route region scrolls. The bottom bar floats slightly higher, clear of the Home indicator, and the Siri page’s switch no longer slides off-screen'],
+							['「快速换乘」说明改用系统原生液态玻璃弹框呈现，与系统界面一致', '「快速換乘」說明改用系統原生液態玻璃彈框呈現，與系統介面一致', 'The Fast Transfer note now appears in a native system Liquid Glass alert, matching the rest of iOS'],
+							] },
 							{ v: '1.1.0 (26E120)', date: '2026-11-22', lines: [
 							['牛街 ↔ 广安门内虚拟换乘的步行时间按实测修正：站台到站台约 15 分钟，相关路线的耗时与排名更贴近实际', '牛街 ↔ 廣安門內虛擬換乘的步行時間按實測修正：月台到月台約 15 分鐘，相關路線的耗時與排名更貼近實際', 'The Niujie <-> Guang\u2019anmennei virtual-transfer walk is re-timed from real-world measurement: about 15 minutes platform to platform, so route times and rankings match reality'],
 							['苏州街、二里沟、永安里、蒲黄榆、磁器口五站新增「快速换乘」标识：点击可看直梯换乘提示', '蘇州街、二里溝、永安里、蒲黃榆、磁器口五站新增「快速換乘」標識：點擊可看直梯換乘提示', 'Suzhoujie, Erligou, Yong’anli, Puhuangyu and Ciqikou stations gain a Fast Transfer tag — tap it for the lift-transfer tip'],
@@ -4238,8 +4311,44 @@ function titlePy(py) {
 						// station, so ln is null here — no single line
 						// is pinned, routing runs by station name and
 						// the native side shows the all-lines pills.
+						// 26E121 G: a badge tap pins that line (ln set);
+						// line dicts now carry their key so the native
+						// pills can show the check and re-pin on tap.
+						this.postStationPicked(which, st, ln);
+					},
+					postStationPicked(which, st, ln) {
 						var hp = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.stationPicked;
-						if (hp) hp.postMessage({ which: which, name: st.n, line: ln ? { name: ln.name, color: ln.color, text: ln.text } : null, lines: this.stationLines(st.n).map(function(x) { return { name: x.name, color: x.color, text: x.text }; }) });
+						if (hp) hp.postMessage({ which: which, name: st.n, line: ln ? { key: ln.key, name: ln.name, color: ln.color, text: ln.text } : null, lines: this.stationLines(st.n).map(function(x) { return { key: x.key, name: x.name, color: x.color, text: x.text }; }) });
+					},
+					// 26E121 G: tapping one line badge on a merged
+					// suggestion row picks the station AND pins that
+					// line for this end (the row body still picks by
+					// station with no pin). findRoutes already
+					// collapses to the pinned line pair (26E120).
+					pickSuggestLine(opt, ln) {
+						this.pickSuggest({ st: opt.st, line: ln });
+					},
+					sugLineLocked(opt, ln) {
+						var which = this.suggestFor === 'from' ? 'from' : 'to';
+						var st = which === 'from' ? this.fromStation : this.toStation;
+						var pin = which === 'from' ? this.fromLine : this.toLine;
+						return !!(st && pin && st.n === opt.st.n && pin.key === ln.key);
+					},
+					// 26E121 G: native pill tap on a different line ->
+					// move this end's pin to that line (the native
+					// side calls this; tapping the pinned pill calls
+					// clearLine instead, back to by-station routing).
+					pinLine(which, key) {
+						var st = which === 'from' ? this.fromStation : this.toStation;
+						if (!st || !key) return;
+						var lines = this.stationLines(st.n), ln = null;
+						for (var i = 0; i < lines.length; i++) if (lines[i].key === key) ln = lines[i];
+						if (!ln) return;
+						if (which === 'from') this.fromLine = ln; else this.toLine = ln;
+						this.routeResult = null;
+						this.routeList = [];
+						this.routeError = '';
+						this.postStationPicked(which, st, ln);
 					},
 					hideSuggest() {
 						var self = this;
@@ -5129,7 +5238,23 @@ function titlePy(py) {
 					fastTransferAt(r, i) { return !!this.fastTransferEntry(r, i); },
 					showFastTransfer(r, i) {
 						var e = this.fastTransferEntry(r, i);
-						if (e) this.fastNoteEntry = e;
+						if (!e) return;
+						// 26E121 H: the note is a NATIVE alert now —
+						// the system Liquid Glass UIAlertController
+						// (iOS 26 / SDK 27.2) — not the web-drawn card.
+						// The post carries the already-localized
+						// pieces: station name, the station's note
+						// text (verbatim), the tag title and the OK
+						// label; the native side composes the title
+						// as "{station} · 快速换乘". The web card
+						// below remains only as the no-native-shell
+						// fallback.
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.fastNote;
+						if (h) {
+							h.postMessage({ station: this.stNameStr(e.st), note: this.t(e.noteKey), tag: this.t('tr.fastTag'), ok: this.t('tr.fastOk') });
+						} else {
+							this.fastNoteEntry = e;
+						}
 					},
 					// 26E120 D: route-detail timeline helpers.
 					toggleTd(i) { this.transferFocus = this.transferFocus === i ? -1 : i; },
@@ -5376,7 +5501,7 @@ function titlePy(py) {
 					// slot (same frame-report pattern as the theme
 					// buttons). A zero rect hides the switch — posted
 					// whenever the Siri page is not the visible sub-view.
-					reportSwitchFrame() {
+					reportSwitchFrame(followUp) {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.switchFrame;
 						if (!h) return;
 						var el = document.getElementById('nearbySmartSlot');
@@ -5384,6 +5509,25 @@ function titlePy(py) {
 						var r = el.getBoundingClientRect();
 						if (!r.width || r.bottom < 0 || r.top > window.innerHeight) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
 						h.postMessage({ id: 'nearbySmart', x: r.left, y: r.top, width: r.width, height: r.height, on: this.nearbySmart });
+						// 26E121 C: the slot's rect includes any in-flight
+						// transform, and a sub-view's enter transition
+						// (.more-sub-enter-from, translateX(48px) over
+						// .28s) shifts the whole page right while it runs.
+						// Reports fire from updated() on rAF + a 300ms
+						// timer that every updated() re-arms — so the
+						// LAST report of an open could still catch the
+						// tail of the slide (the user's switch sat ~12pt
+						// too far right, half off the screen, and nothing
+						// ever corrected it). Every non-follow-up report
+						// now schedules ONE re-report 480ms later — past
+						// the .28s transition — so the settled rect is
+						// always the final word. The native side also
+						// clamps the switch on-screen as a backstop.
+						if (!followUp) {
+							var self = this;
+							if (self._switchFollowTimer) clearTimeout(self._switchFollowTimer);
+							self._switchFollowTimer = setTimeout(function() { self._switchFollowTimer = null; self.reportSwitchFrame(true); }, 480);
+						}
 					},
 					requestNearbyStations() {
 						this.nearbyMsg = '';
@@ -5923,12 +6067,12 @@ function titlePy(py) {
 							search: { x: sr.left, y: sr.top, width: sr.width, height: sr.height },
 							actions: { x: ar.left, y: ar.top, width: ar.width, height: ar.height },
 							fromQuery: this.fromQuery, toQuery: this.toQuery,
-							fromLine: this.fromLine ? { name: this.fromLine.name, color: this.fromLine.color, text: this.fromLine.text } : null,
-							toLine: this.toLine ? { name: this.toLine.name, color: this.toLine.color, text: this.toLine.text } : null,
+							fromLine: this.fromLine ? { key: this.fromLine.key, name: this.fromLine.name, color: this.fromLine.color, text: this.fromLine.text } : null,
+							toLine: this.toLine ? { key: this.toLine.key, name: this.toLine.name, color: this.toLine.color, text: this.toLine.text } : null,
 							// 26E110 P: all lines of the picked stations
 							// (native renders one pill per line).
-							fromLines: this.fromStation ? this.stationLines(this.fromStation.n).map(function(x) { return { name: x.name, color: x.color, text: x.text }; }) : [],
-							toLines: this.toStation ? this.stationLines(this.toStation.n).map(function(x) { return { name: x.name, color: x.color, text: x.text }; }) : [],
+							fromLines: this.fromStation ? this.stationLines(this.fromStation.n).map(function(x) { return { key: x.key, name: x.name, color: x.color, text: x.text }; }) : [],
+							toLines: this.toStation ? this.stationLines(this.toStation.n).map(function(x) { return { key: x.key, name: x.name, color: x.color, text: x.text }; }) : [],
 							transitLabel: this.transitLabel, nearbyLoading: this.nearbyLoading
 						};
 						if (window._lastTrIcon !== this.transitIcon) { window._lastTrIcon = this.transitIcon; msg.transitIcon = this.transitIcon; }
@@ -6825,12 +6969,17 @@ function titlePy(py) {
 					// layout pass), adopt it now; later reports arrive via
 					// setBarClearance.
 					if (typeof window._metroBarClearance === 'number') this.setBarClearance(window._metroBarClearance);
-					// Re-report the overlay frames while the transfer panel
-					// scrolls (build 37): the panel is overflow-y:auto and
-					// updated() does not fire on scroll, so the native sort
-					// tabs / transfer card would go stale and overlap the
-					// wrong rows. Throttled with requestAnimationFrame.
-					var _panel = document.getElementById('transferPanel');
+					// Re-report the overlay frames while the transfer
+					// page's list region scrolls (build 37): updated()
+					// does not fire on scroll. 26E121 F: the panel
+					// itself no longer scrolls — .tr-scroll is the only
+					// scroller, and the chrome the overlays anchor to
+					// (fields / search / actions / sort tabs) is fixed,
+					// so these reports are now just a safety net for
+					// any residual geometry change; the sort-tabs slot
+					// can no longer scroll out from under its native
+					// control.
+					var _panel = document.querySelector('.tr-scroll');
 					if (_panel) {
 					// Settings page scroll (build 63): #moreSheet is now a full-screen
 					// scrollable page, so re-report the theme-picker frame while it
@@ -6848,6 +6997,19 @@ function titlePy(py) {
 								self.reportSwitchFrame();
 							});
 						}, { passive: true });
+						// 26E121 C: when a sub-view's slide-in transition
+						// (.more-sub-enter-from) ends, re-report every
+						// native overlay frame from the SETTLED layout —
+						// mid-transition rects include the translateX and
+						// stranded the Siri page's switch half off-screen.
+						_more.addEventListener('transitionend', function(e) {
+							if (e.propertyName !== 'transform') return;
+							self.reportTabsFrame();
+							self.reportTransferFrame();
+							self.reportThemeFrame();
+							self.reportTimeFrame();
+							self.reportSwitchFrame();
+						});
 					}
 						var _scrollTicking = false;
 						_panel.addEventListener('scroll', function() {

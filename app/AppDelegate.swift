@@ -271,6 +271,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var toBadgeStack: UIStackView!
     var fromBadges: [UIButton] = []
     var toBadges: [UIButton] = []
+    // 26E121 G: the line key each end is pinned to (nil = by station).
+    var fromPinnedKey: String?
+    var toPinnedKey: String?
     var fromClear: UIButton!
     var toClear: UIButton!
     // Line info currently shown in each field's badge, as
@@ -859,6 +862,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "themeFrame")
         config.userContentController.add(self, name: "switchFrame")
         config.userContentController.add(self, name: "stationPicked")
+        config.userContentController.add(self, name: "fastNote")
         config.userContentController.add(self, name: "timePicker")
         config.userContentController.add(self, name: "openTransitApp")
         config.userContentController.add(self, name: "openRideCode")
@@ -1054,7 +1058,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // the system background lives in the capsule region —
             // and reportBarFrame derives the web clearance from the
             // real frame, so page clearances follow automatically.
-            barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 8))
+            // Raised a touch (26E121, user: 底栏稍微抬高一点点，不要
+            // 碰到小白条）: at +8 the capsule's bottom edge sat ~13pt
+            // above the screen bottom, visually crowding the home
+            // indicator. The frame's bottom anchor goes +8 -> +3:
+            // the whole bar rises 5pt, the capsule lands ~18pt above
+            // the screen bottom with a clear gap over the indicator.
+            // Still NO height constraint (the 26E112 lesson stands);
+            // reportBarFrame reads the real frame, so --bar-clear
+            // follows the new geometry on its own.
+            barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 3))
             // 26E115: on iPhone THIS UITabBar is the visible bottom
             // bar again — the system bar with its own Liquid Glass
             // and sliding selection capsule (see the appearance
@@ -2517,7 +2530,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let h = (dict["height"] as? Double) ?? 0
         if w > 0 && h > 0 && currentTab == "more" && !splashShowing {
             let size = sw.intrinsicContentSize
-            sw.frame = CGRect(x: CGFloat(x) + CGFloat(w) - size.width,
+            var fx = CGFloat(x) + CGFloat(w) - size.width
+            // 26E121 C (native backstop): a switch must never render
+            // off the right edge. The web re-reports the slot once
+            // the sub-view's slide-in transition settles (the stale
+            // mid-transition rect is what pushed this switch ~12pt
+            // too far right in the user's screenshot), but if any
+            // stale rect still lands here, clamp the frame back
+            // inside the view with an 8pt margin instead of letting
+            // half the switch sit off-screen.
+            let maxX = view.bounds.width - 8
+            if fx + size.width > maxX { fx = max(8, maxX - size.width) }
+            sw.frame = CGRect(x: fx,
                               y: CGFloat(y) + (CGFloat(h) - size.height) / 2,
                               width: size.width, height: size.height)
             if let on = dict["on"] as? Bool, on != sw.isOn {
@@ -2784,13 +2808,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             }
             // 26E110 P: prefer the all-lines arrays (every line of
             // the picked station); fall back to the single line.
+            // 26E121 G: the frame also carries the pinned line's key
+            // (fromLine/toLine) so the pinned pill shows its check.
             if let lines = dict["fromLines"] as? [[String: Any]] {
-                applyBadges(which: "from", lines: lines)
+                applyBadges(which: "from", lines: lines, pinnedKey: (dict["fromLine"] as? [String: Any])?["key"] as? String)
             } else {
                 applyBadge(which: "from", line: dict["fromLine"] as? [String: Any])
             }
             if let lines = dict["toLines"] as? [[String: Any]] {
-                applyBadges(which: "to", lines: lines)
+                applyBadges(which: "to", lines: lines, pinnedKey: (dict["toLine"] as? [String: Any])?["key"] as? String)
             } else {
                 applyBadge(which: "to", line: dict["toLine"] as? [String: Any])
             }
@@ -3067,8 +3093,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // suggestion row was tapped). An empty array hides all pills.
     // fromLineInfo/toLineInfo keep the FIRST line for the existing
     // single-line consumers (line-pick state).
-    func applyBadges(which: String, lines: [[String: Any]]) {
-        if which == "from" { fromLineInfo = lines.first } else { toLineInfo = lines.first }
+    func applyBadges(which: String, lines: [[String: Any]], pinnedKey: String? = nil) {
+        // 26E121 G: remember the pin per end; fromLineInfo follows
+        // the pinned line when there is one (the swap path uses it),
+        // else the first line as before.
+        if which == "from" { fromPinnedKey = pinnedKey } else { toPinnedKey = pinnedKey }
+        let pinnedLine = pinnedKey.flatMap { k in lines.first { ($0["key"] as? String) == k } }
+        if which == "from" { fromLineInfo = pinnedLine ?? lines.first } else { toLineInfo = pinnedLine ?? lines.first }
         guard let stack = which == "from" ? fromBadgeStack : toBadgeStack else { return }
         var pool = which == "from" ? fromBadges : toBadges
         while pool.count < lines.count {
@@ -3091,7 +3122,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             } else {
                 fg = .white
             }
-            b.setTitle(name, for: .normal)
+            // 26E121 G: each pill remembers its line key (the tap
+            // handler pins/unpins by key), and the PINNED line's
+            // pill carries the check — a check prefix in the title
+            // plus a ring in the pill's own text colour, so the
+            // lock reads at a glance in the field, mirroring the
+            // web badges' check disc.
+            let key = lines[i]["key"] as? String
+            b.accessibilityIdentifier = key
+            let pinned = pinnedKey != nil && key != nil && key == pinnedKey
+            b.setTitle(pinned ? "✓ " + name : name, for: .normal)
+            b.layer.borderWidth = pinned ? 2 : 0
+            b.layer.borderColor = fg.cgColor
             b.backgroundColor = bg
             b.setTitleColor(fg, for: .normal)
             b.isHidden = false
@@ -3100,7 +3142,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // Single-line convenience (legacy posts / clears).
     func applyBadge(which: String, line: [String: Any]?) {
-        applyBadges(which: which, lines: line.map { [$0] } ?? [])
+        applyBadges(which: which, lines: line.map { [$0] } ?? [], pinnedKey: line?["key"] as? String)
     }
 
     func updateClearButtons() {
@@ -3196,8 +3238,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     @objc func transferBadgeTapped(_ sender: UIButton) {
         let which = sender.tag == 0 ? "from" : "to"
-        applyBadge(which: which, line: nil)
-        webView.evaluateJavaScript("window.metroApp && window.metroApp.clearLine('\(which)')", completionHandler: nil)
+        // 26E121 G: the pills are one per line now. Tapping the
+        // PINNED pill unpins that end (back to by-station routing —
+        // the pre-26E121 single-badge behaviour); tapping a
+        // different pill moves the pin to that line. The web owns
+        // the state: its clearLine / pinLine calls re-post the
+        // frames, and the pills re-render with the check on the
+        // right one. A pill without a key (legacy post) falls back
+        // to the old clear.
+        let key = sender.accessibilityIdentifier
+        let pinned = which == "from" ? fromPinnedKey : toPinnedKey
+        if let key = key, key != pinned {
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.pinLine('\(which)', \(jsString(key)))", completionHandler: nil)
+        } else {
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.clearLine('\(which)')", completionHandler: nil)
+        }
     }
 
     @objc func transferSearchTapped() {
@@ -4134,12 +4189,32 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // show one pill per line. Older posts fall back to the
             // single picked line.
             if let lines = dict["lines"] as? [[String: Any]], !lines.isEmpty {
-                applyBadges(which: which, lines: lines)
+                applyBadges(which: which, lines: lines, pinnedKey: line?["key"] as? String)
             } else {
                 applyBadge(which: which, line: line)
             }
             updateClearButtons()
             view.endEditing(true)
+        } else if message.name == "fastNote",
+                  let dict = message.body as? [String: Any] {
+            // 26E121 H: the fast-transfer note is presented as a
+            // NATIVE UIAlertController — the system Liquid Glass
+            // alert on iOS 26 / SDK 27.2 — instead of the web-drawn
+            // card (user: 改成真·液态玻璃 Apple UI). The web sends
+            // the already-localized pieces (station name, the
+            // station's note text verbatim, the tag title, the OK
+            // label); the title composes as "{station} · 快速换乘".
+            // Appearance (light/dark) is the system's own.
+            let station = dict["station"] as? String ?? ""
+            let note = dict["note"] as? String ?? ""
+            let tag = dict["tag"] as? String ?? ""
+            let ok = dict["ok"] as? String ?? "OK"
+            if !note.isEmpty && presentedViewController == nil {
+                let title = tag.isEmpty ? station : station + " · " + tag
+                let alert = UIAlertController(title: title, message: note, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: ok, style: .default, handler: nil))
+                present(alert, animated: true, completion: nil)
+            }
         } else if message.name == "timePicker",
                   let dict = message.body as? [String: Any] {
             let current = dict["departTime"] as? String
