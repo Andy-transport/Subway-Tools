@@ -1,0 +1,167 @@
+{
+ "cities": [
+  {
+   "key": "bj",
+   "spatial": [
+    {
+     "station": "西局",
+     "file": "bj-西局-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/SVaSH_CY6M5StA4UKISoZ.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd03.html"
+    },
+    {
+     "station": "大井",
+     "file": "bj-大井-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/nV6ked4hlMC9Ohmwr1pJ6.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd01.html"
+    },
+    {
+     "station": "郭庄子",
+     "file": "bj-郭庄子-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/Hu3r2kMxSndBXTrYqStZX.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd00.html"
+    },
+    {
+     "station": "大瓦窑",
+     "file": "bj-大瓦窑-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/35dT178YQhdKuPYewWPQF.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffcff.html"
+    },
+    {
+     "station": "园博园",
+     "file": "bj-园博园-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/royX8Fi6NHfYPz3wG4inv.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffcfe.html"
+    },
+    {
+     "station": "温阳路",
+     "file": "bj-温阳路-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/9p48mNz8gVNEMGCAioFdA.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcfb.html"
+    },
+    {
+     "station": "稻香湖路",
+     "file": "bj-稻香湖路-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/IuMDSG75Ob3Qt8B-dTWQa.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcfa.html"
+    },
+    {
+     "station": "永丰",
+     "file": "bj-永丰-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/Dvykk6m1_uD21WQmCAXN9.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf8.html"
+    },
+    {
+     "station": "永丰南",
+     "file": "bj-永丰南-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/iI4lhwvI5XbdyiPDf8kuP.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf7.html"
+    },
+    {
+     "station": "西北旺",
+     "file": "bj-西北旺-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/OS5V4vzUkhopj4wmRXxz2.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf6.html"
+    },
+    {
+     "station": "马连洼",
+     "file": "bj-马连洼-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/FqbvPlYGDrkli7uln1h8n.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf5.html"
+    },
+    {
+     "station": "农大南路",
+     "file": "bj-农大南路-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/-I40eAemhjFxCRM2QdbMx.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf4.html"
+    },
+    {
+     "station": "慈寿寺",
+     "file": "bj-慈寿寺-spatial.jpg",
+     "source_url": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Cishousi_station_Schematic_diagram_20131025.JPG",
+     "source_page": "https://commons.wikimedia.org/wiki/File:Cishousi_station_Schematic_diagram_20131025.JPG"
+    }
+   ],
+   "plan": [
+    {
+     "station": "西局",
+     "file": "bj-西局-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/pJJipPaefGpCd-KA2d0uw.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd03.html"
+    },
+    {
+     "station": "大井",
+     "file": "bj-大井-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/am4XeaD8EUe5e8DqsfKzr.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd01.html"
+    },
+    {
+     "station": "郭庄子",
+     "file": "bj-郭庄子-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/p154hNFAlR1wMw_xxGWtg.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd00.html"
+    },
+    {
+     "station": "大瓦窑",
+     "file": "bj-大瓦窑-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/cAF8wL7RNjM_ur3S5Ws9U.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffcff.html"
+    },
+    {
+     "station": "园博园",
+     "file": "bj-园博园-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/Rw4gPEBWqc3xWee03a-e1.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffcfe.html"
+    },
+    {
+     "station": "温阳路",
+     "file": "bj-温阳路-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/Ck8SrAdxBC2KAT2fhVWAh.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcfb.html"
+    },
+    {
+     "station": "稻香湖路",
+     "file": "bj-稻香湖路-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/ZTL0fmjprUuFo9blEFuhR.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcfa.html"
+    },
+    {
+     "station": "永丰",
+     "file": "bj-永丰-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/NaID5L56cK4pZnI-v_2TN.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf8.html"
+    },
+    {
+     "station": "永丰南",
+     "file": "bj-永丰南-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/il9r_mymUhg0hIfYjBCNr.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf7.html"
+    },
+    {
+     "station": "西北旺",
+     "file": "bj-西北旺-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/pp4Bxy5OK_UNxflK4WnlK.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf6.html"
+    },
+    {
+     "station": "马连洼",
+     "file": "bj-马连洼-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/4ibO0T-V2uhB8jlG7RVFL.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf5.html"
+    },
+    {
+     "station": "农大南路",
+     "file": "bj-农大南路-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/NKkLsWMaFNui8MhxtYTtZ.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcf4.html"
+    },
+    {
+     "station": "公主坟",
+     "file": "bj-公主坟-plan.jpg",
+     "source_url": "https://upload.wikimedia.org/wikipedia/commons/d/d8/北京地铁公主坟站车站示意图.jpg",
+     "source_page": "https://commons.wikimedia.org/wiki/File:北京地铁公主坟站车站示意图.jpg"
+    }
+   ]
+  }
+ ]
+}

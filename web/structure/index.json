@@ -2771,5 +2771,115 @@
   "sources": {
    "plan": "https://static.wikia.nocookie.net/szbus/images/d/da/%E9%98%B3%E5%8F%B0%E5%B1%B1%E4%B8%9C%E7%AB%99_%E5%B9%B3%E9%9D%A2%E7%A4%BA%E6%84%8F%E5%9B%BE%EF%BC%88202604%EF%BC%89.jpg/revision/latest?cb=20260722142503"
   }
+ },
+ "bj:西局": {
+  "spatial": "bj-西局-spatial.jpg",
+  "plan": "bj-西局-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/SVaSH_CY6M5StA4UKISoZ.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/pJJipPaefGpCd-KA2d0uw.jpg"
+  }
+ },
+ "bj:大井": {
+  "spatial": "bj-大井-spatial.jpg",
+  "plan": "bj-大井-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/nV6ked4hlMC9Ohmwr1pJ6.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/am4XeaD8EUe5e8DqsfKzr.jpg"
+  }
+ },
+ "bj:郭庄子": {
+  "spatial": "bj-郭庄子-spatial.jpg",
+  "plan": "bj-郭庄子-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/Hu3r2kMxSndBXTrYqStZX.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/p154hNFAlR1wMw_xxGWtg.jpg"
+  }
+ },
+ "bj:大瓦窑": {
+  "spatial": "bj-大瓦窑-spatial.jpg",
+  "plan": "bj-大瓦窑-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/35dT178YQhdKuPYewWPQF.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/cAF8wL7RNjM_ur3S5Ws9U.jpg"
+  }
+ },
+ "bj:园博园": {
+  "spatial": "bj-园博园-spatial.jpg",
+  "plan": "bj-园博园-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/royX8Fi6NHfYPz3wG4inv.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/Rw4gPEBWqc3xWee03a-e1.jpg"
+  }
+ },
+ "bj:温阳路": {
+  "spatial": "bj-温阳路-spatial.jpg",
+  "plan": "bj-温阳路-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/9p48mNz8gVNEMGCAioFdA.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/Ck8SrAdxBC2KAT2fhVWAh.jpg"
+  }
+ },
+ "bj:稻香湖路": {
+  "spatial": "bj-稻香湖路-spatial.jpg",
+  "plan": "bj-稻香湖路-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/IuMDSG75Ob3Qt8B-dTWQa.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/ZTL0fmjprUuFo9blEFuhR.jpg"
+  }
+ },
+ "bj:永丰": {
+  "spatial": "bj-永丰-spatial.jpg",
+  "plan": "bj-永丰-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/Dvykk6m1_uD21WQmCAXN9.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/NaID5L56cK4pZnI-v_2TN.jpg"
+  }
+ },
+ "bj:永丰南": {
+  "spatial": "bj-永丰南-spatial.jpg",
+  "plan": "bj-永丰南-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/iI4lhwvI5XbdyiPDf8kuP.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/il9r_mymUhg0hIfYjBCNr.jpg"
+  }
+ },
+ "bj:西北旺": {
+  "spatial": "bj-西北旺-spatial.jpg",
+  "plan": "bj-西北旺-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/OS5V4vzUkhopj4wmRXxz2.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/pp4Bxy5OK_UNxflK4WnlK.jpg"
+  }
+ },
+ "bj:马连洼": {
+  "spatial": "bj-马连洼-spatial.jpg",
+  "plan": "bj-马连洼-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/FqbvPlYGDrkli7uln1h8n.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/4ibO0T-V2uhB8jlG7RVFL.jpg"
+  }
+ },
+ "bj:农大南路": {
+  "spatial": "bj-农大南路-spatial.jpg",
+  "plan": "bj-农大南路-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/-I40eAemhjFxCRM2QdbMx.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/NKkLsWMaFNui8MhxtYTtZ.jpg"
+  }
+ },
+ "bj:慈寿寺": {
+  "spatial": "bj-慈寿寺-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Cishousi_station_Schematic_diagram_20131025.JPG"
+  }
+ },
+ "bj:公主坟": {
+  "spatial": null,
+  "plan": "bj-公主坟-plan.jpg",
+  "sources": {
+   "plan": "https://upload.wikimedia.org/wikipedia/commons/d/d8/北京地铁公主坟站车站示意图.jpg"
+  }
  }
 }
