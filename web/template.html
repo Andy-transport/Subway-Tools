@@ -883,6 +883,7 @@
 		.more-rel-main { flex: 1; min-width: 0; }
 		.more-rel-title { font-size: 17px; }
 		.more-rel-date { font-size: 14px; color: #8e8e93; margin-top: 3px; }
+		.more-wn-date { font-size: 14px; color: #8e8e93; margin: 0 2px 2px; }
 		.more-rel-detail { padding: 6px 2px; }
 		.more-rel-line { font-size: 16px; line-height: 1.65; margin: 0 0 10px; }
 		.more-about-hero { text-align: center; padding: 20px 0 18px; }
@@ -1601,7 +1602,7 @@
 					<img class="more-appicon" :src="appIconNow" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E107)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E108)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-section">{{ t('more.switchCity') }}</div>
@@ -1673,6 +1674,7 @@
 						<button class="more-sub-back" @click="showWhatsNewSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
 						<div class="more-sub-title">{{ t('more.whatsnew.title') }}</div>
 					</div>
+					<div class="more-wn-date">{{ releaseNotes.length ? releaseNotes[0].date : '' }}</div>
 					<div class="more-rel-list">
 						<div class="more-rel-row" v-for="(r, i) in releaseNotes" :key="i" @click="relSel = i">
 							<div class="more-rel-main">
@@ -1815,7 +1817,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E107)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E108)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2008,9 +2010,9 @@ var I18N = {
   'more.more': ['更多', '更多', 'More'],
   'more.version': ['版本 {v}', '版本 {v}', 'Version {v}'],
   'more.credit': ['数据来源 SierraQin · CC0 1.0', '資料來源 SierraQin · CC0 1.0', 'Data: SierraQin · CC0 1.0'],
-  'more.whatsnew': ['更新内容 · {v}', '更新內容 · {v}', "What's New · {v}"],
-  'more.whatsnew.title': ['更新内容', '更新內容', "What's New"],
-  'more.rel.title': ['城轨通 {v} 主要更新', '城軌通 {v} 主要更新', 'Subway Tools {v} — main updates'],
+  'more.whatsnew': ['功能介绍 · {v}', '功能介紹 · {v}', 'Features · {v}'],
+  'more.whatsnew.title': ['功能介绍', '功能介紹', 'Features'],
+  'more.rel.title': ['城轨通 {v} 功能介绍', '城軌通 {v} 功能介紹', 'Subway Tools {v} — Features'],
   'app.name': ['城轨通', '城軌通', 'Subway Tools'],
   'more.about.disclaimer': ['非官方应用，线路、时刻与票价数据仅供参考，请以运营方公告为准', '非官方應用，線路、時刻與票價數據僅供參考，請以營運方公告為準', 'Unofficial app. Lines, timetables and fares are for reference only — please follow operator announcements.'],
   'more.new.1': ['iPhone Duo 折叠屏：展开后显示右侧边栏', 'iPhone Duo 摺疊螢幕：展開後顯示右側邊欄', 'iPhone Duo foldable: right sidebar when unfolded'],
@@ -2531,18 +2533,16 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E108)', date: '2026-11-22', lines: [
+								['本页是测试版的「功能介绍」：集中介绍测试版的功能，标题下方标注日期，只收录测试版自己的说明', '本頁是測試版的「功能介紹」：集中介紹測試版的功能，標題下方標註日期，只收錄測試版自己的說明', 'This page is the test build\u2019s feature introduction \u2014 what the test build can do, dated under the title, with test-build notes only'],
+							] },
 							{ v: '1.1.0 (26E107)', date: '2026-11-22', lines: [
-								['1.1.0 测试版：底栏间距优化 — 胶囊加宽、六个栏目分布更均匀，不再拥挤', '1.1.0 測試版：底欄間距優化 — 膠囊加寬、六個欄目分佈更均勻，不再擁擠', '1.1.0 test build: roomier tab bar — wider capsule, six tabs spread evenly'],
-								['结构详情页：空间/平面切换改为原生分段控件，并新增原生「搜索 / 退出」按钮；结构图来源标注改用来源名称显示', '結構詳情頁：空間/平面切換改為原生分段控件，並新增原生「搜索 / 退出」按鈕；結構圖來源標註改用來源名稱顯示', 'Structure detail: native segmented control for Spatial/Plan, new native Search / Exit buttons, and source labels now show source names'],
+								['宽敞的原生底栏：换乘、线路图、搜索、时刻表、结构、设置六个栏目均匀分布在近全宽的玻璃胶囊里，图标与文字疏朗不拥挤', '寬敞的原生底欄：換乘、線路圖、搜尋、時刻表、結構、設定六個欄目均勻分佈在近全寬的玻璃膠囊裡，圖示與文字疏朗不擁擠', 'A roomier native tab bar: Transfer, Line Map, Search, Timetable, Structure and Settings spread evenly in a near-full-width glass capsule'],
+								['结构详情页配备原生分段控件（空间结构 / 平面示意）与原生「搜索 / 退出」按钮，每张结构图都标注来源名称', '結構詳情頁配備原生分段控件（空間結構 / 平面示意）與原生「搜尋 / 退出」按鈕，每張結構圖都標註來源名稱', 'Structure detail pages come with a native segmented control (Spatial Structure / Plan), native Search and Exit buttons, and a source name on every diagram'],
 							] },
 							{ v: '1.1.0 (26E106)', date: '2026-11-22', lines: [
-								['1.1.0 测试版：新增『结构』栏目 — 搜车站看空间结构图与平面示意图（首批 90 站）', '1.1.0 測試版：新增『結構』欄目 — 搜車站看空間結構圖與平面示意圖（首批 90 站）', '1.1.0 test build: new Structure tab — search a station to view its spatial structure diagram and plan diagram (first batch: 90 stations)'],
-							] },
-							{ v: '1.0.0 (A26106)', date: '2026-11-22', lines: [
-								['正式版发布', '正式版發布', 'First official release'],
-								['修复更新内容页标题显示异常', '修復更新內容頁標題顯示異常', 'Fixed the garbled title on the What\'s New page'],
-								['时刻表页面布局修正：搜索栏固定显示，列表不再被底部栏遮挡', '時刻表頁面佈局修正：搜尋欄固定顯示，列表不再被底部欄遮擋', 'Timetable layout fixed: search bar stays visible and the list is no longer covered by the bottom bar'],
-								['修复深色模式下桌面图标不切换为深色图标', '修復深色模式下桌面圖標不切換為深色圖標', 'Fixed the home-screen icon not switching to its dark variant in dark mode'],
+								['「结构」栏目：搜索任意车站，即可查看它的空间结构图（立体分层）与平面示意图（街区导向），首批收录 90 个车站', '「結構」欄目：搜尋任意車站，即可查看它的空間結構圖（立體分層）與平面示意圖（街區導向），首批收錄 90 個車站', 'The Structure tab: search any station to view its spatial structure diagram (layered 3D view) and plan diagram (street-level guide) \u2014 90 stations in the first batch'],
+								['全原生 Apple 界面：底栏、设置与各子页均为系统原生控件（SDK 27.2），跟手、顺滑、与系统一致', '全原生 Apple 界面：底欄、設定與各子頁均為系統原生控件（SDK 27.2），跟手、順滑、與系統一致', 'A fully native Apple interface: the tab bar, Settings and sub-pages are all system controls (SDK 27.2) \u2014 fluid and consistent with iOS'],
 							] },
 						],
 					showUpcomingSub: false,
