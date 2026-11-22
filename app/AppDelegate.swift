@@ -311,7 +311,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // main; the gate is a second line of defence.
     var isTestBuild: Bool {
         let v = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
-        return v.hasPrefix("26E")
+        // Promotion (2026-11-23, user): the 26E121 test content was
+        // promoted to release 1.0.0 as build A26107, so on this branch
+        // the A261 train passes the gate too — the structure panel
+        // keeps its native chrome in the promoted release build.
+        return v.hasPrefix("26E") || v.hasPrefix("A261")
     }
     var tabKeys: [String] {
         ["transfer", "map", "stations", "timetable", "more"]

@@ -2279,7 +2279,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E121)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.0.0 (A26107)' : '1.0.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2315,7 +2315,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E121)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.0.0 (A26107)' : '1.0.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -3254,7 +3254,8 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
-							{ v: '1.1.0 (26E121)', date: '2026-11-22', lines: [
+							{ v: '1.0.0 (A26107)', date: '2026-11-23', lines: [
+							['正式版发布：测试阶段的全部功能与修复转入正式版', '正式版發布：測試階段的全部功能與修復轉入正式版', 'Formal release: the test phase’s full feature set and fixes graduate to the release build'],
 							['修复北京 1 号线公主坟站缺失：公主坟恢复为 1 号线 / 10 号线换乘站，站序、距离与搜索徽章一并修正（1 号线在该站的首末班时刻暂无可核实来源，页面显示暂无数据）', '修復北京 1 號線公主墳站缺失：公主墳恢復為 1 號線 / 10 號線換乘站，站序、距離與搜尋徽章一併修正（1 號線在該站的首末班時刻暫無可核實來源，頁面顯示暫無數據）', 'Beijing Line 1’s Gongzhufen station is restored: it is once again a Line 1 / Line 10 interchange, with station order, distances and search badges corrected (no verifiable source exists yet for its Line 1 first/last trains, so that row shows no data)'],
 							['换乘站可选线锁定：联想行里点某条线的徽章即按该线选站，徽章打勾，输入框同步显示；点已打勾的徽章取消锁定，规划按锁定的出发线 × 到达线计算', '換乘站可選線鎖定：聯想行裡點某條線的徽章即按該線選站，徽章打勾，輸入框同步顯示；點已打勾的徽章取消鎖定，規劃按鎖定的出發線 × 到達線計算', 'Pick a line at an interchange: tap a line badge on the merged suggestion row to select the station on that line — the badge gets a check and the field mirrors it; tap the checked badge again to unlock. Planning then runs on the locked origin-line x destination-line pairing'],
 							['路线详情时间轴的车站圆点改用线路颜色：起点、终点取所在线路色，换乘站圆环上半环为到达线颜色、下半环为出发线颜色，与上下脊线接续', '路線詳情時間軸的車站圓點改用線路顏色：起點、終點取所在線路色，換乘站圓環上半環為到達線顏色、下半環為出發線顏色，與上下脊線接續', 'Route-detail timeline dots now use line colours: origin and destination take their line’s colour, and a transfer station’s ring is two half rings — the arriving line’s colour on top, the departing line’s colour below — joining the rails above and below'],
@@ -4074,7 +4075,7 @@ function titlePy(py) {
 							// transparent on them (no strip, no top band).
 							var expT = null;
 							try {
-								if (this.showWhatsNewSub) expT = (this.relSel >= 0) ? this.t('more.whatsnew.title') : this.t('more.whatsnew', {v: '1.1.0'});
+								if (this.showWhatsNewSub) expT = (this.relSel >= 0) ? this.t('more.whatsnew.title') : this.t('more.whatsnew', {v: '1.0.0'});
 								else if (this.showSiriSub) expT = this.t('more.siri');
 								else if (this.showAboutSub) expT = this.t('more.about');
 							else if (this.showProfileSub) expT = this.t('profile.title');
