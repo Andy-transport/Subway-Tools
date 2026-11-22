@@ -204,6 +204,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // {name, color, text} (hex strings from the web); nil = no badge.
     var fromLineInfo: [String: Any]?
     var toLineInfo: [String: Any]?
+    // Native Liquid Glass quick-action row (transfer page): the
+    // three pills under the search button — transit app / 附近车站
+    // / Apple Pay — overlaid on the web's .tr-actions row
+    // (frame-positioned from the web, like the transfer card).
+    // The web keeps the row as an invisible spacer and reports its
+    // frame plus the current transit label / nearby loading state
+    // in the same transferFrame posts; the icon images (the SAME
+    // App Store artwork the web row shows, inlined into the page
+    // from web/*-icon.b64) ride along only when they change and
+    // are decoded + cached here.
+    var transitAppButton: UIButton!
+    var nearbyStationsButton: UIButton!
+    var applePayButton: UIButton!
+    var actionTransitLabel = ""
+    var actionNearbyLoading = false
+    var actionTransitIconURL = ""
+    var actionTransitIcon: UIImage?
+    var actionPinIconURL = ""
+    var actionPinIcon: UIImage?
     // Web tab keys, in the same order as the native tab bar items.
     let tabKeys = ["transfer", "map", "stations", "timetable", "more"]
     // Siri / deep-link routing (user 2026-11-18, Siri Shortcuts): a
@@ -348,6 +367,22 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "siri.add.open": ["打开快捷指令", "打開快捷指令", "Open Shortcuts"],
         "siri.add.message": ["「{name}」已就绪。在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可添加。添加后可对 Siri 说出对应短语使用。", "「{name}」已就緒。在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可添加。添加後可對 Siri 說出對應短語使用。", "“{name}” is ready. In the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”. Once added, use it by speaking its phrase to Siri."],
         "siri.add.message.nodonate": ["未能自动准备「{name}」，但仍可手动添加：在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可。", "未能自動準備「{name}」，但仍可手動添加：在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可。", "“{name}” could not be prepared automatically, but you can still add it manually: in the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”."],
+        "tr.nearby": ["附近车站", "附近車站", "Nearby Stations"],
+        "tr.nearby.locating": ["定位中…", "定位中…", "Locating…"],
+        "tr.applepay": ["Apple Pay", "Apple Pay", "Apple Pay"],
+        "transit.bj": ["一卡通", "一卡通", "Yikatong"],
+        "transit.sy": ["盛京通", "盛京通", "Shengjing Tong"],
+        "transit.sh": ["Metro大都会", "Metro大都會", "Metro Daduhui"],
+        "transit.hb": ["哈尔滨城市通", "哈爾濱城市通", "Harbin City Pass"],
+        "transit.dl": ["大连交通e出行", "大連交通e出行", "Dalian e-Travel"],
+        "transit.jh": ["任我行", "任我行", "Renwoxing"],
+        "transit.cz": ["常州地铁", "常州地鐵", "Changzhou Metro"],
+        "transit.cq": ["渝畅行", "渝暢行", "Yuchangxing"],
+        "transit.cc": ["长春E出行", "長春E出行", "Changchun E-Travel"],
+        "transit.sz": ["深圳地铁", "深圳地鐵", "Shenzhen Metro"],
+        "transit.cd": ["成都地铁", "成都地鐵", "Chengdu Metro"],
+        "transit.qd": ["青岛地铁", "青島地鐵", "Qingdao Metro"],
+        "transit.sjz": ["石慧行", "石慧行", "Shihuihang"],
         "tr.search": ["搜索", "搜索", "Search"],
         "tr.departNow": ["现在出发", "現在出發", "Depart now"],
         "time.confirm": ["确定", "確定", "Done"],
@@ -448,6 +483,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             btn.configuration = cfg
         }
         if transferSearchButton != nil { updateTransferSearchStyle() }
+        refreshActionButtons()
         if fromField != nil { fromField.placeholder = L("tr.phFrom") }
         if toField != nil { toField.placeholder = L("tr.phTo") }
         fromLabelBtn?.setTitle(L("tr.depart"), for: .normal)
@@ -792,6 +828,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         setupThemeButtons()
         setupNearbySmartSwitch()
         setupTransferControls()
+        setupActionButtons()
         // Native launch splash (build 53, user 2026-11-15 "点进去为什么
         // 第一时刻没有开屏动画是白屏"): the web splash only appears after
         // the 6.7 MB page loads, so the first moment was a white screen
@@ -1584,6 +1621,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         updateSideBarSelection()
         clearTransferFields()
         updateTransferTint()
+        refreshActionButtons()
     }
 
     func pickCity(_ city: String) {
@@ -2027,6 +2065,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
               let s = dict["search"] as? [String: Any] else {
             transferCard.isHidden = true
             transferSearchButton.isHidden = true
+            hideActionButtons()
             return
         }
         let fx = (f["x"] as? Double) ?? 0
@@ -2066,17 +2105,178 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             transferSearchButton.isHidden = true
         }
+        // Quick-action row (same report): the transit label and
+        // the nearby loading flag are cheap and ride every post;
+        // the icon data URLs only arrive when the web posts a
+        // changed one, so decode + cache only then, and only
+        // re-apply the button contents when something changed.
+        var actionsChanged = false
+        if let label = dict["transitLabel"] as? String, label != actionTransitLabel {
+            actionTransitLabel = label
+            actionsChanged = true
+        }
+        if let loading = dict["nearbyLoading"] as? Bool, loading != actionNearbyLoading {
+            actionNearbyLoading = loading
+            actionsChanged = true
+        }
+        if let icon = dict["transitIcon"] as? String, icon != actionTransitIconURL {
+            actionTransitIconURL = icon
+            actionTransitIcon = decodeActionIcon(icon)
+            actionsChanged = true
+        }
+        if let icon = dict["pinIcon"] as? String, icon != actionPinIconURL {
+            actionPinIconURL = icon
+            actionPinIcon = decodeActionIcon(icon)
+            actionsChanged = true
+        }
+        if actionsChanged { refreshActionButtons() }
+        if let a = dict["actions"] as? [String: Any] {
+            let ax = (a["x"] as? Double) ?? 0
+            let ay = (a["y"] as? Double) ?? 0
+            let aw = (a["width"] as? Double) ?? 0
+            let ah = (a["height"] as? Double) ?? 0
+            if aw > 0 && ah > 0 && currentTab == "transfer" {
+                // Three equal pills with 8pt gaps — the web row's
+                // flex layout (same split as placeThemeButtons).
+                let gap: CGFloat = 8
+                let bw = (CGFloat(aw) - gap * 2) / 3
+                let row: [UIButton] = [transitAppButton, nearbyStationsButton, applePayButton]
+                for (i, btn) in row.enumerated() {
+                    btn.frame = CGRect(x: CGFloat(ax) + webOffset.x + CGFloat(i) * (bw + gap),
+                                       y: CGFloat(ay) + webOffset.y, width: bw, height: CGFloat(ah))
+                    btn.isHidden = false
+                }
+            } else {
+                hideActionButtons()
+            }
+        } else {
+            hideActionButtons()
+        }
     }
 
     func updateTransferVisibility() {
         if currentTab != "transfer" {
             transferCard.isHidden = true
             transferSearchButton.isHidden = true
+            hideActionButtons()
             view.endEditing(true)
         }
         // Dark-mode picker only lives on the settings tab.
         if currentTab != "more" {
             for btn in themeButtons { btn.isHidden = true }
+        }
+    }
+
+    // MARK: - Native Liquid Glass quick-action row (transfer page)
+
+    // Glass button config for the quick-action pills: Liquid Glass
+    // on iOS 26+, a filled capsule below (same pattern as the theme
+    // picker's themeButtonConfig). The title font matches the web
+    // row these pills replace (15px semibold) and imagePadding its
+    // 6px icon gap; long app names truncate like the web row's
+    // ellipsis.
+    func actionButtonConfig() -> UIButton.Configuration {
+        var cfg: UIButton.Configuration
+        if #available(iOS 26.0, *) {
+            cfg = UIButton.Configuration.glass()
+        } else {
+            cfg = UIButton.Configuration.filled()
+        }
+        cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+            var a = attrs
+            a.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+            return a
+        }
+        cfg.imagePadding = 6
+        cfg.titleLineBreakMode = .byTruncatingTail
+        return cfg
+    }
+
+    func setupActionButtons() {
+        transitAppButton = UIButton(type: .system)
+        transitAppButton.configuration = actionButtonConfig()
+        transitAppButton.translatesAutoresizingMaskIntoConstraints = true
+        transitAppButton.isHidden = true
+        transitAppButton.addTarget(self, action: #selector(transitAppButtonTapped), for: .touchUpInside)
+        view.addSubview(transitAppButton)
+
+        nearbyStationsButton = UIButton(type: .system)
+        nearbyStationsButton.configuration = actionButtonConfig()
+        nearbyStationsButton.translatesAutoresizingMaskIntoConstraints = true
+        nearbyStationsButton.isHidden = true
+        nearbyStationsButton.addTarget(self, action: #selector(nearbyStationsButtonTapped), for: .touchUpInside)
+        view.addSubview(nearbyStationsButton)
+
+        applePayButton = UIButton(type: .system)
+        applePayButton.configuration = actionButtonConfig()
+        applePayButton.translatesAutoresizingMaskIntoConstraints = true
+        applePayButton.isHidden = true
+        applePayButton.addTarget(self, action: #selector(applePayButtonTapped), for: .touchUpInside)
+        view.addSubview(applePayButton)
+
+        refreshActionButtons()
+    }
+
+    // The three taps run the EXACT code paths the web buttons used:
+    // the transit tap calls the same native openTransitApp() the
+    // web's openTransitApp post triggered; nearby calls
+    // requestNearbyLocation(), the web's requestLocation post; Apple
+    // Pay goes through openExternalURL with wallet://, the web's
+    // openApplePay -> openExternal('wallet://') path.
+    @objc func transitAppButtonTapped() {
+        openTransitApp()
+    }
+
+    @objc func nearbyStationsButtonTapped() {
+        requestNearbyLocation()
+    }
+
+    @objc func applePayButtonTapped() {
+        openExternalURL(dict: ["url": "wallet://", "fallback": ""])
+    }
+
+    func hideActionButtons() {
+        transitAppButton?.isHidden = true
+        nearbyStationsButton?.isHidden = true
+        applePayButton?.isHidden = true
+    }
+
+    // Re-apply the three pills' titles + icons from the cached
+    // state. The transit label prefers the web's posted label (the
+    // page's own transitLabel, in the page's language) and falls
+    // back to the native LANG table keyed by currentCity; the
+    // nearby pill gains the web row's 定位中… suffix while a
+    // location fix is in flight.
+    func refreshActionButtons() {
+        guard transitAppButton != nil else { return }
+        var tcfg = transitAppButton.configuration ?? actionButtonConfig()
+        tcfg.title = actionTransitLabel.isEmpty ? L("transit." + currentCity) : actionTransitLabel
+        tcfg.image = actionTransitIcon
+        transitAppButton.configuration = tcfg
+        var ncfg = nearbyStationsButton.configuration ?? actionButtonConfig()
+        ncfg.title = L("tr.nearby") + (actionNearbyLoading ? " " + L("tr.nearby.locating") : "")
+        ncfg.image = actionPinIcon
+        nearbyStationsButton.configuration = ncfg
+        var acfg = applePayButton.configuration ?? actionButtonConfig()
+        acfg.title = L("tr.applepay")
+        applePayButton.configuration = acfg
+    }
+
+    // Decode a "data:image/png;base64,..." icon the web posted and
+    // render it at the web row's icon size: 22x22pt with the 5pt
+    // corner radius of .tr-action-btn img. A straight resize of the
+    // same artwork (never redrawn). An empty or invalid string —
+    // cities whose icon the web itself renders label-only — yields
+    // nil, so the pill shows just its title, like the web row.
+    func decodeActionIcon(_ dataURL: String) -> UIImage? {
+        guard let comma = dataURL.firstIndex(of: ",") else { return nil }
+        let b64 = String(dataURL[dataURL.index(after: comma)...])
+        guard let data = Data(base64Encoded: b64), let src = UIImage(data: data) else { return nil }
+        let size = CGSize(width: 22, height: 22)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { _ in
+            UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 5).addClip()
+            src.draw(in: CGRect(origin: .zero, size: size))
         }
     }
 

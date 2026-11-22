@@ -571,6 +571,11 @@
 		   (.tr-suggest) stays web and appears below the native card. */
 		.native-app .tr-fields, .native-app .tr-search { visibility: hidden !important; border-color: transparent !important; box-shadow: none !important; background: transparent !important; }
 		.native-app .tr-tabs { visibility: hidden !important; }
+		/* Native app: the quick-action row under the search button
+		   (transit app / nearby stations / Apple Pay) is native Liquid
+		   Glass buttons overlaid on .tr-actions — hide the web buttons
+		   but keep the space, same as .tr-fields / .tr-search above. */
+		.native-app .tr-actions { visibility: hidden !important; }
 
 
 
@@ -4281,22 +4286,34 @@ function titlePy(py) {
 					// line picks so the native fields stay in sync (e.g.
 					// after a suggestion pick or a city switch). Posts
 					// {fields:{x,y,width,height}, search:{x,y,width,height},
-					// fromQuery, toQuery, fromLine, toLine}; a zero-size
-					// rect hides the native controls (panel not shown).
+					// actions:{x,y,width,height}, fromQuery, toQuery,
+					// fromLine, toLine, transitLabel, nearbyLoading}; a
+					// zero-size rect hides the native controls (panel not
+					// shown). The action row's icon images (transit app +
+					// pin, ~20 KB data URLs) ride along ONLY when they
+					// change — frame reports fire on every scroll frame,
+					// so they are never re-posted per frame.
 					reportTransferFrame() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.transferFrame;
 						if (!h) return;
 						var f = document.querySelector('.tr-fields');
 						var s = document.querySelector('.tr-search');
+						var a = document.querySelector('.tr-actions');
 						var fr = f ? f.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
 						var sr = s ? s.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
-						h.postMessage({
+						var ar = a ? a.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
+						var msg = {
 							fields: { x: fr.left, y: fr.top, width: fr.width, height: fr.height },
 							search: { x: sr.left, y: sr.top, width: sr.width, height: sr.height },
+							actions: { x: ar.left, y: ar.top, width: ar.width, height: ar.height },
 							fromQuery: this.fromQuery, toQuery: this.toQuery,
 							fromLine: this.fromLine ? { name: this.fromLine.name, color: this.fromLine.color, text: this.fromLine.text } : null,
-							toLine: this.toLine ? { name: this.toLine.name, color: this.toLine.color, text: this.toLine.text } : null
-						});
+							toLine: this.toLine ? { name: this.toLine.name, color: this.toLine.color, text: this.toLine.text } : null,
+							transitLabel: this.transitLabel, nearbyLoading: this.nearbyLoading
+						};
+						if (window._lastTrIcon !== this.transitIcon) { window._lastTrIcon = this.transitIcon; msg.transitIcon = this.transitIcon; }
+						if (window._lastPinIcon !== this.pinIconThemed) { window._lastPinIcon = this.pinIconThemed; msg.pinIcon = this.pinIconThemed; }
+						h.postMessage(msg);
 					},
 					// Native app (build 44): report the dark-mode picker frame
 					// so the native shell can place its Apple UI Liquid Glass
