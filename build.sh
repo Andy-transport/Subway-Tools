@@ -292,10 +292,9 @@ PYEOF
 echo "== 4. package IPA =="
 cd build
 # NOTE: the workflow's Upload IPA step (.github/workflows/build-ipa.yml on
-# GitHub) uploads artifact 'Subway Tools' from build/Subway Tools 1.0.0.ipa
-# (renamed 26D106, user 2026-11-21: package name is the app name; renamed
-# again for the 1.0.0 official release, user 2026-11-22) — keep this name
-# in sync with it.
-zip -r -y "Subway Tools 1.0.0.ipa" Payload
-ls -l "Subway Tools 1.0.0.ipa"
-unzip -l "Subway Tools 1.0.0.ipa"
+# GitHub) uploads artifact 'Subway Tools' from build/Subway Tools.ipa
+# (test/structure branch: package name is the plain app name, matching the
+# test-branch workflow path) — keep this name in sync with it.
+zip -r -y "Subway Tools.ipa" Payload
+ls -l "Subway Tools.ipa"
+unzip -l "Subway Tools.ipa"
