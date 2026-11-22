@@ -1848,6 +1848,7 @@
 						<div class="more-row" @click="aboutRepo"><span>{{ t('more.repo') }}</span><span class="more-chev">›</span></div>
 						<div class="more-row" @click="aboutRepo"><span>{{ t('more.about.github') }}</span><span class="more-row-value">Andy-transport</span><span class="more-chev">›</span></div>
 						<div class="more-row" @click="aboutDouyin"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">351453703</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="aboutDouyin2"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">xlcty199</span><span class="more-chev">›</span></div>
 					</div>
 				</div>
 				</transition>
@@ -4830,6 +4831,7 @@ function titlePy(py) {
 					// used; 作者抖音 opens the author's Douyin profile.
 					aboutRepo() { openRepo(); },
 					aboutDouyin() { openDouyin(); },
+				aboutDouyin2() { openDouyin2(); },
 					// Row press highlight (26D100): remove every
 					// .pressing marker. Called by the touch failsafe,
 					// the anySubViewOpen watcher and visibilitychange,
@@ -5580,6 +5582,15 @@ function titlePy(py) {
 				// back to the web search page when it is not installed
 				// (window.open / location.href cannot do this in WKWebView).
 				openExternal("snssdk1128://user/profile/351453703", "https://www.douyin.com/search/351453703");
+			};
+
+
+			function openDouyin2() {
+				// Second author's Douyin homepage (抖音号 xlcty199,
+				// numeric ID 75387112248). Same mechanism as
+				// openDouyin(): the profile scheme takes the numeric
+				// ID; the web fallback searches the 抖音号.
+				openExternal("snssdk1128://user/profile/75387112248", "https://www.douyin.com/search/xlcty199");
 			};
 
 
