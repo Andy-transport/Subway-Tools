@@ -270,31 +270,40 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return im
     }
     // Tab-bar glyph sizing (test/structure, user 2026-11-22): with
-    // 6 tabs the default glyphs crowd each other, so the TAB BAR
-    // items render one notch smaller — symbols at 21pt. This is
-    // applied only where the tab bar items are created; tabImages()
-    // itself is shared with the Duo sidebar, which keeps its own
-    // sizing and is NOT touched here.
+    // 6 tabs the TAB BAR items render at a fixed glyph size —
+    // symbols at 26pt since 26E109 (21pt until 26E108; user: the
+    // bar should match the iOS 26 floating-glass reference —
+    // icons big and full, titles a normal size). This is applied
+    // only where the tab bar items are created; tabImages() itself
+    // is shared with the Duo sidebar, which keeps its own sizing
+    // and is NOT touched here.
     // The only non-symbol tab icon is the timetable PNG, and it has
-    // large transparent margins (measured on the bundled @3x asset,
-    // 75x75px: the glyph's alpha bbox is x 14-55, y 20-51 — only
-    // ~41% of the canvas height). Scaling the whole canvas to 21pt
-    // left the visible glyph ~9pt tall next to ~18pt of symbol ink
-    // (user 2026-11-22: 时刻表图标偏小). So the PNG is rendered by
-    // its GLYPH box instead: the image is drawn shifted/scaled so
-    // the padded glyph box fills a 21pt-tall canvas, aligning the
-    // glyph's height with the symbols. Render-time only — the
-    // source asset is untouched.
+    // transparent margins. Measured on the asset build.sh actually
+    // bundles — web/timetable-icon@3x.b64 decoded, 75x75px: the
+    // glyph's alpha bbox is (4,10)–(70,65), i.e. x 0.053–0.933 /
+    // y 0.133–0.867 of the canvas. (26E109 correction: the 26E108
+    // crop fractions were measured on a stray web/timetable-icon
+    // PNG whose glyph box differs, and they cut the glyph's right
+    // and bottom edges — the user's screenshot showed only the
+    // calendar's top-left corner.) Scaling the whole canvas to the
+    // symbol size leaves the visible glyph short next to the
+    // symbols (user 2026-11-22: 时刻表图标偏小), so the PNG is
+    // rendered by its GLYPH box instead: the image is drawn
+    // shifted/scaled so the padded glyph box fills a 26pt-tall
+    // canvas, aligning the glyph's height with the symbols.
+    // Render-time only — the source asset is untouched.
     func tabBarItemImage(_ image: UIImage?) -> UIImage? {
         guard let image = image else { return nil }
         if image.isSymbolImage {
-            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: 21, weight: .regular))
+            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: 26, weight: .regular))
         }
         guard image.size.width > 0, image.size.height > 0 else { return image }
         // Glyph box as fractions of the image size (measured alpha
-        // bbox x 0.187-0.733 / y 0.267-0.680, padded ~0.04 a side).
-        let glyph = CGRect(x: 0.15, y: 0.23, width: 0.62, height: 0.48)
-        let targetHeight: CGFloat = 21
+        // bbox x 0.053-0.933 / y 0.133-0.867 on the bundled @3x
+        // asset decoded from web/timetable-icon@3x.b64, padded
+        // ~0.02-0.03 a side).
+        let glyph = CGRect(x: 0.03, y: 0.10, width: 0.93, height: 0.79)
+        let targetHeight: CGFloat = 26
         let canvas = CGSize(width: targetHeight * (glyph.width / glyph.height) * (image.size.width / image.size.height),
                             height: targetHeight)
         let scale = targetHeight / (image.size.height * glyph.height)
@@ -685,12 +694,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // Roomier 6-tab layout (test/structure, user 2026-11-22,
             // aligned to the user's reference shot — near-full-width
             // capsule, six items spread evenly): pin the title font
-            // at 10pt in both states on every layout appearance, so
-            // the labels keep even breathing room instead of the
-            // larger system default. Selected keeps the city accent
-            // colour (no foreground override, tint still drives it).
-            let tabTitleFont = UIFont.systemFont(ofSize: 10)
-            let tabTitleFontSelected = UIFont.systemFont(ofSize: 10, weight: .medium)
+            // in both states on every layout appearance, so the
+            // labels keep even breathing room instead of the system
+            // default. 11pt since 26E109 (10pt until 26E108),
+            // matching the 26pt icons (tabBarItemImage) the user
+            // asked for against the iOS 26 reference bar. Selected
+            // keeps the city accent colour (no foreground override,
+            // tint still drives it). The bar's height is intrinsic
+            // and grows with the larger glyphs/titles on its own.
+            let tabTitleFont = UIFont.systemFont(ofSize: 11)
+            let tabTitleFontSelected = UIFont.systemFont(ofSize: 11, weight: .medium)
             for layout in [appearance.stackedLayoutAppearance, appearance.inlineLayoutAppearance, appearance.compactInlineLayoutAppearance] {
                 layout.normal.titleTextAttributes[.font] = tabTitleFont
                 layout.selected.titleTextAttributes = [.font: tabTitleFontSelected]
@@ -1818,11 +1831,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // The structure detail's 空间结构/平面示意 switch is a native
     // UISegmentedControl (Liquid Glass on iOS 26+); its header
-    // carries a native glass capsule 搜索 button (magnifyingglass,
-    // back to the search list + focus the input) on the right and,
-    // since 26E108, a circular glass chevron 退出 button on the
-    // left — the same button as every sub-view's native back
-    // button. Same overlay pattern as sortTabs: the web keeps
+    // carries a native circular glass 搜索 button on the right
+    // (magnifyingglass only, no title since 26E109 — back to the
+    // search list + focus the input) and, since 26E108, a circular
+    // glass chevron 退出 button on the left — the same button as
+    // every sub-view's native back button. Same overlay pattern
+    // as sortTabs: the web keeps
     // invisible placeholders (.struct-seg / .struct-actions /
     // .tt-back), reports their frames via "structFrame", and the
     // native controls sit exactly on top. Both segments stay
@@ -1839,9 +1853,42 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         structSeg.setTitleTextAttributes(attrs, for: .normal)
         structSeg.setTitleTextAttributes(attrs, for: .selected)
         view.addSubview(structSeg)
-        structSearchButton = UIButton(configuration: structButtonConfig(title: L("tab.stations"), symbol: "magnifyingglass"))
+        // Search (26E109, user: 结构页搜索按钮只留图标): a 40pt
+        // circular glass button with ONLY the magnifyingglass —
+        // no 「搜索」 title — built exactly like the exit chevron
+        // below (glass capsule config on iOS 26+, glass effect
+        // view behind the glyph below that). It centres on the
+        // web title row's .struct-actions slot, a 40x40 square
+        // since 26E109 (placeStructChrome).
+        structSearchButton = UIButton(type: .system)
         structSearchButton.translatesAutoresizingMaskIntoConstraints = true
         structSearchButton.isHidden = true
+        structSearchButton.tintColor = .label
+        let structSearchGlyph = UIImage(systemName: "magnifyingglass")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 17, weight: .semibold))
+        if #available(iOS 26.0, *) {
+            var searchCfg = UIButton.Configuration.glass()
+            searchCfg.image = structSearchGlyph
+            searchCfg.cornerStyle = .capsule
+            searchCfg.baseForegroundColor = .label
+            structSearchButton.configuration = searchCfg
+        } else {
+            structSearchButton.backgroundColor = .clear
+            structSearchButton.layer.cornerRadius = 20
+            structSearchButton.clipsToBounds = true
+            let searchGlass = makeGlassEffectView()
+            searchGlass.translatesAutoresizingMaskIntoConstraints = false
+            searchGlass.layer.cornerRadius = 20
+            searchGlass.clipsToBounds = true
+            searchGlass.isUserInteractionEnabled = false
+            structSearchButton.insertSubview(searchGlass, at: 0)
+            NSLayoutConstraint.activate([
+                searchGlass.leadingAnchor.constraint(equalTo: structSearchButton.leadingAnchor),
+                searchGlass.trailingAnchor.constraint(equalTo: structSearchButton.trailingAnchor),
+                searchGlass.topAnchor.constraint(equalTo: structSearchButton.topAnchor),
+                searchGlass.bottomAnchor.constraint(equalTo: structSearchButton.bottomAnchor),
+            ])
+            structSearchButton.setImage(structSearchGlyph, for: .normal)
+        }
         structSearchButton.addTarget(self, action: #selector(structSearchTapped), for: .touchUpInside)
         view.addSubview(structSearchButton)
         // Exit (26E108, user: 「要这样的退出按钮」 with the Siri
@@ -1884,40 +1931,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         view.addSubview(structExitButton)
     }
 
-    // Glass capsule button config for the structure header buttons:
-    // same Liquid Glass pattern as themeButtonConfig — the .glass()
-    // call stays inside the #available check (iOS 16 target).
-    func structButtonConfig(title: String, symbol: String) -> UIButton.Configuration {
-        var cfg: UIButton.Configuration
-        if #available(iOS 26.0, *) {
-            cfg = UIButton.Configuration.glass()
-        } else {
-            cfg = UIButton.Configuration.filled()
-        }
-        cfg.title = title
-        cfg.image = UIImage(systemName: symbol)
-        cfg.imagePadding = 4
-        cfg.cornerStyle = .capsule
-        cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
-            var a = attrs
-            a.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
-            return a
-        }
-        return cfg
-    }
-
     func refreshStructChromeTitles() {
         if structSeg != nil {
             structSeg.setTitle(L("struct.spatial"), forSegmentAt: 0)
             structSeg.setTitle(L("struct.plan"), forSegmentAt: 1)
         }
-        if structSearchButton != nil {
-            structSearchButton.configuration = structButtonConfig(title: L("tab.stations"), symbol: "magnifyingglass")
-        }
-        // The exit chevron button is NOT refreshed here: its glyph
-        // is language-independent, and re-assigning a titled capsule
-        // configuration would undo the circular sub-view-back style
-        // it is built with in setupStructChrome (26E108).
+        // The search and exit buttons are NOT refreshed here: both
+        // are icon-only circles (magnifyingglass / chevron) whose
+        // glyphs are language-independent, and re-assigning a
+        // configuration would undo the circular glass style they
+        // are built with in setupStructChrome (26E108/26E109).
     }
 
     func hideStructChrome() {
@@ -1968,12 +1991,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             structSeg.isHidden = true
         }
-        // Search capsule: fills the whole actions slot on the title
-        // row (the exit button moved to the left in 26E108), and
-        // must sit above the seg row.
-        let actOK = active && plausible(actR, 60, 280, 24, 56) && (!segOK || actR.maxY <= segR.minY + 6)
+        // Search circle (26E109): the 40pt icon-only glass button
+        // centres on the .struct-actions slot, a 40x40 square in
+        // the title row since 26E109, and must sit above the seg
+        // row. Same centre-on-slot placement as the exit chevron.
+        let actOK = active && plausible(actR, 24, 72, 24, 72) && (!segOK || actR.maxY <= segR.minY + 6)
         if actOK {
-            structSearchButton.frame = actR
+            structSearchButton.frame = CGRect(x: actR.midX - 20, y: actR.midY - 20, width: 40, height: 40)
             structSearchButton.isHidden = false
         } else {
             structSearchButton.isHidden = true
