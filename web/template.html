@@ -1770,8 +1770,9 @@
 					<div class="more-card">
 						<div class="more-row" @click="aboutRepo"><span>{{ t('more.repo') }}</span><span class="more-chev">›</span></div>
 						<div class="more-row" @click="aboutRepo"><span>{{ t('more.about.github') }}</span><span class="more-row-value">Andy-transport</span><span class="more-chev">›</span></div>
-						<div class="more-row" @click="aboutDouyin"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">351453703</span><span class="more-chev">›</span></div>
-						<div class="more-row" @click="aboutDouyin2"><span>{{ t('more.about.douyin') }}</span><span class="more-row-value">xlcty199</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="aboutDouyin"><span>{{ t('more.about.douyin.build') }}</span><span class="more-row-value">351453703</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="aboutDouyin2"><span>{{ t('more.about.douyin.test') }}</span><span class="more-row-value">xlcty199</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="aboutDouyin3"><span>{{ t('more.about.douyin.debug') }}</span><span class="more-row-value">75387112248</span><span class="more-chev">›</span></div>
 					</div>
 				</div>
 				</transition>
@@ -1928,6 +1929,9 @@ var I18N = {
   'more.about': ['关于', '關於', 'About'],
   'more.about.github': ['作者 GitHub', '作者 GitHub', 'Author on GitHub'],
   'more.about.douyin': ['作者抖音', '作者抖音', 'Author on Douyin'],
+  'more.about.douyin.build': ['作者抖音 · 编译', '作者抖音 · 編譯', 'Author on Douyin · Build'],
+  'more.about.douyin.test': ['作者抖音 · 测试', '作者抖音 · 測試', 'Author on Douyin · Testing'],
+  'more.about.douyin.debug': ['作者抖音 · 调试', '作者抖音 · 調試', 'Author on Douyin · Debugging'],
   'more.about.desc': ['城市轨道交通出行工具', '城市軌道交通出行工具', 'A metro and rail transit tool'],
   'more.loc': ['定位权限', '定位權限', 'Location Permission'],
   'more.loc.unknown': ['未请求', '未請求', 'Not Requested'],
@@ -4618,6 +4622,7 @@ function titlePy(py) {
 					aboutRepo() { openRepo(); },
 					aboutDouyin() { openDouyin(); },
 					aboutDouyin2() { openDouyin2(); },
+					aboutDouyin3() { openDouyin3(); },
 					// Row press highlight (26D100): remove every
 					// .pressing marker. Called by the touch failsafe,
 					// the anySubViewOpen watcher and visibilitychange,
@@ -5308,10 +5313,17 @@ function titlePy(py) {
 
 
 			function openDouyin2() {
-				// Second author's Douyin homepage (抖音号 xlcty199,
-				// ID 75387112248). Same behaviour as openDouyin(): the
-				// native shell opens the Douyin app via its URL scheme
-				// and falls back to the web search page.
+				// Second author's Douyin homepage (抖音号 xlcty199).
+				// Same mechanism as openDouyin(), with this author's
+				// own ID in both the profile scheme and the fallback.
+				openExternal("snssdk1128://user/profile/xlcty199", "https://www.douyin.com/search/xlcty199");
+			};
+
+
+			function openDouyin3() {
+				// Third author's Douyin homepage (抖音号 75387112248).
+				// Same mechanism as openDouyin(), with this author's
+				// own ID in both the profile scheme and the fallback.
 				openExternal("snssdk1128://user/profile/75387112248", "https://www.douyin.com/search/75387112248");
 			};
 
