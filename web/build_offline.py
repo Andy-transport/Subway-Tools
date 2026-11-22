@@ -708,6 +708,7 @@ _SOON_LOGO_FILES = {
     "郑州": "zhengzhou.b64", "洛阳": "luoyang.b64", "武汉": "wuhan.b64",
     "佛山": "foshan.b64", "东莞": "dongguan.b64", "贵阳": "guiyang.b64",
     "昆明": "kunming.b64", "兰州": "lanzhou.b64", "乌鲁木齐": "wulumuqi.b64",
+    "雄安": "xiongan.b64",
 }
 _soon_logos = {}
 for _name, _fn in _SOON_LOGO_FILES.items():

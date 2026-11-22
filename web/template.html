@@ -430,6 +430,12 @@
 		.ropt-transfer { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 		.ropt-walk { font-size: 11px; color: #b26a00; background: rgba(178,106,0,0.08); border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
 		html.dark .ropt-walk { color: #e8a33d; background: rgba(232,163,61,0.12); }
+		/* 26E110 U: the literal 「虚拟换乘」 tag right after the
+		   transfer station name — same amber family as .tr-virtual /
+		   .ropt-walk, small pill. Shown for EVERY out-of-station
+		   boundary, even when no walking distance is known. */
+		.ropt-virtual { font-size: 11px; font-weight: 700; color: #b26a00; background: rgba(178,106,0,0.14); border-radius: 4px; padding: 1px 5px; margin-left: 4px; white-space: nowrap; }
+		html.dark .ropt-virtual { color: #e8a33d; background: rgba(232,163,61,0.16); }
 		.tr-transfer-detail { background: rgba(0,51,128,0.05); border-radius: 10px; padding: 10px 12px; margin: 6px 0; }
 		html.dark .tr-transfer-detail { background: rgba(255,255,255,0.06); }
 		.tr-td-head { font-size: 15px; font-weight: 700; color: #000; margin-bottom: 6px; }
@@ -776,6 +782,37 @@
 			padding-right: max(20px, env(safe-area-inset-right));
 		}
 		html.dark #moreSheet { background: #000000; }
+		/* Settings HOME no-scroll (26E110 S, user: 设置首页不要滑动):
+		   while no settings sub-page is open, #moreSheet carries
+		   .home-lock — the home panel (account card + city switch +
+		   general/about + more group + credit footer) must fit ONE
+		   screen with no scrolling and no rubber-banding. Sub-pages
+		   (class removed while any is open) keep the normal
+		   scrollable layout and roomier spacing: every tightening
+		   below is scoped under .home-lock. The lock is limited to
+		   tall portrait screens (>=800px, the user's 402x874
+		   iPhone class); shorter viewports / landscape keep the
+		   scrollable page rather than clipping content.
+		   Fit budget at 874pt: top pad 59+10, bottom pad 76+34
+		   (clears the floating tab bar, top edge ~764) -> content
+		   box 695pt; the tightened home content measures ~646pt,
+		   and .more-main is a full-height flex column whose credit
+		   footer is pinned by margin-top:auto, so slack lands
+		   above the footer, never as a scrollable gap. */
+		@media (orientation: portrait) and (min-height: 800px) {
+			#moreSheet.home-lock { overflow: hidden; padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+			#moreSheet.home-lock .more-main { display: flex; flex-direction: column; height: 100%; }
+			#moreSheet.home-lock .more-main .more-credit { margin-top: auto; }
+		}
+		#moreSheet.home-lock .more-title { font-size: 30px; margin: 0 4px 6px; }
+		#moreSheet.home-lock .more-appcard { padding: 10px 16px; margin-bottom: 10px; }
+		#moreSheet.home-lock .more-appicon { width: 40px; height: 40px; }
+		#moreSheet.home-lock .more-card { margin-bottom: 10px; }
+		#moreSheet.home-lock .more-account { padding: 7px 16px; }
+		#moreSheet.home-lock .more-account-avatar { width: 38px; height: 38px; }
+		#moreSheet.home-lock .more-section { margin-bottom: 2px; }
+		#moreSheet.home-lock .more-row { padding: 7px 0; }
+		#moreSheet.home-lock .more-credit { padding-top: 0; }
 		/* iPad top tab bar (build 74): the native floating tab bar sits at
 		   the TOP (safe-area top + 10, ~49pt tall), so the full-screen panels
 		   need top clearance there and no bottom-bar clearance. iPhone is
@@ -1264,6 +1301,23 @@
 		.ropt-line.ln-badge .ln-num, .tr-chip.ln-badge .ln-num { font-size: 19px; }
 		.ropt-line.ln-badge .ln-zh, .tr-chip.ln-badge .ln-zh { font-size: 10.5px; }
 		.ropt-line.ln-badge .ln-en, .tr-chip.ln-badge .ln-en { font-size: 7.5px; }
+		/* Candidate-row badge size (26E110, user: the badges in the
+		   station picker were as tall as the row itself). Scoped to
+		   .tr-sug-lines ONLY: the base .ln-badge (54px numeral) is
+		   shared with the form's line-pick chips, which keep their
+		   size, and the timetable / route-result variants have their
+		   own overrides above. Same colours, same text, same
+		   drawing — just smaller: numeral 54->16px, 号线 20->10.5px,
+		   Line X 11->7.5px, padding 10/18->5/10, radius 12->8,
+		   gap 10->6. Placed AFTER the base rule so it wins on both
+		   specificity (0,2,0 > 0,1,0) and source order.
+		   Rendered height = max(16, (10.5+7.5)*1.15) + 2*5 ≈ 30.7px. */
+		.tr-sug-lines .ln-badge { padding: 5px 10px 5px 9px; gap: 6px; border-radius: 8px; }
+		.tr-sug-lines .ln-badge .ln-num { font-size: 16px; }
+		.tr-sug-lines .ln-badge .ln-zh { font-size: 10.5px; }
+		.tr-sug-lines .ln-badge .ln-en { font-size: 7.5px; }
+		.tr-sug-lines .ln-badge.named { padding: 6px 10px; }
+		.tr-sug-lines .ln-badge.named .ln-zh { font-size: 16px; }
 		/* Named lines (no number: 西郊线, S1线, 大兴机场线...): name and 线 on ONE horizontal line at one size, English on the same baseline (user 2026-11-21). */
 		.ln-badge.named, .more-up-badge.named { gap: 7px; }
 		.ln-badge.named .ln-txt, .more-up-badge.named .ln-txt { flex-direction: row; align-items: baseline; gap: 6px; }
@@ -1650,7 +1704,7 @@
 							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ t('tr.minutes', {n: r.minutes}) }}</span></div>
 							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>{{ t('tr.transfers', {n: r.transfers}) }} · {{ t('tr.km', {n: r.km}) }}</div>
 							<div class="ropt-opwarn" v-if="routeOpWarning(r)">⚠ {{ routeOpWarning(r) }}</div>
-							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span><span v-else-if="transferEstFor(r, si+1) && transferEstFor(r, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(r, si+1)) }}</span></span></template></div>
+							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="isVirtualAt(r, si+1)" class="ropt-virtual">{{ t('tr.virtualTag') }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span><span v-else-if="transferEstFor(r, si+1) && transferEstFor(r, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(r, si+1)) }}</span></span></template></div>
 						</div>
 						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="r.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="r.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 					</div>
@@ -1664,6 +1718,10 @@
 						<div class="tr-virtual" v-if="virtualInfo(i)">
 							<img :src="walkIconThemed" alt="">
 							<span>{{ virtualInfo(i) }}</span>
+						</div>
+						<div class="tr-virtual" v-else-if="isVirtualAt(routeResult, i)">
+							<img :src="walkIconThemed" alt="">
+							<span>{{ t('tr.virtualTag') }}</span>
 						</div>
 						<div class="tr-transfer-detail" v-if="transferFocus === i">
 							<div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div>
@@ -1692,14 +1750,14 @@
 			</div>
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
-			<div id="moreSheet" class="glass" v-show="showMore">
+			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen }" v-show="showMore">
 				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub">
 				<div class="more-title">{{ t('app.name') }}</div>
 				<div class="more-appcard">
 					<img class="more-appicon" :src="appIconNow" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E109)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E110)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card more-account" @click="openProfile()">
@@ -1737,7 +1795,7 @@
 					<div class="more-row" @click="showTrainSub = true; loadTrains()"><span class="more-train-icon"></span><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="siriRowIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
 				</div>
-				<div class="more-credit">{{ t('more.credit') }}</div>
+				<div class="more-credit">{{ t('more.credit', {c: t('city.' + city)}) }}</div>
 				</div>
 				<transition name="more-sub">
 				<div class="more-sub" v-show="showCitySub">
@@ -1925,7 +1983,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E109)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E110)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2065,6 +2123,7 @@ var I18N = {
   'tr.fare.virtual': ['虚拟换乘需出站', '虛擬換乘需出站', 'Virtual transfer: exit station'],
   'tr.fare.airport': ['机场线需单独购票', '機場線需單獨購票', 'Airport line: separate ticket'],
   'tr.virtual': ['虚拟换乘 · 出站步行{dist}', '虛擬換乘 · 出站步行{dist}', 'Virtual transfer · exit and walk {dist}'],
+  'tr.virtualTag': ['虚拟换乘', '虛擬換乘', 'Virtual transfer'],
   'tr.transferWalk': ['换乘步行{dist}', '換乘步行{dist}', 'Transfer walk {dist}'],
   'tr.transferAt': ['在{st}换乘', '在{st}換乘', 'Transfer at {st}'],
   'tr.inStation': ['站内换乘', '站內換乘', 'In-station transfer'],
@@ -2161,7 +2220,7 @@ var I18N = {
   'more.lang.system': ['跟随系统', '跟隨系統', 'Follow System'],
   'more.more': ['更多', '更多', 'More'],
   'more.version': ['版本 {v}', '版本 {v}', 'Version {v}'],
-  'more.credit': ['数据来源 SierraQin · CC0 1.0', '資料來源 SierraQin · CC0 1.0', 'Data: SierraQin · CC0 1.0'],
+  'more.credit': ['数据来源 {c}城市官网', '數據來源 {c}城市官網', 'Data source: {c} City Official Website'],
   'more.whatsnew': ['功能介绍 · {v}', '功能介紹 · {v}', 'Features · {v}'],
   'more.whatsnew.title': ['功能介绍', '功能介紹', 'Features'],
   'more.rel.title': ['城轨通 {v} 功能介绍', '城軌通 {v} 功能介紹', 'Subway Tools {v} — Features'],
@@ -2685,6 +2744,11 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E110)', date: '2026-11-22', lines: [
+								['底栏六个图标改为实心填充风格：线路图、结构、设置换成实心字形，换乘与搜索加粗，时刻表换成实心日历加钟表角标；「Siri AI快捷指令」图标换成新的球体图标', '底欄六個圖示改為實心填充風格：線路圖、結構、設定換成實心字形，換乘與搜尋加粗，時刻表換成實心日曆加鐘錶角標；「Siri AI快捷指令」圖示換成新的球體圖示', 'The six tab bar icons are now solid-filled: Line Map, Structure and Settings use filled glyphs, Transfer and Search are bolder, and Timetable is a solid calendar with a clock badge; the Siri AI Shortcuts row gets a new orb icon'],
+								['选站列表的线路徽标缩小到紧凑尺寸；修复切换城市时换乘页中间按钮偶发的文字重影', '選站清單的線路徽標縮小到緊湊尺寸；修復切換城市時換乘頁中間按鈕偶發的文字重影', 'Line badges in the station picker shrink to a compact size, and the middle quick-action button no longer shows a doubled label after switching city'],
+								['换乘站并排显示全部线路徽标；票价按起终点最短里程计费、切路线不跳价；不合理的路线（出站换乘、绕远、耗时过长）不再推荐，虚拟换乘直接标注；设置首页固定一屏不滚动；数据来源改为当前城市官网；雄安换上真实标志', '換乘站並排顯示全部線路徽標；票價按起訖點最短里程計費、切路線不跳價；不合理的路線（出站換乘、繞遠、耗時過長）不再推薦，虛擬換乘直接標註；設定首頁固定一屏不捲動；數據來源改為當前城市官網；雄安換上真實標誌', 'Interchange stations show all their line badges side by side; fares are priced on the shortest distance between origin and destination and no longer change when you switch routes; unreasonable options (out-of-station transfers, long detours, much slower routes) are no longer recommended, and virtual transfers are labelled directly; the Settings home fits one screen without scrolling; the data source now names the current city\u2019s official website; Xiong\u2019an gets its real logo'],
+							] },
 							{ v: '1.1.0 (26E109)', date: '2026-11-22', lines: [
 								['结构图大扩充：收录车站从 90 个增至 381 个（北京 102、深圳 168、哈尔滨 23、金华 29、上海 45 等），空间结构图与平面示意图分开标注来源', '結構圖大擴充：收錄車站從 90 個增至 381 個（北京 102、深圳 168、哈爾濱 23、金華 29、上海 45 等），空間結構圖與平面示意圖分開標註來源', 'Structure diagrams, greatly expanded: 381 stations, up from 90 (Beijing 102, Shenzhen 168, Harbin 23, Jinhua 29, Shanghai 45 and more), with sources labelled separately for spatial and plan diagrams'],
 								['底栏向 iOS 26 参考样式看齐：图标放大、标题更清晰；时刻表图标修正裁切，日历与右下角钟表完整显示', '底欄向 iOS 26 參考樣式看齊：圖示放大、標題更清晰；時刻表圖示修正裁切，日曆與右下角鐘錶完整顯示', 'The tab bar now follows the iOS 26 reference: larger icons and clearer titles, and the timetable icon\u2019s crop is fixed so the calendar and the clock at its corner show in full'],
@@ -3546,8 +3610,12 @@ function titlePy(py) {
 						if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
 						// Native shell (build 37): update the native field +
 						// line badge and dismiss the keyboard.
+						// 26E110 P: also carry ALL lines serving the
+						// station (city line order) — an interchange
+						// station gets one native pill per line, not
+						// just the tapped suggestion's line.
 						var hp = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.stationPicked;
-						if (hp) hp.postMessage({ which: which, name: st.n, line: ln ? { name: ln.name, color: ln.color, text: ln.text } : null });
+						if (hp) hp.postMessage({ which: which, name: st.n, line: ln ? { name: ln.name, color: ln.color, text: ln.text } : null, lines: this.stationLines(st.n).map(function(x) { return { name: x.name, color: x.color, text: x.text }; }) });
 					},
 					hideSuggest() {
 						var self = this;
@@ -3839,6 +3907,90 @@ function titlePy(py) {
 						}
 						return false;
 					},
+					// Kilometres of ONE inter-station interval on a line —
+					// exactly the per-interval term segKm sums (map pixel
+					// distance / the city's px-per-km scale at the
+					// interval midpoint). null when either station has
+					// no coordinates (Shenyang: x/y are 0 there).
+					edgeKm(a, b, lineKey) {
+						var p1 = null, p2 = null;
+						for (var i = 0; i < this.stations.length; i++) {
+							if (this.stations[i].n === a) p1 = this.stations[i];
+							if (this.stations[i].n === b) p2 = this.stations[i];
+						}
+						if (!p1 || !p2) return null;
+						if ((p1.x === 0 && p1.y === 0) || (p2.x === 0 && p2.y === 0)) return null;
+						var px = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+						return px / this.shScaleFor(lineKey, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+					},
+					// Shortest-DISTANCE path between two stations
+					// (26E110 Q): Dijkstra over (station, line) with
+					// edge-km weights — no transfer penalty, distance
+					// only. Shenyang has no station coordinates, so its
+					// edges weigh 1 stop, matching its existing
+					// stops*1.4 km estimate model. Returns a
+					// route-shaped {segments, stops} (same segment
+					// shape findRoute builds) or null.
+					shortestRoute(fromName, toName) {
+						var R = this.routes;
+						if (!R || !R.edges || !R.lines) return null;
+						var adj = {};
+						var self = this;
+						R.edges.forEach(function(e) {
+							(adj[e[0]] = adj[e[0]] || []).push([e[1], e[2]]);
+							(adj[e[1]] = adj[e[1]] || []).push([e[0], e[2]]);
+						});
+						var queue = [[0, 0, fromName, null, [[fromName, null]]]];
+						var best = {};
+						while (queue.length) {
+							queue.sort(function(a, b) { return a[0] - b[0]; });
+							var cur = queue.shift();
+							var cost = cur[0], stops = cur[1], st = cur[2], ln = cur[3], path = cur[4];
+							var key = st + '|' + ln;
+							if (best[key] !== undefined && best[key] <= cost) continue;
+							best[key] = cost;
+							if (st === toName) {
+								var segs = [];
+								for (var i = 1; i < path.length; i++) {
+									var s = path[i][0], l = path[i][1];
+									if (segs.length && segs[segs.length - 1].line === l) {
+										segs[segs.length - 1].to = s;
+										segs[segs.length - 1].stops++;
+									} else {
+										var hex = R.lines[l].color;
+										var r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
+										var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+										segs.push({ line: l, name: R.lines[l].name, color: hex, text: lum > 0.6 ? '#1a1a1a' : '#ffffff', from: path[i - 1][0], to: s, stops: 1 });
+									}
+								}
+								return { stops: stops, transfers: segs.length - 1, segments: segs, stations: path.map(function(pp) { return pp[0]; }) };
+							}
+							(adj[st] || []).forEach(function(nb) {
+								var w = self.city === 'sy' ? 1 : self.edgeKm(st, nb[0], nb[1]);
+								if (w == null || w < 0) return;
+								queue.push([cost + w, stops + 1, nb[0], nb[1], path.concat([[nb[0], nb[1]]])]);
+							});
+						}
+						return null;
+					},
+					// THE fare for an origin-destination pair (26E110 Q,
+					// user: 按最短、最近规则计费): priced on the
+					// shortest-distance path above, run through the
+					// EXISTING per-city ladders in routeFare (the
+					// ladders themselves are unchanged — only the
+					// distance basis changed from "the route you are
+					// looking at" to "the shortest path for this OD").
+					// One fare per OD: every route option and the fare
+					// line show this same value. Cached per OD.
+					odFare(fromName, toName) {
+						if (!fromName || !toName) return null;
+						var key = this.city + '|' + fromName + '|' + toName;
+						if (this._odFareCache && this._odFareCache.key === key) return this._odFareCache.fare;
+						var sr = this.shortestRoute(fromName, toName);
+						var fare = sr ? this.routeFare(sr) : null;
+						this._odFareCache = { key: key, fare: fare };
+						return fare;
+					},
 					routeFare(r) {
 						r = r || this.routeResult;
 						if (!r || !r.segments || !r.segments.length) return null;
@@ -4105,7 +4257,34 @@ function titlePy(py) {
 						closeLeg();
 						return total;
 					},
-					fareAmount() { return this.routeFare(this.routeResult); },
+					fareAmount() {
+						// 26E110 Q: the fare line shows the OD fare
+						// (shortest-distance basis), not the fare of
+						// whichever route happens to be selected.
+						var r = this.routeResult;
+						if (!r || !r.stations || r.stations.length < 2) return this.routeFare(r);
+						return this.odFare(r.stations[0], r.stations[r.stations.length - 1]);
+					},
+					// True when the boundary before segment i of route
+					// r is an out-of-station (virtual) transfer
+					// (26E110 U): a transfers.json virtual entry
+					// (with or without a known walking distance) or
+					// a Beijing ordered pair flagged out-of-station.
+					isVirtualAt(r, i) {
+						if (!i || !r || !r.segments || i >= r.segments.length) return false;
+						if (this.virtualInfoFor(r, i) || this.virtualDistFor(r, i)) return true;
+						var e = this.transferEstFor(r, i);
+						return !!(e && e.out);
+					},
+					// True when route r contains an out-of-station
+					// transfer at any segment boundary (26E110 T).
+					routeHasVirtual(r) {
+						if (!r || !r.segments) return false;
+						for (var i = 1; i < r.segments.length; i++) {
+							if (this.isVirtualAt(r, i)) return true;
+						}
+						return false;
+					},
 					virtualInfo(i) { return this.virtualInfoFor(this.routeResult, i); },
 					virtualInfoFor(r, i) {
 						if (!i || !r || !r.segments) return '';
@@ -4704,10 +4883,38 @@ function titlePy(py) {
 							fromQuery: this.fromQuery, toQuery: this.toQuery,
 							fromLine: this.fromLine ? { name: this.fromLine.name, color: this.fromLine.color, text: this.fromLine.text } : null,
 							toLine: this.toLine ? { name: this.toLine.name, color: this.toLine.color, text: this.toLine.text } : null,
+							// 26E110 P: all lines of the picked stations
+							// (native renders one pill per line).
+							fromLines: this.fromStation ? this.stationLines(this.fromStation.n).map(function(x) { return { name: x.name, color: x.color, text: x.text }; }) : [],
+							toLines: this.toStation ? this.stationLines(this.toStation.n).map(function(x) { return { name: x.name, color: x.color, text: x.text }; }) : [],
 							transitLabel: this.transitLabel, nearbyLoading: this.nearbyLoading
 						};
 						if (window._lastTrIcon !== this.transitIcon) { window._lastTrIcon = this.transitIcon; msg.transitIcon = this.transitIcon; }
 						if (window._lastPinIcon !== this.pinIconThemed) { window._lastPinIcon = this.pinIconThemed; msg.pinIcon = this.pinIconThemed; }
+						// 26E110 ghost fix: never post the same payload
+						// twice in a row. updated() schedules this on a
+						// rAF AND a 300 ms timer (plus scroll ticks), so
+						// a city switch used to emit the settled state
+						// several times; each duplicate made the native
+						// shell re-apply the glass pills' frames and
+						// contents, restarting their content transition
+						// (the doubled 「附近」 the user screenshotted).
+						// Identical consecutive posts carry no new
+						// information — the native state already equals
+						// them — so drop them. Scroll posts differ in
+						// the rects and still flow. The comparison key
+						// is a NORMALISED copy with both icon fields
+						// always present: the post itself only carries
+						// them when they changed, which would otherwise
+						// make the settled state post twice (once
+						// with, once without).
+						var cmp = {};
+						for (var _k in msg) cmp[_k] = msg[_k];
+						cmp.transitIcon = this.transitIcon;
+						cmp.pinIcon = this.pinIconThemed;
+						var json = JSON.stringify(cmp);
+						if (window._lastTrFrameJSON === json) return;
+						window._lastTrFrameJSON = json;
 						h.postMessage(msg);
 					},
 					// Native app (build 44): report the dark-mode picker frame
@@ -4942,22 +5149,106 @@ function titlePy(py) {
 						}
 						var now = self.departBase();
 						function fmt(d) { var h = d.getHours(), m = d.getMinutes(); return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; }
-						var minMin = Infinity, minTr = Infinity, minFare = Infinity, minStops = Infinity;
+						// 26E110 Q: ONE fare per OD, priced on the
+						// shortest-distance path — assigned to every
+						// route option, so switching routes never
+						// changes the price.
+						var odf = self.odFare(fromName, toName);
 						list.forEach(function(r) {
 							r.depart = fmt(now);
 							var arr = new Date(now.getTime() + r.minutes * 60000);
 							r.arrive = fmt(arr);
-							r.fare = self.routeFare(r);
+							r.fare = odf;
 							r.km = self.routeKm(r);
-							if (r.minutes < minMin) minMin = r.minutes;
-							if (r.transfers < minTr) minTr = r.transfers;
-							if (r.stops < minStops) minStops = r.stops;
-							if (r.fare != null && r.fare < minFare) minFare = r.fare;
+							r.hasVirtual = self.routeHasVirtual(r);
+							r.hasRepeat = (function() {
+								var seen = {};
+								for (var i = 0; i < r.stations.length; i++) {
+									if (seen[r.stations[i]]) return true;
+									seen[r.stations[i]] = 1;
+								}
+								return false;
+							})();
+						});
+						// 26E110 T: drop unreasonable route options.
+						// Order: (1) out-of-station hard rule, (2)
+						// backtracking, (3) time (primary), (4)
+						// transfer count, (5) distance (auxiliary),
+						// (6) cost. The fastest route's own excess is
+						// 0, so it survives (3)-(6) by construction;
+						// if everything is filtered out, the single
+						// best route is restored (never an empty list).
+						(function() {
+							if (list.length < 2) return;
+							var minMin = Infinity, minTr = Infinity, minFare = Infinity, minKm = Infinity;
+							list.forEach(function(r) {
+								if (r.minutes < minMin) minMin = r.minutes;
+								if (r.transfers < minTr) minTr = r.transfers;
+								if (r.fare != null && r.fare < minFare) minFare = r.fare;
+								if (r.km != null && r.km < minKm) minKm = r.km;
+							});
+							var fastest = null, fewestTrRoute = null;
+							list.forEach(function(r) {
+								if (r.minutes === minMin && (!fastest || r.transfers < fastest.transfers)) fastest = r;
+								if (r.transfers === minTr && (!fewestTrRoute || r.minutes < fewestTrRoute.minutes)) fewestTrRoute = r;
+							});
+							var anyInStation = list.some(function(r) { return !r.hasVirtual; });
+							var kept = list.filter(function(r) {
+								// (1) Can transfer in-station? Then no
+								// out-of-station option is shown at all.
+								// Out-of-station routes survive only
+								// when they are the ONLY way.
+								if (r.hasVirtual && anyInStation) return false;
+								// (2) Backtracking: passes a station
+								// twice (e.g. the long way around a
+								// loop line).
+								if (r.hasRepeat) return false;
+								// (3) Time, primary: drop when beyond
+								// BOTH the 1.5x cap and +20 min over
+								// the fastest — the effective limit is
+								// whichever bound is reached first.
+								// Compensation: strictly fewer
+								// transfers than the fastest route
+								// widens the allowance to 1.75x /
+								// +30 min.
+								var capRatio = 1.5, capAbs = 20;
+								if (fastest && r.transfers < fastest.transfers) { capRatio = 1.75; capAbs = 30; }
+								if (r.minutes > minMin * capRatio && r.minutes - minMin >= capAbs) return false;
+								// (4) Transfers: 2+ more than the
+								// fewest-transfer route and not
+								// faster than it — pointless.
+								if (fewestTrRoute && r.transfers - minTr >= 2 && r.minutes >= fewestTrRoute.minutes) return false;
+								// (5) Distance, auxiliary: >1.5x the
+								// shortest distance AND >=10 km
+								// extra, with no time or transfer
+								// advantage at all.
+								if (r.km != null && minKm !== Infinity && r.km > minKm * 1.5 && r.km - minKm >= 10 && r.minutes >= minMin && r.transfers >= minTr) return false;
+								// (6) Cost: pricier than the best
+								// fare AND slower or more transfers.
+								// (Under Q all options share one OD
+								// fare, so this is inert today; kept
+								// for per-route fare regressions.)
+								if (r.fare != null && minFare !== Infinity && r.fare > minFare && (r.minutes > minMin || r.transfers > minTr)) return false;
+								return true;
+							});
+							if (!kept.length) kept = [fastest || list[0]];
+							list = kept;
+						})();
+						var minMin2 = Infinity, minTr2 = Infinity, minFare2 = Infinity, maxFare2 = -Infinity, minStops2 = Infinity;
+						list.forEach(function(r) {
+							if (r.minutes < minMin2) minMin2 = r.minutes;
+							if (r.transfers < minTr2) minTr2 = r.transfers;
+							if (r.stops < minStops2) minStops2 = r.stops;
+							if (r.fare != null && r.fare < minFare2) minFare2 = r.fare;
+							if (r.fare != null && r.fare > maxFare2) maxFare2 = r.fare;
 						});
 						list.forEach(function(r) {
-							r.isEarly = r.minutes === minMin;
-							r.isShortest = r.stops === minStops;
-							r.isCheap = r.fare != null && r.fare === minFare;
+							r.isEarly = r.minutes === minMin2;
+							r.isShortest = r.stops === minStops2;
+							// 26E110 Q: with one OD fare every option
+							// costs the same — the 便宜 badge only
+							// makes sense when fares actually differ.
+							r.isCheap = r.fare != null && r.fare === minFare2 && minFare2 < maxFare2;
 						});
 						return list.slice(0, 6);
 					},
@@ -5303,7 +5594,7 @@ function titlePy(py) {
 					}
 				},
 				watch: {
-					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); }
+					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (this.tab === 'more') { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } }
 				},
 				updated: function() {
 					this.syncHtmlClasses();

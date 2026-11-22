@@ -73,4 +73,10 @@ are wired in `build_offline.py` `_SOON_LOGO_FILES`.
 淮安 Huai'an · 天水 Tianshui · 三亚 Sanya · 株洲 Zhuzhou · 宜宾 Yibin ·
 嘉兴 Jiaxing · 文山州 Wenshanzhou · 芜湖 Wuhu · 南平 Nanping · 台州 Taizhou ·
 黄石 Huangshi · 盐城 Yancheng · 红河州 Honghezhou · 滁州 Chuzhou ·
-许昌 Xuchang · 雄安 Xiong'an (no metro logo by design — grey M placeholder).
+许昌 Xuchang.
+
+## User-provided (2026-11-22)
+
+| City | File | Note |
+|---|---|---|
+| 雄安 Xiong'an | `xiongan.png` | 用户提供图片 2026-11-22 — the user's own photo of the green Xiong'an mark; white background and inner negative space converted to transparency, green artwork untouched, not redrawn. Xiong'an remains a greyed, non-tappable placeholder city (no search/routing); only the icon changed from the grey M to this mark, shown greyed like the others. Wired in `build_offline.py` `_SOON_LOGO_FILES`. |

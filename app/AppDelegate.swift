@@ -236,8 +236,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // so applyLanguage() can retitle them on a language change.
     var fromLabelBtn: UIButton?
     var toLabelBtn: UIButton?
-    var fromBadge: UIButton!
-    var toBadge: UIButton!
+    // Line badges per field (26E110 P): a horizontal stack of pills,
+    // one per line serving the picked station (interchange stations
+    // show ALL their lines side by side). Buttons are pooled per
+    // field and re-titled/re-coloured by applyBadges.
+    var fromBadgeStack: UIStackView!
+    var toBadgeStack: UIStackView!
+    var fromBadges: [UIButton] = []
+    var toBadges: [UIButton] = []
     var fromClear: UIButton!
     var toClear: UIButton!
     // Line info currently shown in each field's badge, as
@@ -288,14 +294,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return t
     }
     func tabImages() -> [UIImage?] {
+        // Solid-filled glyphs (26E110, user: the 26E109 bar still
+        // read as thin outline icons; match the reference app's
+        // filled set). SF Symbols with a true .fill variant use it
+        // (map.fill / cube.fill / gearshape.fill — all verified in
+        // the SF Symbols catalog). Two tabs have NO fill variant in
+        // the catalog (verified): arrow.triangle.2.circlepath (only
+        // .camera/.circle/.doc variants) and magnifyingglass — those
+        // read solid through the BOLD symbol configuration applied
+        // where the images are rendered (tabBarItemImage for the
+        // tab bars, sideBarButtonConfig for the Duo sidebar). The
+        // timetable stays the bundled PNG, regenerated solid in
+        // 26E110 (see tabBarItemImage).
         var im: [UIImage?] = [
             UIImage(systemName: "arrow.triangle.2.circlepath"),
-            UIImage(systemName: "map"),
+            UIImage(systemName: "map.fill"),
             UIImage(systemName: "magnifyingglass"),
             UIImage(named: "TimetableIcon"),
         ]
-        if isTestBuild { im.append(UIImage(systemName: "cube")) }
-        im.append(UIImage(systemName: "gearshape"))
+        if isTestBuild { im.append(UIImage(systemName: "cube.fill")) }
+        im.append(UIImage(systemName: "gearshape.fill"))
         return im
     }
     // Tab-bar glyph sizing (test/structure, user 2026-11-22): with
@@ -307,14 +325,22 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // is shared with the Duo sidebar, which keeps its own sizing
     // and is NOT touched here.
     // The only non-symbol tab icon is the timetable PNG, and it has
-    // transparent margins. Measured on the asset build.sh actually
-    // bundles — web/timetable-icon@3x.b64 decoded, 75x75px: the
-    // glyph's alpha bbox is (4,10)–(70,65), i.e. x 0.053–0.933 /
-    // y 0.133–0.867 of the canvas. (26E109 correction: the 26E108
-    // crop fractions were measured on a stray web/timetable-icon
-    // PNG whose glyph box differs, and they cut the glyph's right
-    // and bottom edges — the user's screenshot showed only the
-    // calendar's top-left corner.) Scaling the whole canvas to the
+    // transparent margins. The asset was REGENERATED SOLID in
+    // 26E110 (heavy calendar: solid header band with binder holes,
+    // thick frame, dot grid, big solid clock badge with knocked-out
+    // hands — the reference app's glyph; drawn by
+    // gate-26e110/draw_tt_icon.py). SF's calendar.badge.clock was
+    // NOT used: its calendar body is an empty outline frame with
+    // binder rings and no dot grid, so at any weight it still reads
+    // as an outline icon next to the filled set. Measured on the
+    // asset build.sh actually bundles — web/timetable-icon@3x.b64
+    // decoded, 75x75px: the glyph's alpha bbox (thresholded past
+    // the resampling fringe) is (5,13)–(70,66), i.e. x 0.067–0.933
+    // / y 0.173–0.880 of the canvas. (History: the 26E108 crop
+    // fractions were measured on a stray web/timetable-icon PNG
+    // whose glyph box differs, and they cut the glyph's right and
+    // bottom edges; 26E109 re-measured on the then-bundled line-art
+    // asset, bbox (4,10)–(70,65).) Scaling the whole canvas to the
     // symbol size leaves the visible glyph short next to the
     // symbols (user 2026-11-22: 时刻表图标偏小), so the PNG is
     // rendered by its GLYPH box instead: the image is drawn
@@ -324,14 +350,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func tabBarItemImage(_ image: UIImage?) -> UIImage? {
         guard let image = image else { return nil }
         if image.isSymbolImage {
-            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: 26, weight: .regular))
+            // Bold since 26E110 (regular until 26E109): the two
+            // stroke-based glyphs (transfer arrows, magnifier) have
+            // no .fill variant and only read as solid at bold
+            // weight; the .fill variants stay filled at any weight.
+            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: 26, weight: .bold))
         }
         guard image.size.width > 0, image.size.height > 0 else { return image }
         // Glyph box as fractions of the image size (measured alpha
-        // bbox x 0.053-0.933 / y 0.133-0.867 on the bundled @3x
-        // asset decoded from web/timetable-icon@3x.b64, padded
-        // ~0.02-0.03 a side).
-        let glyph = CGRect(x: 0.03, y: 0.10, width: 0.93, height: 0.79)
+        // bbox x 0.067-0.933 / y 0.173-0.880 on the bundled @3x
+        // asset decoded from web/timetable-icon@3x.b64 — the solid
+        // 26E110 redraw — padded ~0.02-0.03 a side).
+        let glyph = CGRect(x: 0.04, y: 0.14, width: 0.92, height: 0.77)
         let targetHeight: CGFloat = 26
         let canvas = CGSize(width: targetHeight * (glyph.width / glyph.height) * (image.size.width / image.size.height),
                             height: targetHeight)
@@ -1789,7 +1819,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         updateSideBarSelection()
         clearTransferFields()
         updateTransferTint()
-        refreshActionButtons()
+        // 26E110 ghost fix: do NOT refresh the action pills here —
+        // the cached transit label is still the OLD city's at this
+        // point, so refreshing painted a stale configuration first
+        // and the real one a beat later (see refreshActionButtons).
+        // Hide the pills instead; the next transferFrame post from
+        // the web carries the new city's settled label + icons and
+        // placeTransfer refreshes the contents and unhides them in
+        // the same pass. Briefly hidden beats doubled.
+        hideActionButtons()
     }
 
     func pickCity(_ city: String) {
@@ -2258,19 +2296,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
         let content = transferEffectView.contentView
 
-        // Two rows: dot + label + text field + line badge + clear.
+        // Two rows: dot + label + text field + line badges + clear.
+        // The badge slot is a stack (26E110 P): an interchange
+        // station shows one pill per line it serves.
         fromField = makeTransferField(tag: 0, placeholder: L("tr.phFrom"))
         toField = makeTransferField(tag: 1, placeholder: L("tr.phTo"))
-        fromBadge = makeTransferBadge(tag: 0)
-        toBadge = makeTransferBadge(tag: 1)
+        fromBadgeStack = makeBadgeStack()
+        toBadgeStack = makeBadgeStack()
+        // With several line pills in a row the station-name field is
+        // the flexible element (26E110 P): it gives up width first
+        // (text clips, never overflows) while the pills keep theirs.
+        fromField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        toField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         fromClear = makeTransferClear(tag: 0)
         toClear = makeTransferClear(tag: 1)
         let fromRow = makeTransferRow(dotColor: UIColor(red: 34.0 / 255.0, green: 160.0 / 255.0, blue: 107.0 / 255.0, alpha: 1),
                                       labelTitle: L("tr.depart"), labelTag: 0,
-                                      field: fromField, badge: fromBadge, clear: fromClear)
+                                      field: fromField, badgeStack: fromBadgeStack, clear: fromClear)
         let toRow = makeTransferRow(dotColor: UIColor(red: 229.0 / 255.0, green: 72.0 / 255.0, blue: 77.0 / 255.0, alpha: 1),
                                     labelTitle: L("tr.arrive"), labelTag: 1,
-                                    field: toField, badge: toBadge, clear: toClear)
+                                    field: toField, badgeStack: toBadgeStack, clear: toClear)
         fromLabelBtn = fromRow.arrangedSubviews[1] as? UIButton
         toLabelBtn = toRow.arrangedSubviews[1] as? UIButton
         for row in [fromRow, toRow] {
@@ -2342,7 +2387,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
     }
 
-    func makeTransferRow(dotColor: UIColor, labelTitle: String, labelTag: Int, field: UITextField, badge: UIButton, clear: UIButton) -> UIStackView {
+    func makeTransferRow(dotColor: UIColor, labelTitle: String, labelTag: Int, field: UITextField, badgeStack: UIStackView, clear: UIButton) -> UIStackView {
         let dot = UIView()
         dot.backgroundColor = dotColor
         dot.layer.cornerRadius = 5
@@ -2357,7 +2402,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         label.setTitleColor(.systemGray, for: .normal)
         label.tag = labelTag
         label.addTarget(self, action: #selector(transferLabelTapped(_:)), for: .touchUpInside)
-        let row = UIStackView(arrangedSubviews: [dot, label, field, badge, clear])
+        let row = UIStackView(arrangedSubviews: [dot, label, field, badgeStack, clear])
         row.axis = .horizontal
         row.spacing = 10
         row.alignment = .center
@@ -2381,6 +2426,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         f.inputAccessoryView = makeKeyboardToolbar()
         f.addTarget(self, action: #selector(transferFieldChanged(_:)), for: .editingChanged)
         return f
+    }
+
+    // Badge stack for a transfer field row (26E110 P): horizontal,
+    // pills 4pt apart, vertically centred with the field; the stack
+    // never compresses — the name field yields instead.
+    func makeBadgeStack() -> UIStackView {
+        let s = UIStackView()
+        s.axis = .horizontal
+        s.spacing = 4
+        s.alignment = .center
+        s.distribution = .fill
+        s.setContentHuggingPriority(.required, for: .horizontal)
+        s.setContentCompressionResistancePriority(.required, for: .horizontal)
+        return s
     }
 
     func makeTransferBadge(tag: Int) -> UIButton {
@@ -2454,8 +2513,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             if let q = dict["toQuery"] as? String, !toField.isFirstResponder, toField.text != q {
                 toField.text = q
             }
-            applyBadge(which: "from", line: dict["fromLine"] as? [String: Any])
-            applyBadge(which: "to", line: dict["toLine"] as? [String: Any])
+            // 26E110 P: prefer the all-lines arrays (every line of
+            // the picked station); fall back to the single line.
+            if let lines = dict["fromLines"] as? [[String: Any]] {
+                applyBadges(which: "from", lines: lines)
+            } else {
+                applyBadge(which: "from", line: dict["fromLine"] as? [String: Any])
+            }
+            if let lines = dict["toLines"] as? [[String: Any]] {
+                applyBadges(which: "to", lines: lines)
+            } else {
+                applyBadge(which: "to", line: dict["toLine"] as? [String: Any])
+            }
             updateClearButtons()
         } else {
             transferCard.isHidden = true
@@ -2616,19 +2685,41 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // back to the native LANG table keyed by currentCity; the
     // nearby pill gains the web row's 定位中… suffix while a
     // location fix is in flight.
+    // 26E110 ghost fix (user screenshot, Dalian switch): the middle
+    // pill showed a faint doubled 「附近」 after a city switch. Cause:
+    // this ran on EVERY city switch (via refreshCityUI with the
+    // STALE cached label, then again via placeTransfer with the new
+    // one) and re-assigned a fresh configuration to all three pills
+    // even when a pill's title + icon were byte-identical — a glass
+    // UIButton treats each assignment as a content transition and
+    // morphs the old/new content, which reads as a ghost on the
+    // full-width middle title. Now: a pill is only re-configured
+    // when its title or icon actually changed, and the swap is
+    // applied without animation, so content lands in one frame.
     func refreshActionButtons() {
         guard transitAppButton != nil else { return }
-        var tcfg = transitAppButton.configuration ?? actionButtonConfig()
-        tcfg.title = actionTransitLabel.isEmpty ? L("transit." + currentCity) : actionTransitLabel
-        tcfg.image = actionTransitIcon
-        transitAppButton.configuration = tcfg
-        var ncfg = nearbyStationsButton.configuration ?? actionButtonConfig()
-        ncfg.title = L("tr.nearby") + (actionNearbyLoading ? " " + L("tr.nearby.locating") : "")
-        ncfg.image = actionPinIcon
-        nearbyStationsButton.configuration = ncfg
-        var acfg = applePayButton.configuration ?? actionButtonConfig()
-        acfg.title = L("tr.applepay")
-        applePayButton.configuration = acfg
+        let tTitle = actionTransitLabel.isEmpty ? L("transit." + currentCity) : actionTransitLabel
+        let nTitle = L("tr.nearby") + (actionNearbyLoading ? " " + L("tr.nearby.locating") : "")
+        let aTitle = L("tr.applepay")
+        UIView.performWithoutAnimation {
+            if transitAppButton.configuration?.title != tTitle || transitAppButton.configuration?.image !== actionTransitIcon {
+                var tcfg = transitAppButton.configuration ?? actionButtonConfig()
+                tcfg.title = tTitle
+                tcfg.image = actionTransitIcon
+                transitAppButton.configuration = tcfg
+            }
+            if nearbyStationsButton.configuration?.title != nTitle || nearbyStationsButton.configuration?.image !== actionPinIcon {
+                var ncfg = nearbyStationsButton.configuration ?? actionButtonConfig()
+                ncfg.title = nTitle
+                ncfg.image = actionPinIcon
+                nearbyStationsButton.configuration = ncfg
+            }
+            if applePayButton.configuration?.title != aTitle {
+                var acfg = applePayButton.configuration ?? actionButtonConfig()
+                acfg.title = aTitle
+                applePayButton.configuration = acfg
+            }
+        }
     }
 
     // Decode a "data:image/png;base64,..." icon the web posted and
@@ -2699,29 +2790,48 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         transferSearchButton.layer.masksToBounds = true
     }
 
-    // Line badge: a small pill with the line's colour + name (same
-    // style as the web .tr-line-pick). line is {name, color, text}
-    // with hex strings; nil hides the badge.
+    // Line badges: small pills with each line's colour + name (same
+    // style as the web .tr-line-pick). lines is an array of
+    // {name, color, text} with hex strings — ALL lines serving the
+    // picked station, in the city's line order (26E110 P: an
+    // interchange station shows every line, not just the one whose
+    // suggestion row was tapped). An empty array hides all pills.
+    // fromLineInfo/toLineInfo keep the FIRST line for the existing
+    // single-line consumers (line-pick state).
+    func applyBadges(which: String, lines: [[String: Any]]) {
+        if which == "from" { fromLineInfo = lines.first } else { toLineInfo = lines.first }
+        guard let stack = which == "from" ? fromBadgeStack : toBadgeStack else { return }
+        var pool = which == "from" ? fromBadges : toBadges
+        while pool.count < lines.count {
+            let b = makeTransferBadge(tag: which == "from" ? 0 : 1)
+            pool.append(b)
+            stack.addArrangedSubview(b)
+        }
+        if which == "from" { fromBadges = pool } else { toBadges = pool }
+        for (i, b) in pool.enumerated() {
+            guard i < lines.count,
+                  let name = lines[i]["name"] as? String,
+                  let colorHex = lines[i]["color"] as? String,
+                  let bg = colorFromHex(colorHex) else {
+                b.isHidden = true
+                continue
+            }
+            let fg: UIColor
+            if let textHex = lines[i]["text"] as? String, let c = colorFromHex(textHex) {
+                fg = c
+            } else {
+                fg = .white
+            }
+            b.setTitle(name, for: .normal)
+            b.backgroundColor = bg
+            b.setTitleColor(fg, for: .normal)
+            b.isHidden = false
+        }
+    }
+
+    // Single-line convenience (legacy posts / clears).
     func applyBadge(which: String, line: [String: Any]?) {
-        if which == "from" { fromLineInfo = line } else { toLineInfo = line }
-        guard let badge = which == "from" ? fromBadge : toBadge else { return }
-        guard let line = line,
-              let name = line["name"] as? String,
-              let colorHex = line["color"] as? String,
-              let bg = colorFromHex(colorHex) else {
-            badge.isHidden = true
-            return
-        }
-        let fg: UIColor
-        if let textHex = line["text"] as? String, let c = colorFromHex(textHex) {
-            fg = c
-        } else {
-            fg = .white
-        }
-        badge.setTitle(name, for: .normal)
-        badge.backgroundColor = bg
-        badge.setTitleColor(fg, for: .normal)
-        badge.isHidden = false
+        applyBadges(which: which, lines: line.map { [$0] } ?? [])
     }
 
     func updateClearButtons() {
@@ -3323,7 +3433,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             a.font = UIFont.systemFont(ofSize: 11, weight: .semibold)
             return a
         }
-        cfg.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        // Semibold since 26E110 (medium before): the sidebar shares
+        // tabImages(), whose glyphs are now solid (.fill variants /
+        // solid PNG); semibold keeps the two stroke-based glyphs
+        // (transfer arrows, magnifier — no .fill variant exists) in
+        // the same solid family here too. Point size unchanged.
+        cfg.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold)
         cfg.baseForegroundColor = selected ? accentColor() : .label
         var bg = UIBackgroundConfiguration.clear()
         bg.backgroundColor = selected ? accentColor().withAlphaComponent(0.15) : .clear
@@ -3703,10 +3818,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             let line = dict["line"] as? [String: Any]
             if which == "from" {
                 fromField.text = name
-                applyBadge(which: "from", line: line)
             } else {
                 toField.text = name
-                applyBadge(which: "to", line: line)
+            }
+            // 26E110 P: the post carries ALL lines of the station;
+            // show one pill per line. Older posts fall back to the
+            // single picked line.
+            if let lines = dict["lines"] as? [[String: Any]], !lines.isEmpty {
+                applyBadges(which: which, lines: lines)
+            } else {
+                applyBadge(which: which, line: line)
             }
             updateClearButtons()
             view.endEditing(true)
