@@ -161,10 +161,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var sortTabs: UISegmentedControl!
     let sortTabKeys = ["rec", "early", "fewest", "cheap"]
     // Native structure-detail chrome (test/structure, 26E107): a
-    // UISegmentedControl for 空间结构/平面示意 plus glass 搜索/退出
-    // buttons, overlaid on the web detail header from "structFrame"
-    // reports — same overlay pattern as sortTabs. Test builds only:
-    // the web panel itself is unreachable in release builds.
+    // UISegmentedControl for 空间结构/平面示意 plus a glass 搜索
+    // capsule and (26E108) a circular glass chevron 退出 button
+    // matching the sub-view back button, overlaid on the web
+    // detail header from "structFrame" reports — same overlay
+    // pattern as sortTabs. Test builds only: the web panel itself
+    // is unreachable in release builds.
     var structSeg: UISegmentedControl!
     var structSearchButton: UIButton!
     var structExitButton: UIButton!
@@ -269,23 +271,41 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
     // Tab-bar glyph sizing (test/structure, user 2026-11-22): with
     // 6 tabs the default glyphs crowd each other, so the TAB BAR
-    // items render one notch smaller — symbols at 21pt, the
-    // timetable PNG scaled to the same 21pt height (drawn at 3x so
-    // it stays crisp). This is applied only where the tab bar items
-    // are created; tabImages() itself is shared with the Duo
-    // sidebar, which keeps its own sizing and is NOT touched here.
+    // items render one notch smaller — symbols at 21pt. This is
+    // applied only where the tab bar items are created; tabImages()
+    // itself is shared with the Duo sidebar, which keeps its own
+    // sizing and is NOT touched here.
+    // The only non-symbol tab icon is the timetable PNG, and it has
+    // large transparent margins (measured on the bundled @3x asset,
+    // 75x75px: the glyph's alpha bbox is x 14-55, y 20-51 — only
+    // ~41% of the canvas height). Scaling the whole canvas to 21pt
+    // left the visible glyph ~9pt tall next to ~18pt of symbol ink
+    // (user 2026-11-22: 时刻表图标偏小). So the PNG is rendered by
+    // its GLYPH box instead: the image is drawn shifted/scaled so
+    // the padded glyph box fills a 21pt-tall canvas, aligning the
+    // glyph's height with the symbols. Render-time only — the
+    // source asset is untouched.
     func tabBarItemImage(_ image: UIImage?) -> UIImage? {
         guard let image = image else { return nil }
         if image.isSymbolImage {
             return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: 21, weight: .regular))
         }
+        guard image.size.width > 0, image.size.height > 0 else { return image }
+        // Glyph box as fractions of the image size (measured alpha
+        // bbox x 0.187-0.733 / y 0.267-0.680, padded ~0.04 a side).
+        let glyph = CGRect(x: 0.15, y: 0.23, width: 0.62, height: 0.48)
         let targetHeight: CGFloat = 21
-        guard image.size.height > 0, abs(image.size.height - targetHeight) > 0.5 else { return image }
-        let newSize = CGSize(width: image.size.width * targetHeight / image.size.height, height: targetHeight)
+        let canvas = CGSize(width: targetHeight * (glyph.width / glyph.height) * (image.size.width / image.size.height),
+                            height: targetHeight)
+        let scale = targetHeight / (image.size.height * glyph.height)
+        let drawRect = CGRect(x: -glyph.minX * image.size.width * scale,
+                              y: -glyph.minY * image.size.height * scale,
+                              width: image.size.width * scale,
+                              height: image.size.height * scale)
         let format = UIGraphicsImageRendererFormat()
         format.scale = 3
-        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
-        return renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: newSize)) }
+        let renderer = UIGraphicsImageRenderer(size: canvas, format: format)
+        return renderer.image { _ in image.draw(in: drawRect) }
     }
     // Siri / deep-link routing (user 2026-11-18, Siri Shortcuts): a
     // subwaymotion:// link that arrives before the offline page has
@@ -1797,15 +1817,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // MARK: - Native structure-detail chrome (test/structure, 26E107)
 
     // The structure detail's 空间结构/平面示意 switch is a native
-    // UISegmentedControl (Liquid Glass on iOS 26+), and its header
-    // carries two native glass capsule buttons — 搜索 (magnifyingglass,
-    // back to the search list + focus the input) and 退出 (xmark, back
-    // to the search list). Same overlay pattern as sortTabs: the web
-    // keeps invisible placeholders (.struct-seg / .struct-actions),
-    // reports their frames via "structFrame", and the native controls
-    // sit exactly on top. Both segments stay enabled even when that
-    // kind has no diagram — the web then shows its 正在整理 placeholder,
-    // which keeps the control's behaviour predictable.
+    // UISegmentedControl (Liquid Glass on iOS 26+); its header
+    // carries a native glass capsule 搜索 button (magnifyingglass,
+    // back to the search list + focus the input) on the right and,
+    // since 26E108, a circular glass chevron 退出 button on the
+    // left — the same button as every sub-view's native back
+    // button. Same overlay pattern as sortTabs: the web keeps
+    // invisible placeholders (.struct-seg / .struct-actions /
+    // .tt-back), reports their frames via "structFrame", and the
+    // native controls sit exactly on top. Both segments stay
+    // enabled even when that kind has no diagram — the web then
+    // shows its 正在整理 placeholder, which keeps the control's
+    // behaviour predictable.
     func setupStructChrome() {
         structSeg = UISegmentedControl(items: [L("struct.spatial"), L("struct.plan")])
         structSeg.selectedSegmentIndex = 0
@@ -1821,9 +1844,42 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         structSearchButton.isHidden = true
         structSearchButton.addTarget(self, action: #selector(structSearchTapped), for: .touchUpInside)
         view.addSubview(structSearchButton)
-        structExitButton = UIButton(configuration: structButtonConfig(title: L("struct.exit"), symbol: "xmark"))
+        // Exit (26E108, user: 「要这样的退出按钮」 with the Siri
+        // sub-page's back button circled): NOT a capsule any more —
+        // a 40pt circular glass chevron, built exactly like the
+        // sub-view back button (subViewBackButton): chevron.backward
+        // at 18pt bold, .glass() capsule config on iOS 26+, a glass
+        // effect view behind the glyph below that. It centres on the
+        // web title row's .tt-back placeholder box (placeStructChrome).
+        structExitButton = UIButton(type: .system)
         structExitButton.translatesAutoresizingMaskIntoConstraints = true
         structExitButton.isHidden = true
+        structExitButton.tintColor = .label
+        let structExitChevron = UIImage(systemName: "chevron.backward")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .bold))
+        if #available(iOS 26.0, *) {
+            var exitCfg = UIButton.Configuration.glass()
+            exitCfg.image = structExitChevron
+            exitCfg.cornerStyle = .capsule
+            exitCfg.baseForegroundColor = .label
+            structExitButton.configuration = exitCfg
+        } else {
+            structExitButton.backgroundColor = .clear
+            structExitButton.layer.cornerRadius = 20
+            structExitButton.clipsToBounds = true
+            let exitGlass = makeGlassEffectView()
+            exitGlass.translatesAutoresizingMaskIntoConstraints = false
+            exitGlass.layer.cornerRadius = 20
+            exitGlass.clipsToBounds = true
+            exitGlass.isUserInteractionEnabled = false
+            structExitButton.insertSubview(exitGlass, at: 0)
+            NSLayoutConstraint.activate([
+                exitGlass.leadingAnchor.constraint(equalTo: structExitButton.leadingAnchor),
+                exitGlass.trailingAnchor.constraint(equalTo: structExitButton.trailingAnchor),
+                exitGlass.topAnchor.constraint(equalTo: structExitButton.topAnchor),
+                exitGlass.bottomAnchor.constraint(equalTo: structExitButton.bottomAnchor),
+            ])
+            structExitButton.setImage(structExitChevron, for: .normal)
+        }
         structExitButton.addTarget(self, action: #selector(structExitTapped), for: .touchUpInside)
         view.addSubview(structExitButton)
     }
@@ -1858,9 +1914,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if structSearchButton != nil {
             structSearchButton.configuration = structButtonConfig(title: L("tab.stations"), symbol: "magnifyingglass")
         }
-        if structExitButton != nil {
-            structExitButton.configuration = structButtonConfig(title: L("struct.exit"), symbol: "xmark")
-        }
+        // The exit chevron button is NOT refreshed here: its glyph
+        // is language-independent, and re-assigning a titled capsule
+        // configuration would undo the circular sub-view-back style
+        // it is built with in setupStructChrome (26E108).
     }
 
     func hideStructChrome() {
@@ -1871,33 +1928,65 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // Place the native structure chrome over the web detail's reported
     // frames. Zero-size rects (list state, other tabs, release builds)
-    // hide all three controls.
+    // hide the controls. Each control is placed INDEPENDENTLY and
+    // only when its reported frame is plausible (26E108 defensive
+    // pass, after the 26E107 field report that the station diagram
+    // was not visible under the new chrome): a frame must sit fully
+    // inside the view, be a sane header size, and stay inside the
+    // header zone (top 45% of the view). Any implausible frame —
+    // mid-transition garbage, a scaled-viewport mismatch, a rect
+    // reaching down into the diagram area — hides that control
+    // instead of letting an overlay sprawl over the diagram.
     func placeStructChrome(frame dict: [String: Any]) {
         guard structSeg != nil else { return }
-        let seg = dict["seg"] as? [String: Any] ?? [:]
-        let act = dict["actions"] as? [String: Any] ?? [:]
-        let sw = (seg["width"] as? Double) ?? 0
-        let sh = (seg["height"] as? Double) ?? 0
-        let aw = (act["width"] as? Double) ?? 0
-        let ah = (act["height"] as? Double) ?? 0
-        if sw > 0 && sh > 0 && aw > 0 && ah > 0 && currentTab == "structure" && isTestBuild {
-            structSeg.frame = CGRect(x: ((seg["x"] as? Double) ?? 0) + webOffset.x,
-                                     y: ((seg["y"] as? Double) ?? 0) + webOffset.y,
-                                     width: sw, height: sh)
+        func rectOf(_ key: String) -> CGRect {
+            let d = dict[key] as? [String: Any] ?? [:]
+            return CGRect(x: ((d["x"] as? Double) ?? 0) + webOffset.x,
+                          y: ((d["y"] as? Double) ?? 0) + webOffset.y,
+                          width: (d["width"] as? Double) ?? 0,
+                          height: (d["height"] as? Double) ?? 0)
+        }
+        let segR = rectOf("seg")
+        let actR = rectOf("actions")
+        let extR = rectOf("exit")
+        let bounds = view.bounds
+        let headerLimit = bounds.height * 0.45
+        func plausible(_ r: CGRect, _ minW: CGFloat, _ maxW: CGFloat, _ minH: CGFloat, _ maxH: CGFloat) -> Bool {
+            return r.width >= minW && r.width <= maxW && r.height >= minH && r.height <= maxH
+                && r.minX >= -2 && r.minY >= -2
+                && r.maxX <= bounds.width + 2 && r.maxY <= headerLimit
+        }
+        let active = currentTab == "structure" && isTestBuild
+        // Segmented control: full-width header row under the title.
+        let segOK = active && plausible(segR, 120, max(bounds.width, 120), 24, 64)
+        if segOK {
+            structSeg.frame = segR
             structSeg.isHidden = false
             if let kind = dict["kind"] as? String, let idx = structKindKeys.firstIndex(of: kind) {
                 structSeg.selectedSegmentIndex = idx
             }
-            let ax = ((act["x"] as? Double) ?? 0) + webOffset.x
-            let ay = ((act["y"] as? Double) ?? 0) + webOffset.y
-            let gap: CGFloat = 8
-            let searchW = (aw - gap) * 0.55
-            structSearchButton.frame = CGRect(x: ax, y: ay, width: searchW, height: ah)
-            structExitButton.frame = CGRect(x: ax + searchW + gap, y: ay, width: aw - searchW - gap, height: ah)
+        } else {
+            structSeg.isHidden = true
+        }
+        // Search capsule: fills the whole actions slot on the title
+        // row (the exit button moved to the left in 26E108), and
+        // must sit above the seg row.
+        let actOK = active && plausible(actR, 60, 280, 24, 56) && (!segOK || actR.maxY <= segR.minY + 6)
+        if actOK {
+            structSearchButton.frame = actR
             structSearchButton.isHidden = false
+        } else {
+            structSearchButton.isHidden = true
+        }
+        // Exit: the 40pt circular chevron centres on the web
+        // .tt-back placeholder's box in the title row.
+        let extOK = active && extR.width >= 24 && extR.width <= 72 && extR.height >= 24 && extR.height <= 72
+            && extR.minX >= -2 && extR.minY >= -2 && extR.maxX <= bounds.width + 2 && extR.maxY <= headerLimit
+        if extOK {
+            structExitButton.frame = CGRect(x: extR.midX - 20, y: extR.midY - 20, width: 40, height: 40)
             structExitButton.isHidden = false
         } else {
-            hideStructChrome()
+            structExitButton.isHidden = true
         }
     }
 
