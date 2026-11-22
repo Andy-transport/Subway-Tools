@@ -478,7 +478,7 @@
 		.ropt-badge.early { background: #fde8e8; color: #d33; }
 		.ropt-badge.few { background: #e3f2fd; color: #1976d2; }
 		.ropt-badge.cheap { background: #fff3cd; color: #8a6d00; }
-		.tr-sug-lines { display: flex; gap: 4px; flex: none; }
+		.tr-sug-lines { display: flex; gap: 4px; flex: 0 1 auto; flex-wrap: wrap; justify-content: flex-end; min-width: 0; }
 		.tr-sug-lines .ln-badge { height: auto; }
 		.tr-sug-line { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; }
 		.tr-line-pick { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; flex: none; cursor: pointer; }
@@ -1864,9 +1864,9 @@
 					</button>
 				</div>
 				<div class="tr-suggest glass" v-if="suggestFor">
-					<div class="tr-sug-row" v-for="opt in suggestList" :key="opt.st.n + '|' + opt.line.key" @click="pickSuggest(opt)">
+					<div class="tr-sug-row" v-for="opt in suggestList" :key="opt.st.n" @click="pickSuggest(opt)">
 						<span class="tr-sug-name">{{ stName(opt.st) }}</span>
-						<span class="tr-sug-lines"><span class="ln-badge" :class="{ named: badgeParts(opt.line).named }" :style="{ background: '#' + opt.line.color, color: opt.line.text }"><span class="ln-num">{{ badgeParts(opt.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(opt.line).top }}</span><span class="ln-en">{{ badgeParts(opt.line).bottom }}</span></span></span></span>
+						<span class="tr-sug-lines"><span class="ln-badge" v-for="ln in opt.lines" :key="ln.key" :class="{ named: badgeParts(ln).named }" :style="{ background: '#' + ln.color, color: ln.text }"><span class="ln-num">{{ badgeParts(ln).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ln).top }}</span><span class="ln-en">{{ badgeParts(ln).bottom }}</span></span></span></span>
 						<span class="tr-sug-py">{{ opt.st.py }}</span>
 					</div>
 					<div class="tr-sug-hint" v-if="suggestList.length === 0">{{ (suggestFor === 'from' ? (fromQueryLive || fromQuery) : (toQueryLive || toQuery)) ? t('tr.noStation') : t('tr.typeHint') }}</div>
@@ -3146,6 +3146,7 @@ function titlePy(py) {
 						releaseNotes: [
 							{ v: '1.1.0 (26E119)', date: '2026-11-22', lines: [
 							['底部栏按参考图收紧版式：胶囊更宽、位置更贴近屏幕底部；设置各项加上图标（通用、关于、功能介绍、即将开通、运营里程排行榜、轨道交通信息简报、车站结构，以及「通用」中的语言与清除缓存），图标自动适配深浅模式', '底部欄按參考圖收緊版式：膠囊更寬、位置更貼近螢幕底部；設定各項加上圖示（通用、關於、功能介紹、即將開通、營運里程排行榜、軌道交通資訊簡報、車站結構，以及「通用」中的語言與清除快取），圖示自動適配深淺模式', 'The bottom bar is tightened to match the reference: a wider capsule floating closer to the bottom edge. Settings rows gain icons — General, About, What’s New, Opening Soon, Operating Mileage Ranking, Rail Transit Briefing and Station Structure, plus Language and Clear Cache inside General — each adapting automatically to light and dark mode'],
+							['换乘站搜索结果合并为一行：输入换乘站站名时只出现一行，同行并排显示该站的全部线路徽章，点选即选中该站', '換乘站搜尋結果合併為一行：輸入換乘站站名時只出現一行，同行並排顯示該站的全部線路徽章，點選即選中該站', 'Interchange stations merge into one search result: type an interchange station’s name and it appears as a single row with badges for every line serving it side by side — tap the row to select the station'],
 						] },
 						{ v: '1.1.0 (26E118)', date: '2026-11-22', lines: [
 								['底部栏五个图标大小统一：换乘、线路图、搜索、设置四个图标此前偏大，现全部按时刻表图标的大小对齐', '底部欄五個圖示大小統一：換乘、線路圖、搜尋、設定四個圖示此前偏大，現全部按時刻表圖示的大小對齊', 'All five bottom-bar icons are now the same size: Transfer, Line Map, Search and Settings were larger than Timetable — they are now aligned to the Timetable icon’s size'],
@@ -4184,6 +4185,10 @@ function titlePy(py) {
 						// station (city line order) — an interchange
 						// station gets one native pill per line, not
 						// just the tapped suggestion's line.
+						// 26E119 sup: suggestions are merged per
+						// station, so ln is null here — no single line
+						// is pinned, routing runs by station name and
+						// the native side shows the all-lines pills.
 						var hp = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.stationPicked;
 						if (hp) hp.postMessage({ which: which, name: st.n, line: ln ? { name: ln.name, color: ln.color, text: ln.text } : null, lines: this.stationLines(st.n).map(function(x) { return { name: x.name, color: x.color, text: x.text }; }) });
 					},
@@ -6464,12 +6469,15 @@ function titlePy(py) {
 							if (st0.n.indexOf(q) !== -1 || toHant(st0.n).indexOf(q) !== -1 || st0.py.indexOf(q) !== -1 || st0.ini.indexOf(q) !== -1) matched.push(st0);
 						}
 						matched = this.sortByLineOrder(matched);
+						// 26E119 sup: ONE row per station — an interchange
+						// station merges into a single row carrying ALL
+						// its line badges (the row template renders
+						// opt.lines); picking the row selects the
+						// station by name and the router considers
+						// every line serving it.
 						var out = [];
 						for (var k = 0; k < matched.length && out.length < 8; k++) {
-							var st = matched[k];
-							var lns = this.stationLines(st.n);
-							for (var j = 0; j < lns.length && out.length < 8; j++) out.push({ st: st, line: lns[j] });
-							if (!lns.length) out.push({ st: st, line: null });
+							out.push({ st: matched[k], lines: this.stationLines(matched[k].n) });
 						}
 						return out;
 					},
