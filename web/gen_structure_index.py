@@ -13,15 +13,33 @@ Sources of truth:
 
 Index shape (consumed by template.html via build_offline.py):
   { "<cityKey>:<station>": {"spatial": <file|null>, "plan": <file|null>,
-                            "sources": {"spatial": <url>, "plan": <url>}} }
+                            "sources": {"spatial": <url>, "plan": <url>},
+                            "urls": {"spatial": <cdn url>, "plan": <cdn url>}} }
+
+26E113: diagrams are no longer inlined into the offline page. Each
+entry's "urls" point at the image's <file>.b64 twin in this repo,
+served by the jsDelivr CDN pinned to the commit below (the branch
+name test/structure contains a slash, which jsDelivr cannot parse
+as a ref — a commit SHA always resolves). The .b64 files have not
+changed since that commit; when images are next added or replaced,
+push them first and then move this pin to the new head.
 """
 import json
+import urllib.parse
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
 SDIR = BASE / "structure"
 
+# Commit on test/structure whose tree holds the current .b64 image
+# files (the 26E112 head: 26E111 images + Pingguoyuan removal).
+CDN_SHA = "e1703fda61145087446da24ac72a13dea008e325"
+CDN_BASE = "https://cdn.jsdelivr.net/gh/Andy-transport/Subway-motion@" + CDN_SHA + "/web/structure/"
+
 index = {}
+
+def cdn_url(file):
+    return CDN_BASE + urllib.parse.quote(file + ".b64")
 
 def put(city, station, kind, file, source):
     if not file:
@@ -29,13 +47,17 @@ def put(city, station, kind, file, source):
     if not (SDIR / file).exists():
         print(f"SKIP missing file: {file}")
         return
+    if not (SDIR / (file + ".b64")).exists():
+        print(f"SKIP missing .b64 twin: {file}.b64")
+        return
     key = f"{city}:{station}"
-    entry = index.setdefault(key, {"spatial": None, "plan": None, "sources": {}})
+    entry = index.setdefault(key, {"spatial": None, "plan": None, "sources": {}, "urls": {}})
     if entry.get(kind):
         print(f"KEEP first {kind} for {key}: {entry[kind]} (ignored {file})")
         return
     entry[kind] = file
     entry["sources"][kind] = source
+    entry["urls"][kind] = cdn_url(file)
 
 # Census downloads. (The hardcoded Pingguoyuan entries that used
 # to sit here were removed in 26E112 — see the header note.)

@@ -725,6 +725,11 @@
 		.struct-viewer img { position: absolute; left: 50%; top: 50%; width: 96%; max-width: none; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
 		.struct-pending { padding: 56px 24px; text-align: center; color: #888; font-size: 15px; }
 		.struct-src { padding: 6px 16px 0; font-size: 12px; color: #999; word-break: break-all; flex: none; }
+		.struct-loading { padding: 56px 24px; text-align: center; color: #888; font-size: 15px; }
+		.struct-error { padding: 56px 24px; text-align: center; color: #888; font-size: 15px; }
+		.struct-retry { margin-top: 14px; border: none; background: transparent; color: #007aff; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; padding: 8px 16px; }
+		.struct-spin { display: inline-block; width: 18px; height: 18px; margin-right: 8px; vertical-align: -3px; border-radius: 50%; border: 2px solid rgba(120, 120, 128, 0.35); border-top-color: #888; animation: structspin 0.8s linear infinite; }
+		@keyframes structspin { to { transform: rotate(360deg); } }
 		.sp-head { display: flex; gap: 8px; align-items: center; padding: 8px 12px 4px; }
 		.sp-search {
 			flex: 1;
@@ -813,13 +818,13 @@
 			#moreSheet.home-lock .more-main .more-credit { margin-top: auto; }
 		}
 		#moreSheet.home-lock .more-title { font-size: 30px; margin: 0 4px 6px; }
-		#moreSheet.home-lock .more-appcard { padding: 10px 16px; margin-bottom: 10px; }
-		#moreSheet.home-lock .more-appicon { width: 40px; height: 40px; }
-		#moreSheet.home-lock .more-card { margin-bottom: 10px; }
-		#moreSheet.home-lock .more-account { padding: 7px 16px; }
-		#moreSheet.home-lock .more-account-avatar { width: 38px; height: 38px; }
+		#moreSheet.home-lock .more-appcard { padding: 13px 16px; margin-bottom: 12px; border-radius: 32px; }
+		#moreSheet.home-lock .more-appicon { width: 44px; height: 44px; }
+		#moreSheet.home-lock .more-card { margin-bottom: 12px; border-radius: 32px; }
+		#moreSheet.home-lock .more-account { padding: 10px 16px; }
+		#moreSheet.home-lock .more-account-avatar { width: 42px; height: 42px; }
 		#moreSheet.home-lock .more-section { margin-bottom: 2px; }
-		#moreSheet.home-lock .more-row { padding: 7px 0; }
+		#moreSheet.home-lock .more-row { padding: 9px 0; }
 		#moreSheet.home-lock .more-credit { padding-top: 0; }
 		/* iPad top tab bar (build 74): the native floating tab bar sits at
 		   the TOP (safe-area top + 10, ~49pt tall), so the full-screen panels
@@ -1022,6 +1027,17 @@
 		.more-up-date { flex: none; font-size: 13px; color: #888; }
 		html.dark .more-up-row { border-color: rgba(255,255,255,0.08); }
 		html.dark .more-up-name { color: #eee; }
+		.rank-row { display: flex; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+		html.dark .rank-row { border-color: rgba(255,255,255,0.08); }
+		.rank-no { width: 30px; flex: none; text-align: right; color: #8e8e93; font-size: 14px; font-variant-numeric: tabular-nums; }
+		.rank-row.top .rank-no { color: #007aff; font-weight: 700; }
+		.rank-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+		.rank-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+		.rank-city { font-weight: 500; font-size: 15px; }
+		.rank-row.top .rank-city { font-weight: 700; }
+		.rank-src { font-size: 11.5px; color: #8e8e93; }
+		.rank-km { margin-left: auto; flex: none; color: #8e8e93; font-variant-numeric: tabular-nums; font-size: 15px; }
+
 		.more-up-note { font-size: 12px; color: #999; line-height: 1.55; padding: 8px 2px 0; }
 		.more-rel-row { display: flex; align-items: center; gap: 10px; padding: 14px 2px; border-bottom: 0.5px solid rgba(120,120,128,0.25); cursor: pointer; }
 		.more-rel-main { flex: 1; min-width: 0; }
@@ -1645,6 +1661,8 @@
 					<div class="struct-viewer" v-if="structImg">
 						<img :src="structImg" :style="structImgStyle" draggable="false" @pointerdown="structPointerDown" @pointermove="structPointerMove" @pointerup="structPointerUp" @pointercancel="structPointerUp" @wheel.prevent="structWheel">
 					</div>
+					<div class="struct-loading" v-else-if="structFile && structLoadState !== 'error'"><span class="struct-spin"></span>{{ t('struct.loading') }}</div>
+					<div class="struct-error" v-else-if="structFile"><div>{{ t('struct.loadFailed') }}</div><button class="struct-retry" @click="loadStructImg()">{{ t('struct.retry') }}</button></div>
 					<div class="struct-pending" v-else>{{ structKind==='spatial' ? t('struct.pendingSpatial') : t('struct.pendingPlan') }}</div>
 					<div class="struct-src" v-if="structImg && structSource">{{ t('struct.source') }}: {{ structSourceLabel }}</div>
 				</template>
@@ -1776,13 +1794,13 @@
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
 			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen }" v-show="showMore">
-				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub && !showStructSub">
+				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub && !showStructSub && !showRankingSub">
 				<div class="more-title">{{ t('app.name') }}</div>
 				<div class="more-appcard">
 					<img class="more-appicon" :src="appIconNow" alt="">
 					<div>
 						<div class="more-appname">{{ t('app.name') }}</div>
-						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E112)' : '1.1.0'}) }}</div>
+						<div class="more-appver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E113)' : '1.1.0'}) }}</div>
 					</div>
 				</div>
 				<div class="more-card more-account" @click="openProfile()">
@@ -1816,6 +1834,7 @@
 					<div class="more-loc-hint" v-if="locPermHint">{{ t('more.loc.hint') }}</div>
 					<div class="more-row" @click="relSel = -1; showWhatsNewSub = true"><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showRankingSub = true"><span>{{ t('more.ranking') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showBriefingSub = true"><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showTrainSub = true; loadTrains()"><span class="more-train-icon"></span><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="openStructSub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8 L20.5 7.4 V16.6 L12 21.2 L3.5 16.6 V7.4 Z"/><path d="M3.5 7.4 L12 12 L20.5 7.4"/><path d="M12 12 V21.2"/></svg><span>{{ t('more.structure') }}</span><span class="more-chev">›</span></div>
@@ -1901,6 +1920,19 @@
 						<div class="more-up-note" v-if="!currentCityUpcoming().length">{{ t('more.upcoming.none') }}</div>
 					</div>
 					<div class="more-up-note" v-if="city === 'sh'">{{ t('upcoming.note.sh22') }}</div>
+					<div class="more-up-note" v-if="city === 'bj'">{{ t('upcoming.note.bjjx') }}</div>
+				</div>
+				</transition>
+				<transition name="more-sub">
+				<div class="more-sub" v-show="showRankingSub">
+					<div class="more-sub-head">
+						<button class="more-sub-back" @click="showRankingSub = false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
+						<div class="more-sub-title">{{ t('more.ranking') }}</div>
+					</div>
+					<div class="more-card">
+						<div class="rank-row" v-for="r in rankingList" :key="r.n" :class="{ top: r.r <= 3 }"><span class="rank-no">{{ r.r }}</span><span class="rank-dot" v-if="r.c" :style="{ background: '#' + r.c }"></span><span class="rank-main"><span class="rank-city">{{ r.k ? t('city.' + r.k) : r.n }}</span><span class="rank-src">{{ t('ranking.src', {s: r.src, d: r.date}) }}<template v-if="r.note"> · {{ r.note }}</template></span></span><span class="rank-km">{{ t('ranking.km', {n: r.km}) }}</span></div>
+					</div>
+					<div class="more-up-note">{{ t('ranking.note') }}</div>
 				</div>
 				</transition>
 				<transition name="more-sub">
@@ -2009,7 +2041,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E112)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E113)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2087,6 +2119,9 @@ var I18N = {
   'struct.pendingShort': ['正在整理', '正在整理', 'In preparation'],
   'struct.source': ['来源', '來源', 'Source'],
   'struct.src.userphoto': ['用户提供照片', '用戶提供照片', 'Photo provided by the user'],
+  'struct.loading': ['图片加载中…', '圖片載入中…', 'Loading image…'],
+  'struct.loadFailed': ['图片下载失败，请检查网络后重试', '圖片下載失敗，請檢查網路後重試', 'Image download failed. Check your connection and try again.'],
+  'struct.retry': ['重试', '重試', 'Retry'],
   'tab.more': ['设置', '設置', 'Settings'],
   'search.ph': ['车站、拼音或首字母', '車站、拼音或首字母', 'Station, pinyin or initials'],
   'search.cancel': ['取消', '取消', 'Cancel'],
@@ -2246,7 +2281,7 @@ var I18N = {
   'more.lang.system': ['跟随系统', '跟隨系統', 'Follow System'],
   'more.more': ['更多', '更多', 'More'],
   'more.version': ['版本 {v}', '版本 {v}', 'Version {v}'],
-  'more.credit': ['数据来源 {c}城市官网', '數據來源 {c}城市官網', 'Data source: {c} City Official Website'],
+  'more.credit': ['数据来源 {c}市交通委', '資料來源 {c}市交通委', 'Source: {c} Municipal Transport Commission'],
   'more.whatsnew': ['功能介绍 · {v}', '功能介紹 · {v}', 'Features · {v}'],
   'more.whatsnew.title': ['功能介绍', '功能介紹', 'Features'],
   'more.rel.title': ['城轨通 {v} 功能介绍', '城軌通 {v} 功能介紹', 'Subway Tools {v} — Features'],
@@ -2309,11 +2344,11 @@ var I18N = {
   'siri.openApp.desc': ['打开 App，查看线路图', '打開 App，查看線路圖', 'Open the app and view the map'],
   'siri.openApp.voice': ['“打开城轨通”', '“打開城軌通”', '“Open Subway tools”'],
   'siri.firstTrain': ['查询首班车', '查詢首班車', 'First train'],
-  'siri.firstTrain.desc': ['查询车站的首班车时间', '查詢車站的首班車時間', 'Check a station’s first train time'],
+  'siri.firstTrain.desc': ['直接报出车站各线各方向的首末班车', '直接報出車站各線各方向的首末班車', 'Hear a station’s first and last trains per line and direction'],
   'siri.firstTrain.voice': ['“首班车几点”', '“首班車幾點”', '“When is the first train?”'],
   'siri.lastTrain': ['查询末班车', '查詢末班車', 'Last train'],
-  'siri.lastTrain.desc': ['查询车站的末班车时间', '查詢車站的末班車時間', 'Check a station’s last train time'],
-  'siri.lastTrain.voice': ['“末班车几点”', '“末班車幾點”', '“When is the last train?”'],
+  'siri.lastTrain.desc': ['直接报出车站各线各方向的首末班车', '直接報出車站各線各方向的首末班車', 'Hear a station’s first and last trains per line and direction'],
+  'siri.lastTrain.voice': ['“查询车站末班车时间”', '“查詢車站末班車時間”', '“Last train time for a station”'],
   'siri.planRoute': ['规划路线', '規劃路線', 'Plan a route'],
   'siri.planRoute.desc': ['从出发站到到达站规划换乘', '從出發站到到達站規劃換乘', 'Plan a transfer route from one station to another'],
   'siri.planRoute.voice': ['“规划路线”', '“規劃路線”', '“Plan a route”'],
@@ -2321,7 +2356,7 @@ var I18N = {
   'siri.nearestStation.desc': ['显示离我最近的车站', '顯示離我最近的車站', 'Show the station nearest to me'],
   'siri.nearestStation.voice': ['“最近的地铁站”', '“最近的地鐵站”', '“Nearest metro station”'],
   'siri.timetable': ['查看时刻表', '查看時刻表', 'View timetable'],
-  'siri.timetable.desc': ['查看线路的时刻表', '查看線路的時刻表', 'View a line’s timetable'],
+  'siri.timetable.desc': ['查看线路或车站的首末班车', '查看線路或車站的首末班車', 'View a line’s or a station’s first and last trains'],
   'siri.timetable.voice': ['“查看时刻表”', '“查看時刻表”', '“Show the timetable”'],
   'more.trains': ['车型检索', '車型檢索', 'Train Model Search'],
   'more.structure': ['车站结构', '車站結構', 'Station Structure'],
@@ -2350,7 +2385,12 @@ var I18N = {
   'upcoming.date.2026y': ['预计2026年', '預計2026年', 'Expected 2026'],
   'upcoming.meta.stations': ['{n} 座车站', '{n} 座車站', '{n} stations'],
   'upcoming.meta.interchanges': ['{n} 座换乘站', '{n} 座換乘站', '{n} transfer stations'],
+  'more.ranking': ['运营里程排行榜', '營運里程排行榜', 'Operating Mileage Ranking'],
+  'ranking.km': ['{n} 公里', '{n} 公里', '{n} km'],
+  'ranking.src': ['来源：{s} · {d}', '來源：{s} · {d}', 'Source: {s} · {d}'],
+  'ranking.note': ['口径：各市官方头条运营总里程（各市官方公布，含其自报的市域线、磁浮、有轨电车等制式），参考日期逐行标注。本表按头条口径汇总，与交通运输部全国总计（11,992.5 公里）口径不同，不可直接比较。咸阳、昆山、海宁、句容为跨市线路属地段，里程已分别计入西安、上海（及苏州）、杭州、南京的头条总数，为避免重复计算不单独列名次。', '口徑：各市官方頭條營運總里程（各市官方公布，含其自報的市域線、磁浮、有軌電車等制式），參考日期逐行標註。本表按頭條口徑彙總，與交通運輸部全國總計（11,992.5 公里）口徑不同，不可直接比較。咸陽、昆山、海寧、句容為跨市線路屬地段，里程已分別計入西安、上海（及蘇州）、杭州、南京的頭條總數，為避免重複計算不單獨列名次。', 'Scope: each city’s official headline total operating mileage (as published by the city, including modes it counts such as suburban lines, maglev and trams); the reference date is shown per row. Summed on this headline basis, the table differs in scope from the Ministry of Transport national total (11,992.5 km) and the two are not directly comparable. Xianyang, Kunshan, Haining and Jurong are segments of cross-city lines whose mileage is already counted in the Xi’an, Shanghai (and Suzhou), Hangzhou and Nanjing headlines respectively, so they are not ranked separately.'],
   'upcoming.note.sh22': ['上海22号线另有消息称2029年开通，日期尚未确认。', '上海22號線另有消息稱2029年開通，日期尚未確認。', 'Another source gives 2029 for Shanghai Line 22; the date is unconfirmed.'],
+  'upcoming.note.bjjx': ['京雄快线（一期）注：雄州站缓建；“1 座换乘站”仅计地铁换乘（大兴机场站）——雄安站另接京雄城际、京港高铁，不计入此口径。', '京雄快線（一期）註：雄州站緩建；「1 座換乘站」僅計地鐵換乘（大興機場站）——雄安站另接京雄城際、京港高鐵，不計入此口徑。', 'Jingxiong Express (Phase 1) note: Xiongzhou station is deferred. The “1 interchange station” counts metro transfers only (Daxing Airport station); Xiong’an station also connects to the Beijing–Xiong’an intercity railway and the Beijing–Hong Kong high-speed railway, which are not counted here.'],
   'more.lang': ['语言', '語言', 'Language'],
   'more.lang.hans': ['简体中文', '簡體中文', 'Simplified Chinese'],
   'more.lang.hant': ['繁體中文', '繁體中文', 'Traditional Chinese'],
@@ -2540,6 +2580,45 @@ function titlePy(py) {
 			};
 
 
+			// Structure-image on-demand cache (26E113): downloaded
+			// diagrams persist in IndexedDB (the WKWebView default data
+			// store is persistent), keyed by file name, valued by data
+			// URI. No expiry — the images never change; the index with
+			// its pinned CDN URLs ships with each app version. Every
+			// failure resolves to null (memory-only behaviour), never
+			// throws into the page.
+			var _structDbPromise = null;
+			function structDb() {
+				if (_structDbPromise) return _structDbPromise;
+				_structDbPromise = new Promise(function(resolve) {
+					try {
+						if (!window.indexedDB) { resolve(null); return; }
+						var req = window.indexedDB.open('metro-struct-imgs', 1);
+						req.onupgradeneeded = function() { try { req.result.createObjectStore('imgs'); } catch (e) {} };
+						req.onsuccess = function() { resolve(req.result); };
+						req.onerror = function() { resolve(null); };
+					} catch (e) { resolve(null); }
+				});
+				return _structDbPromise;
+			}
+			function structIdbGet(key) {
+				return structDb().then(function(db) {
+					return new Promise(function(resolve) {
+						if (!db) { resolve(null); return; }
+						try {
+							var rq = db.transaction('imgs', 'readonly').objectStore('imgs').get(key);
+							rq.onsuccess = function() { resolve(rq.result || null); };
+							rq.onerror = function() { resolve(null); };
+						} catch (e) { resolve(null); }
+					});
+				});
+			}
+			function structIdbPut(key, val) {
+				structDb().then(function(db) {
+					if (!db) return;
+					try { db.transaction('imgs', 'readwrite').objectStore('imgs').put(val, key); } catch (e) {}
+				});
+			}
 			const App = Vue.createApp({
 				data() {
 					return {
@@ -2556,11 +2635,18 @@ function titlePy(py) {
 						// own visibility; showStructSub marks it as the
 						// open Settings sub-view (home hidden, home-lock
 						// released, goBack/edge-swipe armed).
-						showStructSub: false,
+						showStructSub: false, showRankingSub: false,
 						structQuery: '',
 						structStation: null,
 						structKind: 'spatial',
 						structView: { s: 1, x: 0, y: 0 },
+						// On-demand structure images (26E113): data URIs
+						// of diagrams already fetched this session, keyed
+						// by file name; structLoadState drives the detail
+						// viewer (idle/loading/ready/error).
+						structCache: {},
+						structLoadState: 'idle',
+						structLoadKey: '',
 						showTimetable: false,
 						ttQuery: '',
 						ttLine: null,
@@ -2717,7 +2803,13 @@ function titlePy(py) {
 							{ key: 'bj22', badge: '22', color: 'F4C1CA', date: '2026', st: 20 },
 							// 京雄快线 (一期) 大兴机场—雄安航站楼, 86.21 km, 预计 2026 年,
 							// through-running with the Daxing Airport Express, same
-							// operator (北京市轨道交通运营管理有限公司). COLOUR UNVERIFIED:
+							// operator (北京市轨道交通运营管理有限公司). Facts verified
+							// against Wikipedia 2026-11-22: 8 new stations (7 on the
+							// main line + 昝岗 branch), 雄州站 deferred (缓建); tr: 1
+							// counts METRO transfers only (大兴机场站) — 雄安站 also
+							// connects to the 京雄城际 railway and 京港高铁, which
+							// are not metro transfers (see upcoming.note.bjjx).
+							// COLOUR UNVERIFIED:
 							// no official line colour could be confirmed from public
 							// sources (checked 2026-11-22), so the badge uses the
 							// neutral system grey 8E8E93 as a placeholder — it is NOT
@@ -2733,6 +2825,67 @@ function titlePy(py) {
 							{ key: 'cq27', badge: '27', color: '0057B8', date: '2027', km: 56, approx: true, st: 15 },
 							{ key: 'cdS5', badge: 'S5', color: 'A7C6ED', date: '2027' },
 							{ key: 'tjZ2', badge: 'Z2', color: '006BA6', date: '2027' }
+						],
+						// Operating mileage ranking (26E113, VERIFIED data):
+						// ~/workspace/mileage-ranking/verified.md — MOT 54-city
+						// list, each city's OFFICIAL HEADLINE total mileage,
+						// per-row source + reference date, top 10 double-
+						// sourced. The 4 cross-city segment units （咸阳/昆山/
+						// 海宁/句容） are NOT ranked (their mileage is already
+						// inside the parent networks' headlines; see the page
+						// footnote) — 50 ranked rows. The withdrawn CAMET-Q3
+						// table (1042.0/982.3/869.7) is NOT used anywhere.
+						rankingList: [
+							{ r: 1, n: '北京', km: '909.0', k: 'bj', c: '005ab4', src: '北京市交通委', date: '2025 年底' },
+							{ r: 2, n: '上海', km: '906.0', k: 'sh', c: 'e60012', src: '上海市交通委', date: '2025-12-27', note: '纯地铁 816.0 公里' },
+							{ r: 3, n: '广州', km: '779.9', src: '广州地铁集团官网', date: '2025-06-29' },
+							{ r: 4, n: '成都', km: '758.2', k: 'cd', c: '0f0f96', src: '成都轨道交通集团评级报告', date: '2026-03-31' },
+							{ r: 5, n: '南京', km: '658.1', src: '英文维基', date: '2026-09-29' },
+							{ r: 6, n: '深圳', km: '653.7', k: 'sz', c: '00a051', src: '深铁集团半年报（新浪财经）', date: '2026-06' },
+							{ r: 7, n: '重庆', km: '625.0', k: 'cq', c: '0a814b', src: '中文维基', date: '2026-11-12' },
+							{ r: 8, n: '武汉', km: '581.0', src: '新华社', date: '2026-10-29' },
+							{ r: 9, n: '杭州', km: '562.0', src: '英文维基', date: '2022-09-22 起' },
+							{ r: 10, n: '郑州', km: '450.0', src: '21 世纪经济报道', date: '2024-12-29' },
+							{ r: 11, n: '西安', km: '423.2', src: '英文维基', date: '2026-06-30' },
+							{ r: 12, n: '天津', km: '391.0', src: '天津政务网', date: '2026-01-18' },
+							{ r: 13, n: '青岛', km: '365.0', k: 'qd', c: '317c5b', src: '青岛市政府网', date: '2026-09-22' },
+							{ r: 14, n: '宁波', km: '约 360', src: '宁波市政府（英文版）', date: '2026-09-22' },
+							{ r: 15, n: '苏州', km: '约 350', src: '江苏省交通运输厅', date: '2024-12-01' },
+							{ r: 16, n: '合肥', km: '306.8', src: '英文维基', date: '2026-11-19' },
+							{ r: 17, n: '济南', km: '248.5', src: '大众新闻', date: '2025-12-30' },
+							{ r: 18, n: '长沙', km: '247.9', src: '长沙市交通运输局', date: '2026-09-04' },
+							{ r: 19, n: '大连', km: '237.7', k: 'dl', c: '0d579a', src: '英文维基', date: '2023-03-17 起' },
+							{ r: 20, n: '沈阳', km: '218.0', k: 'sy', c: 'd4b686', src: '沈阳地铁集团官网', date: '2026-06-30' },
+							{ r: 21, n: '福州', km: '210.3', src: '中新网', date: '2025-12-10' },
+							{ r: 22, n: '长春', km: '194.1', k: 'cc', c: 'e50011', src: '新浪财经', date: '2026-09-28' },
+							{ r: 23, n: '昆明', km: '165.9', src: '云南日报网', date: '2025-04-11' },
+							{ r: 24, n: '南昌', km: '160.2', src: '江西日报', date: '2025-06-28' },
+							{ r: 25, n: '佛山', km: '153.1', src: '佛山新闻传媒中心', date: '2026-11-03' },
+							{ r: 26, n: '贵阳', km: '149.1', src: '中文维基', date: '2024-12-28' },
+							{ r: 27, n: '无锡', km: '142.0', src: '中共江苏省委新闻网', date: '2026-09-08' },
+							{ r: 28, n: '南宁', km: '132.6', src: '南宁市交通运输局', date: '2025-09-26' },
+							{ r: 29, n: '温州', km: '116.8', src: '城轨协会 2026 上半年统计', date: '2026-06-30' },
+							{ r: 30, n: '厦门', km: '98.4', src: '英文维基', date: '2025-12-31' },
+							{ r: 31, n: '东莞', km: '95.3', src: '中文维基', date: '2025-11-28' },
+							{ r: 32, n: '徐州', km: '95.1', src: '城轨协会 2026 上半年统计', date: '2026-06-30' },
+							{ r: 33, n: '哈尔滨', km: '91.6', k: 'hb', c: 'c00030', src: '黑龙江省人民政府网', date: '2024-11-26' },
+							{ r: 34, n: '石家庄', km: '78.2', k: 'sjz', c: 'e53e30', src: '新华社', date: '2025 年上半年' },
+							{ r: 35, n: '绍兴', km: '64.5', src: '浙江省交通运输厅', date: '2025-12-30' },
+							{ r: 36, n: '南通', km: '60.0', src: '中文维基', date: '2023-12-27' },
+							{ r: 37, n: '常州', km: '54.0', k: 'cz', c: 'cd5c5c', src: '常州市政府', date: '2021-06-28' },
+							{ r: 38, n: '太原', km: '52.4', src: '中文维基', date: '2025-02-22' },
+							{ r: 39, n: '呼和浩特', km: '49.0', src: '中文维基', date: '2020-10-01 起' },
+							{ r: 40, n: '芜湖', km: '46.3', src: '中安在线', date: '2026-01-19' },
+							{ r: 41, n: '乌鲁木齐', km: '45.5', src: '中文维基', date: '2026-11-15' },
+							{ r: 42, n: '洛阳', km: '43.6', src: '中文维基', date: '2021-12-26' },
+							{ r: 43, n: '兰州', km: '35.0', src: '兰州市轨道交通有限公司官网', date: '2026-06' },
+							{ r: 44, n: '天水', km: '32.7', src: '城轨协会 2026 上半年统计', date: '2026-06-30' },
+							{ r: 45, n: '黄石', km: '26.9', src: '中文维基', date: '2026-06-30' },
+							{ r: 46, n: '淮安', km: '20.1', src: '淮安市政协', date: '2026-06-30' },
+							{ r: 47, n: '嘉兴', km: '13.8', src: '中文维基', date: '2022-06-25' },
+							{ r: 48, n: '文山州', km: '13.4', src: '城轨协会 2026 上半年统计', date: '2026-06-30' },
+							{ r: 48, n: '红河州', km: '13.4', src: '中文维基', date: '2026-06-30' },
+							{ r: 50, n: '三亚', km: '8.4', src: '中文维基', date: '2026-06-30' },
 						],
 						// Transit briefing (build 70): seeded from the inlined
 						// briefing.json; refreshed from the live file on GitHub
@@ -2792,6 +2945,13 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E113)', date: '2026-11-22', lines: [
+								['车站结构图改为打开时按需下载：看过的图会自动缓存，下次没网也能看；安装包明显变小', '車站結構圖改為打開時按需下載：看過的圖會自動快取，下次沒網路也能看；安裝包明顯變小', 'Station structure diagrams now download on demand when you open a station; diagrams you have viewed are cached, so they open offline too — and the app is much smaller'],
+['新增「运营里程排行榜」：按各市官方头条运营总里程排名，逐城标注来源与参考日期（咸阳、昆山、海宁、句容等跨市属地段不单独列名次）', '新增「營運里程排行榜」：按各市官方頭條營運總里程排名，逐城標註來源與參考日期（咸陽、昆山、海寧、句容等跨市屬地段不單獨列名次）', 'New Operating Mileage Ranking: cities ranked by their official headline operating mileage, each row with its source and reference date (cross-city segments such as Xianyang, Kunshan, Haining and Jurong are not ranked separately)'],
+['底部栏重做并放大：66pt 玻璃胶囊，图标 30pt、标题 11pt，完整显示不再裁切', '底部欄重做並放大：66pt 玻璃膠囊，圖標 30pt、標題 11pt，完整顯示不再裁切', 'The bottom bar is rebuilt and enlarged: a 66pt glass capsule with 30pt icons and 11pt titles, fully visible with no clipping'],
+['Siri 快捷指令修复并升级：六条口令全部可用；说出站名即可直接报出该站各线各方向的首末班车，还能查最近的车站与线路首末班', 'Siri 快捷指令修復並升級：六條口令全部可用；說出站名即可直接報出該站各線各方向的首末班車，還能查最近的車站與線路首末班', 'Siri Shortcuts fixed and upgraded: all six phrases work; speak a station name to hear its first and last trains per line and direction, plus nearest-station and line timetable lookups'],
+['青岛、石家庄时刻表补齐：两市首末班车可查（青岛 6 号线中间站等少数站暂缺）', '青島、石家莊時刻表補齊：兩市首末班車可查（青島 6 號線中間站等少數站暫缺）', 'Qingdao and Shijiazhuang timetables added: first and last trains for both cities (a few stations, such as Qingdao Line 6 middle stations, are still missing)'],
+							] },
 							{ v: '1.1.0 (26E112)', date: '2026-11-22', lines: [
 								['底部栏回到五个标签，整体压低到 62pt，选中改为系统蓝色', '底部欄回到五個標籤，整體壓低到 62pt，選中改為系統藍色', 'The tab bar is back to five tabs, slimmed down to 62pt, and the selected tab is now system blue'],
 								['「车站结构」移入设置页，与车型检索并列，内容不变；结构详情页可从左边缘滑动返回', '「車站結構」移入設定頁，與車型檢索並列，內容不變；結構詳情頁可從左邊緁滑動返回', 'Station Structure moves into Settings next to Train Model Search \u2014 same content \u2014 and its detail page now swipes back from the left edge'],
@@ -3318,6 +3478,55 @@ function titlePy(py) {
 						this.structKind = k;
 						this.resetStructView();
 					},
+					// On-demand structure images (26E113): resolve the
+					// current station+kind image — session cache first,
+					// then the IndexedDB cache, then the pinned CDN URL
+					// from the index. A failure lands in an explicit
+					// error state with a retry button; it is never the
+					// "being prepared" placeholder, which only stations
+					// with no diagram on record may show.
+					ensureStructImg() {
+						var e = this.structEntry;
+						if (!e || !e[this.structKind]) { this.structLoadState = 'idle'; return; }
+						if (this.structCache[e[this.structKind]]) { this.structLoadState = 'ready'; return; }
+						this.loadStructImg();
+					},
+					loadStructImg() {
+						var e = this.structEntry;
+						if (!e) return;
+						var kind = this.structKind;
+						var f = e[kind];
+						if (!f) return;
+						if (this.structCache[f]) { this.structLoadState = 'ready'; return; }
+						var url = (e.urls || {})[kind];
+						var self = this;
+						self.structLoadKey = f;
+						self.structLoadState = 'loading';
+						var done = function(uri) {
+							if (uri) {
+								var c = {};
+								c[f] = uri;
+								self.structCache = Object.assign({}, self.structCache, c);
+							}
+							if (self.structLoadKey === f) self.structLoadState = uri ? 'ready' : 'error';
+						};
+						if (!url) { done(null); return; }
+						structIdbGet(f).then(function(uri) {
+							if (uri) { done(uri); return; }
+							if (typeof window.fetch !== 'function') { done(null); return; }
+							window.fetch(url).then(function(r) {
+								if (!r.ok) throw new Error('http ' + r.status);
+								return r.text();
+							}).then(function(txt) {
+								var b64 = (txt || '').replace(/\s+/g, '');
+								if (!b64) { done(null); return; }
+								var mime = f.toLowerCase().slice(-4) === '.png' ? 'image/png' : 'image/jpeg';
+								var dataUri = 'data:' + mime + ';base64,' + b64;
+								structIdbPut(f, dataUri);
+								done(dataUri);
+							}).catch(function() { done(null); });
+						});
+					},
 					// Native chrome entry points (26E107): the native
 					// 搜索 / 退出 buttons in the detail header call these.
 					structExit() {
@@ -3471,6 +3680,7 @@ function titlePy(py) {
 							if (this.showLangSub) { this.showLangSub = false; return true; }
 							if (this.showWhatsNewSub) { this.showWhatsNewSub = false; return true; }
 							if (this.showUpcomingSub) { this.showUpcomingSub = false; return true; }
+							if (this.showRankingSub) { this.showRankingSub = false; return true; }
 							if (this.showAppearanceSub) { this.showAppearanceSub = false; return true; }
 							if (this.showSiriSub) { this.showSiriSub = false; return true; }
 							if (this.showTrainSub) { this.showTrainSub = false; return true; }
@@ -3504,6 +3714,7 @@ function titlePy(py) {
 								else if (this.showUpcomingSub) expT = this.t('more.upcoming');
 								else if (this.showTrainSub) expT = this.t('more.trains');
 								else if (this.showStructSub) expT = this.t('more.structure');
+								else if (this.showRankingSub) expT = this.t('more.ranking');
 								else if (this.showAppearanceSub) expT = this.t('more.appearance');
 								else if (this.showLangSub) expT = this.t('more.lang');
 							} catch (e) {}
@@ -5656,7 +5867,7 @@ function titlePy(py) {
 						});
 					},
 					anySubViewOpen() {
-						var settingsSub = this.showCitySub || this.showLangSub || this.showWhatsNewSub || this.showUpcomingSub || this.showAppearanceSub || this.showSiriSub || this.showTrainSub || this.showGeneralSub || this.showBriefingSub || this.showAboutSub || this.showProfileSub || this.showStructSub;
+						var settingsSub = this.showCitySub || this.showLangSub || this.showWhatsNewSub || this.showUpcomingSub || this.showAppearanceSub || this.showSiriSub || this.showTrainSub || this.showGeneralSub || this.showBriefingSub || this.showAboutSub || this.showProfileSub || this.showStructSub || this.showRankingSub;
 						if (this.tab === 'more' && settingsSub) return true;
 						if (this.tab === 'timetable' && this.ttLine != null) return true;
 						return false;
@@ -5731,12 +5942,15 @@ function titlePy(py) {
 						var idx = window.STRUCTURE_INDEX || {};
 						return idx[this.city + ':' + this.structStation.n] || null;
 					},
-					structImg() {
+					structFile() {
 						var e = this.structEntry;
 						if (!e) return null;
-						var f = e[this.structKind];
+						return e[this.structKind] || null;
+					},
+					structImg() {
+						var f = this.structFile;
 						if (!f) return null;
-						return (window.STRUCTURE_IMGS || {})[f] || null;
+						return this.structCache[f] || null;
 					},
 					structSource() {
 						var e = this.structEntry;
@@ -5866,7 +6080,9 @@ function titlePy(py) {
 					}
 				},
 				watch: {
-					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (this.tab === 'more') { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } }
+					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (this.tab === 'more') { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } },
+					structStation() { this.ensureStructImg(); },
+					structKind() { this.ensureStructImg(); }
 				},
 				updated: function() {
 					this.syncHtmlClasses();

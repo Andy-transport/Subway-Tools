@@ -136,6 +136,23 @@ xcrun appintentsmetadataprocessor \
   --swift-const-vals-list "$ROOT/build/obj/e8-constvals.txt" \
   --force \
   || echo "WARNING: appintentsmetadataprocessor failed - Siri shortcuts will not register"
+# CANONICAL LAYOUT FIX (26E113, root cause of the dead Siri rows):
+# the processor treats --output as a PARENT directory and writes its
+# own Metadata.appintents folder inside it, so the bundle shipped
+# Metadata.appintents/Metadata.appintents/extract.actionsdata — one
+# level deeper than the path iOS reads
+# (<App>.app/Metadata.appintents/extract.actionsdata). Verified by
+# unzipping the shipped 26E112 IPA: the actionsdata content was
+# complete (all 6 intents + provider), only the path was wrong, so
+# the AppShortcutsProvider never registered and the Shortcuts app
+# showed no actions for this app. Flatten any nesting NOW (so the NL
+# processor below reads the canonical layout) and again after it.
+META_DIR="build/Payload/Subway Tools.app/Metadata.appintents"
+if [ -d "$META_DIR/Metadata.appintents" ]; then
+  cp -R "$META_DIR/Metadata.appintents/." "$META_DIR/"
+  rm -rf "$META_DIR/Metadata.appintents"
+  echo "flattened nested Metadata.appintents into the canonical layout"
+fi
 # NL training only tunes phrase recognition; shortcut registration comes
 # from Metadata.appintents above. This processor requires
 # --extracted-metadata-path (run #81 log: the old --metadata-file /
@@ -148,6 +165,23 @@ xcrun appintentsnltrainingprocessor \
   --output "build/Payload/Subway Tools.app/Metadata.appintents" \
   || echo "WARNING: appintentsnltrainingprocessor failed - Siri phrases will not train"
 ls -la "build/Payload/Subway Tools.app/Metadata.appintents" || true
+# Flatten again (the NL processor may re-nest its output), then FAIL
+# THE BUILD if the canonical files or any intent are missing — never
+# ship silently-broken Siri again (the pre-26E113 flow only warned,
+# which is how the broken layout shipped for weeks).
+if [ -d "$META_DIR/Metadata.appintents" ]; then
+  cp -R "$META_DIR/Metadata.appintents/." "$META_DIR/"
+  rm -rf "$META_DIR/Metadata.appintents"
+  echo "flattened nested Metadata.appintents (post NL training)"
+fi
+if [ ! -f "$META_DIR/extract.actionsdata" ] || [ ! -f "$META_DIR/version.json" ]; then
+  echo "ERROR: App Intents metadata missing at canonical path $META_DIR (extract.actionsdata / version.json)" >&2
+  exit 1
+fi
+for t in OpenSubwayToolsIntent FirstTrainIntent LastTrainIntent PlanRouteIntent NearestStationIntent TimetableIntent SubwayToolsShortcuts; do
+  grep -q "$t" "$META_DIR/extract.actionsdata" || { echo "ERROR: $t missing from extract.actionsdata" >&2; exit 1; }
+done
+echo "App Intents metadata verified at canonical path (6 intents + provider)"
 # The const-values file was build-time input for the extraction step
 # only; it is not part of the app bundle Xcode would ship.
 rm -f "build/Payload/Subway Tools.app"/*.swiftconstvalues
@@ -221,6 +255,45 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashQDDark.jpg
 # Shijiazhuang splash (user-supplied real splash, web/shijiazhuang/splash.b64).
 python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashSJZ.jpg','wb').write(base64.b64decode(open('web/shijiazhuang/splash.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashSJZDark.jpg','wb').write(base64.b64decode(open('web/shijiazhuang/splash-dark.b64').read()))"
+echo "== 3b. Siri data resources (26E113: same sources as the web pages) =="
+# The query intents in AppIntents.swift answer from the app's own
+# data. Bundle the SAME files the web pages inline — web/timetable/
+# *.json (first/last trains; qd.json/sjz.json included since 26E113)
+# and web/latlng/latlng-*.json (station coordinates) — copied
+# verbatim, plus ONE derived index (city display names, line display
+# names, station name lists) generated here from the same
+# routes.json / stations.json sources. No hand-copied second dataset.
+APP_ROOT="build/Payload/Subway Tools.app"
+mkdir -p "$APP_ROOT/timetable" "$APP_ROOT/latlng"
+for f in web/timetable/*.json; do cp "$f" "$APP_ROOT/timetable/"; done
+for f in web/latlng/*.json; do cp "$f" "$APP_ROOT/latlng/"; done
+python3 - <<'PYEOF'
+import json, os
+CITIES = [
+    ("bj", "北京", "web"), ("sy", "沈阳", "web/shenyang"),
+    ("sh", "上海", "web/shanghai"), ("hb", "哈尔滨", "web/harbin"),
+    ("dl", "大连", "web/dalian"), ("jh", "金华", "web/jinhua"),
+    ("cz", "常州", "web/changzhou"), ("cq", "重庆", "web/chongqing"),
+    ("cc", "长春", "web/changchun"), ("sz", "深圳", "web/shenzhen"),
+    ("cd", "成都", "web/chengdu"), ("qd", "青岛", "web/qingdao"),
+    ("sjz", "石家庄", "web/shijiazhuang"),
+]
+def load(p):
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
+index = {}
+for key, name, folder in CITIES:
+    routes = load(os.path.join(folder, "routes.json"))
+    stations = load(os.path.join(folder, "stations.json"))
+    lines = {k: (v.get("name") or k) for k, v in (routes.get("lines") or {}).items()}
+    index[key] = {"name": name, "lines": lines, "stations": [s["n"] for s in stations]}
+out = "build/Payload/Subway Tools.app/timetable/index.json"
+with open(out, "w", encoding="utf-8") as f:
+    json.dump(index, f, ensure_ascii=False)
+print("wrote", out, "cities:", len(index))
+PYEOF
+ls "$APP_ROOT/timetable" | head -20
+
 cp app/BeijingLogo.png app/ShenyangLogo.png app/ShanghaiLogo.png "build/Payload/Subway Tools.app/"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/HarbinLogo.png','wb').write(base64.b64decode(open('web/harbin/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/DalianLogo.png','wb').write(base64.b64decode(open('web/dalian/logo.b64').read()))"

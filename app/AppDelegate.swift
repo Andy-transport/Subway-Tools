@@ -177,6 +177,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // "openLanguage" post. Nil while closed.
     var languageView: LanguageView?
     var tabBar: UITabBar!
+    // iPhone-only custom bottom bar (26E113, PhoneTabBarView at the
+    // end of this file). Nil on iPad, which keeps the UITabBar
+    // capsule floating at the top.
+    var phoneBar: PhoneTabBarView?
     var cityPill: UIButton!
     // Map tools pill (top-right, build 74): a single Liquid Glass capsule
     // holding the my-location arrow + station search, matching the Apple
@@ -321,17 +325,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             UIImage(systemName: "gearshape.fill"),
         ]
     }
-    // Tab-bar glyph sizing (test/structure, user 2026-11-22): with
-    // tabs the TAB BAR items render at a fixed glyph size —
-    // symbols at 24pt since 26E112 (26pt in 26E109/26E110, 21pt
-    // until 26E108): the user measured the reference floating
-    // capsule at ~62pt total and called the current bar too tall,
-    // so 26E112 pins the iPhone bar's capsule height to 62pt (see
-    // the height constraint where the bar is laid out) and tightens
-    // the glyphs to ~24pt to match. This is applied
-    // only where the tab bar items are created; tabImages() itself
-    // is shared with the Duo sidebar, which keeps its own sizing
-    // and is NOT touched here.
+    // Tab-bar glyph sizing (test/structure, user 2026-11-22): the
+    // glyph size is a parameter of tabBarItemImage — 24pt for the
+    // UITabBar items (which since 26E113 are the iPad top capsule
+    // only) and 30pt for the iPhone PhoneTabBarView cells (66pt
+    // capsule, 30pt icons, 11pt titles). This is applied only
+    // where the bar items are
+    // created; tabImages() itself is shared with the Duo sidebar,
+    // which keeps its own sizing and is NOT touched here.
     // The only non-symbol tab icon is the timetable PNG, and it has
     // transparent margins. The asset was REGENERATED SOLID in
     // 26E110 (heavy calendar: solid header band with binder holes,
@@ -355,14 +356,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // shifted/scaled so the padded glyph box fills a 26pt-tall
     // canvas, aligning the glyph's height with the symbols.
     // Render-time only — the source asset is untouched.
-    func tabBarItemImage(_ image: UIImage?) -> UIImage? {
+    func tabBarItemImage(_ image: UIImage?, size: CGFloat = 24) -> UIImage? {
         guard let image = image else { return nil }
         if image.isSymbolImage {
             // Bold since 26E110 (regular until 26E109): the two
             // stroke-based glyphs (transfer arrows, magnifier) have
             // no .fill variant and only read as solid at bold
             // weight; the .fill variants stay filled at any weight.
-            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: 24, weight: .bold))
+            return image.withConfiguration(UIImage.SymbolConfiguration(pointSize: size, weight: .bold))
         }
         guard image.size.width > 0, image.size.height > 0 else { return image }
         // Glyph box as fractions of the image size (measured alpha
@@ -370,7 +371,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // asset decoded from web/timetable-icon@3x.b64 — the solid
         // 26E110 redraw — padded ~0.02-0.03 a side).
         let glyph = CGRect(x: 0.04, y: 0.14, width: 0.92, height: 0.77)
-        let targetHeight: CGFloat = 24
+        let targetHeight: CGFloat = size
         let canvas = CGSize(width: targetHeight * (glyph.width / glyph.height) * (image.size.width / image.size.height),
                             height: targetHeight)
         let scale = targetHeight / (image.size.height * glyph.height)
@@ -648,6 +649,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if let items = tabBar?.items {
             for (i, item) in items.enumerated() where i < titles.count { item.title = titles[i] }
         }
+        phoneBar?.reloadTitles(titles)
         updateCityPill()
         if sortTabs != nil {
             sortTabs.setTitle(L("tr.tab.rec"), forSegmentAt: 0)
@@ -838,22 +840,45 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // bars. iPhone portrait only — the iPad top bar and the
             // Duo sidebar are separate layouts, untouched.
             barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10))
-            // Capsule height 62pt (26E112, user 2026-11-22 with a
-            // measured reference shot: the reference floating capsule
-            // is ~62pt tall including its inner padding and the
-            // current bar reads too tall). Before 26E112 the bar had
-            // NO explicit height — it took UITabBar's intrinsic
-            // height from the 26pt glyphs + 11pt titles. Now the
-            // iPhone bottom bar is pinned to exactly 62pt and the
-            // glyphs are tightened to 24pt (tabBarItemImage), so the
-            // icon/title stack sits inside with ~7-8pt of breathing
-            // room top and bottom and the system's selection capsule
-            // insets to match. iPhone bottom bar ONLY: the iPad top
-            // capsule and the Duo sidebar are different forms and
-            // keep their intrinsic height.
-            barConstraints.append(tabBar.heightAnchor.constraint(equalToConstant: 62))
+            // 26E113: on iPhone this UITabBar is NEVER shown — the
+            // visible bottom bar is the custom PhoneTabBarView
+            // created below (58pt capsule whose icon/title layout is
+            // computed in code). The 26E112 experiment of pinning
+            // THIS bar to 62pt overflowed UITabBar's internal item
+            // layout and clipped the titles in half (user screenshot
+            // 2026-11-22). No height pin here any more; the hidden
+            // bar keeps its constraints so anchors referencing it
+            // stay sane, and its selectedItem is still maintained as
+            // state (the swipe handler and deep links read it).
         }
         NSLayoutConstraint.activate(barConstraints)
+        // iPhone custom bottom bar (26E113): 66pt glass capsule,
+        // 13pt side margins, floating 10pt above the safe-area
+        // bottom. (First cut at 58pt was enlarged on the user's
+        // word — "不用那么小，稍微扩大一点" — to 66pt with 30pt
+        // icons and 11pt titles.) See PhoneTabBarView for the
+        // in-cell layout math.
+        if !isPadBar {
+            let phoneBarView = PhoneTabBarView()
+            phoneBarView.translatesAutoresizingMaskIntoConstraints = false
+            phoneBarView.onSelect = { [weak self] idx in self?.phoneTabTapped(idx) }
+            view.addSubview(phoneBarView)
+            NSLayoutConstraint.activate([
+                phoneBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 13),
+                phoneBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -13),
+                phoneBarView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
+                phoneBarView.heightAnchor.constraint(equalToConstant: 66),
+            ])
+            phoneBarView.configure(titles: tabTitles(), images: tabImages().map { tabBarItemImage($0, size: 30) }, selected: 1)
+            phoneBarView.isHidden = true
+            phoneBar = phoneBarView
+            let pbSwipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleTabSwipe(_:)))
+            pbSwipeLeft.direction = .left
+            phoneBarView.addGestureRecognizer(pbSwipeLeft)
+            let pbSwipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleTabSwipe(_:)))
+            pbSwipeRight.direction = .right
+            phoneBarView.addGestureRecognizer(pbSwipeRight)
+        }
         // iPhone Duo sidebar (build 63): created here so the web view
         // trailing constraint below can anchor to it.
         setupSideBar()
@@ -911,11 +936,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.isHidden = true
         view.addSubview(backButton)
+        // Above the floating bottom bar: the custom phone bar on
+        // iPhone (26E113), the UITabBar capsule on iPad.
+        let backButtonBarAnchor: NSLayoutYAxisAnchor = isPadBar ? tabBar.topAnchor : phoneBar!.topAnchor
         NSLayoutConstraint.activate([
             backButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            // Above the floating bottom tab bar on every device
-            // (build 63: iPad no longer has a top tab bar).
-            backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
+            backButton.bottomAnchor.constraint(equalTo: backButtonBarAnchor, constant: -16),
         ])
 
         // Native sub-view back button (user 2026-11-19): a real Apple UI
@@ -1272,6 +1298,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         cover.backgroundColor = rootBackgroundColor()
         view.insertSubview(cover, aboveSubview: webView)
         view.bringSubviewToFront(tabBar)
+        if let pb = phoneBar { view.bringSubviewToFront(pb) }
         if let glass = subHeaderGlass { view.bringSubviewToFront(glass) }
         if let button = subViewBackButton { view.bringSubviewToFront(button) }
     }
@@ -3352,10 +3379,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         setWebTab(index: item.tag)
     }
 
+    // iPhone custom bottom bar tap (26E113): the same switch path
+    // as the UITabBar delegate and the Duo sidebar buttons.
+    func phoneTabTapped(_ idx: Int) {
+        phoneBar?.setSelected(idx)
+        setWebTab(index: idx)
+    }
+
     func setWebTab(index: Int) {
         guard index >= 0 && index < tabKeys.count else { return }
         let key = tabKeys[index]
         currentTab = key
+        phoneBar?.setSelected(index)
         view.backgroundColor = rootBackgroundColor() // Sidebar strip follows the tab's page background.
         updatePillVisibility()
         updateTransferVisibility()
@@ -3370,7 +3405,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     @objc func handleTabSwipe(_ gesture: UISwipeGestureRecognizer) {
-        let current = tabBar.selectedItem?.tag ?? 1
+        let current = tabKeys.firstIndex(of: currentTab) ?? tabBar.selectedItem?.tag ?? 1
         var next = current
         if gesture.direction == .left {
             next = min(current + 1, tabKeys.count - 1)
@@ -3379,6 +3414,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         if next != current {
             tabBar.selectedItem = tabBar.items?[next]
+            phoneBar?.setSelected(next)
             setWebTab(index: next)
         }
     }
@@ -3543,7 +3579,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 webViewTrailingToView.isActive = true
             }
         }
-        tabBar.isHidden = show || splashShowing
+        if let pb = phoneBar {
+            // iPhone (26E113): the custom bar is the visible bottom
+            // bar; the UITabBar stays hidden for good. The Duo
+            // sidebar still replaces the bottom bar when unfolded.
+            pb.isHidden = show || splashShowing
+            tabBar.isHidden = true
+        } else {
+            tabBar.isHidden = show || splashShowing
+        }
         sideBar.isHidden = !show || splashShowing
         updateSideBarSelection()
     }
@@ -3755,6 +3799,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             updatePillVisibility()
             updateTransferVisibility()
             tabBar.selectedItem = tabBar.items?[idx]
+            phoneBar?.setSelected(idx)
             updateSideBarSelection()
             // The native Siri-page switch only exists on the
             // Settings tab (26C101).
@@ -4110,56 +4155,29 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     // Siri Shortcuts setup (Settings -> Siri 快捷指令 -> tap a row).
-    // NOTE on the system Add-to-Siri sheet: INUIAddVoiceShortcutViewController
-    // (IntentsUI) only accepts an INShortcut built from an INIntent or an
-    // NSUserActivity — an AppIntent cannot be wrapped in one, so that sheet
-    // cannot present these shortcuts. The old flow (donate fire-and-forget
-    // with try?, then open shortcuts:// home) left the user on the
-    // Shortcuts home with no next step — donation is invisible, and the
-    // home screen does not show the app's shortcuts. So now: donate and
-    // AWAIT the result (a failed donation is reported, not swallowed),
-    // then show a native alert that names the shortcut and gives the exact
-    // steps, with a button that opens the Shortcuts app's new-shortcut
-    // editor (shortcuts://create-shortcut), where the user taps Add
-    // Action, searches "Subway Tools" and picks the shortcut. There is
-    // no URL that opens a specific app's shortcut list, so the editor is
-    // the closest real add destination. Unknown ids never reach here (the
-    // message branch validates the id first).
+    // NOTE on the system Add-to-Siri sheet: INUIAddVoiceShortcut-
+    // ViewController (IntentsUI) only accepts an INShortcut built
+    // from an INIntent or an NSUserActivity — an AppIntent cannot be
+    // wrapped in one, so that sheet cannot present these shortcuts.
+    // The system flow for App Intents is the AppShortcuts mechanism:
+    // the provider's shortcuts are listed under the app in the
+    // Shortcuts app automatically. That registration was silently
+    // broken until 26E113 (Metadata.appintents nested one level too
+    // deep in the bundle — see AppIntents.swift and build.sh), which
+    // is why the previous flow's "「{name}」已就绪" alert described
+    // steps that could never work: the actions simply did not exist
+    // on device. The fake-readiness alert is gone. Now a tap donates
+    // the intent (best effort, feeds Siri suggestions) and opens the
+    // Shortcuts app's editor directly, where the app's actions are
+    // really listed. Unknown ids never reach here (the message
+    // branch validates the id first).
     func presentShortcutSetup(for id: String) {
         guard let shortcut = SubwayShortcutID(rawValue: id) else { return }
-        let name = shortcut.displayTitle
         // The intents are plain AppIntents (26C101 rewrite, no
         // OpenURLIntent), so they exist on every supported iOS
         // version and can always be donated.
-        Task { [weak self] in
-            var donated = false
-            do {
-                try await shortcut.makeIntent().donate()
-                donated = true
-            } catch {
-                donated = false
-            }
-            let wasDonated = donated
-            DispatchQueue.main.async { [weak self] in
-                self?.showShortcutAddAlert(name: name, donated: wasDonated)
-            }
-        }
-    }
-
-    // Alert after tapping a Siri row: names the shortcut, gives the exact
-    // add steps, and offers to open the Shortcuts app. The message says
-    // plainly whether the donation worked; either way the manual add
-    // path is available (AppShortcutsProvider entries are listed under
-    // Subway Tools in the Shortcuts app with or without a donation).
-    func showShortcutAddAlert(name: String, donated: Bool) {
-        let key = donated ? "siri.add.message" : "siri.add.message.nodonate"
-        let message = L(key).replacingOccurrences(of: "{name}", with: name)
-        let alert = UIAlertController(title: L("siri.add.title"), message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: L("siri.add.open"), style: .default, handler: { [weak self] _ in
-            self?.openShortcutsAppForAdding()
-        }))
-        present(alert, animated: true, completion: nil)
+        Task { try? await shortcut.makeIntent().donate() }
+        openShortcutsAppForAdding()
     }
 
     // Open the Shortcuts app at the new-shortcut editor, where the user
@@ -4198,5 +4216,153 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             return
         }
         decisionHandler(.allow)
+    }
+}
+
+// MARK: - iPhone floating tab bar (26E113)
+//
+// Custom-drawn replacement for the iPhone bottom UITabBar, built to
+// the user's measured reference (402pt-wide device screenshot):
+// capsule ≈375pt wide (13pt side margins, set by the constraints in
+// viewDidLoad), 66pt tall, corner radius = half the height, floating
+// 10pt above the safe-area bottom, Liquid Glass body. Inside: 5
+// equal cells, each a 30pt icon above an 11pt title — content
+// ≈46pt, centred, ZERO clipping by construction: every frame is
+// computed from the 66pt height in layoutSubviews (icon y 10 h 30;
+// title y 42 h 14; content bottom edge 56, leaving 10pt below),
+// never from a system bar's internal layout (the 26E112 UITabBar
+// pinned to 62pt overflowed exactly that internal layout and cut
+// the titles in half).
+// Selected: system-blue icon + title over a light-grey pill inset
+// 4pt on each side (translucent light grey in dark mode).
+// Unselected: .label (black in light mode, white in dark mode).
+// iPhone only — iPad keeps its top UITabBar capsule and the Duo
+// keeps its right sidebar; both are untouched.
+final class PhoneTabBarView: UIView {
+    var onSelect: ((Int) -> Void)?
+    private(set) var selectedIndex: Int = 1
+
+    private let iconSide: CGFloat = 30
+    private let titleFont = UIFont.systemFont(ofSize: 11)
+    private var titles: [String] = []
+    private var images: [UIImage?] = []
+    private let glassView: UIVisualEffectView
+    private let pillView = UIView()
+    private var buttons: [UIButton] = []
+    private var iconViews: [UIImageView] = []
+    private var titleLabels: [UILabel] = []
+
+    override init(frame: CGRect) {
+        if #available(iOS 26.0, *) {
+            glassView = UIVisualEffectView(effect: UIGlassEffect(style: .regular))
+        } else {
+            glassView = UIVisualEffectView(effect: UIBlurEffect(style: .systemMaterial))
+        }
+        super.init(frame: frame)
+        backgroundColor = .clear
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.18
+        layer.shadowRadius = 16
+        layer.shadowOffset = CGSize(width: 0, height: 6)
+        glassView.layer.cornerRadius = 33
+        glassView.clipsToBounds = true
+        glassView.layer.borderWidth = 0.5
+        glassView.layer.borderColor = UIColor.separator.withAlphaComponent(0.35).cgColor
+        addSubview(glassView)
+        pillView.layer.cornerRadius = 27
+        pillView.backgroundColor = UIColor(dynamicProvider: { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(white: 1, alpha: 0.16)
+                : UIColor.systemGray5
+        })
+        addSubview(pillView)
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func configure(titles: [String], images: [UIImage?], selected: Int) {
+        self.titles = titles
+        self.images = images
+        selectedIndex = selected
+        for b in buttons { b.removeFromSuperview() }
+        buttons = []
+        iconViews = []
+        titleLabels = []
+        for i in titles.indices {
+            let btn = UIButton(type: .custom)
+            btn.tag = i
+            btn.addTarget(self, action: #selector(cellTapped(_:)), for: .touchUpInside)
+            addSubview(btn)
+            buttons.append(btn)
+            let iv = UIImageView()
+            iv.contentMode = .scaleAspectFit
+            iv.isUserInteractionEnabled = false
+            addSubview(iv)
+            iconViews.append(iv)
+            let lb = UILabel()
+            lb.font = titleFont
+            lb.textAlignment = .center
+            lb.isUserInteractionEnabled = false
+            addSubview(lb)
+            titleLabels.append(lb)
+        }
+        applyContent()
+        setNeedsLayout()
+    }
+
+    func reloadTitles(_ titles: [String]) {
+        self.titles = titles
+        applyContent()
+    }
+
+    func setSelected(_ idx: Int) {
+        guard idx >= 0 && idx < titles.count else { return }
+        let changed = idx != selectedIndex
+        selectedIndex = idx
+        applyContent()
+        if changed && bounds.width > 0 {
+            UIView.animate(withDuration: 0.22) { self.layoutPill() }
+        } else {
+            layoutPill()
+        }
+    }
+
+    private func applyContent() {
+        for i in titles.indices {
+            let selected = i == selectedIndex
+            let tint: UIColor = selected ? .systemBlue : .label
+            iconViews[i].image = images[i]?.withRenderingMode(.alwaysTemplate)
+            iconViews[i].tintColor = tint
+            titleLabels[i].text = titles[i]
+            titleLabels[i].textColor = tint
+        }
+    }
+
+    @objc private func cellTapped(_ sender: UIButton) {
+        onSelect?(sender.tag)
+    }
+
+    private func layoutPill() {
+        guard !titles.isEmpty, bounds.width > 0 else { return }
+        let cellW = bounds.width / CGFloat(titles.count)
+        pillView.frame = CGRect(x: CGFloat(selectedIndex) * cellW + 4, y: 6, width: cellW - 8, height: bounds.height - 12)
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        glassView.frame = bounds
+        layoutPill()
+        guard !titles.isEmpty else { return }
+        let cellW = bounds.width / CGFloat(titles.count)
+        // Content block: 10pt top pad + 30pt icon + 2pt gap + 14pt
+        // title = 56pt of the 66pt capsule (10pt below) — computed
+        // in code, so the title can never be clipped by the
+        // capsule's bottom edge.
+        for i in titles.indices {
+            let cellX = CGFloat(i) * cellW
+            buttons[i].frame = CGRect(x: cellX, y: 0, width: cellW, height: bounds.height)
+            iconViews[i].frame = CGRect(x: cellX + (cellW - iconSide) / 2, y: 10, width: iconSide, height: iconSide)
+            titleLabels[i].frame = CGRect(x: cellX, y: 42, width: cellW, height: 14)
+        }
     }
 }
