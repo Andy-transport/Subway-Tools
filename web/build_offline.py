@@ -665,6 +665,15 @@ _SOON_LOGO_FILES = {
     "南昌": "nanchang.b64", "福州": "fuzhou.b64", "南宁": "nanning.b64",
     "温州": "wenzhou.b64", "济南": "jinan.b64", "徐州": "xuzhou.b64",
     "天津": "tianjin.b64",
+    # 2026-11-22 fifth pass: 17 more cut from a user-provided logo
+    # collage (artwork untouched, white background made transparent);
+    # see MANIFEST.md.
+    "太原": "taiyuan.b64", "呼和浩特": "huhehaote.b64", "苏州": "suzhou.b64",
+    "南通": "nantong.b64", "宁波": "ningbo.b64", "绍兴": "shaoxing.b64",
+    "合肥": "hefei.b64", "厦门": "xiamen.b64", "郑州": "zhengzhou.b64",
+    "洛阳": "luoyang.b64", "武汉": "wuhan.b64", "佛山": "foshan.b64",
+    "东莞": "dongguan.b64", "贵阳": "guiyang.b64", "昆明": "kunming.b64",
+    "兰州": "lanzhou.b64", "乌鲁木齐": "wulumuqi.b64",
 }
 _soon_logos = {}
 for _name, _fn in _SOON_LOGO_FILES.items():

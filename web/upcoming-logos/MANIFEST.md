@@ -7,7 +7,18 @@ Logos are official Wikimedia files used as-is (API thumbnails, `iiurlwidth=480`;
 no redrawing or alteration). Every saved logo was visually verified against the
 downloaded image before being copied here.
 
-**Status of this run (2026-11-22, fourth pass):** WIKIMEDIA STILL BLOCKED —
+**Status of this run (2026-11-22, fifth pass):** 17 more logos added, cut
+from a **user-provided logo collage** (a 6×8 grid of Chinese metro logos,
+supplied 2026-11-22): 太原、呼和浩特、苏州、南通、宁波、绍兴、合肥、厦门、
+郑州、洛阳、武汉、佛山、东莞、贵阳、昆明、兰州、乌鲁木齐. Each logo was
+cropped out of its grid cell, trimmed to the artwork, and its white
+background made transparent — the artwork itself was not altered, redrawn
+or recoloured — then visually verified one by one. Total saved is now 30.
+Still missing (15, no source available; keep the grey 'M'): 芜湖、滁州、
+淮安、天水、三亚、株洲、宜宾、嘉兴、文山州、南平、台州、黄石、盐城、
+红河州、许昌. （雄安 has no metro logo and keeps the grey 'M' by design.)
+
+**Status of the previous run (2026-11-22, fourth pass):** WIKIMEDIA STILL BLOCKED —
 the single probe download (郑州, from the banked URL below) returned
 **HTTP 429** again, so per the hard rate-limit rule all Wikimedia downloads
 were stopped immediately — no retries, no endpoint switching. The 8 banked
@@ -24,7 +35,10 @@ below), but the first image download from upload.wikimedia.org returned
 HTTP 429 and everything stopped. A later pass (after the rate limit clears)
 can go straight to downloading the 8 confirmed files below.
 
-## Saved & verified (13)
+## Saved & verified (30)
+
+The first 13 are official Wikimedia files; the last 17 were cut from the
+user-provided logo collage (2026-11-22, fifth pass) as described above.
 
 | City | File | Wikimedia source file |
 |---|---|---|
@@ -41,11 +55,32 @@ can go straight to downloading the 8 confirmed files below.
 | 温州 Wenzhou | `wenzhou.png` | File:Wenzhou Rail Transit Logo.svg |
 | 济南 Jinan | `jinan.png` | File:JinanMetro Logo.svg |
 | 徐州 Xuzhou | `xuzhou.png` | File:Xuzhou Metro New Logo with char.svg |
+| 太原 Taiyuan | `taiyuan.png` | User-provided logo collage (2026-11-22), grid R1C4 |
+| 呼和浩特 Hohhot | `huhehaote.png` | User-provided logo collage (2026-11-22), grid R1C5 |
+| 苏州 Suzhou | `suzhou.png` | User-provided logo collage (2026-11-22), grid R2C6 |
+| 南通 Nantong | `nantong.png` | User-provided logo collage (2026-11-22), grid R3C4 |
+| 宁波 Ningbo | `ningbo.png` | User-provided logo collage (2026-11-22), grid R3C6 |
+| 绍兴 Shaoxing | `shaoxing.png` | User-provided logo collage (2026-11-22), grid R4C1 |
+| 合肥 Hefei | `hefei.png` | User-provided logo collage (2026-11-22), grid R4C2 |
+| 厦门 Xiamen | `xiamen.png` | User-provided logo collage (2026-11-22), grid R4C4 |
+| 郑州 Zhengzhou | `zhengzhou.png` | User-provided logo collage (2026-11-22), grid R5C2 |
+| 洛阳 Luoyang | `luoyang.png` | User-provided logo collage (2026-11-22), grid R5C3 |
+| 武汉 Wuhan | `wuhan.png` | User-provided logo collage (2026-11-22), grid R5C4 |
+| 佛山 Foshan | `foshan.png` | User-provided logo collage (2026-11-22), grid R6C2 |
+| 东莞 Dongguan | `dongguan.png` | User-provided logo collage (2026-11-22), grid R6C3 |
+| 贵阳 Guiyang | `guiyang.png` | User-provided logo collage (2026-11-22), grid R7C1 |
+| 昆明 Kunming | `kunming.png` | User-provided logo collage (2026-11-22), grid R7C2 |
+| 兰州 Lanzhou | `lanzhou.png` | User-provided logo collage (2026-11-22), grid R7C4 |
+| 乌鲁木齐 Ürümqi | `wulumuqi.png` | User-provided logo collage (2026-11-22), grid R7C5 |
 
 ## Located on zh.wikipedia — confirmed present, download blocked by HTTP 429 (8)
 
-Confirmed via the zh.wikipedia API on 2026-11-22 (third pass); still NOT
-downloaded and NOT visually verified — download and verify in a later run.
+Confirmed via the zh.wikipedia API on 2026-11-22 (third pass). The
+Wikimedia files themselves are still NOT downloaded (HTTP 429), but six of
+these eight cities （郑州、兰州、合肥、乌鲁木齐、呼和浩特、太原） were saved
+in the fifth pass from the user-provided collage instead (see the table
+above). Only 芜湖 and 滁州 from this list are still missing. The URLs are
+kept here for a later official-file swap if wanted.
 
 | City | zh.wikipedia file | File URL (upload.wikimedia.org) |
 |---|---|---|
@@ -58,7 +93,7 @@ downloaded and NOT visually verified — download and verify in a later run.
 | 芜湖 Wuhu | File:Wuhu RT Logo.png (277×69) | https://upload.wikimedia.org/wikipedia/zh/4/48/Wuhu_RT_Logo.png |
 | 滁州 Chuzhou | File:滁州轨道logo.jpg (316×316, JPG → convert to PNG like Nanchang) | https://upload.wikimedia.org/wikipedia/zh/3/3c/%E6%BB%81%E5%B7%9E%E8%BD%A8%E9%81%93logo.jpg |
 
-## Not yet found — search not completed (24)
+## Not yet found — search not completed (24 originally; 11 since saved)
 
 The city's zh.wikipedia article image list contained no logo file, and the
 follow-up Commons/zh file search could not be run because of the HTTP 429
@@ -68,10 +103,13 @@ simply unsearched. Do not treat as "no logo exists".
 `soonCityList()`. 雄安 is not listed: it has no metro logo and keeps the
 grey 'M' by design.)
 
-武汉 Wuhan · 苏州 Suzhou · 昆明 Kunming · 佛山 Foshan · 宁波 Ningbo ·
-淮安 Huai'an (tram) · 东莞 Dongguan · 贵阳 Guiyang ·
-厦门 Xiamen · 天水 Tianshui (tram) · 三亚 Sanya (tram) · 株洲 Zhuzhou (ART) ·
-宜宾 Yibin (ART) · 洛阳 Luoyang · 嘉兴 Jiaxing (tram) · 绍兴 Shaoxing ·
-文山州 Wenshan (tram) · 南平 Nanping (Wuyi tram) · 南通 Nantong ·
-台州 Taizhou · 黄石 Huangshi (tram) · 盐城 Yancheng · 红河州 Honghe (tram) ·
+Fifth-pass update: 11 of these 24 （武汉、苏州、昆明、佛山、宁波、东莞、
+贵阳、厦门、洛阳、绍兴、南通） were saved from the user-provided collage
+(see the table above). The 13 below are still missing, and together with
+芜湖 and 滁州 (previous section) make the 15 still-missing cities:
+
+淮安 Huai'an (tram) · 天水 Tianshui (tram) · 三亚 Sanya (tram) ·
+株洲 Zhuzhou (ART) · 宜宾 Yibin (ART) · 嘉兴 Jiaxing (tram) ·
+文山州 Wenshan (tram) · 南平 Nanping (Wuyi tram) · 台州 Taizhou ·
+黄石 Huangshi (tram) · 盐城 Yancheng · 红河州 Honghe (tram) ·
 许昌 Xuchang (Zhengxu line)
