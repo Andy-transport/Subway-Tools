@@ -224,7 +224,40 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var actionPinIconURL = ""
     var actionPinIcon: UIImage?
     // Web tab keys, in the same order as the native tab bar items.
-    let tabKeys = ["transfer", "map", "stations", "timetable", "more"]
+    // TEST-BUILD GATE (test/structure branch, 2026-11-22): the 6th
+    // "structure" tab exists ONLY in test builds — CFBundleVersion in
+    // the 26E test train (e.g. 26E106). Release builds (A-train, e.g.
+    // A26106) keep the original 5 tabs, and the web structure panel
+    // stays unreachable from native chrome. This branch is never
+    // merged to main; the gate is a second line of defence.
+    var isTestBuild: Bool {
+        let v = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+        return v.hasPrefix("26E")
+    }
+    var tabKeys: [String] {
+        isTestBuild
+            ? ["transfer", "map", "stations", "timetable", "structure", "more"]
+            : ["transfer", "map", "stations", "timetable", "more"]
+    }
+    // Titles / images aligned with tabKeys ("structure" inserted
+    // before "more" only when the test gate is open).
+    func tabTitles() -> [String] {
+        var t = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable")]
+        if isTestBuild { t.append(L("tab.structure")) }
+        t.append(L("tab.more"))
+        return t
+    }
+    func tabImages() -> [UIImage?] {
+        var im: [UIImage?] = [
+            UIImage(systemName: "arrow.triangle.2.circlepath"),
+            UIImage(systemName: "map"),
+            UIImage(systemName: "magnifyingglass"),
+            UIImage(named: "TimetableIcon"),
+        ]
+        if isTestBuild { im.append(UIImage(systemName: "cube")) }
+        im.append(UIImage(systemName: "gearshape"))
+        return im
+    }
     // Siri / deep-link routing (user 2026-11-18, Siri Shortcuts): a
     // subwaymotion:// link that arrives before the offline page has
     // finished loading is stashed here and applied from
@@ -334,6 +367,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "tab.map": ["线路图", "線路圖", "Line Map"],
         "tab.stations": ["搜索", "搜索", "Search"],
         "tab.timetable": ["时刻表", "時刻表", "Timetable"],
+        "tab.structure": ["结构", "結構", "Structure"],
         "tab.more": ["设置", "設定", "Settings"],
         "city.bj": ["北京", "北京", "Beijing"],
         "city.sy": ["沈阳", "瀋陽", "Shenyang"],
@@ -465,7 +499,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
     // Re-apply all native strings for the current language.
     func applyLanguage() {
-        let titles = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
+        let titles = tabTitles()
         if let items = tabBar?.items {
             for (i, item) in items.enumerated() where i < titles.count { item.title = titles[i] }
         }
@@ -560,13 +594,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         tabBar = UITabBar()
         tabBar.delegate = self
         tabBar.tintColor = accentColor()
-        let items = [
-            UITabBarItem(title: L("tab.transfer"), image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0),
-            UITabBarItem(title: L("tab.map"), image: UIImage(systemName: "map"), tag: 1),
-            UITabBarItem(title: L("tab.stations"), image: UIImage(systemName: "magnifyingglass"), tag: 2),
-            UITabBarItem(title: L("tab.timetable"), image: UIImage(named: "TimetableIcon"), tag: 3),
-            UITabBarItem(title: L("tab.more"), image: UIImage(systemName: "gearshape"), tag: 4),
-        ]
+        let _titles = tabTitles()
+        let _images = tabImages()
+        var items: [UITabBarItem] = []
+        for i in 0..<tabKeys.count {
+            items.append(UITabBarItem(title: _titles[i], image: _images[i], tag: i))
+        }
         tabBar.items = items
         tabBar.selectedItem = items[1] // default tab is the map, same as the web page
         // Floating Liquid Glass capsule (iOS 26 / SDK 27.2, user 2026-11-15):
@@ -2915,14 +2948,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             stack.bottomAnchor.constraint(equalTo: sideBarEffectView.contentView.bottomAnchor, constant: -10),
         ])
 
-        let titles = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
-        let images: [UIImage?] = [
-            UIImage(systemName: "arrow.triangle.2.circlepath"),
-            UIImage(systemName: "map"),
-            UIImage(systemName: "magnifyingglass"),
-            UIImage(named: "TimetableIcon"),
-            UIImage(systemName: "gearshape"),
-        ]
+        let titles = tabTitles()
+        let images = tabImages()
         for i in 0..<tabKeys.count {
             let btn = UIButton(type: .system)
             btn.tag = i
@@ -2981,7 +3008,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func rootBackgroundColor() -> UIColor {
         let dark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
         if dark {
-            if currentTab == "transfer" || currentTab == "stations" {
+            if currentTab == "transfer" || currentTab == "stations" || currentTab == "structure" {
                 return UIColor(red: 16.0 / 255.0, green: 20.0 / 255.0, blue: 32.0 / 255.0, alpha: 1) // #101420
             }
             return .black // #000000
@@ -3037,14 +3064,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func updateSideBarSelection() {
         guard !sideBarButtons.isEmpty else { return }
         let idx = tabKeys.firstIndex(of: currentTab) ?? 1
-        let titles = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
-        let images: [UIImage?] = [
-            UIImage(systemName: "arrow.triangle.2.circlepath"),
-            UIImage(systemName: "map"),
-            UIImage(systemName: "magnifyingglass"),
-            UIImage(named: "TimetableIcon"),
-            UIImage(systemName: "gearshape"),
-        ]
+        let titles = tabTitles()
+        let images = tabImages()
         for (i, btn) in sideBarButtons.enumerated() {
             btn.configuration = sideBarButtonConfig(title: titles[i], image: images[i], selected: i == idx)
         }

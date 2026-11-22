@@ -107,6 +107,43 @@ assert "</script" not in stations, "stations json must not contain </script"
 html = sub_once(r'/\*__METRO_STATIONS__\*/\[\]', lambda _: stations, html, "stations json")
 html = sub_once(r'/\*__BJ_LOGO__\*/', lambda _: logo_b64, html, "bj logo")
 
+# I2. inline the station structure index + diagram images (TEST BUILD
+# ONLY feature, test/structure branch 2026-11-22). index.json is built
+# by gen_structure_index.py from the verified census files; each image
+# under structure/ is inlined as a data URI keyed by file name. Missing
+# index -> empty objects, the panel shows "being prepared" everywhere.
+import base64 as _b64mod
+import json as _jsonmod
+_struct_dir = BASE / "structure"
+_struct_index_path = _struct_dir / "index.json"
+if _struct_index_path.exists():
+    _struct_index = _struct_index_path.read_text(encoding="utf-8")
+    _struct_data = _jsonmod.loads(_struct_index)
+else:
+    _struct_index = "{}"
+    _struct_data = {}
+_struct_imgs = {}
+for _entry in _struct_data.values():
+    for _kind in ("spatial", "plan"):
+        _f = _entry.get(_kind)
+        if _f and _f not in _struct_imgs:
+            _p = _struct_dir / _f
+            _mime = "image/png" if _f.lower().endswith(".png") else "image/jpeg"
+            if _p.exists():
+                _raw = _b64mod.b64encode(_p.read_bytes()).decode("ascii")
+            else:
+                # Repo form: images are stored as <file>.b64 (the repo
+                # snapshot pipeline carries UTF-8 text only).
+                _bp = _struct_dir / (_f + ".b64")
+                assert _bp.exists(), f"structure image missing: {_f}"
+                _raw = _bp.read_text(encoding="utf-8").strip()
+            _struct_imgs[_f] = "data:" + _mime + ";base64," + _raw
+_struct_imgs_json = _jsonmod.dumps(_struct_imgs, ensure_ascii=False)
+assert "</script" not in _struct_index, "structure index must not contain </script"
+assert "</script" not in _struct_imgs_json, "structure imgs must not contain </script"
+html = sub_once(r'/\*__STRUCTURE_INDEX__\*/\{\}', lambda _: _struct_index, html, "structure index")
+html = sub_once(r'/\*__STRUCTURE_IMGS__\*/\{\}', lambda _: _struct_imgs_json, html, "structure imgs")
+
 # J. inline the route graph (routes.json, built by finalize_routes.py).
 routes = (BASE / "routes.json").read_text(encoding="utf-8")
 assert "</script" not in routes, "routes json must not contain </script"

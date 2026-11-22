@@ -1,0 +1,658 @@
+{
+ "bj:苹果园": {
+  "spatial": "bj-苹果园-spatial.jpg",
+  "plan": "bj-苹果园-plan.jpg",
+  "sources": {
+   "spatial": "user-photo",
+   "plan": "user-photo"
+  }
+ },
+ "bj:七里庄": {
+  "spatial": "bj-七里庄-spatial.jpg",
+  "plan": "bj-七里庄-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/97r18NQxzS8_XkE9LBVCX.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/zVFqZMiPhFHRJG1k3c7aY.jpg"
+  }
+ },
+ "bj:北京南站": {
+  "spatial": "bj-北京南站-spatial.jpg",
+  "plan": "bj-北京南站-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/fmJHhj2E1vFTOOjsAV9uG.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/fUa5zNbmIVwvmP-YsHy8f.jpg"
+  }
+ },
+ "bj:北安河": {
+  "spatial": "bj-北安河-spatial.jpg",
+  "plan": "bj-北安河-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/9vDzUr6VEFJBRJiYLIu8L.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/XnULKuOQVIe-6Ch-z-dno.jpg"
+  }
+ },
+ "bj:十里河": {
+  "spatial": "bj-十里河-spatial.jpg",
+  "plan": "bj-十里河-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/ymzjN2qnFCMr7t1fjq33A.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/YTO-0jqtYBvc_ea-DIe60.jpg"
+  }
+ },
+ "bj:善各庄": {
+  "spatial": "bj-善各庄-spatial.jpg",
+  "plan": "bj-善各庄-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/zm4uKPZWfFI_olEWaZGi0.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/ORrfD8NCFyGkm_9Nq7B2j.jpg"
+  }
+ },
+ "bj:嘉会湖": {
+  "spatial": "bj-嘉会湖-spatial.jpg",
+  "plan": "bj-嘉会湖-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/dHFDmK3JZmUWZtiUR29Bz.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/HcYDKFiKUCGk3qPCMw61r.jpg"
+  }
+ },
+ "bj:国家图书馆": {
+  "spatial": "bj-国家图书馆-spatial.jpg",
+  "plan": "bj-国家图书馆-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/BYnUsqSbpORjPjqDolTMn.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/MEMdYeWesvZrclZJAnCgO.jpg"
+  }
+ },
+ "bj:大望路": {
+  "spatial": "bj-大望路-spatial.jpg",
+  "plan": "bj-大望路-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/1b0k4eu9ytNRpdUOAlMAB.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/jBdByxDk5pgJoCsFL_beM.jpg"
+  }
+ },
+ "bj:天宫院": {
+  "spatial": "bj-天宫院-spatial.jpg",
+  "plan": "bj-天宫院-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/oU1mcfWm6ugoUKx9v7cLr.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/wodUECuhdykqbYCZZb2nb.jpg"
+  }
+ },
+ "bj:安河桥北": {
+  "spatial": "bj-安河桥北-spatial.jpg",
+  "plan": "bj-安河桥北-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/eV16_BgYmeiSL_TTh9reE.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/Rvq8Hnp4cFt5jbcFJ62L0.jpg"
+  }
+ },
+ "bj:宛平城": {
+  "spatial": "bj-宛平城-spatial.jpg",
+  "plan": "bj-宛平城-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/ZwSl5xQUB2Tojvsdwf4bK.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/vOXC42J-3YT8fp9fMvd3p.jpg"
+  }
+ },
+ "bj:宣武门": {
+  "spatial": "bj-宣武门-spatial.jpg",
+  "plan": "bj-宣武门-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/K1QNdeuzrvRZHfntJC_46.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/xXGoF0dUxxL6teSC32fS0.jpg"
+  }
+ },
+ "bj:工人体育场": {
+  "spatial": "bj-工人体育场-spatial.jpg",
+  "plan": "bj-工人体育场-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/wZSSqZET-uXUwFadn5d6y.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/1xiAcRsl-pHPxs6EfbN-3.jpg"
+  }
+ },
+ "bj:张郭庄": {
+  "spatial": "bj-张郭庄-spatial.jpg",
+  "plan": "bj-张郭庄-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/StkxXAb-H59dmO71qgMEG.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/2ylTBcQBtdUOGpDsG638d.jpg"
+  }
+ },
+ "bj:未来科学城北": {
+  "spatial": "bj-未来科学城北-spatial.jpg",
+  "plan": "bj-未来科学城北-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/vj9RgR2t89e3ExoxATgAs.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/131KIDJgjCw0mh0aXOn37.jpg"
+  }
+ },
+ "bj:海淀黄庄": {
+  "spatial": "bj-海淀黄庄-spatial.jpg",
+  "plan": "bj-海淀黄庄-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/qyOiEoobO7L_T8eCuZjxT.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/SExfOog8fHdomUvfYX408.jpg"
+  }
+ },
+ "bj:西单": {
+  "spatial": "bj-西单-spatial.jpg",
+  "plan": "bj-西单-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/RGcS8kcpWeb8_XX6Kq0rx.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/KkqXKG46cbuy8pAJWE5MC.jpg"
+  }
+ },
+ "bj:西直门": {
+  "spatial": "bj-西直门-spatial.jpg",
+  "plan": "bj-西直门-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/J_Gt5AGB2FYPdALTrj0HD.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/-i1Lgs_x2rkrRr3tN5NMY.jpg"
+  }
+ },
+ "bj:西苑": {
+  "spatial": "bj-西苑-spatial.jpg",
+  "plan": "bj-西苑-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/G6oBUgXQMLmwwx5g6IyEB.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/AoNI4JMPDSrbOEme8mYt_.jpg"
+  }
+ },
+ "bj:角门西": {
+  "spatial": "bj-角门西-spatial.jpg",
+  "plan": "bj-角门西-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/LAapwIWYHr3fhkzMf7qC9.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/R6JbPHsFcdoobP1z0q7Ki.jpg"
+  }
+ },
+ "bj:金台路": {
+  "spatial": "bj-金台路-spatial.jpg",
+  "plan": "bj-金台路-plan.jpg",
+  "sources": {
+   "spatial": "https://cdnwww.mtr.bj.cn/bjmtr/default/FEaBM8HrCB7d6A3O6iIJS.jpg",
+   "plan": "https://cdnwww.mtr.bj.cn/bjmtr/default/rXg8XnRvcPiiGxv0KO6Wr.jpg"
+  }
+ },
+ "sh:虹桥火车站": {
+  "spatial": "sh-虹桥火车站-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1041.jpg"
+  }
+ },
+ "sh:交通大学": {
+  "spatial": "sh-交通大学-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1050.jpg"
+  }
+ },
+ "sh:陕西南路": {
+  "spatial": "sh-陕西南路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1052.jpg"
+  }
+ },
+ "sh:一大会址·新天地": {
+  "spatial": "sh-一大会址·新天地-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1053.jpg"
+  }
+ },
+ "sh:豫园": {
+  "spatial": "sh-豫园-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1055.jpg"
+  }
+ },
+ "sh:南京东路": {
+  "spatial": "sh-南京东路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1056.jpg"
+  }
+ },
+ "sh:海伦路": {
+  "spatial": "sh-海伦路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1059.jpg"
+  }
+ },
+ "sh:邮电新村": {
+  "spatial": "sh-邮电新村-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1060.jpg"
+  }
+ },
+ "sh:四平路": {
+  "spatial": "sh-四平路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1061.jpg"
+  }
+ },
+ "sh:三门路": {
+  "spatial": "sh-三门路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1066.jpg"
+  }
+ },
+ "sh:新江湾城": {
+  "spatial": "sh-新江湾城-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1068.jpg"
+  }
+ },
+ "sh:花桥": {
+  "spatial": "sh-花桥-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1114.jpg"
+  }
+ },
+ "sh:上海西站": {
+  "spatial": "sh-上海西站-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1142.jpg"
+  }
+ },
+ "sh:真如": {
+  "spatial": "sh-真如-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1143.jpg"
+  }
+ },
+ "sh:隆德路": {
+  "spatial": "sh-隆德路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1146.jpg"
+  }
+ },
+ "sh:徐家汇": {
+  "spatial": "sh-徐家汇-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1149.jpg"
+  }
+ },
+ "sh:东方体育中心": {
+  "spatial": "sh-东方体育中心-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1154.jpg"
+  }
+ },
+ "sh:迪士尼": {
+  "spatial": "sh-迪士尼-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1163.jpg"
+  }
+ },
+ "sh:漕宝路": {
+  "spatial": "sh-漕宝路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1227.jpg"
+  }
+ },
+ "sh:大木桥路": {
+  "spatial": "sh-大木桥路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1231.jpg"
+  }
+ },
+ "sh:嘉善路": {
+  "spatial": "sh-嘉善路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1232.jpg"
+  }
+ },
+ "sh:南京西路": {
+  "spatial": "sh-南京西路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1234.jpg"
+  }
+ },
+ "sh:汉中路": {
+  "spatial": "sh-汉中路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1235.jpg"
+  }
+ },
+ "sh:大连路": {
+  "spatial": "sh-大连路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1240.jpg"
+  }
+ },
+ "sh:金沙江路": {
+  "spatial": "sh-金沙江路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1327.jpg"
+  }
+ },
+ "sh:马当路": {
+  "spatial": "sh-马当路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1337.jpg"
+  }
+ },
+ "sh:静安寺": {
+  "spatial": "sh-静安寺-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1434.jpg"
+  }
+ },
+ "sh:陆家嘴": {
+  "spatial": "sh-陆家嘴-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1438.jpg"
+  }
+ },
+ "sh:浦东大道": {
+  "spatial": "sh-浦东大道-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1440.jpg"
+  }
+ },
+ "sh:云山路": {
+  "spatial": "sh-云山路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1445.jpg"
+  }
+ },
+ "sh:蓝天路": {
+  "spatial": "sh-蓝天路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1446.jpg"
+  }
+ },
+ "sh:上海南站": {
+  "spatial": "sh-上海南站-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1532.jpg"
+  }
+ },
+ "sh:娄山关路": {
+  "spatial": "sh-娄山关路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1538.jpg"
+  }
+ },
+ "sh:顾村公园": {
+  "spatial": "sh-顾村公园-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1550.jpg"
+  }
+ },
+ "sh:龙阳路": {
+  "spatial": "sh-龙阳路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1621.jpg"
+  }
+ },
+ "sh:杨高中路": {
+  "spatial": "sh-杨高中路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1834.jpg"
+  }
+ },
+ "sh:民生路": {
+  "spatial": "sh-民生路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1835.jpg"
+  }
+ },
+ "sh:江浦路": {
+  "spatial": "sh-江浦路-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://service.shmetro.com/skin/zct/1840.jpg"
+  }
+ },
+ "sh:虹桥2号航站楼": {
+  "spatial": null,
+  "plan": "sh-虹桥2号航站楼-plan.jpg",
+  "sources": {
+   "plan": "https://service.shmetro.com/skin/zct/1042.jpg"
+  }
+ },
+ "sh:虹桥1号航站楼": {
+  "spatial": null,
+  "plan": "sh-虹桥1号航站楼-plan.jpg",
+  "sources": {
+   "plan": "https://service.shmetro.com/skin/zct/1043.jpg"
+  }
+ },
+ "sh:虹桥路": {
+  "spatial": null,
+  "plan": "sh-虹桥路-plan.jpg",
+  "sources": {
+   "plan": "https://service.shmetro.com/skin/zct/1049.jpg"
+  }
+ },
+ "sh:老西门": {
+  "spatial": null,
+  "plan": "sh-老西门-plan.jpg",
+  "sources": {
+   "plan": "https://service.shmetro.com/skin/zct/1054.jpg"
+  }
+ },
+ "sh:嘉定北": {
+  "spatial": null,
+  "plan": "sh-嘉定北-plan.jpg",
+  "sources": {
+   "plan": "https://service.shmetro.com/skin/zct/1131.jpg"
+  }
+ },
+ "sh:曹杨路": {
+  "spatial": null,
+  "plan": "sh-曹杨路-plan.jpg",
+  "sources": {
+   "plan": "https://service.shmetro.com/skin/zct/1145.jpg"
+  }
+ },
+ "sh:江苏路": {
+  "spatial": null,
+  "plan": "sh-江苏路-plan.jpg",
+  "sources": {
+   "plan": "https://service.shmetro.com/skin/zct/1147.jpg"
+  }
+ },
+ "sy:沈阳北站": {
+  "spatial": null,
+  "plan": "sy-沈阳北站-plan.jpg",
+  "sources": {
+   "plan": "http://zrzyj.shenyang.gov.cn/zxbs/gsgg/jsxmfapqphgs/202302/W020230203620466101470.jpg"
+  }
+ },
+ "sy:皇寺路": {
+  "spatial": null,
+  "plan": "sy-皇寺路-plan.jpg",
+  "sources": {
+   "plan": "http://zrzyj.shenyang.gov.cn/zxbs/gsgg/jsxmfapqphgs/202302/W020230203620466101470.jpg"
+  }
+ },
+ "sy:市府大路": {
+  "spatial": null,
+  "plan": "sy-市府大路-plan.jpg",
+  "sources": {
+   "plan": "http://zrzyj.shenyang.gov.cn/zxbs/gsgg/jsxmfapqphgs/202302/W020230203620466101470.jpg"
+  }
+ },
+ "sy:太原街": {
+  "spatial": null,
+  "plan": "sy-太原街-plan.jpg",
+  "sources": {
+   "plan": "http://zrzyj.shenyang.gov.cn/zxbs/gsgg/jsxmfapqphgs/202302/W020230203620466101470.jpg"
+  }
+ },
+ "sy:南阳湖街": {
+  "spatial": null,
+  "plan": "sy-南阳湖街-plan.jpg",
+  "sources": {
+   "plan": "https://zrzyj.shenyang.gov.cn/zxbs/gsgg/jsxmfapqphgs/202409/W020240927640633652251.jpg"
+  }
+ },
+ "sy:大通湖街": {
+  "spatial": null,
+  "plan": "sy-大通湖街-plan.jpg",
+  "sources": {
+   "plan": "https://zrzyj.shenyang.gov.cn/zxbs/gsgg/jsxmfapqphgs/202409/W020240927640633652251.jpg"
+  }
+ },
+ "sy:工业大学": {
+  "spatial": null,
+  "plan": "sy-工业大学-plan.jpg",
+  "sources": {
+   "plan": "https://zrzyj.shenyang.gov.cn/zxbs/gsgg/jsxmfapqphgs/202409/P020240927637417267877.pdf"
+  }
+ },
+ "sy:余良": {
+  "spatial": null,
+  "plan": "sy-余良-plan.jpg",
+  "sources": {
+   "plan": "https://zrzyj.shenyang.gov.cn/zxbs/gsgg/jsxmfapqphgs/202409/P020240927637417267877.pdf"
+  }
+ },
+ "sz:后海": {
+  "spatial": "sz-后海-spatial.jpg",
+  "plan": "sz-后海-plan.jpg",
+  "sources": {
+   "spatial": "https://static.wikia.nocookie.net/szbus/images/1/1c/%E5%90%8E%E6%B5%B7%E7%AB%99_L13%E8%BD%A6%E7%AB%99_%E7%A9%BA%E9%97%B4%E7%A4%BA%E6%84%8F%E5%9B%BE%EF%BC%88202512%EF%BC%89.jpg/revision/latest?cb=20260304072009",
+   "plan": "https://static.wikia.nocookie.net/szbus/images/f/f6/%E5%9C%B0%E9%93%812-11-13%E5%8F%B7%E7%BA%BF_%E5%90%8E%E6%B5%B7%E7%AB%99_%E7%AB%99%E7%82%B9%E5%B9%B3%E9%9D%A2%E5%9B%BE.png/revision/latest?cb=20241120123256"
+  }
+ },
+ "sz:留仙洞": {
+  "spatial": "sz-留仙洞-spatial.jpg",
+  "plan": "sz-留仙洞-plan.jpg",
+  "sources": {
+   "spatial": "https://static.wikia.nocookie.net/szbus/images/7/7c/%E7%95%99%E4%BB%99%E6%B4%9E_%E7%A9%BA%E9%97%B4%E7%A4%BA%E6%84%8F%E5%9B%BE_L13.jpg/revision/latest?cb=20251231095121",
+   "plan": "https://static.wikia.nocookie.net/szbus/images/3/3d/%E7%95%99%E4%BB%99%E6%B4%9E%E7%AB%99_L5%E7%AB%99%E5%86%85%E5%B9%B3%E9%9D%A2%E5%9B%BE_202601.jpg/revision/latest?cb=20260101181759"
+  }
+ },
+ "sz:科苑": {
+  "spatial": "sz-科苑-spatial.jpg",
+  "plan": "sz-科苑-plan.jpg",
+  "sources": {
+   "spatial": "https://static.wikia.nocookie.net/szbus/images/b/be/%E7%A7%91%E8%8B%91%E7%AB%99_L13%E7%A9%BA%E9%97%B4%E7%A4%BA%E6%84%8F%E5%9B%BE%EF%BC%88202512%EF%BC%89.jpg/revision/latest?cb=20260426021010",
+   "plan": "https://static.wikia.nocookie.net/szbus/images/0/07/%E5%9C%B0%E9%93%812-13%E5%8F%B7%E7%BA%BF_%E7%A7%91%E8%8B%91%E7%AB%99_%E7%AB%99%E7%82%B9%E5%B9%B3%E9%9D%A2%E5%9B%BE.png/revision/latest?cb=20241120123208"
+  }
+ },
+ "sz:岗厦北": {
+  "spatial": null,
+  "plan": "sz-岗厦北-plan.jpg",
+  "sources": {
+   "plan": "https://static.wikia.nocookie.net/szbus/images/8/80/%E5%B2%97%E5%8E%A6%E5%8C%97%E7%AB%99_%E6%B7%B1%E5%9C%B3%E4%B9%8B%E7%9C%BC_%E5%B9%B3%E9%9D%A2%E5%9B%BE.jpg/revision/latest?cb=20231212074240"
+  }
+ },
+ "sz:车公庙": {
+  "spatial": null,
+  "plan": "sz-车公庙-plan.jpg",
+  "sources": {
+   "plan": "https://static.wikia.nocookie.net/szbus/images/e/ef/%E8%BD%A6%E5%85%AC%E5%BA%99%E7%AB%99_%E7%AB%99%E5%86%85%E5%B9%B3%E9%9D%A2%E5%9B%BE.jpg/revision/latest?cb=20260506144250"
+  }
+ },
+ "cd:龙港": {
+  "spatial": "cd-龙港-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://imgcdn.scol.com.cn/media/2024/12/17/223903120823.jpg"
+  }
+ },
+ "cd:洞子口": {
+  "spatial": "cd-洞子口-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://imgcdn.scol.com.cn/media/2024/12/17/223905198680.jpg"
+  }
+ },
+ "cd:羊犀立交": {
+  "spatial": "cd-羊犀立交-spatial.jpg",
+  "plan": null,
+  "sources": {
+   "spatial": "https://imgcdn.scol.com.cn/media/2024/12/17/223906766511.jpg"
+  }
+ },
+ "cd:石油大学": {
+  "spatial": null,
+  "plan": "cd-石油大学-plan.jpg",
+  "sources": {
+   "plan": "http://imgbdb3.bendibao.com/cdbdb/20162/19/2016219133655817.jpg"
+  }
+ },
+ "cq:璧山": {
+  "spatial": "cq-璧山-spatial.jpg",
+  "plan": "cq-璧山-plan.jpg",
+  "sources": {
+   "spatial": "http://imgbdb3.bendibao.com/cqbdb/traffic/201912/31/20191231135951_93619.png",
+   "plan": "http://imgbdb3.bendibao.com/cqbdb/traffic/201912/31/20191231135951_71169.png"
+  }
+ },
+ "jh:金华站": {
+  "spatial": null,
+  "plan": "jh-金华站-plan.jpg",
+  "sources": {
+   "plan": "http://www.jhmtr.net/uploads/1/image/public/202202/20220218153027_lyp0usbawl.png"
+  }
+ },
+ "jh:金华南站": {
+  "spatial": null,
+  "plan": "jh-金华南站-plan.jpg",
+  "sources": {
+   "plan": "http://www.jhmtr.net/uploads/1/image/public/202202/20220221182226_6l4kl4lclx.png"
+  }
+ },
+ "jh:浙医四院": {
+  "spatial": null,
+  "plan": "jh-浙医四院-plan.jpg",
+  "sources": {
+   "plan": "http://www.jhmtr.net/uploads/1/image/public/202303/20230327165425_gsprciq0sx.png"
+  }
+ },
+ "jh:春晗": {
+  "spatial": null,
+  "plan": "jh-春晗-plan.jpg",
+  "sources": {
+   "plan": "http://www.jhmtr.net/uploads/1/image/public/202303/20230327165350_d9pit7d6wv.png"
+  }
+ },
+ "jh:明清宫": {
+  "spatial": null,
+  "plan": "jh-明清宫-plan.jpg",
+  "sources": {
+   "plan": "https://imgbdb4.bendibao.com/jhbdb/traffic/20234/07/2023407095719_97719.png"
+  }
+ }
+}
