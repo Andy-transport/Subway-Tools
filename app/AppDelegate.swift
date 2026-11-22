@@ -102,6 +102,19 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var subHeaderGlass: UIVisualEffectView!
     var subHeaderTitle: UILabel!
     var subHeaderHeightConstraint: NSLayoutConstraint?
+    // iPad only (2026-11-22 fix): an opaque cover over the top chrome
+    // zone while a sub-view is open, spanning the view's top edge down
+    // to the sub-header strip's bottom edge. On iPad the tab bar is a
+    // narrow floating pill and the strip starts BELOW it, so the zone
+    // beside/above the strip had no cover at all — sub-page content
+    // scrolled (or opened, via the sheet's inherited scroll offset) up
+    // into it and ghosted bare around the pill. The cover sits above
+    // the web view but below the tab bar, the strip and the back
+    // button, coloured with rootBackgroundColor() — the exact
+    // background of the page underneath — so it reads as the page's
+    // own top edge. Nil on iPhone (its strip spans the full width
+    // from y=0, so no cover is needed and nothing changes there).
+    var subTopCover: UIView?
     // Sub-view header state (user 2026-11-20, latest instruction
     // 22:53: "安全区的按钮参考第二张效果 上移一下" — the reference is
     // the iOS Settings Accessibility page): while ANY sub-view is open
@@ -747,6 +760,28 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             subHeaderTitle.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -76),
         ])
 
+        // iPad sub-view top cover (2026-11-22 fix, see the property
+        // note): from the view's top edge down to the strip's bottom
+        // edge — anchored to the strip's bottom anchor, so it follows
+        // the strip's height automatically (44pt shown, 0 on static
+        // pages, where it still covers the pill zone). Shown and faded
+        // together with the rest of the sub-view chrome in
+        // setSubChromeVisible; iPhone never creates it.
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            let cover = UIView()
+            cover.translatesAutoresizingMaskIntoConstraints = false
+            cover.isHidden = true
+            cover.backgroundColor = rootBackgroundColor()
+            view.addSubview(cover)
+            NSLayoutConstraint.activate([
+                cover.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                cover.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                cover.topAnchor.constraint(equalTo: view.topAnchor),
+                cover.bottomAnchor.constraint(equalTo: subHeaderGlass.bottomAnchor),
+            ])
+            subTopCover = cover
+        }
+
         setupNativePills()
         // Splash fallback: if the web never posts splashDone, reveal the
         // controls after 4s anyway.
@@ -821,6 +856,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         view.backgroundColor = rootBackgroundColor()
+        subTopCover?.backgroundColor = rootBackgroundColor() // iPad sub-view top cover follows the page background (2026-11-22).
         updateSideBarLayout()
         // Appearance changed while running (26C101): re-pick the
         // launch poster variant too — this hook previously refreshed
@@ -962,6 +998,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
     }
 
+    // iPad sub-view top cover (2026-11-22 fix): keep the cover's
+    // colour equal to the page background underneath (rootBackground
+    // is tab- and theme-aware: #f2f2f7 / #000 for Settings, #ffffff /
+    // #000 for the timetable panel) and its z-order sandwiched as
+    // webView < cover < tab bar < glass strip < back button, so the
+    // pill keeps floating (and stays tappable) above the covered zone
+    // while no web content can ever show through it. No-ops on iPhone
+    // (subTopCover is nil there).
+    func refreshSubTopCover() {
+        guard let cover = subTopCover else { return }
+        cover.backgroundColor = rootBackgroundColor()
+        view.insertSubview(cover, aboveSubview: webView)
+        view.bringSubviewToFront(tabBar)
+        if let glass = subHeaderGlass { view.bringSubviewToFront(glass) }
+        if let button = subViewBackButton { view.bringSubviewToFront(button) }
+    }
+
     func setSubScrolled(_ scrolled: Bool) {
         guard subScrolled != scrolled else { return }
         subScrolled = scrolled
@@ -1001,21 +1054,31 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             subChromeClosing = false
             glass.layer.removeAllAnimations()
             button.layer.removeAllAnimations()
+            subTopCover?.layer.removeAllAnimations()
             let wasHidden = glass.isHidden && button.isHidden
             glass.isHidden = false
             button.isHidden = false
+            // iPad top cover (2026-11-22 fix): show with the chrome,
+            // recoloured and z-ordered under the pill/strip/button.
+            if let cover = subTopCover {
+                cover.isHidden = false
+                refreshSubTopCover()
+            }
             view.bringSubviewToFront(glass)
             view.bringSubviewToFront(button)
             if wasHidden {
                 glass.alpha = 0
                 button.alpha = 0
+                subTopCover?.alpha = 0
                 UIView.animate(withDuration: 0.28, delay: 0, options: [.curveEaseOut]) {
                     glass.alpha = 1
                     button.alpha = 1
+                    self.subTopCover?.alpha = 1
                 }
             } else {
                 glass.alpha = 1
                 button.alpha = 1
+                subTopCover?.alpha = 1
             }
         } else {
             guard !glass.isHidden || !button.isHidden else { return }
@@ -1023,6 +1086,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             UIView.animate(withDuration: 0.45, delay: 0, options: [.curveEaseOut], animations: {
                 glass.alpha = 0
                 button.alpha = 0
+                self.subTopCover?.alpha = 0
             }) { [weak self] _ in
                 guard let self = self, self.subChromeClosing else { return }
                 self.subChromeClosing = false
@@ -1030,6 +1094,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 button.isHidden = true
                 glass.alpha = 1
                 button.alpha = 1
+                if let cover = self.subTopCover {
+                    cover.isHidden = true
+                    cover.alpha = 1
+                }
             }
         }
     }
@@ -3021,6 +3089,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 // pick used a stale appearance (2026-11-20 fix).
                 refreshSplashImage()
                 view.backgroundColor = rootBackgroundColor()
+                subTopCover?.backgroundColor = rootBackgroundColor() // iPad sub-view top cover follows the page background (2026-11-22).
             }
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],

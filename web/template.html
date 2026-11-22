@@ -1070,6 +1070,31 @@
 			padding-left: env(safe-area-inset-left);
 			padding-right: env(safe-area-inset-right);
 		}
+		/* Landscape phone (2026-11-22 fix): the panel box ends above the
+		   floating tab bar by design (bottom inset above), and in
+		   portrait the exposed strip below it is almost fully covered
+		   by the near-full-width pill. In landscape the pill is narrow
+		   and centred, so the map showed through in wide patches left
+		   and right of it — the bottom-left map patch the user flagged.
+		   Extend the panel's OWN opaque background down over that band
+		   (a ::before layer of the panel itself, exactly the bottom
+		   inset tall). The panel box, the scrollers and their clearance
+		   are untouched, so no row can rest or pass under the pill, and
+		   portrait (media query) and iPad (bottom: 0 there, excluded)
+		   render exactly as before. */
+		@media (orientation: landscape) {
+			html:not(.is-pad) #timetablePanel::before {
+				content: '';
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 100%;
+				height: calc(71px + env(safe-area-inset-bottom));
+				background: #ffffff;
+				pointer-events: none;
+			}
+			html.dark:not(.is-pad) #timetablePanel::before { background: #000000; }
+		}
 		.tab img.tt-tab-icon { width: 25px; height: 25px; opacity: .55; }
 		.tab.active img.tt-tab-icon { opacity: 1; }
 		.tt-view { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 0; }
@@ -2934,7 +2959,37 @@ function titlePy(py) {
 							});
 						} catch (e) {}
 					},
-					notifySubScroll(scrolled) {
+					fixPadSheetScroll(open) {
+					// iPad only (2026-11-22 fix): #moreSheet is ONE scroller
+					// shared by the main Settings page and every sub-page,
+					// and nothing reset its scroll position — a sub-page
+					// inherited the main page's scroll offset (the user had
+					// scrolled down to reach the row), so its designed top
+					// clearance (sheet padding + sub-page padding, both
+					// computed for scroll-top 0) collapsed and its first
+					// rows opened up in the top chrome zone. On iPhone the
+					// native header strip spans the full width from y=0 and
+					// masks this; on iPad the top bar is a narrow floating
+					// pill and the strip starts below it, so the rows
+					// ghosted bare around/behind the pill (the Siri page
+					// screenshot). On a Settings sub-view open, stash the
+					// main page's offset and start the sub-page at the top;
+					// on close, restore the main page's offset. Gated on
+					// window._metroIsPad: iPhone behaviour is untouched.
+					try {
+						if (!window._metroIsPad) return;
+						var sheet = document.getElementById('moreSheet');
+						if (!sheet) return;
+						if (open && this.tab === 'more') {
+							if (this._sheetScrollSave == null) this._sheetScrollSave = sheet.scrollTop;
+							if (sheet.scrollTop !== 0) sheet.scrollTop = 0;
+						} else if (!open && this._sheetScrollSave != null) {
+							sheet.scrollTop = this._sheetScrollSave;
+							this._sheetScrollSave = null;
+						}
+					} catch (e) {}
+				},
+				notifySubScroll(scrolled) {
 						// Sub-view scroll state for the native header
 						// (user 2026-11-20): posted only on change.
 						if (this._subScrolled === scrolled) return;
@@ -4708,7 +4763,7 @@ function titlePy(py) {
 					}
 				},
 				watch: {
-					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); }
+					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); }
 				},
 				updated: function() {
 					this.syncHtmlClasses();
