@@ -146,7 +146,7 @@ enum SubwayTimetable {
         let last: String?
     }
 
-    static let cityOrder = ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"]
+    static let cityOrder = ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"]
     private static var loaded = false
     private static var cityNames: [String: String] = [:]
     private static var lineNames: [String: [String: String]] = [:]

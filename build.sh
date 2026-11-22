@@ -255,6 +255,12 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashQDDark.jpg
 # Shijiazhuang splash (user-supplied real splash, web/shijiazhuang/splash.b64).
 python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashSJZ.jpg','wb').write(base64.b64decode(open('web/shijiazhuang/splash.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashSJZDark.jpg','wb').write(base64.b64decode(open('web/shijiazhuang/splash-dark.b64').read()))"
+# Tianjin / Wuxi splash posters (26E116, composed in the existing
+# cities' poster style: city name + official logo + theme colour).
+python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashTJ.jpg','wb').write(base64.b64decode(open('web/tianjin/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashTJDark.jpg','wb').write(base64.b64decode(open('web/tianjin/splash-dark.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashWX.jpg','wb').write(base64.b64decode(open('web/wuxi/splash.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/SplashWXDark.jpg','wb').write(base64.b64decode(open('web/wuxi/splash-dark.b64').read()))"
 echo "== 3b. Siri data resources (26E113: same sources as the web pages) =="
 # The query intents in AppIntents.swift answer from the app's own
 # data. Bundle the SAME files the web pages inline — web/timetable/
@@ -277,6 +283,7 @@ CITIES = [
     ("cc", "长春", "web/changchun"), ("sz", "深圳", "web/shenzhen"),
     ("cd", "成都", "web/chengdu"), ("qd", "青岛", "web/qingdao"),
     ("sjz", "石家庄", "web/shijiazhuang"),
+    ("tj", "天津", "web/tianjin"), ("wx", "无锡", "web/wuxi"),
 ]
 def load(p):
     with open(p, encoding="utf-8") as f:
@@ -305,6 +312,8 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/ShenzhenLogo.png
 python3 -c "import base64; open('build/Payload/Subway Tools.app/ChengduLogo.png','wb').write(base64.b64decode(open('web/chengdu/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/QingdaoLogo.png','wb').write(base64.b64decode(open('web/qingdao/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/ShijiazhuangLogo.png','wb').write(base64.b64decode(open('web/shijiazhuang/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/TianjinLogo.png','wb').write(base64.b64decode(open('web/tianjin/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/WuxiLogo.png','wb').write(base64.b64decode(open('web/wuxi/logo.b64').read()))"
 python3 -c "import base64; [open('build/Payload/Subway Tools.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 
 echo "== 3a. app icon asset catalog (Assets.car, dark home-screen icon) =="

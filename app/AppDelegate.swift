@@ -464,6 +464,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // official published value.
     let shijiazhuangRed = UIColor(red: 229.0 / 255.0, green: 62.0 / 255.0, blue: 48.0 / 255.0, alpha: 1)
     let shijiazhuangRedDark = UIColor(red: 181.0 / 255.0, green: 49.0 / 255.0, blue: 38.0 / 255.0, alpha: 1)
+    // Tianjin Metro Line 1 red #CB333B (official line colour, sampled
+    // from the official 2026-07-21 network map; also the city theme).
+    // Darker #A0282F is derived (x0.79), not an official published value.
+    let tianjinRed = UIColor(red: 203.0 / 255.0, green: 51.0 / 255.0, blue: 59.0 / 255.0, alpha: 1)
+    let tianjinRedDark = UIColor(red: 160.0 / 255.0, green: 40.0 / 255.0, blue: 47.0 / 255.0, alpha: 1)
+    // Wuxi Metro Line 1 red #EE2737 (official line colour, Wikipedia
+    // rail colour / RMP palette agree). Darker #BC1F2B is derived
+    // (x0.79), not an official published value.
+    let wuxiRed = UIColor(red: 238.0 / 255.0, green: 39.0 / 255.0, blue: 55.0 / 255.0, alpha: 1)
+    let wuxiRedDark = UIColor(red: 188.0 / 255.0, green: 31.0 / 255.0, blue: 43.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -541,6 +551,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "city.cd": ["成都", "成都", "Chengdu"],
         "city.qd": ["青岛", "青島", "Qingdao"],
         "city.sjz": ["石家庄", "石家莊", "Shijiazhuang"],
+        "city.tj": ["天津", "天津", "Tianjin"],
+        "city.wx": ["无锡", "無錫", "Wuxi"],
         "native.cancel": ["取消", "取消", "Cancel"],
         "tr.tab.rec": ["推荐", "推薦", "Recommended"],
         "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
@@ -576,6 +588,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "transit.cd": ["成都地铁", "成都地鐵", "Chengdu Metro"],
         "transit.qd": ["青岛地铁", "青島地鐵", "Qingdao Metro"],
         "transit.sjz": ["石慧行", "石慧行", "Shihuihang"],
+        "transit.tj": ["天津地铁", "天津地鐵", "Tianjin Metro"],
+        "transit.wx": ["码上行", "碼上行", "Mashangxing"],
         "tr.search": ["搜索", "搜索", "Search"],
         "tr.departNow": ["现在出发", "現在出發", "Depart now"],
         "time.confirm": ["确定", "確定", "Done"],
@@ -695,7 +709,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = rootBackgroundColor() // Tab- and theme-matched page background: on the unfolded Duo the area beside the sidebar blends with the page instead of showing as an edge (users 2026-11-21, 2026-11-22).
@@ -1647,6 +1661,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cd" { return chengduBlue }
         if currentCity == "qd" { return qingdaoGreen }
         if currentCity == "sjz" { return shijiazhuangRed }
+        if currentCity == "tj" { return tianjinRed }
+        if currentCity == "wx" { return wuxiRed }
         return subwayBlue
     }
 
@@ -1665,6 +1681,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cd" { return chengduBlueDark }
         if currentCity == "qd" { return qingdaoGreenDark }
         if currentCity == "sjz" { return shijiazhuangRedDark }
+        if currentCity == "tj" { return tianjinRedDark }
+        if currentCity == "wx" { return wuxiRedDark }
         return subwayBlue
     }
 
@@ -1686,6 +1704,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cd" { return chengduBlue }
         if currentCity == "qd" { return qingdaoGreen }
         if currentCity == "sjz" { return shijiazhuangRed }
+        if currentCity == "tj" { return tianjinRed }
+        if currentCity == "wx" { return wuxiRed }
         return accentColor()
     }
 
@@ -1712,6 +1732,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cd": name = "ChengduLogo"
         case "qd": name = "QingdaoLogo"
         case "sjz": name = "ShijiazhuangLogo"
+        case "tj": name = "TianjinLogo"
+        case "wx": name = "WuxiLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -1828,7 +1850,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let sjz = UIAction(title: L("city.sjz"), image: cityLogoImage(for: "sjz")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sjz" ? .on : .off) { [weak self] _ in
             self?.pickCity("sjz")
         }
-        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd, qd, sjz])
+        let tj = UIAction(title: L("city.tj"), image: cityLogoImage(for: "tj")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "tj" ? .on : .off) { [weak self] _ in
+            self?.pickCity("tj")
+        }
+        let wx = UIAction(title: L("city.wx"), image: cityLogoImage(for: "wx")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "wx" ? .on : .off) { [weak self] _ in
+            self?.pickCity("wx")
+        }
+        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd, qd, sjz, tj, wx])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -1861,6 +1889,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         sheet.addAction(cityAction("cd"))
         sheet.addAction(cityAction("qd"))
         sheet.addAction(cityAction("sjz"))
+        sheet.addAction(cityAction("tj"))
+        sheet.addAction(cityAction("wx"))
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
@@ -3219,6 +3249,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cd": id = "1303414976"
         case "qd": id = "1373547573"
         case "sjz": id = "6444716093"
+        case "tj": id = "1445111714"
+        case "wx": id = "1213366120"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
@@ -3845,7 +3877,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // write; the poster re-picks immediately.
             if let dict = message.body as? [String: Any] {
                 if let city = dict["city"] as? String,
-                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(city) {
+                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"].contains(city) {
                     UserDefaults.standard.set(city, forKey: "metro-city")
                     currentCity = city
                 }
@@ -3879,7 +3911,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
-                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(city) {
+                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"].contains(city) {
             // The web switched cities (user switch or the startup
             // restore). Mirror it natively; the web already switched,
             // so do NOT call switchCity here (that would loop).
