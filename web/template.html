@@ -150,6 +150,14 @@
 			window.BRIEFING_SEED = /*__BRIEFING_SEED__*/{};
 			window.TRAINS_SEED = /*__TRAINS_SEED__*/{};
 			window.TT_ICON = "data:image/png;base64,/*__TT_ICON__*/";
+
+			// No long-press callout (save image / copy / look up) anywhere in the
+			// app — except inside text inputs, where editing stays fully normal.
+			document.addEventListener('contextmenu', function(e) {
+				var t = e.target;
+				if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+				e.preventDefault();
+			});
 		</script>
 	</head>
 
@@ -157,6 +165,19 @@
 	<style>
 		* {
 			user-select: none;
+			-webkit-user-select: none;
+			-webkit-touch-callout: none;
+		}
+
+		img {
+			-webkit-user-drag: none;
+		}
+
+		/* Text inputs keep normal editing (selection, magnifier, paste callout). */
+		input, textarea, [contenteditable] {
+			user-select: text;
+			-webkit-user-select: text;
+			-webkit-touch-callout: default;
 		}
 
 		#svg8 {
