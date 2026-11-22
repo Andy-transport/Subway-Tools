@@ -47,7 +47,36 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
         let win = UIWindow(windowScene: windowScene)
-        win.rootViewController = MapViewController()
+        // Launch appearance, resolved BEFORE the first frame (26E109,
+        // user: light mode cold-starts occasionally flash the DARK
+        // splash for one frame). The old first-frame pick read the
+        // persisted "metro-dark" — the PREVIOUS session's effective
+        // appearance, written by its last themeState post. With the
+        // theme following the system, a scheduled appearance flip
+        // between sessions (dark at night, light next morning) left
+        // that flag stale, so the launch poster opened dark and the
+        // web's splashState/themeState correction a moment later
+        // flipped it — one visible dark frame. Resolve here instead,
+        // from the same source the in-app theme uses: the persisted
+        // mode (metro-theme); manual light/dark wins outright, and
+        // "system" reads the SCENE's trait at connection time (valid
+        // here, unlike the view controller's traitCollection inside
+        // viewDidLoad, which is not attached to the scene yet). The
+        // resolved value refreshes metro-dark immediately, so every
+        // launch reader (poster, injected _metroInitDark, root
+        // background) agrees from the first frame, and it is handed
+        // to the controller as launchResolvedDark, which outranks
+        // the stored flag until the web's first report this session.
+        let themeMode = UserDefaults.standard.string(forKey: "metro-theme") ?? "system"
+        let sceneDark = windowScene.traitCollection.userInterfaceStyle == .dark
+        let resolvedDark = themeMode == "dark" || (themeMode == "system" && sceneDark)
+        UserDefaults.standard.set(resolvedDark, forKey: "metro-dark")
+        let rootVC = MapViewController()
+        rootVC.launchResolvedDark = resolvedDark
+        win.rootViewController = rootVC
+        // The window's own backing matches the poster's edge colour,
+        // so no dark (or light) gap can show before the poster paints.
+        win.backgroundColor = resolvedDark ? .black : .white
         win.makeKeyAndVisible()
         window = win
         // Cold launch via a subwaymotion:// deep link (Siri / Shortcuts):
@@ -390,6 +419,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // animation for 2s. Keep them hidden until the web says the splash
     // is done (or the fallback timer fires).
     var splashShowing = true
+    // Launch appearance (26E109): the variant resolved by the scene
+    // delegate at connection time, before the first frame. Until the
+    // web's first themeState/splashState report THIS session, this
+    // outranks the persisted metro-dark flag (which may be the
+    // previous session's stale effective appearance).
+    var launchResolvedDark: Bool? = nil
+    var themeResolvedThisSession = false
+    // Single dark-appearance resolver for every launch-time reader
+    // (splash poster, injected _metroInitDark, root background):
+    // this session's web report once it lands, else the scene-time
+    // resolution, else the persisted flag, else the trait.
+    func splashDarkResolved() -> Bool {
+        if themeResolvedThisSession, let b = UserDefaults.standard.object(forKey: "metro-dark") as? Bool { return b }
+        if let l = launchResolvedDark { return l }
+        if let b = UserDefaults.standard.object(forKey: "metro-dark") as? Bool { return b }
+        return traitCollection.userInterfaceStyle == .dark
+    }
     // Native launch splash view (build 53): shows the current city's
     // splash image from launch, covering the white gap before the web
     // page loads and its own splash appears. Hidden in splashFinished().
@@ -643,7 +689,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let _isPadStr = UIDevice.current.userInterfaceIdiom == .pad ? "true" : "false"
         let _initCity = currentCity
         let _initTheme = UserDefaults.standard.string(forKey: "metro-theme") ?? "system"
-        let _initDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        let _initDark = splashDarkResolved()
         let _langScript = WKUserScript(source: "window._metroSystemLang = '\(Self.systemLang())'; window._metroIsPad = \(_isPadStr); window._metroInitCity = '\(_initCity)'; window._metroInitTheme = '\(_initTheme)'; window._metroInitDark = \(_initDark);", injectionTime: .atDocumentStart, forMainFrameOnly: true)
         config.userContentController.addUserScript(_langScript)
         webView = WKWebView(frame: view.bounds, configuration: config)
@@ -1413,6 +1459,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         UserDefaults.standard.set(key, forKey: "metro-theme")
         let dark = key == "dark" || (key == "system" && traitCollection.userInterfaceStyle == .dark)
         UserDefaults.standard.set(dark, forKey: "metro-dark")
+        themeResolvedThisSession = true
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTheme('\(key)')", completionHandler: nil)
     }
 
@@ -2806,11 +2853,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // per-city posters stay in the bundle unreferenced for a
         // possible later re-enable.
         let splashName = "SplashST"
-        // Dark variant when the web's last-known effective appearance
-        // is dark ("metro-dark", persisted via the themeState
-        // message); before the first web report, fall back to the
-        // system style at launch.
-        let splashDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        // Dark variant per splashDarkResolved() (26E109): this
+        // session's web report once it lands; before that, the
+        // scene-connection-time resolution (persisted mode + scene
+        // trait) — NOT the raw persisted metro-dark flag, whose
+        // staleness across appearance flips caused the one-frame
+        // wrong-variant flash on cold start.
+        let splashDark = splashDarkResolved()
         // The dark variant counts as present if named lookup OR the
         // explicit .jpg path finds it (26D104 — same miss that hit the
         // load chain below).
@@ -3296,7 +3345,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // page background). Refreshed wherever the theme refresh already
     // happens, plus on every tab change (setWebTab / tabChanged).
     func rootBackgroundColor() -> UIColor {
-        let dark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        let dark = splashDarkResolved()
         if dark {
             if currentTab == "transfer" || currentTab == "stations" || currentTab == "structure" {
                 return UIColor(red: 16.0 / 255.0, green: 20.0 / 255.0, blue: 32.0 / 255.0, alpha: 1) // #101420
@@ -3579,6 +3628,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 }
                 if let dark = dict["dark"] as? Bool {
                     UserDefaults.standard.set(dark, forKey: "metro-dark")
+                    themeResolvedThisSession = true // the web's own report now outranks the launch resolution (26E109)
                 }
                 refreshSplashImage()
             }
@@ -3590,6 +3640,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             if let dict = message.body as? [String: Any],
                let dark = dict["dark"] as? Bool {
                 UserDefaults.standard.set(dark, forKey: "metro-dark")
+                themeResolvedThisSession = true // the web's own report now outranks the launch resolution (26E109)
                 // Also persist the web's theme MODE (system/light/dark)
                 // when the report carries it, so the launch injection
                 // can hand the web its exact previous appearance state.
