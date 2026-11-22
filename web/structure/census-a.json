@@ -1,0 +1,552 @@
+{
+ "cities": [
+  {
+   "city": "北京",
+   "key": "bj",
+   "spatial": [
+    {
+     "station": "七里庄",
+     "file": "bj-七里庄-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/97r18NQxzS8_XkE9LBVCX.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd02.html"
+    },
+    {
+     "station": "北京南站",
+     "file": "bj-北京南站-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/fmJHhj2E1vFTOOjsAV9uG.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd71.html"
+    },
+    {
+     "station": "北安河",
+     "file": "bj-北安河-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/9vDzUr6VEFJBRJiYLIu8L.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcfc.html"
+    },
+    {
+     "station": "十里河",
+     "file": "bj-十里河-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/ymzjN2qnFCMr7t1fjq33A.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd0d.html"
+    },
+    {
+     "station": "善各庄",
+     "file": "bj-善各庄-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/zm4uKPZWfFI_olEWaZGi0.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd04.html"
+    },
+    {
+     "station": "嘉会湖",
+     "file": "bj-嘉会湖-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/dHFDmK3JZmUWZtiUR29Bz.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/61ce491bb0972c463ee519cb.html"
+    },
+    {
+     "station": "国家图书馆",
+     "file": "bj-国家图书馆-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/BYnUsqSbpORjPjqDolTMn.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd66.html"
+    },
+    {
+     "station": "大望路",
+     "file": "bj-大望路-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/1b0k4eu9ytNRpdUOAlMAB.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd0f.html"
+    },
+    {
+     "station": "天宫院",
+     "file": "bj-天宫院-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/oU1mcfWm6ugoUKx9v7cLr.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1958b1ea0278b8fffd7f.html"
+    },
+    {
+     "station": "安河桥北",
+     "file": "bj-安河桥北-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/eV16_BgYmeiSL_TTh9reE.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd5d.html"
+    },
+    {
+     "station": "宛平城",
+     "file": "bj-宛平城-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/ZwSl5xQUB2Tojvsdwf4bK.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/65895a3af7181b5a64729e2f.html"
+    },
+    {
+     "station": "宣武门",
+     "file": "bj-宣武门-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/K1QNdeuzrvRZHfntJC_46.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd6e.html"
+    },
+    {
+     "station": "工人体育场",
+     "file": "bj-工人体育场-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/wZSSqZET-uXUwFadn5d6y.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/6584facb11244c4ae1b3a2cb.html"
+    },
+    {
+     "station": "张郭庄",
+     "file": "bj-张郭庄-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/StkxXAb-H59dmO71qgMEG.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffcfd.html"
+    },
+    {
+     "station": "未来科学城北",
+     "file": "bj-未来科学城北-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/vj9RgR2t89e3ExoxATgAs.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/6583d8e211244c4ae1b3a2c2.html"
+    },
+    {
+     "station": "海淀黄庄",
+     "file": "bj-海淀黄庄-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/qyOiEoobO7L_T8eCuZjxT.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd63.html"
+    },
+    {
+     "station": "西单",
+     "file": "bj-西单-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/RGcS8kcpWeb8_XX6Kq0rx.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd6d.html"
+    },
+    {
+     "station": "西直门",
+     "file": "bj-西直门-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/J_Gt5AGB2FYPdALTrj0HD.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd68.html"
+    },
+    {
+     "station": "西苑",
+     "file": "bj-西苑-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/G6oBUgXQMLmwwx5g6IyEB.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd5f.html"
+    },
+    {
+     "station": "角门西",
+     "file": "bj-角门西-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/LAapwIWYHr3fhkzMf7qC9.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd73.html"
+    },
+    {
+     "station": "金台路",
+     "file": "bj-金台路-spatial.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/FEaBM8HrCB7d6A3O6iIJS.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd16.html"
+    }
+   ],
+   "plan": [
+    {
+     "station": "七里庄",
+     "file": "bj-七里庄-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/zVFqZMiPhFHRJG1k3c7aY.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd02.html"
+    },
+    {
+     "station": "北京南站",
+     "file": "bj-北京南站-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/fUa5zNbmIVwvmP-YsHy8f.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd71.html"
+    },
+    {
+     "station": "北安河",
+     "file": "bj-北安河-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/XnULKuOQVIe-6Ch-z-dno.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1291b1ea0278b8fffcfc.html"
+    },
+    {
+     "station": "十里河",
+     "file": "bj-十里河-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/YTO-0jqtYBvc_ea-DIe60.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd0d.html"
+    },
+    {
+     "station": "善各庄",
+     "file": "bj-善各庄-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/ORrfD8NCFyGkm_9Nq7B2j.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd04.html"
+    },
+    {
+     "station": "嘉会湖",
+     "file": "bj-嘉会湖-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/HcYDKFiKUCGk3qPCMw61r.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/61ce491bb0972c463ee519cb.html"
+    },
+    {
+     "station": "国家图书馆",
+     "file": "bj-国家图书馆-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/MEMdYeWesvZrclZJAnCgO.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd66.html"
+    },
+    {
+     "station": "大望路",
+     "file": "bj-大望路-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/jBdByxDk5pgJoCsFL_beM.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd0f.html"
+    },
+    {
+     "station": "天宫院",
+     "file": "bj-天宫院-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/wodUECuhdykqbYCZZb2nb.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a1958b1ea0278b8fffd7f.html"
+    },
+    {
+     "station": "安河桥北",
+     "file": "bj-安河桥北-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/Rvq8Hnp4cFt5jbcFJ62L0.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd5d.html"
+    },
+    {
+     "station": "宛平城",
+     "file": "bj-宛平城-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/vOXC42J-3YT8fp9fMvd3p.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/65895a3af7181b5a64729e2f.html"
+    },
+    {
+     "station": "宣武门",
+     "file": "bj-宣武门-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/xXGoF0dUxxL6teSC32fS0.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd6e.html"
+    },
+    {
+     "station": "工人体育场",
+     "file": "bj-工人体育场-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/1xiAcRsl-pHPxs6EfbN-3.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/6584facb11244c4ae1b3a2cb.html"
+    },
+    {
+     "station": "张郭庄",
+     "file": "bj-张郭庄-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/2ylTBcQBtdUOGpDsG638d.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffcfd.html"
+    },
+    {
+     "station": "未来科学城北",
+     "file": "bj-未来科学城北-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/131KIDJgjCw0mh0aXOn37.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/6583d8e211244c4ae1b3a2c2.html"
+    },
+    {
+     "station": "海淀黄庄",
+     "file": "bj-海淀黄庄-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/SExfOog8fHdomUvfYX408.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd63.html"
+    },
+    {
+     "station": "西单",
+     "file": "bj-西单-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/KkqXKG46cbuy8pAJWE5MC.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd6d.html"
+    },
+    {
+     "station": "西直门",
+     "file": "bj-西直门-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/-i1Lgs_x2rkrRr3tN5NMY.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd68.html"
+    },
+    {
+     "station": "西苑",
+     "file": "bj-西苑-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/AoNI4JMPDSrbOEme8mYt_.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd5f.html"
+    },
+    {
+     "station": "角门西",
+     "file": "bj-角门西-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/R6JbPHsFcdoobP1z0q7Ki.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a18eeb1ea0278b8fffd73.html"
+    },
+    {
+     "station": "金台路",
+     "file": "bj-金台路-plan.jpg",
+     "source_url": "https://cdnwww.mtr.bj.cn/bjmtr/default/rXg8XnRvcPiiGxv0KO6Wr.jpg",
+     "source_page": "https://www.mtr.bj.cn/service/line/station/5d5a13a4b1ea0278b8fffd16.html"
+    }
+   ],
+   "domains": [
+    "www.mtr.bj.cn",
+    "cdnwww.mtr.bj.cn"
+   ],
+   "notes": "来源普查：①京港地铁官网 mtr.bj.cn 车站页（本轮 productive 来源）——每站页含两张明确标注图：alt『<站名>站立体图』=等距分层空间图(spatial)，alt『<站名>索引分类』=街区导向/索引平面图(plan)。已枚举其 4/14/16/17 号线共 118 个车站页，本轮优先下载换乘站/终点站/大站 21 站×2 类=42 张，逐张肉眼核对站名与类型无误；同源其余站点（含已提取 URL 但本轮未下载的园博园、苏州街）可按同一页面模式后续扩充，未逐张核实故不计入本表。②北京地铁官网 bjsubway.com：抽查车站信息页为纯文字，无结构图/街区图。③北京本地宝车站页：有『站点平面图』标题但抽查苹果园、望京西两页该标题下无图（死路）。④维基百科/北京交通百科苹果园词条：只有文字、楼层表、照片与轨道配置图，无更清晰官方立体图/平面图。苹果园：用户照片已覆盖 spatial+plan（目录内 bj-苹果园-spatial.jpg、bj-苹果园-plan.jpg 为既有文件），本轮未下载、未替换，未找到更清晰的官方图。西苑条目来源页取自 4 号线页（同站亦为 16 号线站，其平面图内同时标注 4/16 号线西苑站）。"
+  },
+  {
+   "city": "上海",
+   "key": "sh",
+   "spatial": [
+    {
+     "station": "虹桥火车站",
+     "file": "sh-虹桥火车站-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1041.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "交通大学",
+     "file": "sh-交通大学-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1050.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "陕西南路",
+     "file": "sh-陕西南路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1052.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "一大会址·新天地",
+     "file": "sh-一大会址·新天地-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1053.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "豫园",
+     "file": "sh-豫园-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1055.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "南京东路",
+     "file": "sh-南京东路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1056.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "海伦路",
+     "file": "sh-海伦路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1059.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "邮电新村",
+     "file": "sh-邮电新村-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1060.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "四平路",
+     "file": "sh-四平路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1061.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "三门路",
+     "file": "sh-三门路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1066.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "新江湾城",
+     "file": "sh-新江湾城-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1068.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "花桥",
+     "file": "sh-花桥-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1114.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "上海西站",
+     "file": "sh-上海西站-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1142.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "真如",
+     "file": "sh-真如-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1143.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "隆德路",
+     "file": "sh-隆德路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1146.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "徐家汇",
+     "file": "sh-徐家汇-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1149.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "东方体育中心",
+     "file": "sh-东方体育中心-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1154.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "迪士尼",
+     "file": "sh-迪士尼-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1163.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "漕宝路",
+     "file": "sh-漕宝路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1227.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "大木桥路",
+     "file": "sh-大木桥路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1231.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "嘉善路",
+     "file": "sh-嘉善路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1232.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "南京西路",
+     "file": "sh-南京西路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1234.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "汉中路",
+     "file": "sh-汉中路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1235.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "大连路",
+     "file": "sh-大连路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1240.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "金沙江路",
+     "file": "sh-金沙江路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1327.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "马当路",
+     "file": "sh-马当路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1337.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "静安寺",
+     "file": "sh-静安寺-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1434.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "陆家嘴",
+     "file": "sh-陆家嘴-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1438.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "浦东大道",
+     "file": "sh-浦东大道-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1440.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "云山路",
+     "file": "sh-云山路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1445.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "蓝天路",
+     "file": "sh-蓝天路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1446.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "上海南站",
+     "file": "sh-上海南站-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1532.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "娄山关路",
+     "file": "sh-娄山关路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1538.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "顾村公园",
+     "file": "sh-顾村公园-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1550.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "龙阳路",
+     "file": "sh-龙阳路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1621.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "杨高中路",
+     "file": "sh-杨高中路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1834.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "民生路",
+     "file": "sh-民生路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1835.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "江浦路",
+     "file": "sh-江浦路-spatial.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1840.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    }
+   ],
+   "plan": [
+    {
+     "station": "虹桥2号航站楼",
+     "file": "sh-虹桥2号航站楼-plan.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1042.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "虹桥1号航站楼",
+     "file": "sh-虹桥1号航站楼-plan.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1043.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "虹桥路",
+     "file": "sh-虹桥路-plan.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1049.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "老西门",
+     "file": "sh-老西门-plan.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1054.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "嘉定北",
+     "file": "sh-嘉定北-plan.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1131.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "曹杨路",
+     "file": "sh-曹杨路-plan.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1145.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    },
+    {
+     "station": "江苏路",
+     "file": "sh-江苏路-plan.jpg",
+     "source_url": "https://service.shmetro.com/skin/zct/1147.jpg",
+     "source_page": "https://service.shmetro.com/czxx/index.htm"
+    }
+   ],
+   "domains": [
+    "service.shmetro.com",
+    "m.shmetro.com"
+   ],
+   "notes": "来源普查：①上海地铁官方服务网 service.shmetro.com『车站信息』页(czxx)明确提供『站层图、街区图』，其站层图图片规律为 https://service.shmetro.com/skin/zct/<站点数字ID>.jpg（ID 经官方 m.shmetro.com 接口 lineStations/stationInfo 核对站名）。对 90 个优先站（全部主要换乘站/枢纽/终点站）逐一验证：45 站命中并下载，逐张肉眼核对图内页脚站名与内容后分类——其中 38 张为等距 3D 分层图计入 spatial，7 张为平面站层图计入 plan（虹桥1号航站楼、虹桥2号航站楼、虹桥路、老西门、嘉定北、曹杨路、江苏路）。注意：官方统称『站层图』，同一图集内两种画法并存，必须逐张看图分类，不能按名称一刀切。未命中的优先站（官方未上传该站站层图，逐 ID 试过其全部所属线路 ID）：人民广场、世纪大道、中山公园、上海火车站、宜山路、莘庄、浦东1号2号航站楼、富锦路、美兰湖、镇坪路、常熟路、肇嘉浜路、上海体育馆、宝山路、源深体育中心、威宁路、北新泾、淞虹路、张江高科、上海科技馆、世纪公园、芳甸路、金桥路、德平路、北洋泾路、向城路、商城路、小南门、陆家浜路、打浦桥、西藏南路、鲁班路、东安路、上海体育场、蓝村路、塘桥、南浦大桥、临平路、杨树浦路、黄兴公园、翔殷路、市光路、嫩江路。②街区图(plan 的另一形态)：czxx 页内街区图功能已被官方下线（代码注释、容器清空，老 iframe 地址失效），本轮未能取得任何一站的官方街区导向图；本表 plan 均为站层平面图。③上海本地宝车站页（抽查陕西南路、龙阳路、南京西路、海伦路、曹杨路）：只有时刻表/出口/公交文字，无图。④MetroMan 站点指南：只有出口/设施文字，无图。⑤维基百科车站词条（抽查人民广场、徐家汇、世纪大道、龙阳路、虹桥火车站）：只有照片、楼层表与轨道配置图，无站层/街区图。⑥百度百科：以『<站名>站 百度百科』检索人民广场、徐家汇、龙阳路、虹桥火车站、世纪大道等，检索结果未出现带可核实站层图/街区导向图的百科词条图，未下载。⑦官方 App/公众号文章：未检索到带可核实站名对应的车站结构图文章。存疑：陕西南路命中的站层图(id=1052)以 10 号线部分为主体（页脚标注『陕西南路(S)』），图内含 12 号线站台示意；徐家汇命中图(id=1149)为 9/11 号线部分（1 号线部分无独立图），使用时请注意其覆盖范围。"
+  }
+ ]
+}

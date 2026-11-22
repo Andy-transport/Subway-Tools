@@ -1,0 +1,130 @@
+{
+ "cities": [
+  {
+   "city": "深圳",
+   "key": "sz",
+   "spatial": [
+    {
+     "station": "后海",
+     "file": "sz-后海-spatial.jpg",
+     "source_url": "https://static.wikia.nocookie.net/szbus/images/1/1c/%E5%90%8E%E6%B5%B7%E7%AB%99_L13%E8%BD%A6%E7%AB%99_%E7%A9%BA%E9%97%B4%E7%A4%BA%E6%84%8F%E5%9B%BE%EF%BC%88202512%EF%BC%89.jpg/revision/latest?cb=20260304072009",
+     "source_page": "https://sztrans.fandom.com/wiki/后海站"
+    },
+    {
+     "station": "留仙洞",
+     "file": "sz-留仙洞-spatial.jpg",
+     "source_url": "https://static.wikia.nocookie.net/szbus/images/7/7c/%E7%95%99%E4%BB%99%E6%B4%9E_%E7%A9%BA%E9%97%B4%E7%A4%BA%E6%84%8F%E5%9B%BE_L13.jpg/revision/latest?cb=20251231095121",
+     "source_page": "https://sztrans.fandom.com/wiki/留仙洞站"
+    },
+    {
+     "station": "科苑",
+     "file": "sz-科苑-spatial.jpg",
+     "source_url": "https://static.wikia.nocookie.net/szbus/images/b/be/%E7%A7%91%E8%8B%91%E7%AB%99_L13%E7%A9%BA%E9%97%B4%E7%A4%BA%E6%84%8F%E5%9B%BE%EF%BC%88202512%EF%BC%89.jpg/revision/latest?cb=20260426021010",
+     "source_page": "https://sztrans.fandom.com/wiki/科苑站"
+    }
+   ],
+   "plan": [
+    {
+     "station": "后海",
+     "file": "sz-后海-plan.jpg",
+     "source_url": "https://static.wikia.nocookie.net/szbus/images/f/f6/%E5%9C%B0%E9%93%812-11-13%E5%8F%B7%E7%BA%BF_%E5%90%8E%E6%B5%B7%E7%AB%99_%E7%AB%99%E7%82%B9%E5%B9%B3%E9%9D%A2%E5%9B%BE.png/revision/latest?cb=20241120123256",
+     "source_page": "https://sztrans.fandom.com/wiki/后海站"
+    },
+    {
+     "station": "岗厦北",
+     "file": "sz-岗厦北-plan.jpg",
+     "source_url": "https://static.wikia.nocookie.net/szbus/images/8/80/%E5%B2%97%E5%8E%A6%E5%8C%97%E7%AB%99_%E6%B7%B1%E5%9C%B3%E4%B9%8B%E7%9C%BC_%E5%B9%B3%E9%9D%A2%E5%9B%BE.jpg/revision/latest?cb=20231212074240",
+     "source_page": "https://sztrans.fandom.com/wiki/岗厦北站"
+    },
+    {
+     "station": "留仙洞",
+     "file": "sz-留仙洞-plan.jpg",
+     "source_url": "https://static.wikia.nocookie.net/szbus/images/3/3d/%E7%95%99%E4%BB%99%E6%B4%9E%E7%AB%99_L5%E7%AB%99%E5%86%85%E5%B9%B3%E9%9D%A2%E5%9B%BE_202601.jpg/revision/latest?cb=20260101181759",
+     "source_page": "https://sztrans.fandom.com/wiki/留仙洞站"
+    },
+    {
+     "station": "车公庙",
+     "file": "sz-车公庙-plan.jpg",
+     "source_url": "https://static.wikia.nocookie.net/szbus/images/e/ef/%E8%BD%A6%E5%85%AC%E5%BA%99%E7%AB%99_%E7%AB%99%E5%86%85%E5%B9%B3%E9%9D%A2%E5%9B%BE.jpg/revision/latest?cb=20260506144250",
+     "source_page": "https://sztrans.fandom.com/wiki/车公庙站"
+    },
+    {
+     "station": "科苑",
+     "file": "sz-科苑-plan.jpg",
+     "source_url": "https://static.wikia.nocookie.net/szbus/images/0/07/%E5%9C%B0%E9%93%812-13%E5%8F%B7%E7%BA%BF_%E7%A7%91%E8%8B%91%E7%AB%99_%E7%AB%99%E7%82%B9%E5%B9%B3%E9%9D%A2%E5%9B%BE.png/revision/latest?cb=20241120123208",
+     "source_page": "https://sztrans.fandom.com/wiki/科苑站"
+    }
+   ],
+   "domains": [
+    "sztrans.fandom.com",
+    "static.wikia.nocookie.net"
+   ],
+   "notes": "搜过渠道：深圳地铁官网 szmc.net（只有枢纽工程/站点文字介绍，无逐站平面/空间图）、深圳本地宝（只有位置示意，无结构图）、深圳交通百科 Fandom（有效来源，系统性收录各站『车站平面图/站内平面图』，且13号线各站有深铁2025年12月版官方『空间示意图』等距分层图）。结果：spatial 编入3站（后海、留仙洞、科苑，均为13号线官方空间示意图，图内出口与方向均与各站核对一致）；plan 编入5站（后海、科苑为干净的街区站点平面图，图内标题含站名；岗厦北、留仙洞、车公庙为站内『车站平面示意图』标牌照片，含标牌编号/出口/线路，已逐张肉眼核对）。未编入：后海另有L2/L11站内平面图照片，因已用更干净的街区平面图未重复收录。13号线其余站（深圳湾口岸、人才公园、粤海门、深大、高新中、高新北、石鼓、百旺等）Fandom 页大概率有同款空间示意图，后续可按同一渠道继续扩。"
+  },
+  {
+   "city": "成都",
+   "key": "cd",
+   "spatial": [
+    {
+     "station": "龙港",
+     "file": "cd-龙港-spatial.jpg",
+     "source_url": "https://imgcdn.scol.com.cn/media/2024/12/17/223903120823.jpg",
+     "source_page": "https://sichuan.scol.com.cn/ggxw/202412/82863569.html"
+    },
+    {
+     "station": "洞子口",
+     "file": "cd-洞子口-spatial.jpg",
+     "source_url": "https://imgcdn.scol.com.cn/media/2024/12/17/223905198680.jpg",
+     "source_page": "https://sichuan.scol.com.cn/ggxw/202412/82863569.html"
+    },
+    {
+     "station": "羊犀立交",
+     "file": "cd-羊犀立交-spatial.jpg",
+     "source_url": "https://imgcdn.scol.com.cn/media/2024/12/17/223906766511.jpg",
+     "source_page": "https://sichuan.scol.com.cn/ggxw/202412/82863569.html"
+    }
+   ],
+   "plan": [
+    {
+     "station": "石油大学",
+     "file": "cd-石油大学-plan.jpg",
+     "source_url": "http://imgbdb3.bendibao.com/cdbdb/20162/19/2016219133655817.jpg",
+     "source_page": "http://cd.bendibao.com/traffic/2016219/83039_7.shtm"
+    }
+   ],
+   "domains": [
+    "sichuan.scol.com.cn",
+    "imgcdn.scol.com.cn",
+    "cd.bendibao.com",
+    "imgbdb3.bendibao.com"
+   ],
+   "notes": "搜过渠道：成都地铁官网（逐站页只有出入口文字表，无图）、成都本地宝（逐站页多为文字；2016年《成都地铁3号线新都段站点位置及出入口示意图》一文含工程总平面图系列）、维基百科成都各站词条（查过天府广场、一品天下、龙平路、植物园等，只有站台照片和文字分层表，无平面/空间图）、百度百科（多次搜索未检索引出可用词条图）、四川在线转载成都地铁官方《8号线二期、27号线一期换乘攻略》（有效来源）。结果：spatial 编入3站（龙港8/19号线、洞子口5/27号线、羊犀立交2/27号线，图内标题分别为『龙港站内应急疏散示意图』『洞子口站内应急疏散示意图』『羊犀立交站内应急疏散示意图』，等距分层图，逐张核对通过）；plan 编入1站（石油大学，工程总平面图，图内标题栏『石油大学站总平面图（方案一）』，与App站名完全一致；原图较小553×403）。未编入（对应关系无法核实）：同一本地宝文章另有天回镇站、回龙站、饮马河站总平面图，图内标题栏站名属实，但天回镇、饮马河不在App站名表中（建设工程名，开通前已改名，无可靠映射来源）；回龙虽在App中存在，但App的回龙属另一条线，与图上川陕路3号线新都段的回龙疑为同名异站——按『拿不准不入册』只记此处。该文第3/4/5/8页经逐页核查无文章配图。"
+  },
+  {
+   "city": "重庆",
+   "key": "cq",
+   "spatial": [
+    {
+     "station": "璧山",
+     "file": "cq-璧山-spatial.jpg",
+     "source_url": "http://imgbdb3.bendibao.com/cqbdb/traffic/201912/31/20191231135951_93619.png",
+     "source_page": "https://m.cq.bendibao.com/traffic/80648.shtm"
+    }
+   ],
+   "plan": [
+    {
+     "station": "璧山",
+     "file": "cq-璧山-plan.jpg",
+     "source_url": "http://imgbdb3.bendibao.com/cqbdb/traffic/201912/31/20191231135951_71169.png",
+     "source_page": "https://m.cq.bendibao.com/traffic/80648.shtm"
+    }
+   ],
+   "domains": [
+    "cq.bendibao.com",
+    "imgbdb3.bendibao.com",
+    "imgbdb4.bendibao.com"
+   ],
+   "notes": "搜过渠道：重庆轨道交通官网 cqrt.cn（未找到逐站图页）、重庆本地宝（环线、10号线等『各站点出入口分布情况』文章多为纯文字，已查环线、10号线站点分布文；只有1号线璧山站一文带图）、维基百科重庆各站词条（查过较场口、红土地、红岩村，只有照片+文字分层表，无示意图）、重庆市规划和自然资源局网站（只有『轨道交通站台街区示意图』地图审核许可告示，无图件下载）、以『站内应急疏散示意图/3D示意图』为关键词的公开搜索（只命中学术论文，无可用图）。结果：spatial 编入1站、plan 编入1站，均为璧山站（1号线终点站）：plan 为『车站街区示意图』（图内标璧山 Bishan、1/2/3号口、六旗大道），spatial 为『车站立体示意图』（分层立体图，1F/2F）；两图分辨率偏低（574×492、638×308），已肉眼确认站名无误。否决1项：重庆本地宝《重庆5号线红岩村站出入口平面图》页内唯一图片经核对实为微信聊天截图，标题承诺的平面图在该页缺失/损坏，未下载。未核实线索1项：重庆本地宝《南桥寺站开通（出行指南+运营时间）》（http://m.cq.bendibao.com/traffic/80437.shtm）正文提到『轨道交通南桥寺站街区示意图』，但该页本次抓取失败，未能确认图片与下载，未入册。除璧山外，重庆其余换乘站/大站经上述渠道未找到可核实的逐站平面/空间图，如实交账。"
+  }
+ ]
+}

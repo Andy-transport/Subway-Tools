@@ -3,6 +3,7 @@ import WebKit
 import CoreLocation
 import ActivityKit
 import UserNotifications
+import AppIntents
 
 // 北京市轨道交通线路配置图 (SierraQin/metro, CC0 1.0)
 // Shell: a full-screen WKWebView loading the bundled offline page,
@@ -19,6 +20,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // lifecycle, so the window must be created in
     // scene(_:willConnectTo:options:).
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Register the App Shortcuts on the launch path (26E114
+        // audit): until now the SubwayToolsShortcuts provider class
+        // merely EXISTED in AppIntents.swift — nothing in the app
+        // ever called the registration API, so whether the six
+        // phrases were live depended entirely on the system's
+        // implicit discovery. updateAppShortcutParameters() is the
+        // documented launch-path call; it is idempotent for static
+        // shortcuts. (The intents' metadata has shipped at the
+        // canonical app-root path since 26E113 — build.sh
+        // hard-fails the build otherwise.)
+        SubwayToolsShortcuts.updateAppShortcutParameters()
         return true
     }
 
@@ -47,7 +59,36 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
         let win = UIWindow(windowScene: windowScene)
-        win.rootViewController = MapViewController()
+        // Launch appearance, resolved BEFORE the first frame (26E109,
+        // user: light mode cold-starts occasionally flash the DARK
+        // splash for one frame). The old first-frame pick read the
+        // persisted "metro-dark" — the PREVIOUS session's effective
+        // appearance, written by its last themeState post. With the
+        // theme following the system, a scheduled appearance flip
+        // between sessions (dark at night, light next morning) left
+        // that flag stale, so the launch poster opened dark and the
+        // web's splashState/themeState correction a moment later
+        // flipped it — one visible dark frame. Resolve here instead,
+        // from the same source the in-app theme uses: the persisted
+        // mode (metro-theme); manual light/dark wins outright, and
+        // "system" reads the SCENE's trait at connection time (valid
+        // here, unlike the view controller's traitCollection inside
+        // viewDidLoad, which is not attached to the scene yet). The
+        // resolved value refreshes metro-dark immediately, so every
+        // launch reader (poster, injected _metroInitDark, root
+        // background) agrees from the first frame, and it is handed
+        // to the controller as launchResolvedDark, which outranks
+        // the stored flag until the web's first report this session.
+        let themeMode = UserDefaults.standard.string(forKey: "metro-theme") ?? "system"
+        let sceneDark = windowScene.traitCollection.userInterfaceStyle == .dark
+        let resolvedDark = themeMode == "dark" || (themeMode == "system" && sceneDark)
+        UserDefaults.standard.set(resolvedDark, forKey: "metro-dark")
+        let rootVC = MapViewController()
+        rootVC.launchResolvedDark = resolvedDark
+        win.rootViewController = rootVC
+        // The window's own backing matches the poster's edge colour,
+        // so no dark (or light) gap can show before the poster paints.
+        win.backgroundColor = resolvedDark ? .black : .white
         win.makeKeyAndVisible()
         window = win
         // Cold launch via a subwaymotion:// deep link (Siri / Shortcuts):
@@ -148,6 +189,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // "openLanguage" post. Nil while closed.
     var languageView: LanguageView?
     var tabBar: UITabBar!
+    // Last bottom-clearance value reported to the web (26E115,
+    // reportBarFrame): the distance from the screen's bottom edge
+    // to the system tab bar's top edge, in points. -1 = nothing
+    // reported yet. (The 26E113 hand-drawn iPhone bar is retired;
+    // its class survives at the end of this file but is never
+    // instantiated or shown.)
+    var lastBarClearance: CGFloat = -1
     var cityPill: UIButton!
     // Map tools pill (top-right, build 74): a single Liquid Glass capsule
     // holding the my-location arrow + station search, matching the Apple
@@ -160,6 +208,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // (Liquid Glass on iOS 26+) overlaid on the web panel's tab row.
     var sortTabs: UISegmentedControl!
     let sortTabKeys = ["rec", "early", "fewest", "cheap"]
+    // Native structure-detail chrome (test/structure, 26E107): a
+    // UISegmentedControl for 空间结构/平面示意 plus a glass 搜索
+    // capsule and (26E108) a circular glass chevron 退出 button
+    // matching the sub-view back button, overlaid on the web
+    // detail header from "structFrame" reports — same overlay
+    // pattern as sortTabs. Test builds only: the web panel itself
+    // is unreachable in release builds.
+    var structSeg: UISegmentedControl!
+    var structSearchButton: UIButton!
+    var structExitButton: UIButton!
+    let structKindKeys = ["spatial", "plan"]
+    // Whether the web structure panel is currently open (26E112:
+    // the panel is a Settings sub-page, so currentTab stays "more"
+    // while it is up; the web reports the panel state with every
+    // "structFrame" post as "panel"). Drives the chrome gate in
+    // placeStructChrome and the Duo sidebar strip colour in
+    // rootBackgroundColor (the panel's dark background is #101420,
+    // not the Settings black).
+    var structPanelOpen = false
     // Native Apple UI Liquid Glass dark-mode picker (build 44, 3 glass
     // buttons since build 52): 3 separate glass buttons
     // (跟随系统/浅色/深色) overlaid on the settings panel's
@@ -196,8 +263,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // so applyLanguage() can retitle them on a language change.
     var fromLabelBtn: UIButton?
     var toLabelBtn: UIButton?
-    var fromBadge: UIButton!
-    var toBadge: UIButton!
+    // Line badges per field (26E110 P): a horizontal stack of pills,
+    // one per line serving the picked station (interchange stations
+    // show ALL their lines side by side). Buttons are pooled per
+    // field and re-titled/re-coloured by applyBadges.
+    var fromBadgeStack: UIStackView!
+    var toBadgeStack: UIStackView!
+    var fromBadges: [UIButton] = []
+    var toBadges: [UIButton] = []
+    // 26E121 G: the line key each end is pinned to (nil = by station).
+    var fromPinnedKey: String?
+    var toPinnedKey: String?
     var fromClear: UIButton!
     var toClear: UIButton!
     // Line info currently shown in each field's badge, as
@@ -224,7 +300,246 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var actionPinIconURL = ""
     var actionPinIcon: UIImage?
     // Web tab keys, in the same order as the native tab bar items.
-    let tabKeys = ["transfer", "map", "stations", "timetable", "more"]
+    // TEST-BUILD GATE (test/structure branch, 2026-11-22): test
+    // builds (CFBundleVersion in the 26E test train, e.g. 26E112)
+    // are told apart from release builds (A-train, e.g. A26106) by
+    // isTestBuild. 26E106–26E111 carried a 6th "structure" tab behind
+    // this gate; 26E112 removes it again (user: back to the 5-tab
+    // reference bar) — the structure panel now lives as a Settings
+    // sub-page, and isTestBuild remains as the gate for its native
+    // chrome (placeStructChrome). This branch is never merged to
+    // main; the gate is a second line of defence.
+    var isTestBuild: Bool {
+        let v = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+        // Promotion (2026-11-23, user): the 26E121 test content was
+        // promoted to release 1.0.0 as build A26107, so on this branch
+        // the A261 train passes the gate too — the structure panel
+        // keeps its native chrome in the promoted release build.
+        return v.hasPrefix("26E") || v.hasPrefix("A261")
+    }
+    var tabKeys: [String] {
+        ["transfer", "map", "stations", "timetable", "more"]
+    }
+    // Titles / images aligned with tabKeys.
+    func tabTitles() -> [String] {
+        [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
+    }
+    func tabImages() -> [UIImage?] {
+        // Solid-filled glyphs (26E110, user: the 26E109 bar still
+        // read as thin outline icons; match the reference app's
+        // filled set). SF Symbols with a true .fill variant use it
+        // (map.fill / gearshape.fill — all verified in the SF
+        // Symbols catalog). Two tabs have NO fill variant in
+        // the catalog (verified): arrow.triangle.2.circlepath (only
+        // .camera/.circle/.doc variants) and magnifyingglass — those
+        // read solid through the BOLD symbol configuration applied
+        // where the images are rendered (tabBarItemImage for the
+        // tab bars, sideBarButtonConfig for the Duo sidebar). The
+        // timetable stays the bundled PNG, regenerated solid in
+        // 26E110 (see tabBarItemImage). (The cube.fill that rode
+        // along for the structure tab until 26E111 left with it in
+        // 26E112; the Settings 车站结构 row is web-rendered.)
+        [
+            UIImage(systemName: "arrow.triangle.2.circlepath"),
+            UIImage(systemName: "map.fill"),
+            UIImage(systemName: "magnifyingglass"),
+            UIImage(named: "TimetableIcon"),
+            UIImage(systemName: "gearshape.fill"),
+        ]
+    }
+    // Tab-bar glyph sizing (test/structure, user 2026-11-22): the
+    // glyph size is a parameter of tabBarItemImage — 24pt for the
+    // UITabBar items (the iPad top capsule and, since 26E115, the
+    // iPhone bottom bar again). This is applied only where the bar
+    // items are created; tabImages() itself is shared with the Duo
+    // sidebar, which keeps its own sizing and is NOT touched here.
+    // The only non-symbol tab icon is the timetable PNG, and it has
+    // transparent margins. The asset was REGENERATED SOLID in
+    // 26E110 (heavy calendar: solid header band with binder holes,
+    // thick frame, dot grid, big solid clock badge with knocked-out
+    // hands — the reference app's glyph; drawn by
+    // gate-26e110/draw_tt_icon.py). SF's calendar.badge.clock was
+    // NOT used: its calendar body is an empty outline frame with
+    // binder rings and no dot grid, so at any weight it still reads
+    // as an outline icon next to the filled set. Measured on the
+    // asset build.sh actually bundles — web/timetable-icon@3x.b64
+    // decoded, 75x75px: the glyph's alpha bbox (thresholded past
+    // the resampling fringe) is (5,13)–(70,66), i.e. x 0.067–0.933
+    // / y 0.173–0.880 of the canvas. (History: the 26E108 crop
+    // fractions were measured on a stray web/timetable-icon PNG
+    // whose glyph box differs, and they cut the glyph's right and
+    // bottom edges; 26E109 re-measured on the then-bundled line-art
+    // asset, bbox (4,10)–(70,65).) Scaling the whole canvas to the
+    // symbol size leaves the visible glyph short next to the
+    // symbols (user 2026-11-22: 时刻表图标偏小), so the PNG is
+    // rendered by its GLYPH box instead: the image is drawn
+    // shifted/scaled so the padded glyph box fills a 26pt-tall
+    // canvas, aligning the glyph's height with the symbols.
+    // Render-time only — the source asset is untouched.
+    // (26E118: that alignment assumption was wrong — the raw
+    // symbols' glyphs are ~29pt at pointSize 24, not 24. The
+    // symbols are normalized by their glyph boxes too now; see
+    // the 26E118 note inside tabBarItemImage.)
+    // 26E118 (user, on the 26E116 device shot): the four symbols
+    // still read BIGGER than the timetable — "四大一小". Measured
+    // on the user's own screenshot of the running bar (glyph alpha
+    // heights, fringe-thresholded, @3x px): transfer 89, map 86,
+    // search 88, settings 90 vs timetable 66. The symbols were
+    // handed to the bar as raw pointSize-24-bold symbol images,
+    // whose glyphs fill ~0.94 of a ~31pt-tall canvas (~29pt glyph);
+    // the PNG is placed by its padded glyph box on a 24pt canvas,
+    // so its TRUE glyph is only 24 x 0.9178 = 22.0pt (the @3x asset
+    // measures x 5-69 / y 13-65 on 75x75 = fractions 0.8667 x
+    // 0.7067; the padded box below is 0.92 x 0.77, so the true
+    // glyph occupies 0.8667/0.92 = 0.9420 of the canvas width and
+    // 0.7067/0.77 = 0.9178 of the canvas height — and 66px on the
+    // device shot is 22.0pt, confirming the model end to end).
+    // Fix: the symbols now go through the SAME glyph-box
+    // normalization as the PNG. Each symbol's alpha bbox is
+    // measured at render time (symbolGlyphFractions), padded by
+    // the timetable's own ratios (glyph = 0.9420 of the padded
+    // width, 0.9178 of the padded height, centred), and the padded
+    // box is mapped onto a canvas of height `size` — so all five
+    // tabs end with a true glyph 22.0pt tall occupying identical
+    // fractions of their canvases. Render-time only, exactly like
+    // the PNG path; no artwork is redrawn, the symbol is only
+    // scaled/translated into its canvas. One image per tab is
+    // enough: the bar tints the same image for the normal and
+    // selected states (no separate selected set exists).
+    func tabBarItemImage(_ image: UIImage?, size: CGFloat = 24) -> UIImage? {
+        guard let image = image else { return nil }
+        if image.isSymbolImage {
+            // Bold since 26E110 (regular until 26E109): the two
+            // stroke-based glyphs (transfer arrows, magnifier) have
+            // no .fill variant and only read as solid at bold
+            // weight; the .fill variants stay filled at any weight.
+            let configured = image.withConfiguration(UIImage.SymbolConfiguration(pointSize: size, weight: .bold))
+            return glyphNormalizedSymbolImage(configured, size: size) ?? configured
+        }
+        guard image.size.width > 0, image.size.height > 0 else { return image }
+        // Glyph box as fractions of the image size (measured alpha
+        // bbox x 0.067-0.933 / y 0.173-0.880 on the bundled @3x
+        // asset decoded from web/timetable-icon@3x.b64 — the solid
+        // 26E110 redraw — padded ~0.02-0.03 a side).
+        let glyph = CGRect(x: 0.04, y: 0.14, width: 0.92, height: 0.77)
+        let targetHeight: CGFloat = size
+        let canvas = CGSize(width: targetHeight * (glyph.width / glyph.height) * (image.size.width / image.size.height),
+                            height: targetHeight)
+        let scale = targetHeight / (image.size.height * glyph.height)
+        let drawRect = CGRect(x: -glyph.minX * image.size.width * scale,
+                              y: -glyph.minY * image.size.height * scale,
+                              width: image.size.width * scale,
+                              height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let renderer = UIGraphicsImageRenderer(size: canvas, format: format)
+        return renderer.image { _ in image.draw(in: drawRect) }
+    }
+    // 26E118: the timetable glyph's share of its finished canvas
+    // (measured on the bundled @3x asset vs the padded box the PNG
+    // branch renders by — see tabBarItemImage). The symbol
+    // normalization pads each symbol's measured glyph box by these
+    // same ratios, so every tab's glyph lands at the same size and
+    // the same canvas fractions as the timetable's.
+    static let tabGlyphWidthShare: CGFloat = 0.9420  // 0.8667 / 0.92
+    static let tabGlyphHeightShare: CGFloat = 0.9178 // 0.7067 / 0.77
+    // Alpha bbox of a rendered image as fractions of its pixel
+    // size, in top-left (UIKit) coordinates. Same fringe threshold
+    // as the offline timetable measurement (alpha > 32 past the
+    // resampling fringe). Nil when the image has no drawable
+    // CGImage or no pixel passes the threshold.
+    func symbolGlyphFractions(_ image: UIImage) -> CGRect? {
+        guard let cg = image.cgImage else { return nil }
+        let w = cg.width, h = cg.height
+        guard w > 0, h > 0 else { return nil }
+        guard let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                  space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue),
+              let data = ctx.data else { return nil }
+        ctx.clear(CGRect(x: 0, y: 0, width: w, height: h))
+        ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+        let px = data.bindMemory(to: UInt8.self, capacity: w * h * 4)
+        var minX = w, maxX = -1, minRow = h, maxRow = -1
+        for row in 0..<h {
+            for x in 0..<w where px[(row * w + x) * 4 + 3] > 32 {
+                if x < minX { minX = x }
+                if x > maxX { maxX = x }
+                if row < minRow { minRow = row }
+                if row > maxRow { maxRow = row }
+            }
+        }
+        guard maxX >= minX, maxRow >= minRow else { return nil }
+        // Bitmap-context memory rows run bottom-up (Quartz space);
+        // convert the row extent to top-left fractions. The x extent
+        // is unaffected.
+        let topRow = h - 1 - maxRow
+        return CGRect(x: CGFloat(minX) / CGFloat(w),
+                      y: CGFloat(topRow) / CGFloat(h),
+                      width: CGFloat(maxX - minX + 1) / CGFloat(w),
+                      height: CGFloat(maxRow - minRow + 1) / CGFloat(h))
+    }
+    // 26E118: render a configured symbol the way the PNG branch
+    // renders the timetable — by its glyph box. The measured glyph
+    // box is padded around its centre by the timetable's shares
+    // (above), then the padded box is mapped onto a canvas of
+    // height `size`, so the finished glyph is `size` x 0.9178 tall
+    // (= 22.0pt at the default 24), the timetable's exact size.
+    // Falls back to nil (caller uses the raw configured symbol) if
+    // the glyph cannot be measured.
+    // 26E120 F (user, on the 26E119 device crop): the four symbols
+    // STILL rendered bigger than the timetable. Measured on the
+    // crop (native @3x, icon band separated from the title band):
+    // timetable glyph 65px; transfer 93, map 89, search 91,
+    // settings 94 — the symbols sit at ~29-31pt, their RAW
+    // pointSize-24-bold glyph size, while the timetable is at its
+    // modelled 22.0pt. Root cause: the measurement above read the
+    // symbol image's cgImage, but an SF Symbol image has no
+    // directly measurable CGImage bitmap — symbolGlyphFractions
+    // returned nil on device, this function bailed, and the
+    // caller fell back to the raw configured symbol. (The 26E118
+    // gate verified the algebra, which is exact, but never
+    // executed the measurement.) Fix: rasterise the configured
+    // symbol into a plain bitmap FIRST (a renderer draw always
+    // works), measure THAT bitmap's alpha bbox, then run the
+    // unchanged normalization, drawing the symbol itself into the
+    // padded canvas so the vector stays crisp. The target is
+    // unchanged — glyph = size x 0.9178 = 22.03pt, the
+    // timetable's own height, about x0.74 of the size the symbols
+    // render at today — and each symbol is measured individually,
+    // so the four land mutually equal by construction.
+    func glyphNormalizedSymbolImage(_ image: UIImage, size: CGFloat) -> UIImage? {
+        guard let bitmap = symbolBitmap(image),
+              let glyph = symbolGlyphFractions(bitmap),
+              image.size.width > 0, image.size.height > 0 else { return nil }
+        let padW = glyph.width / Self.tabGlyphWidthShare
+        let padH = glyph.height / Self.tabGlyphHeightShare
+        let padded = CGRect(x: glyph.midX - padW / 2, y: glyph.midY - padH / 2, width: padW, height: padH)
+        let canvas = CGSize(width: size * (padded.width / padded.height) * (image.size.width / image.size.height),
+                            height: size)
+        let scale = size / (image.size.height * padded.height)
+        let drawRect = CGRect(x: -padded.minX * image.size.width * scale,
+                              y: -padded.minY * image.size.height * scale,
+                              width: image.size.width * scale,
+                              height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let renderer = UIGraphicsImageRenderer(size: canvas, format: format)
+        let rendered = renderer.image { _ in image.draw(in: drawRect) }
+        // Keep the symbol's template behaviour in the bar (the raw
+        // symbol was a template image; the rendered copy must tint
+        // the same way for the normal and selected states).
+        return rendered.withRenderingMode(.alwaysTemplate)
+    }
+    // 26E120 F: rasterise a (symbol) image into a plain bitmap at
+    // scale 3 so its alpha bbox can be measured — a symbol image
+    // itself exposes no CGImage to measure (see the note above).
+    func symbolBitmap(_ image: UIImage) -> UIImage? {
+        guard image.size.width > 0, image.size.height > 0 else { return nil }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
+        return renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: image.size)) }
+    }
     // Siri / deep-link routing (user 2026-11-18, Siri Shortcuts): a
     // subwaymotion:// link that arrives before the offline page has
     // finished loading is stashed here and applied from
@@ -292,6 +607,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // official published value.
     let shijiazhuangRed = UIColor(red: 229.0 / 255.0, green: 62.0 / 255.0, blue: 48.0 / 255.0, alpha: 1)
     let shijiazhuangRedDark = UIColor(red: 181.0 / 255.0, green: 49.0 / 255.0, blue: 38.0 / 255.0, alpha: 1)
+    // Tianjin Metro Line 1 red #CB333B (official line colour, sampled
+    // from the official 2026-07-21 network map; also the city theme).
+    // Darker #A0282F is derived (x0.79), not an official published value.
+    let tianjinRed = UIColor(red: 203.0 / 255.0, green: 51.0 / 255.0, blue: 59.0 / 255.0, alpha: 1)
+    let tianjinRedDark = UIColor(red: 160.0 / 255.0, green: 40.0 / 255.0, blue: 47.0 / 255.0, alpha: 1)
+    // Wuxi Metro Line 1 red #EE2737 (official line colour, Wikipedia
+    // rail colour / RMP palette agree). Darker #BC1F2B is derived
+    // (x0.79), not an official published value.
+    let wuxiRed = UIColor(red: 238.0 / 255.0, green: 39.0 / 255.0, blue: 55.0 / 255.0, alpha: 1)
+    let wuxiRedDark = UIColor(red: 188.0 / 255.0, green: 31.0 / 255.0, blue: 43.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "map"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -299,6 +624,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // animation for 2s. Keep them hidden until the web says the splash
     // is done (or the fallback timer fires).
     var splashShowing = true
+    // Launch appearance (26E109): the variant resolved by the scene
+    // delegate at connection time, before the first frame. Until the
+    // web's first themeState/splashState report THIS session, this
+    // outranks the persisted metro-dark flag (which may be the
+    // previous session's stale effective appearance).
+    var launchResolvedDark: Bool? = nil
+    var themeResolvedThisSession = false
+    // Single dark-appearance resolver for every launch-time reader
+    // (splash poster, injected _metroInitDark, root background):
+    // this session's web report once it lands, else the scene-time
+    // resolution, else the persisted flag, else the trait.
+    func splashDarkResolved() -> Bool {
+        if themeResolvedThisSession, let b = UserDefaults.standard.object(forKey: "metro-dark") as? Bool { return b }
+        if let l = launchResolvedDark { return l }
+        if let b = UserDefaults.standard.object(forKey: "metro-dark") as? Bool { return b }
+        return traitCollection.userInterfaceStyle == .dark
+    }
     // Native launch splash view (build 53): shows the current city's
     // splash image from launch, covering the white gap before the web
     // page loads and its own splash appears. Hidden in splashFinished().
@@ -334,6 +676,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "tab.map": ["线路图", "線路圖", "Line Map"],
         "tab.stations": ["搜索", "搜索", "Search"],
         "tab.timetable": ["时刻表", "時刻表", "Timetable"],
+        "tab.structure": ["结构", "結構", "Structure"],
+        "struct.spatial": ["空间结构", "空間結構", "Spatial Layout"],
+        "struct.plan": ["平面示意", "平面示意", "Plan Diagram"],
+        "struct.exit": ["退出", "退出", "Exit"],
         "tab.more": ["设置", "設定", "Settings"],
         "city.bj": ["北京", "北京", "Beijing"],
         "city.sy": ["沈阳", "瀋陽", "Shenyang"],
@@ -348,6 +694,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "city.cd": ["成都", "成都", "Chengdu"],
         "city.qd": ["青岛", "青島", "Qingdao"],
         "city.sjz": ["石家庄", "石家莊", "Shijiazhuang"],
+        "city.tj": ["天津", "天津", "Tianjin"],
+        "city.wx": ["无锡", "無錫", "Wuxi"],
         "native.cancel": ["取消", "取消", "Cancel"],
         "tr.tab.rec": ["推荐", "推薦", "Recommended"],
         "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
@@ -383,6 +731,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "transit.cd": ["成都地铁", "成都地鐵", "Chengdu Metro"],
         "transit.qd": ["青岛地铁", "青島地鐵", "Qingdao Metro"],
         "transit.sjz": ["石慧行", "石慧行", "Shihuihang"],
+        "transit.tj": ["天津地铁", "天津地鐵", "Tianjin Metro"],
+        "transit.wx": ["码上行", "碼上行", "Mashangxing"],
         "tr.search": ["搜索", "搜索", "Search"],
         "tr.departNow": ["现在出发", "現在出發", "Depart now"],
         "time.confirm": ["确定", "確定", "Done"],
@@ -465,7 +815,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
     // Re-apply all native strings for the current language.
     func applyLanguage() {
-        let titles = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
+        let titles = tabTitles()
         if let items = tabBar?.items {
             for (i, item) in items.enumerated() where i < titles.count { item.title = titles[i] }
         }
@@ -476,6 +826,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             sortTabs.setTitle(L("tr.tab.fewest"), forSegmentAt: 2)
             sortTabs.setTitle(L("tr.tab.cheap"), forSegmentAt: 3)
         }
+        refreshStructChromeTitles()
         let themeTitles = [L("more.theme.system"), L("more.theme.light"), L("more.theme.dark")]
         for (i, btn) in themeButtons.enumerated() where i < themeTitles.count {
             var cfg = btn.configuration ?? themeButtonConfig()
@@ -501,7 +852,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = rootBackgroundColor() // Tab- and theme-matched page background: on the unfolded Duo the area beside the sidebar blends with the page instead of showing as an edge (users 2026-11-21, 2026-11-22).
@@ -510,10 +861,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "tabChanged")
         config.userContentController.add(self, name: "cityMenu")
         config.userContentController.add(self, name: "tabsFrame")
+        config.userContentController.add(self, name: "structFrame")
         config.userContentController.add(self, name: "transferFrame")
         config.userContentController.add(self, name: "themeFrame")
         config.userContentController.add(self, name: "switchFrame")
         config.userContentController.add(self, name: "stationPicked")
+        config.userContentController.add(self, name: "fastNote")
         config.userContentController.add(self, name: "timePicker")
         config.userContentController.add(self, name: "openTransitApp")
         config.userContentController.add(self, name: "openRideCode")
@@ -546,7 +899,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let _isPadStr = UIDevice.current.userInterfaceIdiom == .pad ? "true" : "false"
         let _initCity = currentCity
         let _initTheme = UserDefaults.standard.string(forKey: "metro-theme") ?? "system"
-        let _initDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        let _initDark = splashDarkResolved()
         let _langScript = WKUserScript(source: "window._metroSystemLang = '\(Self.systemLang())'; window._metroIsPad = \(_isPadStr); window._metroInitCity = '\(_initCity)'; window._metroInitTheme = '\(_initTheme)'; window._metroInitDark = \(_initDark);", injectionTime: .atDocumentStart, forMainFrameOnly: true)
         config.userContentController.addUserScript(_langScript)
         webView = WKWebView(frame: view.bounds, configuration: config)
@@ -559,14 +912,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // tab bar; this bar is the only one the user sees.
         tabBar = UITabBar()
         tabBar.delegate = self
-        tabBar.tintColor = accentColor()
-        let items = [
-            UITabBarItem(title: L("tab.transfer"), image: UIImage(systemName: "arrow.triangle.2.circlepath"), tag: 0),
-            UITabBarItem(title: L("tab.map"), image: UIImage(systemName: "map"), tag: 1),
-            UITabBarItem(title: L("tab.stations"), image: UIImage(systemName: "magnifyingglass"), tag: 2),
-            UITabBarItem(title: L("tab.timetable"), image: UIImage(named: "TimetableIcon"), tag: 3),
-            UITabBarItem(title: L("tab.more"), image: UIImage(systemName: "gearshape"), tag: 4),
-        ]
+        // Selected tab = system blue (26E112, user with reference
+        // shot: blue icon + blue title on the grey selection
+        // capsule), NOT the city accent — the bar no longer turns
+        // red/blue with the city's theme colour.
+        tabBar.tintColor = .systemBlue
+        let _titles = tabTitles()
+        let _images = tabImages()
+        var items: [UITabBarItem] = []
+        for i in 0..<tabKeys.count {
+            items.append(UITabBarItem(title: _titles[i], image: tabBarItemImage(_images[i]), tag: i))
+        }
         tabBar.items = items
         tabBar.selectedItem = items[1] // default tab is the map, same as the web page
         // Floating Liquid Glass capsule (iOS 26 / SDK 27.2, user 2026-11-15):
@@ -576,25 +932,72 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // subview on top of the bar's own glass, so the glass showed
         // TWICE (user 2026-11-15 "为啥有玻璃重复"). Do NOT add a glass
         // view here.
-        tabBar.layer.cornerRadius = 25
-        tabBar.layer.masksToBounds = true
+        // 26E119: the corner clip is iPad-only now. On iPhone the
+        // system's own background draws the capsule with its own
+        // fully rounded ends (the reference bar's look); the manual
+        // 25pt clip dates from the custom-appearance era and can
+        // only flatten the system's own rounding. The iPad top
+        // capsule still gets its rounded shape from this clip (its
+        // appearance is a transparent material over the bar bounds).
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            tabBar.layer.cornerRadius = 25
+            tabBar.layer.masksToBounds = true
+        }
         tabBar.isTranslucent = true
         if #available(iOS 26.0, *) {
-            // Light-mode fix (user 2026-11-18): configureWithDefaultBackground()
-            // rendered as a flat medium-grey capsule in light mode, with
-            // white unselected icons. Use a transparent background with the
+            // Light-mode fix (user 2026-11-18, iPad branch only since
+            // 26E115): configureWithDefaultBackground() rendered as a
+            // flat medium-grey capsule in light mode, with white
+            // unselected icons. Use a transparent background with the
             // adaptive system material instead: light mode is a light
-            // translucent glass, dark mode the dark glass. Unselected items
-            // use .secondaryLabel so they stay legible in both modes; the
-            // selected item keeps the city accent via tabBar.tintColor
-            // (updated per city in refreshCityUI).
+            // translucent glass, dark mode the dark glass. Unselected
+            // items use .secondaryLabel so they stay legible in both
+            // modes; the selected item is system blue via
+            // tabBar.tintColor (26E112: no longer the city accent).
             let appearance = UITabBarAppearance()
-            appearance.configureWithTransparentBackground()
-            appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
-            appearance.backgroundColor = .clear
-            appearance.shadowColor = .clear
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                // iPad top capsule — UNCHANGED (26E115 does not touch
+                // the iPad bar): the transparent background with the
+                // adaptive system material from the light-mode fix
+                // below (user 2026-11-18).
+                appearance.configureWithTransparentBackground()
+                appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
+                appearance.backgroundColor = .clear
+                appearance.shadowColor = .clear
+            } else {
+                // iPhone (26E115, user: the hand-drawn 26E113 bar
+                // "is not Apple UI Liquid Glass and cannot slide"):
+                // the visible bar is THIS system UITabBar again, with
+                // the system's OWN default background — on iOS 26
+                // that IS Liquid Glass, with the system selection
+                // capsule that slides between items on tap. Do NOT
+                // override backgroundEffect / backgroundColor here:
+                // the systemMaterial override is exactly what made
+                // the bar read as a flat fake. (Info.plist carries
+                // no UIDesignRequiresCompatibility opt-out, so a
+                // stock bar adopts the glass by itself.)
+                appearance.configureWithDefaultBackground()
+            }
             appearance.stackedLayoutAppearance.normal.iconColor = .secondaryLabel
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.secondaryLabel]
+            // Roomier tab layout (test/structure, user 2026-11-22,
+            // aligned to the user's reference shot — near-full-width
+            // capsule, items spread evenly): pin the title font
+            // in both states on every layout appearance, so the
+            // labels keep even breathing room instead of the system
+            // default. 11pt since 26E109 (10pt until 26E108),
+            // matching the 26pt icons (tabBarItemImage) the user
+            // asked for against the iOS 26 reference bar. Selected
+            // keeps the system-blue tint colour (no foreground
+            // override, tint still drives it; 26E112). The bar's
+            // height is intrinsic and grows with the larger
+            // glyphs/titles on its own.
+            let tabTitleFont = UIFont.systemFont(ofSize: 11)
+            let tabTitleFontSelected = UIFont.systemFont(ofSize: 11, weight: .medium)
+            for layout in [appearance.stackedLayoutAppearance, appearance.inlineLayoutAppearance, appearance.compactInlineLayoutAppearance] {
+                layout.normal.titleTextAttributes[.font] = tabTitleFont
+                layout.selected.titleTextAttributes = [.font: tabTitleFontSelected]
+            }
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
         }
@@ -608,9 +1011,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // The web view is full-screen, so there is no white strip
         // behind the bar.
         let isPadBar = UIDevice.current.userInterfaceIdiom == .pad
+        // Side insets (test/structure, user 2026-11-22 "底栏不要那么
+        // 拥挤", reference shot is a near-full-width capsule): iPhone
+        // insets go 16 -> 8pt so the capsule nearly spans the screen
+        // and the items spread evenly with clear gaps. iPad keeps
+        // 16pt — its bar floats at the top as a compact capsule and
+        // the wider inset is part of that look; not changed.
+        // 26E119 (user: match the reference bar's margins): measured
+        // on the 26E117 device shot, the VISIBLE capsule sits ~24pt
+        // in from the screen edges — the 8pt frame inset plus ~16pt
+        // the system background keeps inside a standalone UITabBar
+        // frame (no public API moves that inner inset). The
+        // reference bar's visible inset measures ~17pt, so the
+        // frame now spans the full width (inset 0) and the visible
+        // capsule is expected at ~16pt, within ~1pt of the
+        // reference. iPad unchanged.
+        let barSideInset: CGFloat = isPadBar ? 16 : 0
         var barConstraints = [
-            tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: barSideInset),
+            tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -barSideInset),
         ]
         if isPadBar {
             barConstraints.append(tabBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10))
@@ -628,7 +1047,43 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // snug above the home indicator like Apple's own floating
             // bars. iPhone portrait only — the iPad top bar and the
             // Duo sidebar are separate layouts, untouched.
-            barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10))
+            // Lowered to the reference (26E119, user: match the
+            // reference bar's margins/height): the -10 above was the
+            // FRAME's bottom edge, but the visible capsule does not
+            // reach it — measured on the 26E117 device shot, the
+            // capsule's bottom edge sits ~21pt above the frame's
+            // bottom edge inside a standalone UITabBar (frame bottom
+            // -10 -> capsule bottom 31pt above the screen bottom),
+            // which is why the bar still floated high. The frame now
+            // extends 8pt PAST the screen bottom (+8), so the
+            // capsule is expected to land ~13pt above the screen
+            // bottom, floating just over the home indicator like the
+            // reference. The off-screen frame strip draws nothing —
+            // the system background lives in the capsule region —
+            // and reportBarFrame derives the web clearance from the
+            // real frame, so page clearances follow automatically.
+            // Raised a touch (26E121, user: 底栏稍微抬高一点点，不要
+            // 碰到小白条）: at +8 the capsule's bottom edge sat ~13pt
+            // above the screen bottom, visually crowding the home
+            // indicator. The frame's bottom anchor goes +8 -> +3:
+            // the whole bar rises 5pt, the capsule lands ~18pt above
+            // the screen bottom with a clear gap over the indicator.
+            // Still NO height constraint (the 26E112 lesson stands);
+            // reportBarFrame reads the real frame, so --bar-clear
+            // follows the new geometry on its own.
+            barConstraints.append(tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 3))
+            // 26E115: on iPhone THIS UITabBar is the visible bottom
+            // bar again — the system bar with its own Liquid Glass
+            // and sliding selection capsule (see the appearance
+            // branch above). The 26E113 hand-drawn replacement bar
+            // is retired (the user ruled it "not Apple UI Liquid
+            // Glass, cannot slide"). NO height constraint is set:
+            // the bar lays out at its own intrinsic height (the
+            // 26E112 experiment of pinning it to 62pt overflowed
+            // its internal item layout and clipped the titles).
+            // Its real frame is reported to the web (reportBarFrame)
+            // so page bottom clearances follow the true bar, in
+            // portrait and landscape alike.
         }
         NSLayoutConstraint.activate(barConstraints)
         // iPhone Duo sidebar (build 63): created here so the web view
@@ -688,11 +1143,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.isHidden = true
         view.addSubview(backButton)
+        // Above the floating tab bar (the system UITabBar on every
+        // device since 26E115).
+        let backButtonBarAnchor: NSLayoutYAxisAnchor = tabBar.topAnchor
         NSLayoutConstraint.activate([
             backButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            // Above the floating bottom tab bar on every device
-            // (build 63: iPad no longer has a top tab bar).
-            backButton.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -16),
+            backButton.bottomAnchor.constraint(equalTo: backButtonBarAnchor, constant: -16),
         ])
 
         // Native sub-view back button (user 2026-11-19): a real Apple UI
@@ -825,6 +1281,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             self?.splashFinished()
         }
         setupSortTabs()
+        setupStructChrome()
         setupThemeButtons()
         setupNearbySmartSwitch()
         setupTransferControls()
@@ -888,6 +1345,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // splash is up: re-evaluate fill vs fit (26C101).
             refreshSplashImage()
         }
+        // Every layout pass (rotation included, where only the
+        // height may move): keep the web's --bar-clear in sync with
+        // the system bar's real frame (26E115). Self-guarded:
+        // unchanged values are not re-posted.
+        reportBarFrame()
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -1292,6 +1754,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         UserDefaults.standard.set(key, forKey: "metro-theme")
         let dark = key == "dark" || (key == "system" && traitCollection.userInterfaceStyle == .dark)
         UserDefaults.standard.set(dark, forKey: "metro-dark")
+        themeResolvedThisSession = true
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTheme('\(key)')", completionHandler: nil)
     }
 
@@ -1384,6 +1847,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cd" { return chengduBlue }
         if currentCity == "qd" { return qingdaoGreen }
         if currentCity == "sjz" { return shijiazhuangRed }
+        if currentCity == "tj" { return tianjinRed }
+        if currentCity == "wx" { return wuxiRed }
         return subwayBlue
     }
 
@@ -1402,6 +1867,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cd" { return chengduBlueDark }
         if currentCity == "qd" { return qingdaoGreenDark }
         if currentCity == "sjz" { return shijiazhuangRedDark }
+        if currentCity == "tj" { return tianjinRedDark }
+        if currentCity == "wx" { return wuxiRedDark }
         return subwayBlue
     }
 
@@ -1423,6 +1890,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "cd" { return chengduBlue }
         if currentCity == "qd" { return qingdaoGreen }
         if currentCity == "sjz" { return shijiazhuangRed }
+        if currentCity == "tj" { return tianjinRed }
+        if currentCity == "wx" { return wuxiRed }
         return accentColor()
     }
 
@@ -1449,6 +1918,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cd": name = "ChengduLogo"
         case "qd": name = "QingdaoLogo"
         case "sjz": name = "ShijiazhuangLogo"
+        case "tj": name = "TianjinLogo"
+        case "wx": name = "WuxiLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -1565,7 +2036,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let sjz = UIAction(title: L("city.sjz"), image: cityLogoImage(for: "sjz")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sjz" ? .on : .off) { [weak self] _ in
             self?.pickCity("sjz")
         }
-        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd, qd, sjz])
+        let tj = UIAction(title: L("city.tj"), image: cityLogoImage(for: "tj")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "tj" ? .on : .off) { [weak self] _ in
+            self?.pickCity("tj")
+        }
+        let wx = UIAction(title: L("city.wx"), image: cityLogoImage(for: "wx")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "wx" ? .on : .off) { [weak self] _ in
+            self?.pickCity("wx")
+        }
+        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd, qd, sjz, tj, wx])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -1598,6 +2075,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         sheet.addAction(cityAction("cd"))
         sheet.addAction(cityAction("qd"))
         sheet.addAction(cityAction("sjz"))
+        sheet.addAction(cityAction("tj"))
+        sheet.addAction(cityAction("wx"))
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
@@ -1608,12 +2087,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         present(sheet, animated: true)
     }
 
-    // Shared city-UI refresh (build 37): tab-bar tint, back-button
+    // Shared city-UI refresh (build 37): back-button
     // color, pills and transfer controls for the current city. Used
     // by pickCity() (native-initiated) and the cityChanged handler
-    // (web-initiated, incl. the startup restore).
+    // (web-initiated, incl. the startup restore). (The tab-bar tint
+    // is NOT refreshed here any more: 26E112 pins it to system blue,
+    // independent of the city.)
     func refreshCityUI() {
-        tabBar.tintColor = accentColor()
         backButton.layer.borderColor = accentDark().cgColor
         backButton.setTitleColor(accentDark(), for: .normal)
         updateCityPill()
@@ -1621,7 +2101,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         updateSideBarSelection()
         clearTransferFields()
         updateTransferTint()
-        refreshActionButtons()
+        // 26E110 ghost fix: do NOT refresh the action pills here —
+        // the cached transit label is still the OLD city's at this
+        // point, so refreshing painted a stale configuration first
+        // and the real one a beat later (see refreshActionButtons).
+        // Hide the pills instead; the next transferFrame post from
+        // the web carries the new city's settled label + icons and
+        // placeTransfer refreshes the contents and unhides them in
+        // the same pass. Briefly hidden beats doubled.
+        hideActionButtons()
     }
 
     func pickCity(_ city: String) {
@@ -1704,6 +2192,211 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             sortTabs.isHidden = true
         }
+    }
+
+    // MARK: - Native structure-detail chrome (test/structure, 26E107)
+
+    // The structure detail's 空间结构/平面示意 switch is a native
+    // UISegmentedControl (Liquid Glass on iOS 26+); its header
+    // carries a native circular glass 搜索 button on the right
+    // (magnifyingglass only, no title since 26E109 — back to the
+    // search list + focus the input) and, since 26E108, a circular
+    // glass chevron 退出 button on the left — the same button as
+    // every sub-view's native back button. Same overlay pattern
+    // as sortTabs: the web keeps
+    // invisible placeholders (.struct-seg / .struct-actions /
+    // .tt-back), reports their frames via "structFrame", and the
+    // native controls sit exactly on top. Both segments stay
+    // enabled even when that kind has no diagram — the web then
+    // shows its 正在整理 placeholder, which keeps the control's
+    // behaviour predictable.
+    func setupStructChrome() {
+        structSeg = UISegmentedControl(items: [L("struct.spatial"), L("struct.plan")])
+        structSeg.selectedSegmentIndex = 0
+        structSeg.translatesAutoresizingMaskIntoConstraints = true
+        structSeg.isHidden = true
+        structSeg.addTarget(self, action: #selector(structSegChanged(_:)), for: .valueChanged)
+        let attrs: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 14, weight: .semibold)]
+        structSeg.setTitleTextAttributes(attrs, for: .normal)
+        structSeg.setTitleTextAttributes(attrs, for: .selected)
+        view.addSubview(structSeg)
+        // Search (26E109, user: 结构页搜索按钮只留图标): a 40pt
+        // circular glass button with ONLY the magnifyingglass —
+        // no 「搜索」 title — built exactly like the exit chevron
+        // below (glass capsule config on iOS 26+, glass effect
+        // view behind the glyph below that). It centres on the
+        // web title row's .struct-actions slot, a 40x40 square
+        // since 26E109 (placeStructChrome).
+        structSearchButton = UIButton(type: .system)
+        structSearchButton.translatesAutoresizingMaskIntoConstraints = true
+        structSearchButton.isHidden = true
+        structSearchButton.tintColor = .label
+        let structSearchGlyph = UIImage(systemName: "magnifyingglass")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 17, weight: .semibold))
+        if #available(iOS 26.0, *) {
+            var searchCfg = UIButton.Configuration.glass()
+            searchCfg.image = structSearchGlyph
+            searchCfg.cornerStyle = .capsule
+            searchCfg.baseForegroundColor = .label
+            structSearchButton.configuration = searchCfg
+        } else {
+            structSearchButton.backgroundColor = .clear
+            structSearchButton.layer.cornerRadius = 20
+            structSearchButton.clipsToBounds = true
+            let searchGlass = makeGlassEffectView()
+            searchGlass.translatesAutoresizingMaskIntoConstraints = false
+            searchGlass.layer.cornerRadius = 20
+            searchGlass.clipsToBounds = true
+            searchGlass.isUserInteractionEnabled = false
+            structSearchButton.insertSubview(searchGlass, at: 0)
+            NSLayoutConstraint.activate([
+                searchGlass.leadingAnchor.constraint(equalTo: structSearchButton.leadingAnchor),
+                searchGlass.trailingAnchor.constraint(equalTo: structSearchButton.trailingAnchor),
+                searchGlass.topAnchor.constraint(equalTo: structSearchButton.topAnchor),
+                searchGlass.bottomAnchor.constraint(equalTo: structSearchButton.bottomAnchor),
+            ])
+            structSearchButton.setImage(structSearchGlyph, for: .normal)
+        }
+        structSearchButton.addTarget(self, action: #selector(structSearchTapped), for: .touchUpInside)
+        view.addSubview(structSearchButton)
+        // Exit (26E108, user: 「要这样的退出按钮」 with the Siri
+        // sub-page's back button circled): NOT a capsule any more —
+        // a 40pt circular glass chevron, built exactly like the
+        // sub-view back button (subViewBackButton): chevron.backward
+        // at 18pt bold, .glass() capsule config on iOS 26+, a glass
+        // effect view behind the glyph below that. It centres on the
+        // web title row's .tt-back placeholder box (placeStructChrome).
+        structExitButton = UIButton(type: .system)
+        structExitButton.translatesAutoresizingMaskIntoConstraints = true
+        structExitButton.isHidden = true
+        structExitButton.tintColor = .label
+        let structExitChevron = UIImage(systemName: "chevron.backward")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .bold))
+        if #available(iOS 26.0, *) {
+            var exitCfg = UIButton.Configuration.glass()
+            exitCfg.image = structExitChevron
+            exitCfg.cornerStyle = .capsule
+            exitCfg.baseForegroundColor = .label
+            structExitButton.configuration = exitCfg
+        } else {
+            structExitButton.backgroundColor = .clear
+            structExitButton.layer.cornerRadius = 20
+            structExitButton.clipsToBounds = true
+            let exitGlass = makeGlassEffectView()
+            exitGlass.translatesAutoresizingMaskIntoConstraints = false
+            exitGlass.layer.cornerRadius = 20
+            exitGlass.clipsToBounds = true
+            exitGlass.isUserInteractionEnabled = false
+            structExitButton.insertSubview(exitGlass, at: 0)
+            NSLayoutConstraint.activate([
+                exitGlass.leadingAnchor.constraint(equalTo: structExitButton.leadingAnchor),
+                exitGlass.trailingAnchor.constraint(equalTo: structExitButton.trailingAnchor),
+                exitGlass.topAnchor.constraint(equalTo: structExitButton.topAnchor),
+                exitGlass.bottomAnchor.constraint(equalTo: structExitButton.bottomAnchor),
+            ])
+            structExitButton.setImage(structExitChevron, for: .normal)
+        }
+        structExitButton.addTarget(self, action: #selector(structExitTapped), for: .touchUpInside)
+        view.addSubview(structExitButton)
+    }
+
+    func refreshStructChromeTitles() {
+        if structSeg != nil {
+            structSeg.setTitle(L("struct.spatial"), forSegmentAt: 0)
+            structSeg.setTitle(L("struct.plan"), forSegmentAt: 1)
+        }
+        // The search and exit buttons are NOT refreshed here: both
+        // are icon-only circles (magnifyingglass / chevron) whose
+        // glyphs are language-independent, and re-assigning a
+        // configuration would undo the circular glass style they
+        // are built with in setupStructChrome (26E108/26E109).
+    }
+
+    func hideStructChrome() {
+        if structSeg != nil { structSeg.isHidden = true }
+        if structSearchButton != nil { structSearchButton.isHidden = true }
+        if structExitButton != nil { structExitButton.isHidden = true }
+    }
+
+    // Place the native structure chrome over the web detail's reported
+    // frames. Zero-size rects (list state, other tabs, release builds)
+    // hide the controls. Each control is placed INDEPENDENTLY and
+    // only when its reported frame is plausible (26E108 defensive
+    // pass, after the 26E107 field report that the station diagram
+    // was not visible under the new chrome): a frame must sit fully
+    // inside the view, be a sane header size, and stay inside the
+    // header zone (top 45% of the view). Any implausible frame —
+    // mid-transition garbage, a scaled-viewport mismatch, a rect
+    // reaching down into the diagram area — hides that control
+    // instead of letting an overlay sprawl over the diagram.
+    func placeStructChrome(frame dict: [String: Any]) {
+        guard structSeg != nil else { return }
+        func rectOf(_ key: String) -> CGRect {
+            let d = dict[key] as? [String: Any] ?? [:]
+            return CGRect(x: ((d["x"] as? Double) ?? 0) + webOffset.x,
+                          y: ((d["y"] as? Double) ?? 0) + webOffset.y,
+                          width: (d["width"] as? Double) ?? 0,
+                          height: (d["height"] as? Double) ?? 0)
+        }
+        let segR = rectOf("seg")
+        let actR = rectOf("actions")
+        let extR = rectOf("exit")
+        let bounds = view.bounds
+        let headerLimit = bounds.height * 0.45
+        func plausible(_ r: CGRect, _ minW: CGFloat, _ maxW: CGFloat, _ minH: CGFloat, _ maxH: CGFloat) -> Bool {
+            return r.width >= minW && r.width <= maxW && r.height >= minH && r.height <= maxH
+                && r.minX >= -2 && r.minY >= -2
+                && r.maxX <= bounds.width + 2 && r.maxY <= headerLimit
+        }
+        // 26E112: the panel is a Settings sub-page now, so the gate
+        // is the web-reported panel state ("panel" in every post),
+        // no longer currentTab == "structure" (that tab is gone).
+        let active = isTestBuild && ((dict["panel"] as? Bool) ?? false)
+        structPanelOpen = active
+        // Segmented control: full-width header row under the title.
+        let segOK = active && plausible(segR, 120, max(bounds.width, 120), 24, 64)
+        if segOK {
+            structSeg.frame = segR
+            structSeg.isHidden = false
+            if let kind = dict["kind"] as? String, let idx = structKindKeys.firstIndex(of: kind) {
+                structSeg.selectedSegmentIndex = idx
+            }
+        } else {
+            structSeg.isHidden = true
+        }
+        // Search circle (26E109): the 40pt icon-only glass button
+        // centres on the .struct-actions slot, a 40x40 square in
+        // the title row since 26E109, and must sit above the seg
+        // row. Same centre-on-slot placement as the exit chevron.
+        let actOK = active && plausible(actR, 24, 72, 24, 72) && (!segOK || actR.maxY <= segR.minY + 6)
+        if actOK {
+            structSearchButton.frame = CGRect(x: actR.midX - 20, y: actR.midY - 20, width: 40, height: 40)
+            structSearchButton.isHidden = false
+        } else {
+            structSearchButton.isHidden = true
+        }
+        // Exit: the 40pt circular chevron centres on the web
+        // .tt-back placeholder's box in the title row.
+        let extOK = active && extR.width >= 24 && extR.width <= 72 && extR.height >= 24 && extR.height <= 72
+            && extR.minX >= -2 && extR.minY >= -2 && extR.maxX <= bounds.width + 2 && extR.maxY <= headerLimit
+        if extOK {
+            structExitButton.frame = CGRect(x: extR.midX - 20, y: extR.midY - 20, width: 40, height: 40)
+            structExitButton.isHidden = false
+        } else {
+            structExitButton.isHidden = true
+        }
+    }
+
+    @objc func structSegChanged(_ sender: UISegmentedControl) {
+        let idx = sender.selectedSegmentIndex
+        guard idx >= 0 && idx < structKindKeys.count else { return }
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.setStructKind('\(structKindKeys[idx])')", completionHandler: nil)
+    }
+
+    @objc func structSearchTapped() {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.structSearch()", completionHandler: nil)
+    }
+
+    @objc func structExitTapped() {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.structExit()", completionHandler: nil)
     }
 
     // MARK: - Native Apple UI dark-mode picker (build 44, 3 glass buttons since build 52)
@@ -1841,7 +2534,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let h = (dict["height"] as? Double) ?? 0
         if w > 0 && h > 0 && currentTab == "more" && !splashShowing {
             let size = sw.intrinsicContentSize
-            sw.frame = CGRect(x: CGFloat(x) + CGFloat(w) - size.width,
+            var fx = CGFloat(x) + CGFloat(w) - size.width
+            // 26E121 C (native backstop): a switch must never render
+            // off the right edge. The web re-reports the slot once
+            // the sub-view's slide-in transition settles (the stale
+            // mid-transition rect is what pushed this switch ~12pt
+            // too far right in the user's screenshot), but if any
+            // stale rect still lands here, clamp the frame back
+            // inside the view with an 8pt margin instead of letting
+            // half the switch sit off-screen.
+            let maxX = view.bounds.width - 8
+            if fx + size.width > maxX { fx = max(8, maxX - size.width) }
+            sw.frame = CGRect(x: fx,
                               y: CGFloat(y) + (CGFloat(h) - size.height) / 2,
                               width: size.width, height: size.height)
             if let on = dict["on"] as? Bool, on != sw.isOn {
@@ -1889,19 +2593,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
         let content = transferEffectView.contentView
 
-        // Two rows: dot + label + text field + line badge + clear.
+        // Two rows: dot + label + text field + line badges + clear.
+        // The badge slot is a stack (26E110 P): an interchange
+        // station shows one pill per line it serves.
         fromField = makeTransferField(tag: 0, placeholder: L("tr.phFrom"))
         toField = makeTransferField(tag: 1, placeholder: L("tr.phTo"))
-        fromBadge = makeTransferBadge(tag: 0)
-        toBadge = makeTransferBadge(tag: 1)
+        fromBadgeStack = makeBadgeStack()
+        toBadgeStack = makeBadgeStack()
+        // With several line pills in a row the station-name field is
+        // the flexible element (26E110 P): it gives up width first
+        // (text clips, never overflows) while the pills keep theirs.
+        fromField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        toField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         fromClear = makeTransferClear(tag: 0)
         toClear = makeTransferClear(tag: 1)
         let fromRow = makeTransferRow(dotColor: UIColor(red: 34.0 / 255.0, green: 160.0 / 255.0, blue: 107.0 / 255.0, alpha: 1),
                                       labelTitle: L("tr.depart"), labelTag: 0,
-                                      field: fromField, badge: fromBadge, clear: fromClear)
+                                      field: fromField, badgeStack: fromBadgeStack, clear: fromClear)
         let toRow = makeTransferRow(dotColor: UIColor(red: 229.0 / 255.0, green: 72.0 / 255.0, blue: 77.0 / 255.0, alpha: 1),
                                     labelTitle: L("tr.arrive"), labelTag: 1,
-                                    field: toField, badge: toBadge, clear: toClear)
+                                    field: toField, badgeStack: toBadgeStack, clear: toClear)
         fromLabelBtn = fromRow.arrangedSubviews[1] as? UIButton
         toLabelBtn = toRow.arrangedSubviews[1] as? UIButton
         for row in [fromRow, toRow] {
@@ -1973,7 +2684,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
     }
 
-    func makeTransferRow(dotColor: UIColor, labelTitle: String, labelTag: Int, field: UITextField, badge: UIButton, clear: UIButton) -> UIStackView {
+    func makeTransferRow(dotColor: UIColor, labelTitle: String, labelTag: Int, field: UITextField, badgeStack: UIStackView, clear: UIButton) -> UIStackView {
         let dot = UIView()
         dot.backgroundColor = dotColor
         dot.layer.cornerRadius = 5
@@ -1988,7 +2699,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         label.setTitleColor(.systemGray, for: .normal)
         label.tag = labelTag
         label.addTarget(self, action: #selector(transferLabelTapped(_:)), for: .touchUpInside)
-        let row = UIStackView(arrangedSubviews: [dot, label, field, badge, clear])
+        let row = UIStackView(arrangedSubviews: [dot, label, field, badgeStack, clear])
         row.axis = .horizontal
         row.spacing = 10
         row.alignment = .center
@@ -2012,6 +2723,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         f.inputAccessoryView = makeKeyboardToolbar()
         f.addTarget(self, action: #selector(transferFieldChanged(_:)), for: .editingChanged)
         return f
+    }
+
+    // Badge stack for a transfer field row (26E110 P): horizontal,
+    // pills 4pt apart, vertically centred with the field; the stack
+    // never compresses — the name field yields instead.
+    func makeBadgeStack() -> UIStackView {
+        let s = UIStackView()
+        s.axis = .horizontal
+        s.spacing = 4
+        s.alignment = .center
+        s.distribution = .fill
+        s.setContentHuggingPriority(.required, for: .horizontal)
+        s.setContentCompressionResistancePriority(.required, for: .horizontal)
+        return s
     }
 
     func makeTransferBadge(tag: Int) -> UIButton {
@@ -2085,8 +2810,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             if let q = dict["toQuery"] as? String, !toField.isFirstResponder, toField.text != q {
                 toField.text = q
             }
-            applyBadge(which: "from", line: dict["fromLine"] as? [String: Any])
-            applyBadge(which: "to", line: dict["toLine"] as? [String: Any])
+            // 26E110 P: prefer the all-lines arrays (every line of
+            // the picked station); fall back to the single line.
+            // 26E121 G: the frame also carries the pinned line's key
+            // (fromLine/toLine) so the pinned pill shows its check.
+            if let lines = dict["fromLines"] as? [[String: Any]] {
+                applyBadges(which: "from", lines: lines, pinnedKey: (dict["fromLine"] as? [String: Any])?["key"] as? String)
+            } else {
+                applyBadge(which: "from", line: dict["fromLine"] as? [String: Any])
+            }
+            if let lines = dict["toLines"] as? [[String: Any]] {
+                applyBadges(which: "to", lines: lines, pinnedKey: (dict["toLine"] as? [String: Any])?["key"] as? String)
+            } else {
+                applyBadge(which: "to", line: dict["toLine"] as? [String: Any])
+            }
             updateClearButtons()
         } else {
             transferCard.isHidden = true
@@ -2247,19 +2984,41 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // back to the native LANG table keyed by currentCity; the
     // nearby pill gains the web row's 定位中… suffix while a
     // location fix is in flight.
+    // 26E110 ghost fix (user screenshot, Dalian switch): the middle
+    // pill showed a faint doubled 「附近」 after a city switch. Cause:
+    // this ran on EVERY city switch (via refreshCityUI with the
+    // STALE cached label, then again via placeTransfer with the new
+    // one) and re-assigned a fresh configuration to all three pills
+    // even when a pill's title + icon were byte-identical — a glass
+    // UIButton treats each assignment as a content transition and
+    // morphs the old/new content, which reads as a ghost on the
+    // full-width middle title. Now: a pill is only re-configured
+    // when its title or icon actually changed, and the swap is
+    // applied without animation, so content lands in one frame.
     func refreshActionButtons() {
         guard transitAppButton != nil else { return }
-        var tcfg = transitAppButton.configuration ?? actionButtonConfig()
-        tcfg.title = actionTransitLabel.isEmpty ? L("transit." + currentCity) : actionTransitLabel
-        tcfg.image = actionTransitIcon
-        transitAppButton.configuration = tcfg
-        var ncfg = nearbyStationsButton.configuration ?? actionButtonConfig()
-        ncfg.title = L("tr.nearby") + (actionNearbyLoading ? " " + L("tr.nearby.locating") : "")
-        ncfg.image = actionPinIcon
-        nearbyStationsButton.configuration = ncfg
-        var acfg = applePayButton.configuration ?? actionButtonConfig()
-        acfg.title = L("tr.applepay")
-        applePayButton.configuration = acfg
+        let tTitle = actionTransitLabel.isEmpty ? L("transit." + currentCity) : actionTransitLabel
+        let nTitle = L("tr.nearby") + (actionNearbyLoading ? " " + L("tr.nearby.locating") : "")
+        let aTitle = L("tr.applepay")
+        UIView.performWithoutAnimation {
+            if transitAppButton.configuration?.title != tTitle || transitAppButton.configuration?.image !== actionTransitIcon {
+                var tcfg = transitAppButton.configuration ?? actionButtonConfig()
+                tcfg.title = tTitle
+                tcfg.image = actionTransitIcon
+                transitAppButton.configuration = tcfg
+            }
+            if nearbyStationsButton.configuration?.title != nTitle || nearbyStationsButton.configuration?.image !== actionPinIcon {
+                var ncfg = nearbyStationsButton.configuration ?? actionButtonConfig()
+                ncfg.title = nTitle
+                ncfg.image = actionPinIcon
+                nearbyStationsButton.configuration = ncfg
+            }
+            if applePayButton.configuration?.title != aTitle {
+                var acfg = applePayButton.configuration ?? actionButtonConfig()
+                acfg.title = aTitle
+                applePayButton.configuration = acfg
+            }
+        }
     }
 
     // Decode a "data:image/png;base64,..." icon the web posted and
@@ -2330,29 +3089,64 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         transferSearchButton.layer.masksToBounds = true
     }
 
-    // Line badge: a small pill with the line's colour + name (same
-    // style as the web .tr-line-pick). line is {name, color, text}
-    // with hex strings; nil hides the badge.
+    // Line badges: small pills with each line's colour + name (same
+    // style as the web .tr-line-pick). lines is an array of
+    // {name, color, text} with hex strings — ALL lines serving the
+    // picked station, in the city's line order (26E110 P: an
+    // interchange station shows every line, not just the one whose
+    // suggestion row was tapped). An empty array hides all pills.
+    // fromLineInfo/toLineInfo keep the FIRST line for the existing
+    // single-line consumers (line-pick state).
+    func applyBadges(which: String, lines: [[String: Any]], pinnedKey: String? = nil) {
+        // 26E121 G: remember the pin per end; fromLineInfo follows
+        // the pinned line when there is one (the swap path uses it),
+        // else the first line as before.
+        if which == "from" { fromPinnedKey = pinnedKey } else { toPinnedKey = pinnedKey }
+        let pinnedLine = pinnedKey.flatMap { k in lines.first { ($0["key"] as? String) == k } }
+        if which == "from" { fromLineInfo = pinnedLine ?? lines.first } else { toLineInfo = pinnedLine ?? lines.first }
+        guard let stack = which == "from" ? fromBadgeStack : toBadgeStack else { return }
+        var pool = which == "from" ? fromBadges : toBadges
+        while pool.count < lines.count {
+            let b = makeTransferBadge(tag: which == "from" ? 0 : 1)
+            pool.append(b)
+            stack.addArrangedSubview(b)
+        }
+        if which == "from" { fromBadges = pool } else { toBadges = pool }
+        for (i, b) in pool.enumerated() {
+            guard i < lines.count,
+                  let name = lines[i]["name"] as? String,
+                  let colorHex = lines[i]["color"] as? String,
+                  let bg = colorFromHex(colorHex) else {
+                b.isHidden = true
+                continue
+            }
+            let fg: UIColor
+            if let textHex = lines[i]["text"] as? String, let c = colorFromHex(textHex) {
+                fg = c
+            } else {
+                fg = .white
+            }
+            // 26E121 G: each pill remembers its line key (the tap
+            // handler pins/unpins by key), and the PINNED line's
+            // pill carries the check — a check prefix in the title
+            // plus a ring in the pill's own text colour, so the
+            // lock reads at a glance in the field, mirroring the
+            // web badges' check disc.
+            let key = lines[i]["key"] as? String
+            b.accessibilityIdentifier = key
+            let pinned = pinnedKey != nil && key != nil && key == pinnedKey
+            b.setTitle(pinned ? "✓ " + name : name, for: .normal)
+            b.layer.borderWidth = pinned ? 2 : 0
+            b.layer.borderColor = fg.cgColor
+            b.backgroundColor = bg
+            b.setTitleColor(fg, for: .normal)
+            b.isHidden = false
+        }
+    }
+
+    // Single-line convenience (legacy posts / clears).
     func applyBadge(which: String, line: [String: Any]?) {
-        if which == "from" { fromLineInfo = line } else { toLineInfo = line }
-        guard let badge = which == "from" ? fromBadge : toBadge else { return }
-        guard let line = line,
-              let name = line["name"] as? String,
-              let colorHex = line["color"] as? String,
-              let bg = colorFromHex(colorHex) else {
-            badge.isHidden = true
-            return
-        }
-        let fg: UIColor
-        if let textHex = line["text"] as? String, let c = colorFromHex(textHex) {
-            fg = c
-        } else {
-            fg = .white
-        }
-        badge.setTitle(name, for: .normal)
-        badge.backgroundColor = bg
-        badge.setTitleColor(fg, for: .normal)
-        badge.isHidden = false
+        applyBadges(which: which, lines: line.map { [$0] } ?? [], pinnedKey: line?["key"] as? String)
     }
 
     func updateClearButtons() {
@@ -2448,8 +3242,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     @objc func transferBadgeTapped(_ sender: UIButton) {
         let which = sender.tag == 0 ? "from" : "to"
-        applyBadge(which: which, line: nil)
-        webView.evaluateJavaScript("window.metroApp && window.metroApp.clearLine('\(which)')", completionHandler: nil)
+        // 26E121 G: the pills are one per line now. Tapping the
+        // PINNED pill unpins that end (back to by-station routing —
+        // the pre-26E121 single-badge behaviour); tapping a
+        // different pill moves the pin to that line. The web owns
+        // the state: its clearLine / pinLine calls re-post the
+        // frames, and the pills re-render with the check on the
+        // right one. A pill without a key (legacy post) falls back
+        // to the old clear.
+        let key = sender.accessibilityIdentifier
+        let pinned = which == "from" ? fromPinnedKey : toPinnedKey
+        if let key = key, key != pinned {
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.pinLine('\(which)', \(jsString(key)))", completionHandler: nil)
+        } else {
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.clearLine('\(which)')", completionHandler: nil)
+        }
     }
 
     @objc func transferSearchTapped() {
@@ -2484,11 +3291,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // per-city posters stay in the bundle unreferenced for a
         // possible later re-enable.
         let splashName = "SplashST"
-        // Dark variant when the web's last-known effective appearance
-        // is dark ("metro-dark", persisted via the themeState
-        // message); before the first web report, fall back to the
-        // system style at launch.
-        let splashDark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        // Dark variant per splashDarkResolved() (26E109): this
+        // session's web report once it lands; before that, the
+        // scene-connection-time resolution (persisted mode + scene
+        // trait) — NOT the raw persisted metro-dark flag, whose
+        // staleness across appearance flips caused the one-frame
+        // wrong-variant flash on cold start.
+        let splashDark = splashDarkResolved()
         // The dark variant counts as present if named lookup OR the
         // explicit .jpg path finds it (26D104 — same miss that hit the
         // load chain below).
@@ -2668,6 +3477,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "cd": id = "1303414976"
         case "qd": id = "1373547573"
         case "sjz": id = "6444716093"
+        case "tj": id = "1445111714"
+        case "wx": id = "1213366120"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
@@ -2848,11 +3659,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         updateTransferVisibility()
         updateSideBarSelection()
         if key != "transfer" { sortTabs.isHidden = true }
+        // The structure panel lives under "more" since 26E112:
+        // leaving the Settings tab hides its native chrome at once
+        // (the web closes the panel in the same setTab pass and its
+        // next structFrame post reports panel: false).
+        if key != "more" { hideStructChrome() }
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
     }
 
     @objc func handleTabSwipe(_ gesture: UISwipeGestureRecognizer) {
-        let current = tabBar.selectedItem?.tag ?? 1
+        let current = tabKeys.firstIndex(of: currentTab) ?? tabBar.selectedItem?.tag ?? 1
         var next = current
         if gesture.direction == .left {
             next = min(current + 1, tabKeys.count - 1)
@@ -2915,14 +3731,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             stack.bottomAnchor.constraint(equalTo: sideBarEffectView.contentView.bottomAnchor, constant: -10),
         ])
 
-        let titles = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
-        let images: [UIImage?] = [
-            UIImage(systemName: "arrow.triangle.2.circlepath"),
-            UIImage(systemName: "map"),
-            UIImage(systemName: "magnifyingglass"),
-            UIImage(named: "TimetableIcon"),
-            UIImage(systemName: "gearshape"),
-        ]
+        let titles = tabTitles()
+        let images = tabImages()
         for i in 0..<tabKeys.count {
             let btn = UIButton(type: .system)
             btn.tag = i
@@ -2957,7 +3767,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             a.font = UIFont.systemFont(ofSize: 11, weight: .semibold)
             return a
         }
-        cfg.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        // Semibold since 26E110 (medium before): the sidebar shares
+        // tabImages(), whose glyphs are now solid (.fill variants /
+        // solid PNG); semibold keeps the two stroke-based glyphs
+        // (transfer arrows, magnifier — no .fill variant exists) in
+        // the same solid family here too. Point size unchanged.
+        cfg.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold)
         cfg.baseForegroundColor = selected ? accentColor() : .label
         var bg = UIBackgroundConfiguration.clear()
         bg.backgroundColor = selected ? accentColor().withAlphaComponent(0.15) : .clear
@@ -2979,9 +3794,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // page background). Refreshed wherever the theme refresh already
     // happens, plus on every tab change (setWebTab / tabChanged).
     func rootBackgroundColor() -> UIColor {
-        let dark = (UserDefaults.standard.object(forKey: "metro-dark") as? Bool) ?? (traitCollection.userInterfaceStyle == .dark)
+        let dark = splashDarkResolved()
         if dark {
-            if currentTab == "transfer" || currentTab == "stations" {
+            if currentTab == "transfer" || currentTab == "stations" || structPanelOpen {
                 return UIColor(red: 16.0 / 255.0, green: 20.0 / 255.0, blue: 32.0 / 255.0, alpha: 1) // #101420
             }
             return .black // #000000
@@ -3026,9 +3841,43 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 webViewTrailingToView.isActive = true
             }
         }
+        // One bar system on every device (26E115): the system
+        // UITabBar is the visible bar (bottom on iPhone, top
+        // capsule on iPad); the Duo sidebar replaces it on a wide
+        // iPhone, and the splash gate hides both.
         tabBar.isHidden = show || splashShowing
         sideBar.isHidden = !show || splashShowing
         updateSideBarSelection()
+        reportBarFrame()
+    }
+
+    // Report the system tab bar's REAL frame to the web (26E115):
+    // the page's bottom clearances (the Settings home-lock bottom
+    // padding, the timetable panel's bottom inset and its
+    // background extension) are driven by a --bar-clear CSS
+    // variable, so they must follow the bar the system actually
+    // laid out — its height is intrinsic (never pinned) and
+    // differs between portrait and landscape. The reported value
+    // is the distance from the screen's bottom edge to the bar's
+    // top edge; it is 0 whenever no bottom bar is on screen (iPad
+    // top bar, Duo sidebar, splash), where the page's own iPad /
+    // sidebar rules own the clearances. Called from
+    // viewDidLayoutSubviews (every layout pass), updateSideBarLayout
+    // (visibility flips) and didFinish (fresh page); unchanged
+    // values are not re-posted.
+    func reportBarFrame() {
+        guard tabBar != nil, webView != nil else { return }
+        var clearance: CGFloat = 0
+        if UIDevice.current.userInterfaceIdiom == .phone && !sideBarActive && !tabBar.isHidden {
+            let f = tabBar.frame
+            if f.height > 0 && f.minY > 0 {
+                clearance = max(0, view.bounds.height - f.minY)
+            }
+        }
+        if abs(clearance - lastBarClearance) < 0.5 { return }
+        lastBarClearance = clearance
+        let v = String(format: "%.1f", clearance)
+        webView.evaluateJavaScript("window._metroBarClearance = \(v); if (window.metroApp && window.metroApp.setBarClearance) { window.metroApp.setBarClearance(\(v)); }", completionHandler: nil)
     }
 
     // Keep the sidebar's selected highlight in sync with currentTab
@@ -3037,14 +3886,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func updateSideBarSelection() {
         guard !sideBarButtons.isEmpty else { return }
         let idx = tabKeys.firstIndex(of: currentTab) ?? 1
-        let titles = [L("tab.transfer"), L("tab.map"), L("tab.stations"), L("tab.timetable"), L("tab.more")]
-        let images: [UIImage?] = [
-            UIImage(systemName: "arrow.triangle.2.circlepath"),
-            UIImage(systemName: "map"),
-            UIImage(systemName: "magnifyingglass"),
-            UIImage(named: "TimetableIcon"),
-            UIImage(systemName: "gearshape"),
-        ]
+        let titles = tabTitles()
+        let images = tabImages()
         for (i, btn) in sideBarButtons.enumerated() {
             btn.configuration = sideBarButtonConfig(title: titles[i], image: images[i], selected: i == idx)
         }
@@ -3262,12 +4105,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // write; the poster re-picks immediately.
             if let dict = message.body as? [String: Any] {
                 if let city = dict["city"] as? String,
-                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(city) {
+                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"].contains(city) {
                     UserDefaults.standard.set(city, forKey: "metro-city")
                     currentCity = city
                 }
                 if let dark = dict["dark"] as? Bool {
                     UserDefaults.standard.set(dark, forKey: "metro-dark")
+                    themeResolvedThisSession = true // the web's own report now outranks the launch resolution (26E109)
                 }
                 refreshSplashImage()
             }
@@ -3279,6 +4123,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             if let dict = message.body as? [String: Any],
                let dark = dict["dark"] as? Bool {
                 UserDefaults.standard.set(dark, forKey: "metro-dark")
+                themeResolvedThisSession = true // the web's own report now outranks the launch resolution (26E109)
                 // Also persist the web's theme MODE (system/light/dark)
                 // when the report carries it, so the launch injection
                 // can hand the web its exact previous appearance state.
@@ -3294,7 +4139,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
-                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz"].contains(city) {
+                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"].contains(city) {
             // The web switched cities (user switch or the startup
             // restore). Mirror it natively; the web already switched,
             // so do NOT call switchCity here (that would loop).
@@ -3319,6 +4164,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "tabsFrame",
                   let dict = message.body as? [String: Any] {
             placeSortTabs(frame: dict)
+        } else if message.name == "structFrame",
+                  let dict = message.body as? [String: Any] {
+            placeStructChrome(frame: dict)
         } else if message.name == "transferFrame",
                   let dict = message.body as? [String: Any] {
             placeTransfer(frame: dict)
@@ -3338,13 +4186,39 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             let line = dict["line"] as? [String: Any]
             if which == "from" {
                 fromField.text = name
-                applyBadge(which: "from", line: line)
             } else {
                 toField.text = name
-                applyBadge(which: "to", line: line)
+            }
+            // 26E110 P: the post carries ALL lines of the station;
+            // show one pill per line. Older posts fall back to the
+            // single picked line.
+            if let lines = dict["lines"] as? [[String: Any]], !lines.isEmpty {
+                applyBadges(which: which, lines: lines, pinnedKey: line?["key"] as? String)
+            } else {
+                applyBadge(which: which, line: line)
             }
             updateClearButtons()
             view.endEditing(true)
+        } else if message.name == "fastNote",
+                  let dict = message.body as? [String: Any] {
+            // 26E121 H: the fast-transfer note is presented as a
+            // NATIVE UIAlertController — the system Liquid Glass
+            // alert on iOS 26 / SDK 27.2 — instead of the web-drawn
+            // card (user: 改成真·液态玻璃 Apple UI). The web sends
+            // the already-localized pieces (station name, the
+            // station's note text verbatim, the tag title, the OK
+            // label); the title composes as "{station} · 快速换乘".
+            // Appearance (light/dark) is the system's own.
+            let station = dict["station"] as? String ?? ""
+            let note = dict["note"] as? String ?? ""
+            let tag = dict["tag"] as? String ?? ""
+            let ok = dict["ok"] as? String ?? "OK"
+            if !note.isEmpty && presentedViewController == nil {
+                let title = tag.isEmpty ? station : station + " · " + tag
+                let alert = UIAlertController(title: title, message: note, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: ok, style: .default, handler: nil))
+                present(alert, animated: true, completion: nil)
+            }
         } else if message.name == "timePicker",
                   let dict = message.body as? [String: Any] {
             let current = dict["departTime"] as? String
@@ -3485,6 +4359,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         webPageReady = true
+        // Fresh page: force a bar-frame report even if the value
+        // has not changed since the last page (26E115).
+        lastBarClearance = -1
+        reportBarFrame()
         flushPendingDeepLink()
     }
 
@@ -3588,56 +4466,29 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     // Siri Shortcuts setup (Settings -> Siri 快捷指令 -> tap a row).
-    // NOTE on the system Add-to-Siri sheet: INUIAddVoiceShortcutViewController
-    // (IntentsUI) only accepts an INShortcut built from an INIntent or an
-    // NSUserActivity — an AppIntent cannot be wrapped in one, so that sheet
-    // cannot present these shortcuts. The old flow (donate fire-and-forget
-    // with try?, then open shortcuts:// home) left the user on the
-    // Shortcuts home with no next step — donation is invisible, and the
-    // home screen does not show the app's shortcuts. So now: donate and
-    // AWAIT the result (a failed donation is reported, not swallowed),
-    // then show a native alert that names the shortcut and gives the exact
-    // steps, with a button that opens the Shortcuts app's new-shortcut
-    // editor (shortcuts://create-shortcut), where the user taps Add
-    // Action, searches "Subway Tools" and picks the shortcut. There is
-    // no URL that opens a specific app's shortcut list, so the editor is
-    // the closest real add destination. Unknown ids never reach here (the
-    // message branch validates the id first).
+    // NOTE on the system Add-to-Siri sheet: INUIAddVoiceShortcut-
+    // ViewController (IntentsUI) only accepts an INShortcut built
+    // from an INIntent or an NSUserActivity — an AppIntent cannot be
+    // wrapped in one, so that sheet cannot present these shortcuts.
+    // The system flow for App Intents is the AppShortcuts mechanism:
+    // the provider's shortcuts are listed under the app in the
+    // Shortcuts app automatically. That registration was silently
+    // broken until 26E113 (Metadata.appintents nested one level too
+    // deep in the bundle — see AppIntents.swift and build.sh), which
+    // is why the previous flow's "「{name}」已就绪" alert described
+    // steps that could never work: the actions simply did not exist
+    // on device. The fake-readiness alert is gone. Now a tap donates
+    // the intent (best effort, feeds Siri suggestions) and opens the
+    // Shortcuts app's editor directly, where the app's actions are
+    // really listed. Unknown ids never reach here (the message
+    // branch validates the id first).
     func presentShortcutSetup(for id: String) {
         guard let shortcut = SubwayShortcutID(rawValue: id) else { return }
-        let name = shortcut.displayTitle
         // The intents are plain AppIntents (26C101 rewrite, no
         // OpenURLIntent), so they exist on every supported iOS
         // version and can always be donated.
-        Task { [weak self] in
-            var donated = false
-            do {
-                try await shortcut.makeIntent().donate()
-                donated = true
-            } catch {
-                donated = false
-            }
-            let wasDonated = donated
-            DispatchQueue.main.async { [weak self] in
-                self?.showShortcutAddAlert(name: name, donated: wasDonated)
-            }
-        }
-    }
-
-    // Alert after tapping a Siri row: names the shortcut, gives the exact
-    // add steps, and offers to open the Shortcuts app. The message says
-    // plainly whether the donation worked; either way the manual add
-    // path is available (AppShortcutsProvider entries are listed under
-    // Subway Tools in the Shortcuts app with or without a donation).
-    func showShortcutAddAlert(name: String, donated: Bool) {
-        let key = donated ? "siri.add.message" : "siri.add.message.nodonate"
-        let message = L(key).replacingOccurrences(of: "{name}", with: name)
-        let alert = UIAlertController(title: L("siri.add.title"), message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: L("siri.add.open"), style: .default, handler: { [weak self] _ in
-            self?.openShortcutsAppForAdding()
-        }))
-        present(alert, animated: true, completion: nil)
+        Task { try? await shortcut.makeIntent().donate() }
+        openShortcutsAppForAdding()
     }
 
     // Open the Shortcuts app at the new-shortcut editor, where the user
@@ -3676,5 +4527,160 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             return
         }
         decisionHandler(.allow)
+    }
+}
+
+// MARK: - iPhone floating tab bar (26E113) — RETIRED in 26E115
+//
+// This class is NOT instantiated anywhere since 26E115: the user
+// ruled the hand-drawn bar "not Apple UI Liquid Glass, cannot
+// slide", and the iPhone bottom bar is the system UITabBar again
+// (see the tab bar setup in viewDidLoad). Kept only as a record of
+// the 26E113–26E114 implementation; do not resurrect it as the
+// visible bar.
+//
+// Custom-drawn replacement for the iPhone bottom UITabBar, built to
+// the user's measured reference (402pt-wide device screenshot):
+// capsule ≈375pt wide (13pt side margins, set by the constraints in
+// viewDidLoad), 66pt tall, corner radius = half the height, floating
+// 10pt above the safe-area bottom, Liquid Glass body. Inside: 5
+// equal cells, each a 30pt icon above an 11pt title — content
+// ≈46pt, centred, ZERO clipping by construction: every frame is
+// computed from the 66pt height in layoutSubviews (icon y 10 h 30;
+// title y 42 h 14; content bottom edge 56, leaving 10pt below),
+// never from a system bar's internal layout (the 26E112 UITabBar
+// pinned to 62pt overflowed exactly that internal layout and cut
+// the titles in half).
+// Selected: system-blue icon + title over a light-grey pill inset
+// 4pt on each side (translucent light grey in dark mode).
+// Unselected: .label (black in light mode, white in dark mode).
+// iPhone only — iPad keeps its top UITabBar capsule and the Duo
+// keeps its right sidebar; both are untouched.
+final class PhoneTabBarView: UIView {
+    var onSelect: ((Int) -> Void)?
+    private(set) var selectedIndex: Int = 1
+
+    private let iconSide: CGFloat = 30
+    private let titleFont = UIFont.systemFont(ofSize: 11)
+    private var titles: [String] = []
+    private var images: [UIImage?] = []
+    private let glassView: UIVisualEffectView
+    private let pillView = UIView()
+    private var buttons: [UIButton] = []
+    private var iconViews: [UIImageView] = []
+    private var titleLabels: [UILabel] = []
+
+    override init(frame: CGRect) {
+        if #available(iOS 26.0, *) {
+            glassView = UIVisualEffectView(effect: UIGlassEffect(style: .regular))
+        } else {
+            glassView = UIVisualEffectView(effect: UIBlurEffect(style: .systemMaterial))
+        }
+        super.init(frame: frame)
+        backgroundColor = .clear
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.18
+        layer.shadowRadius = 16
+        layer.shadowOffset = CGSize(width: 0, height: 6)
+        glassView.layer.cornerRadius = 33
+        glassView.clipsToBounds = true
+        glassView.layer.borderWidth = 0.5
+        glassView.layer.borderColor = UIColor.separator.withAlphaComponent(0.35).cgColor
+        addSubview(glassView)
+        pillView.layer.cornerRadius = 27
+        pillView.backgroundColor = UIColor(dynamicProvider: { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(white: 1, alpha: 0.16)
+                : UIColor.systemGray5
+        })
+        addSubview(pillView)
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func configure(titles: [String], images: [UIImage?], selected: Int) {
+        self.titles = titles
+        self.images = images
+        selectedIndex = selected
+        for b in buttons { b.removeFromSuperview() }
+        buttons = []
+        iconViews = []
+        titleLabels = []
+        for i in titles.indices {
+            let btn = UIButton(type: .custom)
+            btn.tag = i
+            btn.addTarget(self, action: #selector(cellTapped(_:)), for: .touchUpInside)
+            addSubview(btn)
+            buttons.append(btn)
+            let iv = UIImageView()
+            iv.contentMode = .scaleAspectFit
+            iv.isUserInteractionEnabled = false
+            addSubview(iv)
+            iconViews.append(iv)
+            let lb = UILabel()
+            lb.font = titleFont
+            lb.textAlignment = .center
+            lb.isUserInteractionEnabled = false
+            addSubview(lb)
+            titleLabels.append(lb)
+        }
+        applyContent()
+        setNeedsLayout()
+    }
+
+    func reloadTitles(_ titles: [String]) {
+        self.titles = titles
+        applyContent()
+    }
+
+    func setSelected(_ idx: Int) {
+        guard idx >= 0 && idx < titles.count else { return }
+        let changed = idx != selectedIndex
+        selectedIndex = idx
+        applyContent()
+        if changed && bounds.width > 0 {
+            UIView.animate(withDuration: 0.22) { self.layoutPill() }
+        } else {
+            layoutPill()
+        }
+    }
+
+    private func applyContent() {
+        for i in titles.indices {
+            let selected = i == selectedIndex
+            let tint: UIColor = selected ? .systemBlue : .label
+            iconViews[i].image = images[i]?.withRenderingMode(.alwaysTemplate)
+            iconViews[i].tintColor = tint
+            titleLabels[i].text = titles[i]
+            titleLabels[i].textColor = tint
+        }
+    }
+
+    @objc private func cellTapped(_ sender: UIButton) {
+        onSelect?(sender.tag)
+    }
+
+    private func layoutPill() {
+        guard !titles.isEmpty, bounds.width > 0 else { return }
+        let cellW = bounds.width / CGFloat(titles.count)
+        pillView.frame = CGRect(x: CGFloat(selectedIndex) * cellW + 4, y: 6, width: cellW - 8, height: bounds.height - 12)
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        glassView.frame = bounds
+        layoutPill()
+        guard !titles.isEmpty else { return }
+        let cellW = bounds.width / CGFloat(titles.count)
+        // Content block: 10pt top pad + 30pt icon + 2pt gap + 14pt
+        // title = 56pt of the 66pt capsule (10pt below) — computed
+        // in code, so the title can never be clipped by the
+        // capsule's bottom edge.
+        for i in titles.indices {
+            let cellX = CGFloat(i) * cellW
+            buttons[i].frame = CGRect(x: cellX, y: 0, width: cellW, height: bounds.height)
+            iconViews[i].frame = CGRect(x: cellX + (cellW - iconSide) / 2, y: 10, width: iconSide, height: iconSide)
+            titleLabels[i].frame = CGRect(x: cellX, y: 42, width: cellW, height: 14)
+        }
     }
 }

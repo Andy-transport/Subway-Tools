@@ -107,6 +107,29 @@ assert "</script" not in stations, "stations json must not contain </script"
 html = sub_once(r'/\*__METRO_STATIONS__\*/\[\]', lambda _: stations, html, "stations json")
 html = sub_once(r'/\*__BJ_LOGO__\*/', lambda _: logo_b64, html, "bj logo")
 
+# I2. inline the station structure index (TEST BUILD ONLY feature,
+# test/structure branch 2026-11-22). index.json is built by
+# gen_structure_index.py from the verified census files. Missing
+# index -> empty object, the panel shows "being prepared" everywhere.
+# 26E113: the diagram images are NO LONGER inlined — the index carries
+# a pinned jsDelivr CDN URL per image (see gen_structure_index.py) and
+# the page downloads on demand, caching each viewed image in
+# IndexedDB for offline use. STRUCTURE_IMGS stays as an empty object
+# (legacy placeholder in the template head, always {} now).
+import json as _jsonmod
+_struct_index_path = BASE / "structure" / "index.json"
+if _struct_index_path.exists():
+    _struct_index = _struct_index_path.read_text(encoding="utf-8")
+    _struct_data = _jsonmod.loads(_struct_index)
+else:
+    _struct_index = "{}"
+    _struct_data = {}
+_n_struct_imgs = sum(1 for _e in _struct_data.values() for _k in ("spatial", "plan") if _e.get(_k))
+print("structure index:", len(_struct_data), "stations,", _n_struct_imgs, "images (on-demand via CDN, not inlined)")
+assert "</script" not in _struct_index, "structure index must not contain </script"
+html = sub_once(r'/\*__STRUCTURE_INDEX__\*/\{\}', lambda _: _struct_index, html, "structure index")
+html = sub_once(r'/\*__STRUCTURE_IMGS__\*/\{\}', lambda _: "{}", html, "structure imgs (empty since 26E113)")
+
 # J. inline the route graph (routes.json, built by finalize_routes.py).
 routes = (BASE / "routes.json").read_text(encoding="utf-8")
 assert "</script" not in routes, "routes json must not contain </script"
@@ -256,6 +279,17 @@ sjzm_icon_path = BASE / "sjzmetro-icon.b64"
 if sjzm_icon_path.exists():
     sjzm_b64 = sjzm_icon_path.read_text(encoding="utf-8").strip()
     html = sub_once(r'/\*__SJZM_ICON__\*/', lambda _: sjzm_b64, html, "shijiazhuang metro app icon")
+# 26E116: Tianjin Metro official app icon + Wuxi 码上行 app icon
+# (App Store artwork, 120x120 rounded-corner PNG, same treatment as
+# the SJZ icon; substitute only when the file exists).
+tjm_icon_path = BASE / "tjmetro-icon.b64"
+if tjm_icon_path.exists():
+    tjm_b64 = tjm_icon_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__TJM_ICON__\*/', lambda _: tjm_b64, html, "tianjin metro app icon")
+msx_icon_path = BASE / "mashangxing-icon.b64"
+if msx_icon_path.exists():
+    msx_b64 = msx_icon_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__MSX_ICON__\*/', lambda _: msx_b64, html, "mashangxing app icon")
 
 # O. inline the Shanghai Metro data (22 operating lines, 413 stations).
 # Same pattern as Shenyang (step K): precomputed stations/routes from
@@ -517,6 +551,98 @@ if sjz_splash_dark_path.exists():
 else:
     print("WARNING: web/shijiazhuang/splash-dark.b64 missing; Shijiazhuang dark splash will be empty")
 
+# S10. inline the Tianjin Metro data (12 operating lines, 229 stations,
+# 26E116). Same pattern as Shijiazhuang: precomputed stations/routes
+# from the RMP Gallery map v77, triple-cross-checked against the
+# Wikipedia station template and the official line table (see the
+# staging package SOURCES.md). Line colours are the OFFICIAL ones
+# (sampled from the official 2026-07-21 network map), NOT the RMP
+# palette. NOT in the data files: the Z4 line (opened 2026-01-18 but
+# has no RMP drawing / coordinates — held back like Beijing Line 18's
+# missing stations), the closed 新华路, and the built-but-unopened
+# 梨双路北/上郭庄/咸水沽北. Line 4 is two disconnected operating
+# segments (north 小街—西站, south 东南角—新兴村) with NO edge between
+# them in routes.json, so no cross-segment direct ride can be built.
+tj_stations = (BASE / "tianjin" / "stations.json").read_text(encoding="utf-8")
+tj_routes = (BASE / "tianjin" / "routes.json").read_text(encoding="utf-8")
+tj_map = (BASE / "tianjin" / "map.svg").read_text(encoding="utf-8")
+assert "</script" not in tj_stations, "tj stations json must not contain </script"
+assert "</script" not in tj_routes, "tj routes json must not contain </script"
+assert "</script" not in tj_map, "tj map svg must not contain </script"
+html = sub_once(r'/\*__TJ_STATIONS__\*/\[\]', lambda _: tj_stations, html, "tj stations json")
+html = sub_once(r'/\*__TJ_ROUTES__\*/null', lambda _: tj_routes, html, "tj routes json")
+html = sub_once(r'/\*__TJ_MAP__\*/""', lambda _: _json.dumps(tj_map), html, "tj map svg")
+# Tianjin logo: the verified early red roundel (same file the
+# upcoming-cities directory uses, web/upcoming-logos/tianjin.b64) —
+# substitute only when the file appears, mirroring the SJZ pattern.
+tj_logo_path = BASE / "tianjin" / "logo.b64"
+if tj_logo_path.exists():
+    tj_logo_b64 = tj_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__TJ_LOGO__\*/''", lambda _: "'data:image/png;base64," + tj_logo_b64 + "'", html, "tj logo")
+else:
+    print("WARNING: web/tianjin/logo.b64 missing; Tianjin logo will be empty")
+tj_splash_path = BASE / "tianjin" / "splash.b64"
+if tj_splash_path.exists():
+    tj_splash_b64 = tj_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__TJ_SPLASH__\*/', lambda _: tj_splash_b64, html, "tj splash")
+else:
+    print("WARNING: web/tianjin/splash.b64 missing; Tianjin splash will be empty")
+tj_splash_dark_path = BASE / "tianjin" / "splash-dark.b64"
+if tj_splash_dark_path.exists():
+    tj_splash_dark_b64 = tj_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__TJ_SPLASH_DARK__\*/', lambda _: tj_splash_dark_b64, html, "tj splash dark")
+else:
+    print("WARNING: web/tianjin/splash-dark.b64 missing; Tianjin dark splash will be empty")
+
+# S11. inline the Wuxi Metro data (5 operating lines, 89 stations,
+# 26E116). Same pattern: precomputed stations/routes from the RMP
+# Gallery map v26, station order triple-cross-checked (the RMP
+# drawing's S1 order at 江阴中医院/江阴高铁站 is WRONG — the package
+# follows Wikipedia + Wikidata latitude order). NOT in the data
+# files: 安镇 (Line 2, unopened), 霞客湾科学城 (S1, built but
+# unopened) and Line 4 Phase 2 (not open). S1 is its own line key
+# sharing 堰桥 with Line 1 (through-running in reality), coloured
+# with Line 1 red per the official palette.
+wx_stations = (BASE / "wuxi" / "stations.json").read_text(encoding="utf-8")
+wx_routes = (BASE / "wuxi" / "routes.json").read_text(encoding="utf-8")
+wx_map = (BASE / "wuxi" / "map.svg").read_text(encoding="utf-8")
+assert "</script" not in wx_stations, "wx stations json must not contain </script"
+assert "</script" not in wx_routes, "wx routes json must not contain </script"
+assert "</script" not in wx_map, "wx map svg must not contain </script"
+html = sub_once(r'/\*__WX_STATIONS__\*/\[\]', lambda _: wx_stations, html, "wx stations json")
+html = sub_once(r'/\*__WX_ROUTES__\*/null', lambda _: wx_routes, html, "wx routes json")
+html = sub_once(r'/\*__WX_MAP__\*/""', lambda _: _json.dumps(wx_map), html, "wx map svg")
+wx_logo_path = BASE / "wuxi" / "logo.b64"
+if wx_logo_path.exists():
+    wx_logo_b64 = wx_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__WX_LOGO__\*/''", lambda _: "'data:image/png;base64," + wx_logo_b64 + "'", html, "wx logo")
+else:
+    print("WARNING: web/wuxi/logo.b64 missing; Wuxi logo will be empty")
+# 26E117: small-slot mark for Wuxi — the red symbol cropped out of the
+# official lockup (crop only, artwork untouched; the full lockup above
+# stays for large placements like the splash). The horizontal lockup
+# shrank to illegibility in the 23-26px circular slots and its black
+# text vanished on dark backgrounds; the symbol alone reads clearly
+# at any size in both appearances.
+wx_mark_path = BASE / "wuxi" / "logo-mark.b64"
+if wx_mark_path.exists():
+    wx_mark_b64 = wx_mark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__WX_MARK__\*/''", lambda _: "'data:image/png;base64," + wx_mark_b64 + "'", html, "wx mark")
+else:
+    print("WARNING: web/wuxi/logo-mark.b64 missing; Wuxi small-slot logo falls back to the lockup")
+wx_splash_path = BASE / "wuxi" / "splash.b64"
+if wx_splash_path.exists():
+    wx_splash_b64 = wx_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__WX_SPLASH__\*/', lambda _: wx_splash_b64, html, "wx splash")
+else:
+    print("WARNING: web/wuxi/splash.b64 missing; Wuxi splash will be empty")
+wx_splash_dark_path = BASE / "wuxi" / "splash-dark.b64"
+if wx_splash_dark_path.exists():
+    wx_splash_dark_b64 = wx_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__WX_SPLASH_DARK__\*/', lambda _: wx_splash_dark_b64, html, "wx splash dark")
+else:
+    print("WARNING: web/wuxi/splash-dark.b64 missing; Wuxi dark splash will be empty")
+
 # S3. inline the Chongqing Rail Transit data (14 lines, 282 stations).
 # Same pattern as Jinhua/Changzhou: precomputed stations/routes from the
 # user's system-plan map (see chongqing/NOTES.md); the logo is cropped
@@ -575,6 +701,10 @@ qd_tt_path = BASE / "timetable" / "qd.json"
 qd_tt = qd_tt_path.read_text(encoding="utf-8") if qd_tt_path.exists() else "{}"
 sjz_tt_path = BASE / "timetable" / "sjz.json"
 sjz_tt = sjz_tt_path.read_text(encoding="utf-8") if sjz_tt_path.exists() else "{}"
+tj_tt_path = BASE / "timetable" / "tj.json"
+tj_tt = tj_tt_path.read_text(encoding="utf-8") if tj_tt_path.exists() else "{}"
+wx_tt_path = BASE / "timetable" / "wx.json"
+wx_tt = wx_tt_path.read_text(encoding="utf-8") if wx_tt_path.exists() else "{}"
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
@@ -589,6 +719,8 @@ assert "</script" not in sz_tt, "sz timetable json must not contain </script"
 assert "</script" not in cd_tt, "cd timetable json must not contain </script"
 assert "</script" not in qd_tt, "qd timetable json must not contain </script"
 assert "</script" not in sjz_tt, "sjz timetable json must not contain </script"
+assert "</script" not in tj_tt, "tj timetable json must not contain </script"
+assert "</script" not in wx_tt, "wx timetable json must not contain </script"
 html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
 html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
 html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
@@ -602,6 +734,8 @@ html = sub_once(r'/\*__SZ_TIMETABLE__\*/\{\}', lambda _: sz_tt, html, "sz timeta
 html = sub_once(r'/\*__CD_TIMETABLE__\*/\{\}', lambda _: cd_tt, html, "cd timetable json")
 html = sub_once(r'/\*__QD_TIMETABLE__\*/\{\}', lambda _: qd_tt, html, "qd timetable json")
 html = sub_once(r'/\*__SJZ_TIMETABLE__\*/\{\}', lambda _: sjz_tt, html, "sjz timetable json")
+html = sub_once(r'/\*__TJ_TIMETABLE__\*/\{\}', lambda _: tj_tt, html, "tj timetable json")
+html = sub_once(r'/\*__WX_TIMETABLE__\*/\{\}', lambda _: wx_tt, html, "wx timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 # U. inline verified station lat/lng (web/latlng/latlng-{city}.json,
@@ -623,6 +757,8 @@ sz_ll = (BASE / "latlng" / "latlng-sz.json").read_text(encoding="utf-8")
 cd_ll = (BASE / "latlng" / "latlng-cd.json").read_text(encoding="utf-8")
 qd_ll = (BASE / "latlng" / "latlng-qd.json").read_text(encoding="utf-8")
 sjz_ll = (BASE / "latlng" / "latlng-sjz.json").read_text(encoding="utf-8")
+tj_ll = (BASE / "latlng" / "latlng-tj.json").read_text(encoding="utf-8")
+wx_ll = (BASE / "latlng" / "latlng-wx.json").read_text(encoding="utf-8")
 assert "</script" not in bj_ll, "bj latlng json must not contain </script"
 assert "</script" not in sy_ll, "sy latlng json must not contain </script"
 assert "</script" not in sh_ll, "sh latlng json must not contain </script"
@@ -636,6 +772,8 @@ assert "</script" not in sz_ll, "sz latlng json must not contain </script"
 assert "</script" not in cd_ll, "cd latlng json must not contain </script"
 assert "</script" not in qd_ll, "qd latlng json must not contain </script"
 assert "</script" not in sjz_ll, "sjz latlng json must not contain </script"
+assert "</script" not in tj_ll, "tj latlng json must not contain </script"
+assert "</script" not in wx_ll, "wx latlng json must not contain </script"
 html = sub_once(r'/\*__BJ_LATLNG__\*/\{\}', lambda _: bj_ll, html, "bj latlng json")
 html = sub_once(r'/\*__SY_LATLNG__\*/\{\}', lambda _: sy_ll, html, "sy latlng json")
 html = sub_once(r'/\*__SH_LATLNG__\*/\{\}', lambda _: sh_ll, html, "sh latlng json")
@@ -649,31 +787,31 @@ html = sub_once(r'/\*__SZ_LATLNG__\*/\{\}', lambda _: sz_ll, html, "sz latlng js
 html = sub_once(r'/\*__CD_LATLNG__\*/\{\}', lambda _: cd_ll, html, "cd latlng json")
 html = sub_once(r'/\*__QD_LATLNG__\*/\{\}', lambda _: qd_ll, html, "qd latlng json")
 html = sub_once(r'/\*__SJZ_LATLNG__\*/\{\}', lambda _: sjz_ll, html, "sjz latlng json")
+html = sub_once(r'/\*__TJ_LATLNG__\*/\{\}', lambda _: tj_ll, html, "tj latlng json")
+html = sub_once(r'/\*__WX_LATLNG__\*/\{\}', lambda _: wx_ll, html, "wx latlng json")
 
 # S8. inline the verified official metro logos for the not-yet-
 # supported cities (web/upcoming-logos/, see its MANIFEST.md): the
 # Settings "即将支持" rows show the real logo instead of the generic
-# grey M icon. Only visually verified files are listed. Tianjin is
-# included at the user's explicit request ("都加上", 2026-11-22)
-# even though its Wikimedia source is the "Old Logo" file and the
-# currency check contradicted it being the current mark — see
-# MANIFEST.md for the verdict. Cities without a verified logo keep
-# the M icon.
+# grey M icon. Only visually verified files are listed. Cities
+# without a verified logo keep the M icon. 26E109: 18 more cities
+# cut from the user's own logo-collage photo (same method as the
+# main line's collage pass: per-cell crop, white background
+# flood-filled to transparency, artwork untouched, no city-name
+# text) — including Tianjin, whose collage glyph is the same red
+# roundel as the previously held-back Wikimedia file.
 _SOON_LOGO_FILES = {
     "广州": "guangzhou.b64", "南京": "nanjing.b64", "西安": "xian.b64",
     "杭州": "hangzhou.b64", "长沙": "changsha.b64", "无锡": "wuxi.b64",
     "南昌": "nanchang.b64", "福州": "fuzhou.b64", "南宁": "nanning.b64",
     "温州": "wenzhou.b64", "济南": "jinan.b64", "徐州": "xuzhou.b64",
-    "天津": "tianjin.b64",
-    # 2026-11-22 fifth pass: 17 more cut from a user-provided logo
-    # collage (artwork untouched, white background made transparent);
-    # see MANIFEST.md.
-    "太原": "taiyuan.b64", "呼和浩特": "huhehaote.b64", "苏州": "suzhou.b64",
-    "南通": "nantong.b64", "宁波": "ningbo.b64", "绍兴": "shaoxing.b64",
-    "合肥": "hefei.b64", "厦门": "xiamen.b64", "郑州": "zhengzhou.b64",
-    "洛阳": "luoyang.b64", "武汉": "wuhan.b64", "佛山": "foshan.b64",
-    "东莞": "dongguan.b64", "贵阳": "guiyang.b64", "昆明": "kunming.b64",
-    "兰州": "lanzhou.b64", "乌鲁木齐": "wulumuqi.b64",
+    "天津": "tianjin.b64", "太原": "taiyuan.b64", "呼和浩特": "huhehaote.b64",
+    "苏州": "suzhou.b64", "南通": "nantong.b64", "宁波": "ningbo.b64",
+    "绍兴": "shaoxing.b64", "合肥": "hefei.b64", "厦门": "xiamen.b64",
+    "郑州": "zhengzhou.b64", "洛阳": "luoyang.b64", "武汉": "wuhan.b64",
+    "佛山": "foshan.b64", "东莞": "dongguan.b64", "贵阳": "guiyang.b64",
+    "昆明": "kunming.b64", "兰州": "lanzhou.b64", "乌鲁木齐": "wulumuqi.b64",
+    "雄安": "xiongan.b64",
 }
 _soon_logos = {}
 for _name, _fn in _SOON_LOGO_FILES.items():
