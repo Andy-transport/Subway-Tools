@@ -479,8 +479,30 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // (= 22.0pt at the default 24), the timetable's exact size.
     // Falls back to nil (caller uses the raw configured symbol) if
     // the glyph cannot be measured.
+    // 26E120 F (user, on the 26E119 device crop): the four symbols
+    // STILL rendered bigger than the timetable. Measured on the
+    // crop (native @3x, icon band separated from the title band):
+    // timetable glyph 65px; transfer 93, map 89, search 91,
+    // settings 94 — the symbols sit at ~29-31pt, their RAW
+    // pointSize-24-bold glyph size, while the timetable is at its
+    // modelled 22.0pt. Root cause: the measurement above read the
+    // symbol image's cgImage, but an SF Symbol image has no
+    // directly measurable CGImage bitmap — symbolGlyphFractions
+    // returned nil on device, this function bailed, and the
+    // caller fell back to the raw configured symbol. (The 26E118
+    // gate verified the algebra, which is exact, but never
+    // executed the measurement.) Fix: rasterise the configured
+    // symbol into a plain bitmap FIRST (a renderer draw always
+    // works), measure THAT bitmap's alpha bbox, then run the
+    // unchanged normalization, drawing the symbol itself into the
+    // padded canvas so the vector stays crisp. The target is
+    // unchanged — glyph = size x 0.9178 = 22.03pt, the
+    // timetable's own height, about x0.74 of the size the symbols
+    // render at today — and each symbol is measured individually,
+    // so the four land mutually equal by construction.
     func glyphNormalizedSymbolImage(_ image: UIImage, size: CGFloat) -> UIImage? {
-        guard let glyph = symbolGlyphFractions(image),
+        guard let bitmap = symbolBitmap(image),
+              let glyph = symbolGlyphFractions(bitmap),
               image.size.width > 0, image.size.height > 0 else { return nil }
         let padW = glyph.width / Self.tabGlyphWidthShare
         let padH = glyph.height / Self.tabGlyphHeightShare
@@ -500,6 +522,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // symbol was a template image; the rendered copy must tint
         // the same way for the normal and selected states).
         return rendered.withRenderingMode(.alwaysTemplate)
+    }
+    // 26E120 F: rasterise a (symbol) image into a plain bitmap at
+    // scale 3 so its alpha bbox can be measured — a symbol image
+    // itself exposes no CGImage to measure (see the note above).
+    func symbolBitmap(_ image: UIImage) -> UIImage? {
+        guard image.size.width > 0, image.size.height > 0 else { return nil }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
+        return renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: image.size)) }
     }
     // Siri / deep-link routing (user 2026-11-18, Siri Shortcuts): a
     // subwaymotion:// link that arrives before the offline page has

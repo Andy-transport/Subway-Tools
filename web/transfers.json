@@ -38,6 +38,7 @@
   ],
   "dist": "约400米",
   "note": "虚拟换乘，需出站步行",
-  "routable": true
+  "routable": true,
+  "walkMin": 15
  }
 }

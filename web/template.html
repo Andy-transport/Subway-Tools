@@ -455,6 +455,18 @@
 		   boundary, even when no walking distance is known. */
 		.ropt-virtual { font-size: 11px; font-weight: 700; color: #b26a00; background: rgba(178,106,0,0.14); border-radius: 4px; padding: 1px 5px; margin-left: 4px; white-space: nowrap; }
 		html.dark .ropt-virtual { color: #e8a33d; background: rgba(232,163,61,0.16); }
+		/* Fast-transfer tag (26E120): same pill family as
+		   .ropt-virtual, green for "this transfer is quick";
+		   tappable in the route chain (opens the note popup). */
+		.ropt-fast { font-size: 11px; font-weight: 700; color: #177245; background: rgba(23,114,69,0.13); border-radius: 4px; padding: 1px 5px; margin-left: 4px; white-space: nowrap; cursor: pointer; }
+		html.dark .ropt-fast { color: #4cc38a; background: rgba(76,195,138,0.16); }
+		.ropt-fast-static { margin-left: 0; cursor: default; }
+		.fast-note-backdrop { position: fixed; inset: 0; z-index: 99922; background: rgba(0, 0, 0, 0.35); display: flex; align-items: center; justify-content: center; padding: 24px; }
+		.fast-note-card { width: 100%; max-width: 320px; border-radius: 18px; padding: 18px; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); color: #111; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.25); }
+		html.dark .fast-note-card { background: rgba(38, 38, 42, 0.9); color: #f2f2f5; }
+		.fast-note-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+		.fast-note-body { font-size: 14px; line-height: 1.55; }
+		.fast-note-btn { margin-top: 14px; width: 100%; border: 0; border-radius: 999px; padding: 10px 0; font-size: 15px; font-weight: 600; background: #177245; color: #fff; cursor: pointer; }
 		/* 26E111: a WALK segment (routable different-name virtual
 		   transfer) renders a walk glyph in the chain instead of a
 		   line badge; in the detail list it is its own row. */
@@ -1320,6 +1332,38 @@
 		.tr-summary { padding: 16px 20px 4px; font-size: 14px; color: #555; }
 		.tr-error { padding: 16px 20px 4px; font-size: 15px; color: #c0392b; }
 		.tr-list { padding: 6px 16px 12px; }
+		/* Route detail timeline (26E120 D): header chips +
+		   summary, then a vertical timeline — origin card,
+		   ride segments on a line-coloured rail, transfer /
+		   walk nodes, destination card. App theme + glass,
+		   layout borrowed from the reference, not its skin. */
+		.trd { padding: 10px 16px 12px; }
+		.trd-chips { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+		.trd-arrow { color: #999; font-size: 12px; }
+		.trd-sum { margin-top: 8px; font-size: 15px; font-weight: 600; color: #333; }
+		html.dark .trd-sum { color: #e8eaf2; }
+		.trd .tr-fare { padding: 6px 0 0; }
+		.trd-body { margin-top: 10px; }
+		.trd-node { display: flex; gap: 10px; align-items: flex-start; background: rgba(0, 0, 0, 0.03); border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+		html.dark .trd-node { background: rgba(255, 255, 255, 0.05); }
+		.trd-dot { flex: none; width: 13px; height: 13px; border-radius: 50%; border: 3px solid #999; margin-top: 3px; }
+		.dot-origin { border-color: #1faa59; }
+		.dot-dest { border-color: #e5484d; }
+		.dot-transfer { border-color: #888; }
+		.dot-walk { border-color: #b26a00; }
+		html.dark .dot-walk { border-color: #e8a33d; }
+		.trd-stname { font-size: 16px; font-weight: 700; color: #111; }
+		html.dark .trd-stname { color: #f0f2f8; }
+		.trd-node-main { flex: 1; min-width: 0; }
+		.trd-tline, .trd-walkline { margin-top: 3px; font-size: 13px; color: #b26a00; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+		html.dark .trd-tline, html.dark .trd-walkline { color: #e8a33d; }
+		.trd-walkline img { width: 15px; height: 15px; }
+		.trd-seg { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; flex-wrap: wrap; }
+		.trd-rail { flex: none; width: 5px; align-self: stretch; min-height: 30px; border-radius: 3px; }
+		.trd-dir { font-size: 14px; color: #666; }
+		html.dark .trd-dir { color: #a7adbd; }
+		.trd-ride { font-size: 13px; color: #888; }
+		.trd .tr-transfer-detail { margin: 8px 0 2px; }
 		.tr-seg { display: flex; align-items: center; gap: 10px; padding: 13px 10px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
 		.tr-chip { flex: none; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; color: #fff; }
 		.tr-seg-txt { flex: 1; font-size: 16px; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1907,46 +1951,29 @@
 						<div class="ropt-num">{{ idx + 1 }}</div>
 						<div class="ropt-main">
 							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ t('tr.minutes', {n: r.minutes}) }}</span></div>
-							<div class="ropt-meta"><span v-if="r.fare != null">¥{{ r.fare }} · </span>{{ t('tr.transfers', {n: r.transfers}) }} · {{ t('tr.km', {n: r.km}) }}</div>
+							<div class="ropt-meta"><span v-if="r.fare != null">{{ fareRangeText(r.fare) }} · </span>{{ t('tr.transfers', {n: r.transfers}) }} · {{ t('tr.km', {n: r.km}) }}</div>
 							<div class="ropt-opwarn" v-if="routeOpWarning(r)">⚠ {{ routeOpWarning(r) }}</div>
-							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span v-if="seg.virtual" class="ropt-walkseg"><img :src="walkIconThemed" alt=""><span v-if="si === 0" class="ropt-virtual">{{ t('tr.virtualTag') }}</span></span><span v-else class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="isVirtualAt(r, si+1)" class="ropt-virtual">{{ t('tr.virtualTag') }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span><span v-else-if="transferEstFor(r, si+1) && transferEstFor(r, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(r, si+1)) }}</span></span></template></div>
+							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span v-if="seg.virtual" class="ropt-walkseg"><img :src="walkIconThemed" alt=""><span v-if="si === 0" class="ropt-virtual">{{ t('tr.virtualTag') }}</span></span><span v-else class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="isVirtualAt(r, si+1)" class="ropt-virtual">{{ t('tr.virtualTag') }}</span><span v-if="fastTransferAt(r, si+1)" class="ropt-fast" @click.stop="showFastTransfer(r, si+1)">{{ t('tr.fastTag') }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span><span v-else-if="transferEstFor(r, si+1) && transferEstFor(r, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(r, si+1)) }}</span></span></template></div>
 						</div>
 						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="r.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="r.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 					</div>
 				</div>
-				<div class="tr-fare" :class="{ warn: fareWarn() }" v-if="routeResult">
-					<img :src="fareIcon" alt="">
-					<span>{{ fareText() }}</span>
-				</div>
-				<div class="tr-list" v-if="routeResult">
-					<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
-						<div class="tr-virtual" v-if="virtualInfo(i)">
-							<img :src="walkIconThemed" alt="">
-							<span>{{ virtualInfo(i) }}</span>
-						</div>
-						<div class="tr-virtual" v-else-if="isVirtualAt(routeResult, i)">
-							<img :src="walkIconThemed" alt="">
-							<span>{{ t('tr.virtualTag') }}</span>
-						</div>
-						<div class="tr-transfer-detail" v-if="transferFocus === i">
-							<div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div>
-							<div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div>
-							<div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div>
-							<div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div>
-							<div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div>
-							<div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div>
-						</div>
-						<div class="tr-seg tr-seg-walk" v-if="seg.virtual">
-							<img :src="walkIconThemed" alt="">
-							<span class="tr-seg-txt">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</span>
-							<span class="tr-seg-n">{{ t('tr.virtualTag') }}</span>
-						</div>
-						<div class="tr-seg" v-else @click="goSegment(seg)">
-							<span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span>
-							<span class="tr-seg-txt">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</span>
-							<span class="tr-seg-n">{{ t('tr.stops', {n: seg.stops}) }}</span>
-						</div>
-					</template>
+				<div class="trd" v-if="routeResult">
+					<div class="trd-head">
+						<div class="trd-chips"><template v-for="(seg, si) in routeResult.segments" :key="'chip' + si"><span v-if="si > 0 && !seg.virtual && !routeResult.segments[si - 1].virtual" class="trd-arrow">▸</span><span v-if="!seg.virtual" class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></template></div>
+						<div class="trd-sum">{{ t('tr.minutes', {n: routeResult.minutes}) }}<span v-if="walkDistTotal(routeResult)"> · {{ t('trd.walk', {dist: walkDistTotal(routeResult)}) }}</span><span v-if="routeResult.fare != null"> · {{ fareRangeText(routeResult.fare) }}</span> · {{ t('tr.stops', {n: routeResult.stops}) }}</div>
+						<div class="ropt-opwarn" v-if="routeOpWarning(routeResult)">⚠ {{ routeOpWarning(routeResult) }}</div>
+						<div class="tr-fare" :class="{ warn: fareWarn() }"><img :src="fareIcon" alt=""><span>{{ fareText() }}</span></div>
+					</div>
+					<div class="trd-body">
+						<div class="trd-node trd-origin"><span class="trd-dot dot-origin"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[0].from) }}</span></div>
+						<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
+							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-transfer"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div></div></div></div>
+							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div></div></div></div>
+							<div class="trd-seg" v-if="!seg.virtual" @click="goSegment(seg)"><span class="trd-rail" :style="{ background: '#' + seg.color }"></span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span class="trd-dir" v-if="segDirection(seg)">{{ t('trd.toward', {st: stNameStr(segDirection(seg))}) }}</span><span class="trd-ride">{{ t('trd.ride', {n: seg.stops, min: seg.stops * 2}) }}</span></div>
+						</template>
+						<div class="trd-node trd-dest"><span class="trd-dot dot-dest"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[routeResult.segments.length - 1].to) }}</span></div>
+					</div>
 					<div class="tr-hint">{{ t('tr.hint') }}</div>
 				</div>
 				<div class="tr-trip" v-if="routeResult && !tripActive">
@@ -1956,6 +1983,13 @@
 				<div class="tr-trip active" v-if="tripActive">
 					<div class="tr-trip-info"><span class="tr-trip-next">{{ t('live.next') }} {{ tripNext }}</span><span class="tr-trip-left">{{ t('live.stopsLeft', {n: tripRemaining}) }} &middot; {{ tripEtaText }} {{ t('tr.arrive') }}</span></div>
 					<button class="tr-trip-end" @click="endTrip">{{ t('live.end') }}</button>
+				</div>
+				<div class="fast-note-backdrop" v-if="fastNoteEntry" @click="fastNoteEntry = null">
+					<div class="fast-note-card" @click.stop>
+						<div class="fast-note-title">{{ stNameStr(fastNoteEntry.st) }} · {{ t('tr.fastTag') }}</div>
+						<div class="fast-note-body">{{ t(fastNoteEntry.noteKey) }}</div>
+						<button class="fast-note-btn" @click="fastNoteEntry = null">{{ t('tr.fastOk') }}</button>
+					</div>
 				</div>
 			</div>
 
@@ -2179,7 +2213,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E119)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E120)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2215,7 +2249,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E119)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E120)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2360,6 +2394,15 @@ var I18N = {
   'tr.fare.airport': ['机场线需单独购票', '機場線需單獨購票', 'Airport line: separate ticket'],
   'tr.virtual': ['虚拟换乘 · 出站步行{dist}', '虛擬換乘 · 出站步行{dist}', 'Virtual transfer · exit and walk {dist}'],
   'tr.virtualTag': ['虚拟换乘', '虛擬換乘', 'Virtual transfer'],
+  'tr.fastTag': ['快速换乘', '快速換乘', 'Fast transfer'],
+  'tr.fastOk': ['知道了', '知道了', 'Got it'],
+  'tr.fastNote.suzhoujie': ['前往10号线中部/16号线中部乘坐直梯即可快速换乘', '前往10號線中部/16號線中部乘坐直梯即可快速換乘', 'Head to the middle of the Line 10 / Line 16 platforms and take the lift for a fast transfer'],
+  'tr.fastNote.erligou': ['前往16号线站台外挂厅/6号线外挂厅通过直梯换乘', '前往16號線站台外掛廳/6號線外掛廳通過直梯換乘', 'Head to the outer hall of the Line 16 platform / the Line 6 outer hall and transfer via the lift'],
+  'tr.fastNote.channel': ['通过换乘通道乘坐直梯即可快速换乘', '通過換乘通道乘坐直梯即可快速換乘', 'Take the lift in the transfer passage for a fast transfer'],
+  'trd.toward': ['{st}方向', '{st}方向', 'towards {st}'],
+  'trd.ride': ['乘坐{n}站（约{min}分钟）', '乘坐{n}站（約{min}分鐘）', '{n} stops (~{min} min)'],
+  'trd.walk': ['步行{dist}', '步行{dist}', 'Walk {dist}'],
+  'trd.walkMin': ['约{n}分钟', '約{n}分鐘', '~{n} min'],
   'tr.transferWalk': ['换乘步行{dist}', '換乘步行{dist}', 'Transfer walk {dist}'],
   'tr.transferAt': ['在{st}换乘', '在{st}換乘', 'Transfer at {st}'],
   'tr.inStation': ['站内换乘', '站內換乘', 'In-station transfer'],
@@ -3121,6 +3164,7 @@ function titlePy(py) {
 						departTime: null,
 						searchDate: null, payMethod: 'cash', arriveTarget: null, pendingCond: null,
 						transferFocus: -1,
+						fastNoteEntry: null,
 						fromLine: null,
 						toLine: null,
 						smartList: [], userLat: null, userLng: null,
@@ -3144,7 +3188,12 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
-							{ v: '1.1.0 (26E119)', date: '2026-11-22', lines: [
+							{ v: '1.1.0 (26E120)', date: '2026-11-22', lines: [
+							['牛街 ↔ 广安门内虚拟换乘的步行时间按实测修正：站台到站台约 15 分钟，相关路线的耗时与排名更贴近实际', '牛街 ↔ 廣安門內虛擬換乘的步行時間按實測修正：月台到月台約 15 分鐘，相關路線的耗時與排名更貼近實際', 'The Niujie <-> Guang\u2019anmennei virtual-transfer walk is re-timed from real-world measurement: about 15 minutes platform to platform, so route times and rankings match reality'],
+							['苏州街、二里沟、永安里、蒲黄榆、磁器口五站新增「快速换乘」标识：点击可看直梯换乘提示', '蘇州街、二里溝、永安里、蒲黃榆、磁器口五站新增「快速換乘」標識：點擊可看直梯換乘提示', 'Suzhoujie, Erligou, Yong’anli, Puhuangyu and Ciqikou stations gain a Fast Transfer tag — tap it for the lift-transfer tip'],
+							['路线规划全面优化：按出发线 × 到达线逐组计算最优路线，推荐排序优先换乘次数，少换乘的路线不再被漏掉', '路線規劃全面優化：按出發線 × 到達線逐組計算最優路線，推薦排序優先換乘次數，少換乘的路線不再被漏掉', 'Route planning overhauled: the best path is computed for every origin-line x destination-line pairing, and Recommended ranks fewer transfers first, so low-transfer routes are never missed'],
+							] },
+						{ v: '1.1.0 (26E119)', date: '2026-11-22', lines: [
 							['底部栏按参考图收紧版式：胶囊更宽、位置更贴近屏幕底部；设置各项加上图标（通用、关于、功能介绍、即将开通、运营里程排行榜、轨道交通信息简报、车站结构，以及「通用」中的语言与清除缓存），图标自动适配深浅模式', '底部欄按參考圖收緊版式：膠囊更寬、位置更貼近螢幕底部；設定各項加上圖示（通用、關於、功能介紹、即將開通、營運里程排行榜、軌道交通資訊簡報、車站結構，以及「通用」中的語言與清除快取），圖示自動適配深淺模式', 'The bottom bar is tightened to match the reference: a wider capsule floating closer to the bottom edge. Settings rows gain icons — General, About, What’s New, Opening Soon, Operating Mileage Ranking, Rail Transit Briefing and Station Structure, plus Language and Clear Cache inside General — each adapting automatically to light and dark mode'],
 							['换乘站搜索结果合并为一行：输入换乘站站名时只出现一行，同行并排显示该站的全部线路徽章，点选即选中该站', '換乘站搜尋結果合併為一行：輸入換乘站站名時只出現一行，同行並排顯示該站的全部線路徽章，點選即選中該站', 'Interchange stations merge into one search result: type an interchange station’s name and it appears as a single row with badges for every line serving it side by side — tap the row to select the station'],
 						] },
@@ -4296,7 +4345,28 @@ function titlePy(py) {
 						if (this.hasAirportLine()) reasons.push(this.t('tr.fare.airport'));
 						var cont = reasons.length ? this.t('tr.fare.nocont') + ' (' + reasons.join(', ') + ')' : this.t('tr.fare.cont');
 						if (amt == null) return cont;
-						return this.t('tr.fare.est', { n: amt }) + ' \u00b7 ' + cont;
+						return this.t('tr.fare.est', { n: this.fareRangeNum(amt) }) + ' \u00b7 ' + cont;
+					},
+					// 26E120 E: fares are estimates — every
+					// user-visible fare renders as a ±¥1 range
+					// (¥10 -> ¥9–11). DISPLAY ONLY: the stored
+					// point value is untouched, so odFare
+					// uniformity, the cheap sort and the
+					// isCheap badge keep using it. The range
+					// floor never drops below the city's own
+					// minimum fare — ¥3 in Beijing / Shanghai
+					// (their ladders' first band), ¥2 in every
+					// other city (also the fallback).
+					cityMinFare() {
+						return (this.city === 'bj' || this.city === 'sh') ? 3 : 2;
+					},
+					fareRangeNum(f) {
+						if (f == null) return '';
+						var lo = Math.max(this.cityMinFare(), f - 1);
+						return lo + '–' + (f + 1);
+					},
+					fareRangeText(f) {
+						return f == null ? '' : '¥' + this.fareRangeNum(f);
 					},
 					// Segment distance in km (build 37). Beijing: SVG units / 44
 					// (calibrated build 31). Shanghai: two-zone px/km model
@@ -5004,6 +5074,121 @@ function titlePy(py) {
 						}
 						return out;
 					},
+					// 26E120: measured platform-to-platform minutes
+					// for a walk link, from the pair entry's walkMin
+					// in transfers.json (currently only 牛街 <->
+					// 广安门内 = 15, user-measured 2026-11-22: a slow
+					// walker needs ~15 min platform to platform, so
+					// the old flat 5-min transfer penalty priced the
+					// walk far too cheap). Returns 0 when the pair
+					// carries no walkMin (all other pairs keep the
+					// standard penalty only). Direction-agnostic:
+					// the entry may be keyed from either station.
+					walkMinutesFor(a, b) {
+						var T = this.transfers || {};
+						var e = T[a];
+						if (e && e.other === b && e.walkMin) return e.walkMin;
+						var e2 = T[b];
+						if (e2 && e2.other === a && e2.walkMin) return e2.walkMin;
+						return 0;
+					},
+					// 26E120: fast-transfer stations — a small
+					// DATA-DRIVEN table (city + station + line pair
+					// + trilingual note key), so adding a station
+					// later is a one-line entry. Both directions of
+					// the pair match. Notes are user-supplied tips:
+					// 苏州街 10<->16 (lift at the middle of the
+					// platforms), 二里沟 6<->16 (lift via the outer
+					// halls), 永安里 1<->17 / 蒲黄榆 5<->14 /
+					// 磁器口 5<->7 (lift in the transfer passage).
+					// Beijing only for now.
+					fastTransferTable() {
+						return [
+							{ city: 'bj', st: '苏州街', lines: ['10', '16'], noteKey: 'tr.fastNote.suzhoujie' },
+							{ city: 'bj', st: '二里沟', lines: ['6', '16'], noteKey: 'tr.fastNote.erligou' },
+							{ city: 'bj', st: '永安里', lines: ['1', '17'], noteKey: 'tr.fastNote.channel' },
+							{ city: 'bj', st: '蒲黄榆', lines: ['5', '14'], noteKey: 'tr.fastNote.channel' },
+							{ city: 'bj', st: '磁器口', lines: ['5', '7'], noteKey: 'tr.fastNote.channel' }
+						];
+					},
+					// The fast-transfer table entry for the
+					// boundary INTO segment i of route r, or null.
+					fastTransferEntry(r, i) {
+						if (!i || !r || !r.segments || i >= r.segments.length) return null;
+						var segs = r.segments;
+						if (segs[i].virtual || segs[i - 1].virtual) return null;
+						var st = segs[i].from, a = segs[i - 1].line, b = segs[i].line;
+						var table = this.fastTransferTable();
+						for (var k = 0; k < table.length; k++) {
+							var e = table[k];
+							if (e.city !== this.city || e.st !== st) continue;
+							if ((e.lines[0] === a && e.lines[1] === b) || (e.lines[0] === b && e.lines[1] === a)) return e;
+						}
+						return null;
+					},
+					fastTransferAt(r, i) { return !!this.fastTransferEntry(r, i); },
+					showFastTransfer(r, i) {
+						var e = this.fastTransferEntry(r, i);
+						if (e) this.fastNoteEntry = e;
+					},
+					// 26E120 D: route-detail timeline helpers.
+					toggleTd(i) { this.transferFocus = this.transferFocus === i ? -1 : i; },
+					// Direction label for a ride segment: the
+					// terminus in the direction of travel, from
+					// the line's station order (the timetable's
+					// own convention). '' when not derivable —
+					// never guessed.
+					segDirection(seg) {
+						var R = this.routes;
+						if (!R || !R.lines || !seg || seg.virtual) return '';
+						var L = R.lines[seg.line];
+						if (!L || !L.stations) return '';
+						var a = L.stations.indexOf(seg.from), b = L.stations.indexOf(seg.to);
+						if (a < 0 || b < 0 || a === b) return '';
+						return b > a ? L.stations[L.stations.length - 1] : L.stations[0];
+					},
+					// Total labelled walking distance for the
+					// detail summary line: sums the virtual
+					// boundaries' transfers.json dist values
+					// (the only walking distances that exist as
+					// data); '' when the route has none.
+					walkDistTotal(r) {
+						if (!r || !r.segments || !r.segments.length) return '';
+						if (r.segments.length === 1 && r.segments[0].virtual) {
+							var info = this.transfers && this.transfers[r.segments[0].from];
+							return info && info.other === r.segments[0].to ? (info.dist || '') : '';
+						}
+						var total = 0, count = 0, single = '';
+						for (var i = 1; i < r.segments.length; i++) {
+							var d = this.virtualDistFor(r, i);
+							if (!d) continue;
+							var m = /(\d+)\s*米/.exec(d);
+							if (!m) continue;
+							total += parseInt(m[1], 10); count++; single = d;
+						}
+						if (!count) return '';
+						return count === 1 ? single : '约' + total + '米';
+					},
+					// Minutes charged for the WALK segment at
+					// index i: the pair's measured walkMin when
+					// it has one （牛街<->广安门内 = 15), else
+					// the standard 5-min transfer penalty.
+					walkMinutesAt(r, i) {
+						var seg = r && r.segments && r.segments[i];
+						if (!seg || !seg.virtual) return 0;
+						return this.walkMinutesFor(seg.from, seg.to) || 5;
+					},
+					// Transfer-node line for an in-station
+					// boundary: the planner-derived estimate
+					// when data exists （约X米 · 约X分钟（预估）),
+					// else the bare 站内换乘 label — no invented
+					// numbers.
+					transferNodeText(r, i) {
+						var est = this.transferEstFor(r, i);
+						if (est && est.out) return this.t('tr.transferOut', est);
+						if (est) return this.t('tr.transferEst', est);
+						return this.t('tr.inStation');
+					},
 					// "from|to|line" keys for steps that traverse a
 					// walk link (the line is the ARRIVAL line at the
 					// other station). Used when rebuilding segments
@@ -5029,6 +5214,14 @@ function titlePy(py) {
 						if (segs[i].virtual) {
 							var vinfo = this.transfers && this.transfers[segs[i].from];
 							if (vinfo && vinfo.other === segs[i].to) return this.t('tr.virtual', { dist: vinfo.dist });
+							// 26E120 D: pairs are registered under
+							// ONE station's key only (e.g. the
+							// 牛街<->广安门内 pair lives under
+							// 广安门内); the reverse direction is
+							// the same physical walk and must show
+							// the same label + dist.
+							var vrev = this.transfers && this.transfers[segs[i].to];
+							if (vrev && vrev.other === segs[i].from) return this.t('tr.virtual', { dist: vrev.dist });
 							return this.t('tr.virtualTag');
 						}
 						if (!i) return '';
@@ -5076,6 +5269,11 @@ function titlePy(py) {
 						if (segs[i].virtual) {
 							var vinfo = this.transfers && this.transfers[segs[i].from];
 							if (vinfo && vinfo.other === segs[i].to) return vinfo.dist || '';
+							// 26E120 D: reverse-registered pair
+							// (see virtualInfoFor) — same walk,
+							// same dist.
+							var vrev = this.transfers && this.transfers[segs[i].to];
+							if (vrev && vrev.other === segs[i].from) return vrev.dist || '';
 							return '';
 						}
 						var st = segs[i].from;
@@ -5907,6 +6105,7 @@ function titlePy(py) {
 					findRoute(fromName, toName, mode, banned, fromLine, toLine) {
 						var R = this.routes;
 						if (!R || !R.edges || !R.lines) return null;
+						var self = this;
 						mode = mode || 'time';
 						banned = banned || [];
 						var isBanned = {};
@@ -5926,19 +6125,19 @@ function titlePy(py) {
 							L.aLines.forEach(function(al) { (adj[L.b] = adj[L.b] || []).push([L.a, al]); });
 						});
 						// Dijkstra over (station, line). Modes:
-						// 'time': cost = stops*2 + transfers*5. 'fewest': cost = transfers*1000 + stops.
+						// 'time': cost = stops*2 + transfers*5 (+ walkMin extra, 26E120). 'fewest': cost = transfers*1000 + stops.
 						// 'shortest': cost = stops (fewest stops ~ shortest distance / cheapest fare).
 						function costOf(stops, transfers) {
 							if (mode === 'fewest') return transfers * 1000 + stops;
 							if (mode === 'shortest') return stops;
 							return stops * 2 + transfers * 5;
 						}
-						var queue = [[0, 0, 0, fromName, null, [[fromName, null]]]];
+						var queue = [[0, 0, 0, fromName, null, [[fromName, null]], 0]];
 						var best = {};
 						while (queue.length) {
 							queue.sort(function(a, b) { return a[0] - b[0]; });
 							var cur = queue.shift();
-							var cost = cur[0], stops = cur[1], transfers = cur[2], st = cur[3], ln = cur[4], path = cur[5];
+							var cost = cur[0], stops = cur[1], transfers = cur[2], st = cur[3], ln = cur[4], path = cur[5], extra = cur[6] || 0;
 							var key = st + '|' + ln;
 							if (best[key] !== undefined && best[key] <= cost) continue;
 							best[key] = cost;
@@ -5972,7 +6171,7 @@ function titlePy(py) {
 									if (segs[wi].virtual && wi > 0 && wi < segs.length - 1) nTransfers--;
 								}
 								if (segs.length === 1 && segs[0].virtual) nTransfers = 1;
-								return { stops: stops, transfers: nTransfers, segments: segs, minutes: stops * 2 + nTransfers * 5, stations: path.map(function(pp) { return pp[0]; }) };
+								return { stops: stops, transfers: nTransfers, segments: segs, minutes: stops * 2 + nTransfers * 5 + extra, stations: path.map(function(pp) { return pp[0]; }) };
 							}
 							(adj[st] || []).forEach(function(nb) {
 								if (isBanned[nb[0]]) return;
@@ -5980,13 +6179,23 @@ function titlePy(py) {
 								// 26E111: a walk-link step is a transfer
 								// (even as the first step — you leave the
 								// origin station on foot) but not a ride
-								// stop; its only time cost is the standard
-								// transfer penalty in the minutes model.
+								// stop. 26E120: when the pair carries a
+								// measured walkMin （牛街<->广安门内 = 15),
+								// the step costs that in TOTAL — the
+								// standard 5-min transfer penalty is
+								// already counted in nTransfers, so only
+								// the difference rides along as extra
+								// minutes (state slot 6; folded into the
+								// Dijkstra cost in 'time' mode and into
+								// the returned minutes for every mode).
 								var isWalk = !!walkKeys[st + '|' + nb[0] + '|' + nb[1]];
 								var isTransfer = isWalk || (ln !== null && nb[1] !== ln);
 								var nStops = stops + (isWalk ? 0 : 1);
 								var nTransfers = transfers + (isTransfer ? 1 : 0);
-								queue.push([costOf(nStops, nTransfers), nStops, nTransfers, nb[0], nb[1], path.concat([[nb[0], nb[1]]])]);
+								var wm = isWalk ? self.walkMinutesFor(st, nb[0]) : 0;
+								var nExtra = extra + (wm > 5 ? wm - 5 : 0);
+								var nCost = costOf(nStops, nTransfers) + (mode === 'time' ? nExtra : 0);
+								queue.push([nCost, nStops, nTransfers, nb[0], nb[1], path.concat([[nb[0], nb[1]]]), nExtra]);
 							});
 						}
 						return null;
@@ -6008,6 +6217,36 @@ function titlePy(py) {
 						add(this.findRoute(fromName, toName, 'time', null, fl, tl));
 						add(this.findRoute(fromName, toName, 'fewest', null, fl, tl));
 						add(this.findRoute(fromName, toName, 'shortest', null, fl, tl));
+						// 26E120 C: per-combo optima. For EVERY
+						// (origin line x destination line) pair, run
+						// the time-optimal search pinned to that pair
+						// — the path may transfer via other lines in
+						// between (e.g. 10->18 via 16) — and add its
+						// best route as a candidate. Without this the
+						// enumeration only ever produced a handful of
+						// fastest candidates, and a slow-but-simple
+						// combo — classically 丰台站 10 -> 天通苑 5
+						// via 宋家庄， the ONLY 1-transfer option —
+						// never even became a candidate, so it could
+						// not be shown at all. User-pinned lines
+						// collapse the combos to the pinned pair.
+						var fromLineKeys = fl ? [fl] : self.stationLines(fromName).map(function(x) { return x.key; });
+						var toLineKeys = tl ? [tl] : self.stationLines(toName).map(function(x) { return x.key; });
+						fromLineKeys.forEach(function(a) {
+							toLineKeys.forEach(function(b) {
+								add(self.findRoute(fromName, toName, 'time', null, a, b));
+								// The combo's fewest-transfer optimum
+								// too: priced purely by time, a combo
+								// like 10->5 prefers a 3-transfer
+								// express shortcut (57 min) over its
+								// 1-transfer direct ride via 宋家庄
+								// (67 min) — the direct ride is the
+								// route riders mean by "the 10->5
+								// route", so it must be a candidate
+								// in its own right.
+								add(self.findRoute(fromName, toName, 'fewest', null, a, b));
+							});
+						});
 						var tried = {};
 						var ri = 0;
 						while (list.length < 6 && ri < list.length) {
@@ -6119,6 +6358,37 @@ function titlePy(py) {
 								return true;
 							});
 							if (!kept.length) kept = [fastest || list[0]];
+							// 26E120 C: transfer-count floor. For each
+							// class c in {1, 2}: if no kept route has
+							// <= c transfers, re-add the best such
+							// candidate (fewest transfers, then
+							// fastest). A re-added route must still
+							// respect the hard rules — no backtracking
+							// (2), no dominated virtual route (1), and
+							// rule (3)'s time cap — and sit within the
+							// 2x absurdity bound of the fastest
+							// candidate; the floor overrides only the
+							// transfer/distance heuristics (4)/(5).
+							[1, 2].forEach(function(c) {
+								if (kept.some(function(r) { return r.transfers <= c; })) return;
+								var pool = list.filter(function(r) {
+									if (r.transfers > c || r.hasRepeat) return false;
+									if (r.minutes > minMin * 2) return false;
+									var capRatio = 1.5, capAbs = 20;
+									if (fastest && r.transfers < fastest.transfers) { capRatio = 1.75; capAbs = 30; }
+									if (r.minutes > minMin * capRatio && r.minutes - minMin >= capAbs) return false;
+									if (r.hasVirtual && inStationRoutes.length) {
+										var dominated = inStationRoutes.some(function(q) {
+											return q.minutes <= r.minutes && q.transfers <= r.transfers;
+										});
+										if (dominated) return false;
+									}
+									return true;
+								});
+								if (!pool.length) return;
+								pool.sort(function(a, b) { return a.transfers - b.transfers || a.minutes - b.minutes; });
+								kept.push(pool[0]);
+							});
 							list = kept;
 						})();
 						var minMin2 = Infinity, minTr2 = Infinity, minFare2 = Infinity, maxFare2 = -Infinity, minStops2 = Infinity;
@@ -6136,6 +6406,20 @@ function titlePy(py) {
 							// costs the same — the 便宜 badge only
 							// makes sense when fares actually differ.
 							r.isCheap = r.fare != null && r.fare === minFare2 && minFare2 < maxFare2;
+						});
+						// 26E120 C: present the options in Recommended
+						// order (the same comparator as sortedRoutes'
+						// rec tab: within 2x of the fastest, fewer
+						// transfers first, then minutes), capped at 6
+						// — so routeList[0], the default selection, is
+						// the recommended route, and a low-transfer
+						// option is never sliced off by generation
+						// order.
+						var recMin = Infinity;
+						list.forEach(function(r) { if (r.minutes < recMin) recMin = r.minutes; });
+						list.sort(function(a, b) {
+							var ga = a.minutes <= recMin * 2 ? 0 : 1, gb = b.minutes <= recMin * 2 ? 0 : 1;
+							return ga - gb || a.transfers - b.transfers || a.minutes - b.minutes || a.stops - b.stops;
 						});
 						return list.slice(0, 6);
 					},
@@ -6487,7 +6771,19 @@ function titlePy(py) {
 						if (tab === 'early') list.sort(function(a, b) { return a.minutes - b.minutes || a.transfers - b.transfers; });
 						else if (tab === 'fewest') list.sort(function(a, b) { return a.stops - b.stops || a.transfers - b.transfers; });
 						else if (tab === 'cheap') list.sort(function(a, b) { return (a.fare == null ? 9999 : a.fare) - (b.fare == null ? 9999 : b.fare) || a.minutes - b.minutes; });
-						else list.sort(function(a, b) { return a.minutes - b.minutes || a.transfers - b.transfers; });
+						else {
+							// 26E120 C: Recommended — transfers before
+							// minutes, except that a route slower than
+							// 2x the fastest option is not promoted
+							// over it (same 2x bound as the candidate
+							// floor in findRoutes).
+							var minMin = Infinity;
+							list.forEach(function(r) { if (r.minutes < minMin) minMin = r.minutes; });
+							list.sort(function(a, b) {
+								var ga = a.minutes <= minMin * 2 ? 0 : 1, gb = b.minutes <= minMin * 2 ? 0 : 1;
+								return ga - gb || a.transfers - b.transfers || a.minutes - b.minutes || a.stops - b.stops;
+							});
+						}
 						return list;
 					}
 				},
