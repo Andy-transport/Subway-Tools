@@ -989,8 +989,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 // and its sliding selection capsule are untouched.
                 appearance.backgroundColor = UIColor { traits in
                     traits.userInterfaceStyle == .dark
-                        ? UIColor(white: 0.08, alpha: 0.18)
-                        : UIColor(white: 1.0, alpha: 0.38)
+                        ? UIColor(white: 0.08, alpha: 0.35)
+                        : UIColor(white: 1.0, alpha: 0.45)
                 }
             }
             appearance.stackedLayoutAppearance.normal.iconColor = .secondaryLabel
