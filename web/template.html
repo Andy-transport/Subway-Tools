@@ -80,6 +80,8 @@
 			window.MSX_ICON = "data:image/png;base64,/*__MSX_ICON__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.BJ_TRANSFER_TIMES = /*__BJ_TRANSFER_TIMES__*/{};
+			window.BJ_TRANSFER_DIST = /*__BJ_TRANSFER_DIST__*/{};
+			window.BJ_VT_EXITS = /*__BJ_VT_EXITS__*/[];
 			window.SY_TRANSFERS = /*__SY_TRANSFERS__*/{};
 			window.SH_TRANSFERS = /*__SH_TRANSFERS__*/{};
 			window.HB_TRANSFERS = /*__HB_TRANSFERS__*/{};
@@ -509,6 +511,17 @@
 		   with a check in their title (AppDelegate applyBadges). */
 		.ln-badge.locked { position: relative; }
 		.ln-badge.locked::after { content: '✓'; position: absolute; top: -7px; right: -7px; width: 15px; height: 15px; border-radius: 50%; background: #34c759; color: #ffffff; font-size: 10px; font-weight: 800; line-height: 15px; text-align: center; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); z-index: 2; }
+		/* 26E123 ⑧: the line-map station card (tap a station on the
+		   map). Its line pills are the suggestion-row badges verbatim
+		   (same .ln-badge markup, same .locked check disc). */
+		.map-st-card { position: fixed; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 84px); z-index: 99920; background: #ffffff; border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25); padding: 14px 16px; }
+		html.dark .map-st-card { background: #1c1c1e; }
+		.map-st-name { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+		.map-st-lines { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+		.map-st-lines .ln-badge { height: auto; cursor: pointer; }
+		.map-st-actions { display: flex; gap: 10px; }
+		.map-st-btn { flex: 1; border: none; border-radius: 12px; padding: 11px 0; font-size: 15px; font-weight: 600; cursor: pointer; background: rgba(120, 120, 128, 0.12); color: #007aff; }
+		.map-st-btn.to { color: #e5484d; }
 		html.dark .tr-tabs { background: rgba(255,255,255,0.08); }
 		html.dark .tr-tabs button { color: #fff; }
 		html.dark .tr-tabs button.on { background: rgba(255,255,255,0.16); color: #fff; }
@@ -648,6 +661,15 @@
 		   Glass buttons overlaid on .tr-actions — hide the web buttons
 		   but keep the space, same as .tr-fields / .tr-search above. */
 		.native-app .tr-actions { visibility: hidden !important; }
+		/* 26E123 ⑤: profile page native Liquid Glass. The info card
+		   keeps its web rows visible + interactive over a native
+		   clear-glass backplate, so only its own background clears;
+		   Save / Redeem / Sign Out are covered by native glass rows,
+		   so their web rows hide as well (same pattern as .tr-search).
+		   The identity badges are NOT glass (user exception) and are
+		   untouched by these rules. */
+		.native-app .pf-card-info, .native-app .pf-card-save, .native-app .pf-card-redeem, .native-app .pf-card-logout { background: transparent !important; box-shadow: none !important; }
+		.native-app .pf-card-save .more-row, .native-app .pf-card-redeem .more-row, .native-app .pf-card-logout .more-row { visibility: hidden !important; }
 
 
 
@@ -812,6 +834,20 @@
 		.struct-spin { display: inline-block; width: 18px; height: 18px; margin-right: 8px; vertical-align: -3px; border-radius: 50%; border: 2px solid rgba(120, 120, 128, 0.35); border-top-color: #888; animation: structspin 0.8s linear infinite; }
 		@keyframes structspin { to { transform: rotate(360deg); } }
 		.sp-head { display: flex; gap: 8px; align-items: center; padding: 8px 12px 4px; }
+		/* Service alert cards (26E123, item 11): remote official
+		   notices at the top of the timetable tab. */
+		.sa-wrap { padding: 10px 16px 0; }
+		.sa-card { background: #fff7e8; border: 1px solid #f0c36d; border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
+		html.dark .sa-card { background: #3a2f16; border-color: #8a6d2f; }
+		.sa-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+		.sa-type { flex: none; font-size: 11px; font-weight: 700; color: #fff; background: #ff9500; border-radius: 6px; padding: 2px 6px; }
+		.sa-type-adjustment { background: #ff3b30; }
+		.sa-type-notice { background: #007aff; }
+		.sa-soon { flex: none; font-size: 11px; font-weight: 700; color: #b26a00; border: 1px solid #b26a00; border-radius: 6px; padding: 1px 5px; }
+		html.dark .sa-soon { color: #ffb340; border-color: #ffb340; }
+		.sa-title { font-size: 14px; font-weight: 600; }
+		.sa-body { font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+		.sa-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 11px; color: #8e8e93; }
 		.sp-search {
 			flex: 1;
 			display: flex;
@@ -978,6 +1014,20 @@
 		   its last row). */
 		#moreSheet.home-lock .more-main > * { flex: none; }
 		#moreSheet.home-lock .more-credit { padding-top: 0; }
+		/* Profile page no-scroll (26E123, item 12, user: 资料页
+		   不能滑动): the profile page fits one screen, so while
+		   it is open the sheet is locked exactly like the
+		   settings home — overflow hidden + overscroll-behavior
+		   none, no dragging or rubber-banding at all.
+		   checkProfileFit() releases the lock (profile-scroll)
+		   only when the content genuinely cannot fit (small
+		   screen, or the nickname keyboard up): the sheet stays
+		   locked and the profile sub itself becomes the only
+		   scroller, its overscroll contained. */
+		#moreSheet.profile-lock { overflow: hidden; overscroll-behavior: none; }
+		#moreSheet.profile-scroll { overflow: hidden; }
+		.more-sub-static { overscroll-behavior: none; }
+		#moreSheet.profile-scroll .more-sub-static { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 		/* 26E117: the released state of the home lock (see the
 		   recount above). When checkHomeFit() finds the home
 		   column taller than the locked box, the sheet drops
@@ -1014,12 +1064,15 @@
 		.more-city-row.soon .more-soon-logo { filter: grayscale(1); opacity: 0.55; }
 		html.dark .more-soon-icon { background: rgba(255,255,255,0.12); color: #8e8e93; }
 		.more-row-icon { width: 28px; height: 28px; border-radius: 7px; flex: none; margin-right: 10px; }
-		/* Train Model Search row icon (26E108, user-supplied glyph):
-		   the photo's luminance became an alpha template, rendered as
-		   a CSS mask over a theme-coloured box — dark grey on light,
+		/* Train Model Search row icon (26E108, user-supplied glyph;
+		   glyph replaced in 26E123 (item 9) with the user's new
+		   train-front photo): the photo's luminance became an alpha
+		   template on the shared 96x96 canvas (glyph long side
+		   75px, centred — the 26E119 treatment), rendered as a CSS
+		   mask over a theme-coloured box — dark grey on light,
 		   light grey on dark, so it follows the appearance like the
 		   neighbouring rows' icons. Only this row uses it. */
-		.more-train-icon { width: 28px; height: 28px; flex: none; margin-right: 10px; background: #3a3a3c; -webkit-mask-image: url('data:image/png;base64,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'); -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; mask-image: url('data:image/png;base64,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'); mask-repeat: no-repeat; mask-position: center; mask-size: contain; }
+		.more-train-icon { width: 28px; height: 28px; flex: none; margin-right: 10px; background: #3a3a3c; -webkit-mask-image: url('data:image/png;base64,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'); -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; mask-image: url('data:image/png;base64,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'); mask-repeat: no-repeat; mask-position: center; mask-size: contain; }
 		html.dark .more-train-icon { background: #e9e9ee; }
 		/* Settings row glyph icons (26E119, user-supplied glyphs):
 		   the user's nine glyph photos became alpha templates on a
@@ -1099,6 +1152,8 @@
 		.more-profile-avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; cursor: pointer; }
 		span.more-profile-avatar { display: inline-flex; align-items: center; justify-content: center; font-size: 34px; }
 		.more-profile-hint { font-size: 13px; color: #007aff; cursor: pointer; }
+		.more-profile-identity { display: flex; justify-content: center; }
+		.more-profile-identity .creator-badge, .more-profile-identity .tester-badge { margin-left: 0; vertical-align: baseline; }
 		.more-profile-input { flex: 1; min-width: 0; text-align: right; border: none; outline: none; background: transparent; font-size: 16px; font-family: inherit; color: inherit; padding: 0; }
 		.more-profile-save { justify-content: center; }
 		.more-profile-save > span { flex: none; text-align: center; color: #007aff; font-weight: 600; }
@@ -1106,8 +1161,11 @@
 		.more-profile-logout > span { flex: none; text-align: center; color: #ff3b30; }
 		/* Creator badge + redemption (26E122): shown next to the ID
 		   on the profile page and the Settings account card once a
-		   creator code has been redeemed. */
-		.creator-badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: #ff9500; color: #fff; font-size: 11px; font-weight: 600; line-height: 1.5; vertical-align: 1px; white-space: nowrap; }
+		   creator code has been redeemed. Tester badge (26E123):
+		   same slot, blue — the two identities are mutually
+		   exclusive (profile.idKind). */
+		.creator-badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: #34c759; color: #fff; font-size: 11px; font-weight: 600; line-height: 1.5; vertical-align: 1px; white-space: nowrap; }
+		.tester-badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: #007aff; color: #fff; font-size: 11px; font-weight: 600; line-height: 1.5; vertical-align: 1px; white-space: nowrap; }
 		.more-redeem-input { text-align: left; }
 		.more-redeem-go { flex: none; margin-left: 10px; color: #007aff; font-weight: 600; cursor: pointer; }
 		/* DIAG-26E122: diagnostic readout under the Siri switch row —
@@ -1892,6 +1950,13 @@
 					</div>
 					<button class="sp-cancel" @click="closeTimetable">{{ t('search.cancel') }}</button>
 				</div>
+				<div class="sa-wrap" v-if="visibleServiceAlerts().length">
+					<div class="sa-card" v-for="a in visibleServiceAlerts()" :key="a.city + '|' + a.title + '|' + a.from">
+						<div class="sa-head"><span class="sa-type" :class="'sa-type-' + a.type">{{ t('alerts.type.' + a.type) }}</span><span class="sa-soon" v-if="a.upcoming">{{ t('alerts.soon') }}</span><span class="sa-title">{{ a.title }}</span></div>
+						<div class="sa-body">{{ a.body }}</div>
+						<div class="sa-meta"><span v-if="a.source">{{ t('alerts.source', {s: a.source}) }}</span><span class="sa-dates">{{ a.from }} – {{ a.to }}</span></div>
+					</div>
+				</div>
 				<div v-if="!ttLine" class="tt-list-wrap">
 					<div class="sp-count">{{ ttQuery ? t('tt.foundLines', {n: ttLineFiltered.length}) : t('tt.totalLines', {n: ttLineList.length}) }}</div>
 					<div class="sp-list">
@@ -2058,8 +2123,8 @@
 					<div class="trd-body">
 						<div class="trd-node trd-origin"><span class="trd-dot dot-origin" :style="routeResult.segments[0].virtual ? null : { borderColor: '#' + routeResult.segments[0].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[0].from) }}</span></div>
 						<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
-							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-split" :style="{ background: 'conic-gradient(from 90deg, #' + seg.color + ' 0deg 180deg, #' + routeResult.segments[i - 1].color + ' 180deg 360deg)' }"><span class="trd-dot-hole"></span></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div></div></div></div>
-							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div></div></div></div>
+							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-split" :style="{ background: 'conic-gradient(from 90deg, #' + seg.color + ' 0deg 180deg, #' + routeResult.segments[i - 1].color + ' 180deg 360deg)' }"><span class="trd-dot-hole"></span></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div></div></div></div>
+							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div></div></div></div>
 							<div class="trd-seg" v-if="!seg.virtual" @click="goSegment(seg)"><span class="trd-rail" :style="{ background: '#' + seg.color }"></span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span class="trd-dir" v-if="segDirection(seg)">{{ t('trd.toward', {st: stNameStr(segDirection(seg))}) }}</span><span class="trd-ride">{{ t('trd.ride', {n: seg.stops, min: seg.stops * 2}) }}</span></div>
 						</template>
 						<div class="trd-node trd-dest"><span class="trd-dot dot-dest" :style="routeResult.segments[routeResult.segments.length - 1].virtual ? null : { borderColor: '#' + routeResult.segments[routeResult.segments.length - 1].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[routeResult.segments.length - 1].to) }}</span></div>
@@ -2086,7 +2151,7 @@
 			</div>
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
-			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen && !locPermHint && !homeOverflow, 'home-scroll': showMore && !anySubViewOpen && homeOverflow }" v-show="showMore">
+			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen && !locPermHint && !homeOverflow, 'home-scroll': showMore && !anySubViewOpen && homeOverflow, 'profile-lock': showMore && showProfileSub && !profileOverflow, 'profile-scroll': showMore && showProfileSub && profileOverflow }" v-show="showMore">
 				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub && !showStructSub && !showRankingSub">
 				<div class="more-title">{{ t('app.name') }}</div>
 				<!-- 26E117: the account (login) card is FIRST on the
@@ -2100,7 +2165,7 @@
 					<span class="more-account-avatar more-account-guest" v-else><svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.9 0-8 2-8 4.5V20h16v-1.5C20 16 15.9 14 12 14z" fill="currentColor"/></svg></span>
 					<div class="more-account-text">
 						<div class="more-account-name">{{ profile ? profile.name : t('profile.login') }}</div>
-						<div class="more-account-sub" v-if="profile">ID: {{ profile.id }}<span class="creator-badge" v-if="profile.creator">{{ t('profile.creator') }}</span> · {{ t('profile.since') }}: {{ profile.since }}</div>
+						<div class="more-account-sub" v-if="profile">ID: {{ profile.id }}<span class="creator-badge" v-if="profile.idKind === 'creator'">{{ t('profile.creator') }}</span><span class="tester-badge" v-if="profile.idKind === 'tester'">{{ t('profile.tester') }}</span> · {{ t('profile.since') }}: {{ profile.since }}</div>
 						<div class="more-account-sub" v-else>{{ t('profile.tapLogin') }}</div>
 					</div>
 					<span class="more-chev">›</span>
@@ -2285,6 +2350,7 @@
 					</div>
 					<div class="more-search"><input class="more-search-input" type="text" v-model="trainQuery" :placeholder="t('more.trains.ph')" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
 					<template v-if="trainQuery.trim()">
+						<div class="more-card train-site-card" v-if="trainOfficialSite()"><div class="more-row" @click="openTrainSite()"><span>{{ t('more.trains.site', {name: trainOfficialSite().name}) }}</span><span class="more-chev">↗</span></div></div>
 						<template v-for="g in trainResults()" :key="g.key">
 							<div class="more-section">{{ g.name }}</div>
 							<div class="more-card">
@@ -2314,7 +2380,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E122)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E123)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2350,7 +2416,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E122)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E123)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2372,12 +2438,19 @@
 						<img class="more-profile-avatar" v-if="profileAvatarShown" :src="profileAvatarShown" alt="" @click="pickAvatar()">
 						<span class="more-profile-avatar more-account-initial" v-else-if="profileDraftInitial" @click="pickAvatar()">{{ profileDraftInitial }}</span>
 						<span class="more-profile-avatar more-account-guest" v-else @click="pickAvatar()"><svg viewBox="0 0 24 24" width="44" height="44"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.9 0-8 2-8 4.5V20h16v-1.5C20 16 15.9 14 12 14z" fill="currentColor"/></svg></span>
+						<!-- 26E123: the identity chip lives on its own centred
+							 line directly under the avatar (the ID row no
+							 longer carries it). 26E123 ⑤ exception: the
+							 chip is a PLAIN SOLID piece — green creator /
+							 blue tester — never Liquid Glass, here and
+							 in the Settings account card alike. -->
+						<div class="more-profile-identity" v-if="profile && profile.idKind"><span class="creator-badge" v-if="profile.idKind === 'creator'">{{ t('profile.creator') }}</span><span class="tester-badge" v-if="profile.idKind === 'tester'">{{ t('profile.tester') }}</span></div>
 						<div class="more-profile-hint" @click="pickAvatar()">{{ t('profile.avatarHint') }}</div>
 						<input ref="avatarInput" type="file" accept="image/*" style="display:none" @change="onAvatarFile">
 					</div>
-					<div class="more-card">
-						<div class="more-row"><span>{{ t('profile.name') }}</span><input class="more-profile-input" type="text" v-model="profileNameDraft" :placeholder="t('profile.namePh')" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-						<div class="more-row" v-if="profile"><span>ID</span><span class="more-row-value">{{ profile.id }}<span class="creator-badge" v-if="profile.creator">{{ t('profile.creator') }}</span></span></div>
+					<div class="more-card pf-card-info">
+						<div class="more-row"><span>{{ t('profile.name') }}</span><input class="more-profile-input" ref="profileNameInput" @focus="onProfileNameFocus()" type="text" v-model="profileNameDraft" :placeholder="t('profile.namePh')" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+						<div class="more-row" v-if="profile"><span>ID</span><span class="more-row-value">{{ profile.id }}</span></div>
 						<div class="more-row" v-if="profile"><span>{{ t('profile.since') }}</span><span class="more-row-value">{{ profile.since }}</span></div>
 						<!-- 26E122: Home City （常用城市）. Stored on the
 							 profile (commonCity = city key); at cold
@@ -2395,7 +2468,7 @@
 						<div class="more-city-row" @click="recommendCommonCityByLoc()"><span class="more-city-name"><span>{{ t('profile.commonCityLoc') }}</span></span><span class="more-chev">›</span></div>
 						<div class="more-city-row" v-for="c in cityList" :key="'cc-' + c.key" @click="setCommonCity(c.key)"><span class="more-city-name"><span>{{ c.name }}</span></span><span class="more-check" v-if="profile.commonCity === c.key">✓</span></div>
 					</div>
-					<div class="more-card">
+					<div class="more-card pf-card-save">
 						<div class="more-row more-profile-save" @click="saveProfile()"><span>{{ profile ? t('profile.save') : t('profile.login') }}</span></div>
 					</div>
 					<!-- 26E122: creator redemption. Tapping the row asks
@@ -2404,14 +2477,14 @@
 						 an inline input row expands instead. A hit swaps
 						 the profile ID for the paired creator ID and
 						 raises the creator badge; see applyRedeemCode. -->
-					<div class="more-card" v-if="profile">
+					<div class="more-card pf-card-redeem" v-if="profile">
 						<div class="more-row" @click="askRedeemCode()"><span>{{ t('profile.redeem') }}</span><span class="more-chev">›</span></div>
 						<div class="more-row" v-if="redeemOpen && !nativeApp">
 							<input class="more-profile-input more-redeem-input" type="text" v-model="redeemDraft" :placeholder="t('profile.redeemPh')" autocomplete="off" autocapitalize="characters" spellcheck="false">
 							<span class="more-redeem-go" @click="redeemEntered(redeemDraft)">{{ t('profile.redeemBtn') }}</span>
 						</div>
 					</div>
-					<div class="more-card" v-if="profile">
+					<div class="more-card pf-card-logout" v-if="profile">
 						<div class="more-row more-profile-logout" @click="askLogout()"><span>{{ logoutArm ? t('profile.logoutConfirm') : t('profile.logout') }}</span></div>
 					</div>
 					<!-- 26E122: redeem result prompt, web fallback only —
@@ -2448,6 +2521,11 @@
 			</div>
 
 <span id="svgDiv" v-html="curr.svgDom"></span>
+<div class="map-st-card" v-if="mapCard">
+	<div class="map-st-name">{{ stName(mapCard.st) }}</div>
+	<div class="map-st-lines" v-if="mapCardLines().length > 1"><span class="ln-badge" v-for="ln in mapCardLines()" :key="ln.key" :class="{ named: badgeParts(ln).named, locked: mapCard.pinKey === ln.key }" :style="{ background: '#' + ln.color, color: ln.text }" @click="mapCardPin(ln)"><span class="ln-num">{{ badgeParts(ln).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ln).top }}</span><span class="ln-en">{{ badgeParts(ln).bottom }}</span></span></span></div>
+	<div class="map-st-actions"><button class="map-st-btn from" @click="mapSetEndpoint('from')">{{ t('map.setFrom') }}</button><button class="map-st-btn to" @click="mapSetEndpoint('to')">{{ t('map.setTo') }}</button></div>
+</div>
 
 
 
@@ -2496,6 +2574,8 @@ var I18N = {
   'search.total': ['共 {n} 个车站', '共 {n} 個車站', '{n} stations'],
   'search.empty': ['没有找到相关车站', '沒有找到相關車站', 'No matching stations'],
   'map.searchStation': ['搜车站', '搜車站', 'Search stations'],
+  'map.setFrom': ['设为起点', '設為起點', 'Set as Start'],
+  'map.setTo': ['设为终点', '設為終點', 'Set as End'],
   'map.verInfo': ['{c}地铁线网图 , {d} , {l}条线 {s}站', '{c}地鐵線網圖 , {d} , {l}條線 {s}站', '{c} Metro network map, {d}, {l} lines, {s} stations'],
   'map.type.track': ['配线图', '配線圖', 'Track Layout'],
   'map.type.line': ['线路图', '線路圖', 'Line Map'],
@@ -2577,6 +2657,7 @@ var I18N = {
   'tr.transferAt': ['在{st}换乘', '在{st}換乘', 'Transfer at {st}'],
   'tr.inStation': ['站内换乘', '站內換乘', 'In-station transfer'],
   'tr.transferEst': ['站内换乘 · 约{dist}米 · 约{min}分钟（预估）', '站內換乘 · 約{dist}米 · 約{min}分鐘（預估）', 'In-station transfer · about {dist} m · about {min} min (estimate)'],
+  'tr.transferDist': ['站内换乘 · 约{dist}米', '站內換乘 · 約{dist}米', 'In-station transfer · about {dist} m'],
   'tr.transferOut': ['出站换乘 · 约{dist}米 · 约{min}分钟（预估）', '出站換乘 · 約{dist}米 · 約{min}分鐘（預估）', 'Out-of-station transfer · about {dist} m · about {min} min (estimate)'],
   'tr.hint': ['点一段可在图上查看', '點一段可在圖上查看', 'Tap a segment to view it on the map'],
   'tr.history': ['搜索记录', '搜索記錄', 'Search History'],
@@ -2655,7 +2736,10 @@ var I18N = {
   'profile.redeemBtn': ['兑换', '兌換', 'Redeem'],
   'profile.redeemOk': ['兑换成功', '兌換成功', 'Redeemed'],
   'profile.redeemBad': ['兑换码无效', '兌換碼無效', 'Invalid redemption code'],
+  'profile.redeemUsed': ['该兑换码已使用', '該兌換碼已使用', 'This code has already been used'],
+  'profile.redeemOnce': ['已兑换过，创作者或测试者只能兑换一次', '已兌換過，創作者或測試者只能兌換一次', 'Already redeemed — a Creator or Tester code can be redeemed only once'],
   'profile.creator': ['创作者', '創作者', 'Creator'],
+  'profile.tester': ['测试者', '測試者', 'Tester'],
   'profile.commonCity': ['常用城市', '常用城市', 'Home City'],
   'profile.commonCityUnset': ['未设置', '未設定', 'Not set'],
   'profile.commonCityLoc': ['定位推荐', '定位推薦', 'Use My Location'],
@@ -2766,7 +2850,13 @@ var I18N = {
   'more.trains.hint': ['输入城市名（如北京）、列车型号（如 DKZ4）或线路（如沈阳地铁1号线）进行搜索。', '輸入城市名（如北京）、列車型號（如 DKZ4）或線路（如瀋陽地鐵1號線）進行搜尋。', 'Enter a city (e.g. Beijing), a train model (e.g. DKZ4) or a line (e.g. Shenyang Metro Line 1) to search.'],
   'more.trains.none': ['未找到相关列车。仅支持北京、沈阳、上海、哈尔滨、大连、金华、常州、重庆、长春、深圳、成都、青岛、石家庄 13 个城市。', '未找到相關列車。僅支援北京、瀋陽、上海、哈爾濱、大連、金華、常州、重慶、長春、深圳、成都、青島、石家莊 13 個城市。', 'No matching train. Only Beijing, Shenyang, Shanghai, Harbin, Dalian, Jinhua, Changzhou, Chongqing, Changchun, Shenzhen, Chengdu, Qingdao and Shijiazhuang are covered.'],
   'more.trains.source': ['数据来源：china-emu.cn，型号及参数仅供参考，非官方数据。', '資料來源：china-emu.cn，型號及參數僅供參考，非官方資料。', 'Source: china-emu.cn. Models and parameters are for reference only, not official data.'],
+  'more.trains.site': ['{name}地铁官网', '{name}地鐵官網', '{name} Metro official site'],
   'more.briefing.source': ['来源：{s}', '來源：{s}', 'Source: {s}'],
+  'alerts.type.extension': ['延长运营', '延長運營', 'Extended hours'],
+  'alerts.type.adjustment': ['运营调整', '營運調整', 'Service adjustment'],
+  'alerts.type.notice': ['运营公告', '營運公告', 'Service notice'],
+  'alerts.soon': ['预告', '預告', 'Upcoming'],
+  'alerts.source': ['来源：{s}', '來源：{s}', 'Source: {s}'],
   'more.general': ['通用', '通用', 'General'],
   'more.cache': ['清除缓存', '清除快取', 'Clear Cache'],
   'more.cache.cleared': ['已清除', '已清除', 'Cleared'],
@@ -3027,10 +3117,13 @@ function titlePy(py) {
 			// CREATOR_IDS[i] — the two tables are index-aligned, 20
 			// entries each, and the gate asserts both verbatim. Local
 			// profile only: a hit swaps the profile ID and raises the
-			// creator badge (profile.creator). Codes are NOT consumed
-			// — a local-only profile cannot stop a code being reused
-			// on another device, and no attempt is made to pretend
-			// otherwise.
+			// creator badge (profile.idKind = 'creator'). Codes are
+			// single-use on this device and each user may redeem
+			// only once — enforced through the independent
+			// 'metro-redeem-state' record (see applyRedeemCode);
+			// a local-only profile still cannot stop a code being
+			// used on ANOTHER device, and no attempt is made to
+			// pretend otherwise.
 			var CREATOR_REDEEM_CODES = [
 				'R7KM-9Q2X-4TPN-8LVD',
 				'F3HN-6W8R-2JQZ-5MCP',
@@ -3075,12 +3168,150 @@ function titlePy(py) {
 				'Crt2026C4S8R1T7X',
 				'Crt2026Z7D5M2Q8V'
 			];
+			// Tester redemption tables (26E123, user-supplied
+			// pattern, embedded verbatim): TESTER_REDEEM_CODES[i]
+			// redeems TESTER_IDS[i] — index-aligned, 50 entries
+			// each, disjoint from the creator tables (the gate
+			// asserts all four tables verbatim + disjointness).
+			// A hit swaps the profile ID and sets the tester
+			// badge (profile.idKind = 'tester', blue). Creator
+			// and tester are mutually exclusive and codes are
+			// single-use — see applyRedeemCode for the unified
+			// one-redemption rule (26E123 revision).
+			var TESTER_REDEEM_CODES = [
+				'RC7K0001',
+				'RC7K0002',
+				'RC7K0003',
+				'RC7K0004',
+				'RC7K0005',
+				'RC7K0006',
+				'RC7K0007',
+				'RC7K0008',
+				'RC7K0009',
+				'RC7K0010',
+				'RC7K0011',
+				'RC7K0012',
+				'RC7K0013',
+				'RC7K0014',
+				'RC7K0015',
+				'RC7K0016',
+				'RC7K0017',
+				'RC7K0018',
+				'RC7K0019',
+				'RC7K0020',
+				'RC7K0021',
+				'RC7K0022',
+				'RC7K0023',
+				'RC7K0024',
+				'RC7K0025',
+				'RC7K0026',
+				'RC7K0027',
+				'RC7K0028',
+				'RC7K0029',
+				'RC7K0030',
+				'RC7K0031',
+				'RC7K0032',
+				'RC7K0033',
+				'RC7K0034',
+				'RC7K0035',
+				'RC7K0036',
+				'RC7K0037',
+				'RC7K0038',
+				'RC7K0039',
+				'RC7K0040',
+				'RC7K0041',
+				'RC7K0042',
+				'RC7K0043',
+				'RC7K0044',
+				'RC7K0045',
+				'RC7K0046',
+				'RC7K0047',
+				'RC7K0048',
+				'RC7K0049',
+				'RC7K0050'
+			];
+			var TESTER_IDS = [
+				'TST0000001',
+				'TST0000002',
+				'TST0000003',
+				'TST0000004',
+				'TST0000005',
+				'TST0000006',
+				'TST0000007',
+				'TST0000008',
+				'TST0000009',
+				'TST0000010',
+				'TST0000011',
+				'TST0000012',
+				'TST0000013',
+				'TST0000014',
+				'TST0000015',
+				'TST0000016',
+				'TST0000017',
+				'TST0000018',
+				'TST0000019',
+				'TST0000020',
+				'TST0000021',
+				'TST0000022',
+				'TST0000023',
+				'TST0000024',
+				'TST0000025',
+				'TST0000026',
+				'TST0000027',
+				'TST0000028',
+				'TST0000029',
+				'TST0000030',
+				'TST0000031',
+				'TST0000032',
+				'TST0000033',
+				'TST0000034',
+				'TST0000035',
+				'TST0000036',
+				'TST0000037',
+				'TST0000038',
+				'TST0000039',
+				'TST0000040',
+				'TST0000041',
+				'TST0000042',
+				'TST0000043',
+				'TST0000044',
+				'TST0000045',
+				'TST0000046',
+				'TST0000047',
+				'TST0000048',
+				'TST0000049',
+				'TST0000050'
+			];
+			// Official operator sites for the train search page's
+			// single-city entry row (26E123, item 10). Every URL was
+			// verified on 2026-11-23 against the operator's own
+			// publications, regulator filings or the live site
+			// itself; a city with no verified site gets NO entry
+			// (trainOfficialSite returns null for missing keys).
+			// Dalian: the metro group's old site (dlmetro.com) is
+			// defunct; since the 2022 reorganisation the operator
+			// group's official site is dltransgrp.com (it carries
+			// the metro section and is the site Wikipedia lists).
+			var TRAIN_OFFICIAL_SITES = {
+				bj: 'https://www.bjsubway.com', sh: 'https://www.shmetro.com',
+				cd: 'https://www.chengdurail.com', sz: 'https://www.szmc.net',
+				cq: 'https://www.cqmetro.cn', tj: 'https://www.tjgdjt.com',
+				qd: 'https://www.qd-metro.com', sy: 'https://www.symtc.com',
+				cc: 'https://www.ccqg.com', dl: 'https://www.dltransgrp.com',
+				wx: 'http://www.wxmetro.net', hb: 'http://www.harbin-metro.com',
+				sjz: 'https://www.sjzmetro.cn', cz: 'http://www.czmetro.net.cn',
+				jh: 'http://www.jhmtr.net'
+			};
 			const App = Vue.createApp({
 				data() {
 					return {
 						curr: env.empty,
 
 						showCrosshair: false,
+						// 26E123 ⑧: line-map station card state
+						// ({st, pinKey} while a tapped station's
+						// card is up, else null).
+						mapCard: null,
 						tab: 'map',
 						showStations: false,
 						showStructure: false,
@@ -3138,6 +3369,8 @@ function titlePy(py) {
 						hbMap: (window.HB_MAP || ''),
 						transfers: (window.METRO_TRANSFERS || {}),
 						bjTransferTimes: (window.BJ_TRANSFER_TIMES || {}),
+						bjTransferDist: (window.BJ_TRANSFER_DIST || {}),
+						bjVtExits: (window.BJ_VT_EXITS || []),
 						walkIcon: (window.WALK_ICON || ''),
 						walkIconInk: (window.WALK_ICON_INK || ''),
 						pinIcon: (window.PIN_ICON || ''),
@@ -3368,6 +3601,12 @@ function titlePy(py) {
 						// when online (cached in localStorage).
 						briefingItems: (window.BRIEFING_SEED && window.BRIEFING_SEED.items) || [],
 						briefingUpdated: (window.BRIEFING_SEED && window.BRIEFING_SEED.updated) || '',
+					// Service alerts (26E123, item 11): official
+					// notices (extended hours / service adjustments)
+					// pulled from the remote feed at launch — see
+					// refreshServiceAlerts. Empty until the feed
+					// carries a verified notice.
+					serviceAlerts: [],
 						showSplash: true,
 						mapLoading: false,
 						showTransfer: false,
@@ -3425,6 +3664,7 @@ function titlePy(py) {
 						locPerm: 'unknown',
 						locPermHint: false,
 						homeOverflow: false,
+						profileOverflow: false,
 						searchHistory: (function () { try { var h = JSON.parse(window.localStorage.getItem('metro-search-history') || '[]'); return Array.isArray(h) ? h : []; } catch (e) { return []; } })(),
 						theme: (function() { try { var it = window._metroInitTheme; if (it === 'light' || it === 'dark' || it === 'system') return it; var t = window.localStorage.getItem('metro-theme'); return (t === 'light' || t === 'dark' || t === 'system') ? t : 'system'; } catch (e) { return 'system'; } })(),
 						darkNow: (typeof window._metroInitDark === 'boolean') ? window._metroInitDark : false,
@@ -3436,6 +3676,15 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E123)', date: '2026-11-23', lines: [
+							['北京换乘距离标注：百余座换乘站新增站内换乘步行距离（实测图值，显示约多少米）；虚拟换乘距离同步更新，并新增出入口指引（牛街 D2 口出 → 广安门内 B 口进、木樨地 F 口出 → 1 号线 A1 口进、大钟寺 D 口出 → B 口进；复兴门—太平桥按北京日报实测约 700 米）', '北京換乘距離標註：百餘座換乘站新增站內換乘步行距離（實測圖值，顯示約多少米）；虛擬換乘距離同步更新，並新增出入口指引（牛街 D2 口出 → 廣安門內 B 口進、木樨地 F 口出 → 1 號線 A1 口進、大鐘寺 D 口出 → B 口進；復興門—太平橋按北京日報實測約 700 米）', 'Beijing transfer distances: over a hundred interchanges now show measured in-station walking distances (about X m). Virtual-transfer distances are updated too, with entrance guidance (Niujie exit D2 → Guang’anmennei entrance B; Muxidi exit F → Line 1 entrance A1; Dazhongsi exit D → entrance B; Fuxingmen–Taipingqiao about 700 m as measured by Beijing Daily)'],
+							['修复四个换乘站缺失：海淀黄庄（4 号线）、西局（10 号线）、西坝河（12 号线）、花庄（7 号线）此前在所属线路上整站缺失、换乘中断，现已恢复，站序与换乘一并修正（四站在恢复线路上的首末班时刻暂无可核实来源，页面显示暂无数据）', '修復四個換乘站缺失：海淀黃莊（4 號線）、西局（10 號線）、西壩河（12 號線）、花莊（7 號線）此前在所屬線路上整站缺失、換乘中斷，現已恢復，站序與換乘一併修正（四站在恢復線路上的首末班時刻暫無可核實來源，頁面顯示暫無數據）', 'Four missing interchanges restored: Haidian Huangzhuang (Line 4), Xiju (Line 10), Xibahe (Line 12) and Huazhuang (Line 7) were absent from those lines entirely, breaking their transfers. Station order and transfers are fixed (first/last trains on the restored lines have no verifiable source yet, so those rows show no data)'],
+							['燕房线独立成线：燕房线 9 站此前并在房山线内按贯通运营处理，现拆分独立成线（线色 #D86018），与房山线在阎村东同台换乘（约 15 米）；燕房线各站首末班时刻不变', '燕房線獨立成線：燕房線 9 站此前並在房山線內按貫通運營處理，現拆分獨立成線（線色 #D86018），與房山線在閻村東同台換乘（約 15 米）；燕房線各站首末班時刻不變', 'Yanfang Line is now its own line: its 9 stations were folded into the Fangshan Line as a through service. They now form the independent Yanfang Line (colour #D86018), with a same-platform transfer to the Fangshan Line at Yancundong (about 15 m). Yanfang station times are unchanged'],
+							['新增「测试者」兑换：用测试者兑换码可换领测试者专属 ID，ID 旁显示蓝色「测试者」标识；创作者与测试者身份二选一，首次成功兑换即定型。两套兑换码均为一次性使用，每人限兑换一次（退出登录也不会重置）', '新增「測試者」兌換：用測試者兌換碼可換領測試者專屬 ID，ID 旁顯示藍色「測試者」標識；創作者與測試者身份二選一，首次成功兌換即定型。兩套兌換碼均為一次性使用，每人限兌換一次（退出登錄也不會重置）', 'Tester redemption added: a tester code claims a tester ID, shown with a blue Tester badge next to the ID. Creator and Tester are mutually exclusive — the first successful redemption fixes the identity. Both code sets are single-use and each person may redeem only once (signing out does not reset it)'],
+							['资料页控件改用原生液态玻璃：信息卡、保存、兑换码、退出登录均为原生玻璃控件（行为不变）；创作者（绿色）与测试者（蓝色）身份标识保持纯色小片、不做玻璃', '資料頁控件改用原生液態玻璃：信息卡、保存、兌換碼、退出登錄均為原生玻璃控件（行為不變）；創作者（綠色）與測試者（藍色）身份標識保持純色小片、不做玻璃', 'Profile controls are now native Liquid Glass: the info card, Save, Redeem Code and Sign Out are native glass controls (behaviour unchanged). The Creator (green) and Tester (blue) identity badges stay plain solid chips — no glass'],
+							['线路图点站设起终点：在线路图上点中车站即弹卡片，可先点线路胶囊钉选线路（带 ✓），再设为起点或终点，直接带入换乘规划（不自动搜索）', '線路圖點站設起終點：在線路圖上點中車站即彈卡片，可先點線路膠囊釘選線路（帶 ✓），再設為起點或終點，直接帶入換乘規劃（不自動搜索）', 'Tap a station on the line map: a card pops up — pin a line first (✓) if you like, then set it as start or end, straight into trip planning (no automatic search)'],
+							['新增运营动态：延长运营、运营调整等官方公告会实时更新到时刻表页顶部，无需更新版本即可看到最新公告', '新增營運動態：延長運營、營運調整等官方公告會即時更新到時刻表頁頂部，無需更新版本即可看到最新公告', 'New service alerts: official notices such as extended hours and service adjustments now appear at the top of the Timetable tab and update live — no app update needed'],
+							] },
 							{ v: '1.1.0 (26E122)', date: '2026-11-23', lines: [
 							['石家庄地铁 1 号线首末班车时刻按 2026 年 11 月 23 日的调整更新：两端末班车延至 22:30，各站首末班时刻同步更新（2、3 号线不变）', '石家莊地鐵 1 號線首末班車時刻按 2026 年 11 月 23 日的調整更新：兩端末班車延至 22:30，各站首末班時刻同步更新（2、3 號線不變）', 'Shijiazhuang Metro Line 1 first/last-train times updated for the 23 Nov 2026 adjustment: last trains at both termini now run to 22:30 and every station’s times are updated (Lines 2 and 3 unchanged)'],
 							['个人资料新增「兑换码」：输入创作者兑换码即可换领创作者专属 ID，ID 旁显示「创作者」标识', '個人資料新增「兌換碼」：輸入創作者兌換碼即可換領創作者專屬 ID，ID 旁顯示「創作者」標識', 'Profile gains Redeem Code: enter a creator redemption code to claim a creator ID, shown with a Creator badge next to the ID'],
@@ -3526,10 +3775,13 @@ function titlePy(py) {
 					// Local profile (26E109, user: 设置里加登录/个人资料):
 					// on-device only — no server, no password. Stored in
 					// localStorage 'metro-profile' as {name, avatar, id,
-					// since}; null = logged out. The id ('CT' + 10 digits)
+					// since, idKind?, commonCity?}; null = logged out.
+					// idKind (26E123) is 'creator' | 'tester' once a
+					// redemption code has been claimed (the 26E122
+					// boolean 'creator' migrates to it on load). The id ('CT' + 10 digits)
 					// and the login date are minted once at first save
 					// and never change afterwards (logout clears all).
-					profile: (function() { try { var p = JSON.parse(window.localStorage.getItem('metro-profile') || 'null'); return (p && p.id && p.name) ? p : null; } catch (e) { return null; } })(),
+					profile: (function() { try { var p = JSON.parse(window.localStorage.getItem('metro-profile') || 'null'); if (p && p.id && p.name) { if (!p.idKind && p.creator) p.idKind = 'creator'; delete p.creator; return p; } return null; } catch (e) { return null; } })(),
 					profileNameDraft: '', profileAvatarDraft: '', logoutArm: false,
 						siriShortcuts: [
 							{ id: 'openApp', nameKey: 'siri.openApp', descKey: 'siri.openApp.desc', voiceKey: 'siri.openApp.voice' },
@@ -3748,6 +4000,9 @@ function titlePy(py) {
 						// through here).
 						this.showStructure = false;
 						this.showStructSub = false;
+						// 26E123 ⑧: the map station card belongs
+						// to the map tab only.
+						if (t !== 'map') this.mapCard = null;
 						if (t === 'stations') {
 							this.tab = 'stations';
 							this.showStations = true;
@@ -4210,7 +4465,7 @@ function titlePy(py) {
 							}
 						} catch (e) {}
 						if (!window.fetch) return;
-						fetch('https://raw.githubusercontent.com/Andy-transport/Subway-motion/main/web/briefing.json', { cache: 'no-cache' })
+						fetch('https://raw.githubusercontent.com/Andy-transport/Subway-Tools/main/web/briefing.json', { cache: 'no-cache' })
 							.then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
 							.then(function (data) {
 								if (!data || !Array.isArray(data.items) || !data.items.length) return;
@@ -4219,6 +4474,70 @@ function titlePy(py) {
 								try { window.localStorage.setItem('metro-briefing', JSON.stringify({ items: data.items, updated: data.updated || '' })); } catch (e) {}
 							})
 							.catch(function () { /* offline: keep seed/cached copy */ });
+					},
+					// Service alerts (26E123, item 11): the feed file
+					// web/service-alerts.json is served by jsDelivr from
+					// the test/structure branch — a mutable branch ref,
+					// verified on 2026-11-23 to resolve to this branch.
+					// The launch fetch is best-effort only: short
+					// timeout, silent failure, last good cache wins;
+					// it can never block or break anything else. The
+					// timetable itself is NOT rewritten — extended
+					// hours are shown as the notice's own text.
+					applyServiceAlerts(list) {
+						if (!Array.isArray(list)) return;
+						var clean = [];
+						for (var i = 0; i < list.length; i++) {
+							var a = list[i] || {};
+							if (typeof a.city !== 'string' || typeof a.title !== 'string' || typeof a.body !== 'string' ||
+								typeof a.from !== 'string' || typeof a.to !== 'string') continue;
+							clean.push({
+								city: a.city, type: (a.type === 'extension' || a.type === 'adjustment') ? a.type : 'notice',
+								title: a.title, body: a.body,
+								lines: Array.isArray(a.lines) ? a.lines : [],
+								from: a.from, to: a.to,
+								source: typeof a.source === 'string' ? a.source : '',
+								published: typeof a.published === 'string' ? a.published : ''
+							});
+						}
+						this.serviceAlerts = clean;
+						try { window.localStorage.setItem('metro-service-alerts', JSON.stringify(clean)); } catch (e) {}
+					},
+					refreshServiceAlerts() {
+						var self = this;
+						try {
+							var cached = JSON.parse(window.localStorage.getItem('metro-service-alerts') || 'null');
+							if (Array.isArray(cached) && cached.length) self.serviceAlerts = cached;
+						} catch (e) {}
+						if (!window.fetch) return;
+						var ctrl = null, timer = null;
+						try {
+							if (typeof AbortController !== 'undefined') {
+								ctrl = new AbortController();
+								timer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 5000);
+							}
+						} catch (e) { ctrl = null; }
+						fetch('https://cdn.jsdelivr.net/gh/Andy-transport/Subway-Tools@test/structure/web/service-alerts.json', { cache: 'no-cache', signal: ctrl ? ctrl.signal : undefined })
+							.then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+							.then(function (data) { if (timer) clearTimeout(timer); self.applyServiceAlerts(data); })
+							.catch(function () { if (timer) clearTimeout(timer); /* offline: keep the cached copy */ });
+					},
+					visibleServiceAlerts() {
+						var now = new Date();
+						var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+						var today = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+						var out = [];
+						var list = this.serviceAlerts || [];
+						for (var i = 0; i < list.length; i++) {
+							var a = list[i];
+							if (a.city !== this.city) continue;
+							if (a.to < today) continue;
+							var c = {}; for (var k in a) c[k] = a[k];
+							c.upcoming = a.from > today;
+							out.push(c);
+						}
+						out.sort(function (x, y) { return x.upcoming === y.upcoming ? (x.from < y.from ? -1 : 1) : (x.upcoming ? 1 : -1); });
+						return out;
 					},
 					closeMore() {
 						this.showMore = false;
@@ -4362,7 +4681,7 @@ function titlePy(py) {
 						if (seed && seed.cities && seed.cities.length) { self.trainItems = seed.cities; return; }
 						var done = function (d) { if (d && d.cities) self.trainItems = d.cities; };
 						fetch('trains.json').then(function (r) { return r.json(); }).then(done).catch(function () {
-							fetch('https://raw.githubusercontent.com/Andy-transport/Subway-motion/main/web/trains.json').then(function (r) { return r.json(); }).then(done).catch(function () {});
+							fetch('https://raw.githubusercontent.com/Andy-transport/Subway-Tools/main/web/trains.json').then(function (r) { return r.json(); }).then(done).catch(function () {});
 						});
 					},
 					// Train search results, grouped by city. A city-name
@@ -4397,6 +4716,23 @@ function titlePy(py) {
 							if (trains.length) groups.push({ key: c.key, name: c.name, name_en: c.name_en, trains: trains });
 						}
 						return groups;
+					},
+					// Official-site entry (26E123, item 10): only when
+					// the results resolve to exactly one city AND that
+					// city has a verified official site.
+					trainOfficialSite() {
+						var groups = this.trainResults();
+						if (groups.length !== 1) return null;
+						var url = TRAIN_OFFICIAL_SITES[groups[0].key];
+						if (!url) return null;
+						return { name: groups[0].name, url: url };
+					},
+					// The row's tap goes through a method (not the
+					// page-global openExternal directly): Vue template
+					// expressions cannot resolve arbitrary globals.
+					openTrainSite() {
+						var s = this.trainOfficialSite();
+						if (s) openExternal(s.url);
 					},
 					// Siri shortcut: ask the native side to present the
 					// system Add to Siri sheet for this intent id. This is
@@ -4538,6 +4874,63 @@ function titlePy(py) {
 						this.routeList = [];
 						this.routeError = '';
 						this.postStationPicked(which, st, ln);
+					},
+					// 26E123 ⑧: line-map station tap. The RMP map
+					// SVG has no tappable per-station elements, so
+					// the legacy script converts the tap to SVG
+					// coordinates (the same system station x/y use)
+					// and calls this: the nearest station within
+					// the threshold wins — min(16 screen px worth
+					// of SVG units, 28 units) at the current zoom.
+					// A tap hitting nothing closes the card and
+					// sets no endpoint.
+					mapTapAt(sx, sy, rz) {
+						var best = null, bestD = Infinity;
+						for (var i = 0; i < this.stations.length; i++) {
+							var st = this.stations[i];
+							if (!st.x || !st.y) continue;
+							var dx = st.x - sx, dy = st.y - sy, d = Math.sqrt(dx * dx + dy * dy);
+							if (d < bestD) { bestD = d; best = st; }
+						}
+						var thresh = Math.min(16 / (rz || 1), 28);
+						if (best && bestD <= thresh) {
+							this.mapCard = { st: best, pinKey: null };
+							return best.n;
+						}
+						this.mapCard = null;
+						return null;
+					},
+					mapCardLines() {
+						return this.mapCard ? this.stationLines(this.mapCard.st.n) : [];
+					},
+					// Same pin semantics as the suggestion rows:
+					// tap a pill to pin that line for the endpoint
+					// being set (check disc via .locked), tap the
+					// pinned pill again to unpin (plan by station).
+					mapCardPin(ln) {
+						if (!this.mapCard) return;
+						this.mapCard.pinKey = this.mapCard.pinKey === ln.key ? null : ln.key;
+					},
+					// Write the endpoint (+ its pin) into the
+					// transfer planning state — exactly what
+					// pickSuggest writes — sync the native card
+					// via stationPicked, and switch to the
+					// transfer tab. Never auto-searches.
+					mapSetEndpoint(which) {
+						if (!this.mapCard) return;
+						var st = this.mapCard.st, ln = null;
+						if (this.mapCard.pinKey) {
+							var lines = this.stationLines(st.n);
+							for (var i = 0; i < lines.length; i++) if (lines[i].key === this.mapCard.pinKey) ln = lines[i];
+						}
+						if (which === 'from') { this.fromStation = st; this.fromQuery = this.stName(st); this.fromQueryLive = this.fromQuery; this.fromLine = ln; }
+						else { this.toStation = st; this.toQuery = this.stName(st); this.toQueryLive = this.toQuery; this.toLine = ln; }
+						this.routeResult = null;
+						this.routeList = [];
+						this.routeError = '';
+						this.postStationPicked(which, st, ln);
+						this.mapCard = null;
+						this.setTab('transfer');
 					},
 					hideSuggest() {
 						var self = this;
@@ -5528,6 +5921,10 @@ function titlePy(py) {
 					// else the bare 站内换乘 label — no invented
 					// numbers.
 					transferNodeText(r, i) {
+						// 26E123: a measured infographic value outranks
+						// the planner-derived estimate.
+						var gd = this.transferDistFor(r, i);
+						if (gd != null) return this.t('tr.transferDist', {dist: gd});
 						var est = this.transferEstFor(r, i);
 						if (est && est.out) return this.t('tr.transferOut', est);
 						if (est) return this.t('tr.transferEst', est);
@@ -5650,6 +6047,64 @@ function titlePy(py) {
 						if (segs && i > 0 && segs[i - 1] && segs[i - 1].virtual) {
 							var info = this.transfers && this.transfers[segs[i - 1].from];
 							if (info && info.other === segs[i - 1].to) return info.dist || '';
+						}
+						return '';
+					},
+					// Beijing MEASURED transfer distance (26E123, user
+					// 2026-11-23): the transfer-distance infographic's
+					// value for the in-station boundary before segment
+					// i — ordered line pair "prev>cur" at station
+					// segs[i].from, from transfer-dist-bj.json (only
+					// the user's confirmed entries; the 43 uncertain
+					// ones never entered the file). Returns metres or
+					// null. Display only — routing, fares and transfer
+					// times never read this. Virtual (walk / same-name
+					// VT) boundaries keep their transfers.json labels.
+					transferDistFor(r, i) {
+						if (this.city !== 'bj') return null;
+						if (!i || !r || !r.segments) return null;
+						var segs = r.segments;
+						if (i >= segs.length) return null;
+						if (segs[i].virtual || segs[i - 1].virtual) return null;
+						var info = this.bjTransferDist && this.bjTransferDist[segs[i].from];
+						if (!info) return null;
+						var m = info[segs[i - 1].line + '>' + segs[i].line];
+						return (typeof m === 'number') ? m : null;
+					},
+					// Virtual-transfer entrance guidance (26E123, user
+					// 2026-11-23): for the VT boundary at segment /
+					// boundary i, the recommended exit -> entrance
+					// pair from vt-exits-bj.json, oriented to the
+					// direction of travel (the listed recommended
+					// direction reads exit->entrance; travelling the
+					// other way swaps them). '' when the pair has no
+					// verified exits （复兴门-太平桥） or the boundary
+					// is not a virtual transfer.
+					vtExitText(r, i) {
+						if (this.city !== 'bj') return '';
+						var list = this.bjVtExits || [];
+						if (!list.length || !r || !r.segments) return '';
+						var segs = r.segments;
+						var aSt, bSt, aLine, bLine;
+						if (segs[i] && segs[i].virtual) {
+							aSt = segs[i].from; bSt = segs[i].to;
+							aLine = i > 0 ? segs[i - 1].line : null;
+							bLine = (i + 1 < segs.length) ? segs[i + 1].line : null;
+							if (!aLine || !bLine) return '';
+						} else {
+							if (!i || i >= segs.length) return '';
+							aSt = bSt = segs[i].from;
+							aLine = segs[i - 1].line; bLine = segs[i].line;
+							var info = this.transfers && this.transfers[aSt];
+							if (!info || !info.dist || info.other) return '';
+						}
+						for (var k = 0; k < list.length; k++) {
+							var e = list[k];
+							if (!e.exit || !e.entrance) continue;
+							if (e.fromStation === aSt && e.toStation === bSt && e.fromLine === aLine && e.toLine === bLine)
+								return e.exit + '口出 → ' + e.entrance + '口进';
+							if (e.fromStation === bSt && e.toStation === aSt && e.fromLine === bLine && e.toLine === aLine)
+								return e.entrance + '口出 → ' + e.exit + '口进';
 						}
 						return '';
 					},
@@ -6248,6 +6703,44 @@ function titlePy(py) {
 						var self = this;
 						this.$nextTick(function() { self.checkHomeFit(); });
 					},
+					// Profile page fit (26E123, item 12): same self-check
+					// shape as checkHomeFit — while the profile page is
+					// open and locked, measure the real content against
+					// the sheet; only a genuine overflow (small screen)
+					// releases the lock into profile-scroll mode.
+					checkProfileFit() {
+						if (this.profileOverflow || !this.showMore || !this.showProfileSub) return;
+						var el = document.getElementById('moreSheet');
+						if (!el || !el.classList.contains('profile-lock')) return;
+						var sub = el.querySelector('.more-sub-static');
+						if (!sub) return;
+						var cs = window.getComputedStyle(el);
+						var limit = el.getBoundingClientRect().bottom - (parseFloat(cs.paddingBottom) || 0);
+						var kids = sub.children;
+						for (var i = 0; i < kids.length; i++) {
+							if (kids[i].getBoundingClientRect().bottom > limit + 1) { this.profileOverflow = true; return; }
+						}
+					},
+					resetProfileFit() {
+						if (this.profileOverflow) this.profileOverflow = false;
+						var self = this;
+						this.$nextTick(function() { self.checkProfileFit(); });
+					},
+					// Nickname keyboard (26E123, item 12 fallback): if
+					// the keyboard shrinks the visible viewport, the
+					// content may no longer fit — release to the inner
+					// scroller and keep the input clear of the keyboard.
+					onProfileNameFocus() {
+						var vv = window.visualViewport;
+						if (vv && vv.height < window.innerHeight - 80) this.profileOverflow = true;
+						if (this.profileOverflow) {
+							var self = this;
+							setTimeout(function() {
+								var inp = self.$refs.profileNameInput;
+								if (inp && inp.scrollIntoView) inp.scrollIntoView({ block: 'center' });
+							}, 350);
+						}
+					},
 					// Native app (build 33): report the sort-tab row's frame
 					// to the native shell so it can place its Liquid Glass
 					// UISegmentedControl exactly over the web tab row.
@@ -6328,6 +6821,42 @@ function titlePy(py) {
 						var json = JSON.stringify(cmp);
 						if (window._lastTrFrameJSON === json) return;
 						window._lastTrFrameJSON = json;
+						h.postMessage(msg);
+					},
+					// 26E123 ⑤: report the profile page's four glass
+					// targets so the native shell can place its Liquid
+					// Glass pieces exactly over them (profileFrame
+					// bridge, placeProfile in the shell): the info
+					// card's rect (a clear-glass backplate goes under
+					// the still-interactive web rows) and the Save /
+					// Redeem / Sign Out card rects (native glass rows
+					// cover them; their labels ride along so the native
+					// rows always match, incl. the armed sign-out
+					// label). Zero rects hide the native pieces.
+					// Identical consecutive posts are dropped, same as
+					// reportTransferFrame. The identity badges are NOT
+					// part of this — plain solid chips, no glass.
+					reportProfileFrame() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.profileFrame;
+						if (!h) return;
+						function rect(sel) {
+							var el = document.querySelector(sel);
+							if (!el) return { x: 0, y: 0, width: 0, height: 0 };
+							var r = el.getBoundingClientRect();
+							return { x: r.left, y: r.top, width: r.width, height: r.height };
+						}
+						var msg = {
+							card: rect('.pf-card-info'),
+							save: rect('.pf-card-save'),
+							redeem: rect('.pf-card-redeem'),
+							logout: rect('.pf-card-logout'),
+							saveLabel: this.profile ? this.t('profile.save') : this.t('profile.login'),
+							redeemLabel: this.t('profile.redeem'),
+							logoutLabel: this.logoutArm ? this.t('profile.logoutConfirm') : this.t('profile.logout')
+						};
+						var json = JSON.stringify(msg);
+						if (window._lastPfFrameJSON === json) return;
+						window._lastPfFrameJSON = json;
 						h.postMessage(msg);
 					},
 					// Native app (build 44): report the dark-mode picker frame
@@ -6998,6 +7527,17 @@ function titlePy(py) {
 							this.redeemOpen = !this.redeemOpen;
 						}
 					},
+					// 26E123 ⑤: a tap on one of the native glass rows
+					// over the profile page (window.__profileTap from
+					// placeProfile in the shell). Each routes to the
+					// exact method the web row's own click runs —
+					// behaviour is unchanged, only the surface is
+					// native glass now.
+					profileTap(which) {
+						if (which === 'save') this.saveProfile();
+						else if (which === 'redeem') this.askRedeemCode();
+						else if (which === 'logout') this.askLogout();
+					},
 					redeemEntered(text) {
 						// null = the native alert was cancelled: silent.
 						if (text === null || text === undefined) return;
@@ -7007,17 +7547,59 @@ function titlePy(py) {
 					// stripped, uppercased — 'r7km9q2x4tpn8lvd' hits
 					// 'R7KM-9Q2X-4TPN-8LVD'.
 					redeemNorm(s) { return String(s == null ? '' : s).replace(/[\s\-]+/g, '').toUpperCase(); },
+					// Redemption state (26E123 revision, user): kept
+					// in its OWN localStorage key, deliberately NOT
+					// inside the profile — logout clears the profile
+					// but never this record, so signing back in
+					// cannot reset the one-redemption allowance.
+					// {used: [normalized codes], done: bool}
+					redeemState() {
+						try {
+							var st = JSON.parse(window.localStorage.getItem('metro-redeem-state') || 'null');
+							if (st && Array.isArray(st.used)) return st;
+						} catch (e) {}
+						return { used: [], done: false };
+					},
+					saveRedeemState(st) {
+						try { window.localStorage.setItem('metro-redeem-state', JSON.stringify(st)); } catch (e) {}
+					},
 					applyRedeemCode(raw) {
 						this.redeemOpen = false;
 						this.redeemDraft = '';
 						if (!this.profile) return;
-						var norm = this.redeemNorm(raw), idx = -1;
+						var norm = this.redeemNorm(raw);
+						// Unified gate for BOTH tables, in order:
+						// (1) this code already used on this device
+						// -> 'already used'; (2) any identity already
+						// redeemed -> 'only once'. A mistyped code
+						// fails matching below and consumes nothing.
+						var rst = this.redeemState();
+						if (norm && rst.used.indexOf(norm) >= 0) { this.showRedeemNote(this.t('profile.redeemUsed'), ''); return; }
+						// A profile already carrying a redeemed ID
+						// (e.g. claimed under 26E122, before this
+						// record existed) has used its one chance.
+						if (rst.done || this.profile.idKind) { this.showRedeemNote(this.t('profile.redeemOnce'), ''); return; }
+						var idx = -1, kind = null;
 						for (var i = 0; i < CREATOR_REDEEM_CODES.length; i++) {
-							if (this.redeemNorm(CREATOR_REDEEM_CODES[i]) === norm) { idx = i; break; }
+							if (this.redeemNorm(CREATOR_REDEEM_CODES[i]) === norm) { idx = i; kind = 'creator'; break; }
+						}
+						if (idx < 0) {
+							// 26E123: second table — tester codes.
+							for (var j = 0; j < TESTER_REDEEM_CODES.length; j++) {
+								if (this.redeemNorm(TESTER_REDEEM_CODES[j]) === norm) { idx = j; kind = 'tester'; break; }
+							}
 						}
 						if (idx < 0) { this.showRedeemNote(this.t('profile.redeemBad'), ''); return; }
-						this.profile.id = CREATOR_IDS[idx];
-						this.profile.creator = true;
+						// Success: the identity is fixed from now
+						// on (idKind), the code joins the used set
+						// and the one-redemption flag is set — both
+						// in the independent record, not the profile.
+						this.profile.id = (kind === 'creator' ? CREATOR_IDS : TESTER_IDS)[idx];
+						this.profile.idKind = kind;
+						delete this.profile.creator;
+						rst.used.push(norm);
+						rst.done = true;
+						this.saveRedeemState(rst);
 						try { window.localStorage.setItem('metro-profile', JSON.stringify(this.profile)); } catch (err) {}
 						this.showRedeemNote(this.t('profile.redeemOk'), this.profile.id);
 					},
@@ -7036,11 +7618,13 @@ function titlePy(py) {
 						var name = (this.profileNameDraft || '').trim() || this.t('profile.defaultName');
 						var id = this.profile ? this.profile.id : '';
 						var since = this.profile ? this.profile.since : '';
-						// 26E122: a redeemed creator identity survives a
-						// profile re-save (the creator ID already does —
-						// it rides the id field; the badge flag rides
-						// this one).
-						var creator = this.profile ? !!this.profile.creator : false;
+						// 26E122/26E123: a redeemed identity (creator
+						// or tester) survives a profile re-save (the
+						// redeemed ID already does — it rides the id
+						// field; the kind rides this one). Legacy
+						// 26E122 profiles carry a boolean instead —
+						// it migrates to idKind here.
+						var idKind = this.profile ? (this.profile.idKind || (this.profile.creator ? 'creator' : null)) : null;
 						// 26E122: the Home City rides the profile too —
 						// a re-save must not drop it.
 						var commonCity = this.profile ? this.profile.commonCity : null;
@@ -7049,7 +7633,7 @@ function titlePy(py) {
 							since = this.fmtDate(new Date().toISOString());
 						}
 						this.profile = { name: name, avatar: this.profileAvatarDraft || '', id: id, since: since };
-						if (creator) this.profile.creator = true;
+						if (idKind) this.profile.idKind = idKind;
 						if (commonCity) this.profile.commonCity = commonCity;
 						try { window.localStorage.setItem('metro-profile', JSON.stringify(this.profile)); } catch (err) {}
 						this.showProfileSub = false;
@@ -7065,9 +7649,14 @@ function titlePy(py) {
 						this.profileNameDraft = '';
 						this.profileAvatarDraft = '';
 						this.logoutArm = false;
-						// 26E122: creator state lives inside the profile
-						// object, so it is cleared with the logout above;
-						// only the transient redeem UI state resets here.
+						// 26E122: identity state lives inside the
+						// profile object, so it is cleared with the
+						// logout above; only the transient redeem UI
+						// state resets here. 26E123: the redemption
+						// record ('metro-redeem-state') is NOT the
+						// profile and is deliberately NOT cleared —
+						// the one-redemption allowance survives
+						// logout by design (user's anti-repeat rule).
 						this.redeemOpen = false;
 						this.redeemDraft = '';
 						// 26E122: commonCity dies with the profile
@@ -7350,6 +7939,7 @@ function titlePy(py) {
 					}
 				},
 				watch: {
+					showProfileSub(open) { if (open) this.resetProfileFit(); },
 					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (this.tab === 'more') { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); },
 					structStation() { this.ensureStructImg(); },
 					structKind() { this.ensureStructImg(); }
@@ -7370,9 +7960,9 @@ function titlePy(py) {
 					}
 					if (this.nativeApp) {
 						var self = this;
-						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); });
+						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); });
 						clearTimeout(window._metroTabsTimer);
-						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); }, 300);
+						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); }, 300);
 					}
 				},
 				mounted: function() {
@@ -7423,7 +8013,7 @@ function titlePy(py) {
 						_more.addEventListener('transitionend', function(e) {
 							if (e.propertyName !== 'transform') return;
 							self.reportTabsFrame();
-							self.reportTransferFrame();
+							self.reportTransferFrame(); self.reportProfileFrame();
 							self.reportThemeFrame();
 							self.reportTimeFrame();
 							self.reportSwitchFrame();
@@ -7436,7 +8026,7 @@ function titlePy(py) {
 							window.requestAnimationFrame(function() {
 								_scrollTicking = false;
 								self.reportTabsFrame();
-								self.reportTransferFrame();
+								self.reportTransferFrame(); self.reportProfileFrame();
 								self.reportThemeFrame();
 							});
 						}, { passive: true });
@@ -7571,6 +8161,7 @@ function titlePy(py) {
 					this.applyLatLng();
 					this.flashSplash(2000);
 					this.refreshBriefing();
+					this.refreshServiceAlerts();
 					if (window.matchMedia) {
 						window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() { self.applyTheme(); });
 					}
@@ -7594,6 +8185,7 @@ function titlePy(py) {
 		// Use-My-Location row lands in __commonCityLoc, and the native
 		// recommendation confirm answers in __recommendCityConfirmed.
 		window.__commonCityPicked = function(key) { if (window.metroApp) window.metroApp.commonCityPicked(key); };
+		window.__profileTap = function(which) { if (window.metroApp) window.metroApp.profileTap(which); };
 		window.__commonCityLoc = function() { if (window.metroApp) window.metroApp.recommendCommonCityByLoc(); };
 		window.__recommendCityConfirmed = function(yes) { if (window.metroApp) window.metroApp.recommendCityConfirmed(yes); };
 			// Swipe left/right on the tab bar to switch tabs; the pill slides with it.
@@ -7833,6 +8425,7 @@ function titlePy(py) {
 					if (window.metroApp && window.metroApp.reportTabsFrame) window.metroApp.reportTabsFrame();
 					if (window.metroApp && window.metroApp.reportStructFrame) window.metroApp.reportStructFrame();
 					if (window.metroApp && window.metroApp.reportTransferFrame) window.metroApp.reportTransferFrame();
+					if (window.metroApp && window.metroApp.reportProfileFrame) window.metroApp.reportProfileFrame();
 					if (window.metroApp && window.metroApp.reportThemeFrame) window.metroApp.reportThemeFrame();
 					if (window.metroApp && window.metroApp.reportSwitchFrame) window.metroApp.reportSwitchFrame();
 					// 26E117: rotation/resize changes the home-lock box —
@@ -7885,6 +8478,39 @@ function titlePy(py) {
 			};
 
 
+			// 26E123 ⑧: tap detection on the line map. svg-pan-zoom
+			// owns drags; a TAP is a press that moves < 8px and lifts
+			// within 500 ms. The tap point converts to SVG
+			// coordinates with the LIVE pan/zoom (screen = svg *
+			// realZoom + pan, the same relation locateStation uses
+			// in reverse) and goes to the app's mapTapAt, which does
+			// the nearest-station hit test. Map rendering and the
+			// pan/zoom behaviour are untouched.
+			(function () {
+				var host = document.getElementById('svgDiv');
+				if (!host) return;
+				var downX = 0, downY = 0, downT = 0;
+				host.addEventListener('pointerdown', function (ev) {
+					downX = ev.clientX; downY = ev.clientY; downT = Date.now();
+				}, true);
+				host.addEventListener('pointerup', function (ev) {
+					if (!panzoom) return;
+					if (Math.abs(ev.clientX - downX) > 8 || Math.abs(ev.clientY - downY) > 8) return;
+					if (Date.now() - downT > 500) return;
+					var ele = document.getElementById('svg8');
+					if (!ele) return;
+					var rect = ele.getBoundingClientRect();
+					var sizes = panzoom.getSizes();
+					var pan = panzoom.getPan();
+					var rz = sizes.realZoom;
+					if (!rz) return;
+					var sx = (ev.clientX - rect.left - pan.x) / rz;
+					var sy = (ev.clientY - rect.top - pan.y) / rz;
+					if (window.metroApp && window.metroApp.mapTapAt) window.metroApp.mapTapAt(sx, sy, rz);
+				}, true);
+			})();
+
+
 			function _svgZoomTo(c) {
 				panzoom.zoom(c[2]);
 				panzoom.pan({
@@ -7914,7 +8540,7 @@ function titlePy(py) {
 
 
 			function openRepo() {
-				openExternal("https://github.com/Andy-transport/Subway-motion");
+				openExternal("https://github.com/Andy-transport/Subway-Tools");
 			};
 
 

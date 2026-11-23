@@ -1,0 +1,51 @@
+[
+ {
+  "confidence": "出入口组合有资料支持（维基百科等）",
+  "entrance": "B",
+  "exit": "D2",
+  "fromLine": "19",
+  "fromStation": "牛街",
+  "pair": "牛街-广安门内",
+  "recommendedDir": "D2→B",
+  "source": "用户 2026-11-23 提供的 ChatGPT 整理截图《北京地铁虚拟换乘出入口》",
+  "toLine": "7",
+  "toStation": "广安门内"
+ },
+ {
+  "confidence": "候选路线（来源自标待现场核实）；用户 2026-11-23 裁定：就这么写，照常写入",
+  "entrance": "B",
+  "exit": "D",
+  "fromLine": "12",
+  "fromStation": "大钟寺",
+  "pair": "大钟寺-大钟寺",
+  "recommendedDir": "D→B",
+  "source": "用户 2026-11-23 提供的 ChatGPT 整理截图《北京地铁虚拟换乘出入口》",
+  "toLine": "13",
+  "toStation": "大钟寺",
+  "userRuling": "2026-11-23：就这么写——123 接入时与其它对同等显示 D口→B口"
+ },
+ {
+  "confidence": "官方媒体实测路线（首都之窗）",
+  "entrance": "A1",
+  "exit": "F",
+  "fromLine": "16",
+  "fromStation": "木樨地",
+  "pair": "木樨地-木樨地",
+  "recommendedDir": "F→A1",
+  "source": "用户 2026-11-23 提供的 ChatGPT 整理截图《北京地铁虚拟换乘出入口》",
+  "toLine": "1",
+  "toStation": "木樨地"
+ },
+ {
+  "confidence": "两端具体出入口待核实；无出口位置图不建议直接标注",
+  "entrance": null,
+  "exit": null,
+  "fromLine": "19",
+  "fromStation": "太平桥",
+  "pair": "复兴门-太平桥",
+  "recommendedDir": null,
+  "source": "用户 2026-11-23 提供的 ChatGPT 整理截图《北京地铁虚拟换乘出入口》",
+  "toLine": "1/2",
+  "toStation": "复兴门"
+ }
+]

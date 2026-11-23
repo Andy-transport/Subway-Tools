@@ -181,6 +181,16 @@ html = sub_once(r'/\*__METRO_TRANSFERS__\*/\{\}', lambda _: transfers, html, "tr
 bj_tt = (BASE / "transfer-times-bj.json").read_text(encoding="utf-8")
 assert "</script" not in bj_tt, "bj transfer times json must not contain </script"
 html = sub_once(r'/\*__BJ_TRANSFER_TIMES__\*/\{\}', lambda _: bj_tt, html, "bj transfer times json")
+# L1b (26E123). inline the Beijing MEASURED transfer distances
+# (user's infographic parse, confirmed entries only; see
+# transfer-dist-bj.json) and the virtual-transfer entrance guidance
+# (vt-exits-bj.json). Display-only data.
+bj_dist = (BASE / "transfer-dist-bj.json").read_text(encoding="utf-8")
+assert "</script" not in bj_dist, "bj transfer dist json must not contain </script"
+html = sub_once(r'/\*__BJ_TRANSFER_DIST__\*/\{\}', lambda _: bj_dist, html, "bj transfer dist json")
+bj_vtx = (BASE / "vt-exits-bj.json").read_text(encoding="utf-8")
+assert "</script" not in bj_vtx, "bj vt exits json must not contain </script"
+html = sub_once(r'/\*__BJ_VT_EXITS__\*/\[\]', lambda _: bj_vtx, html, "bj vt exits json")
 html = sub_once(r'/\*__WALK_ICON__\*/', lambda _: walk_b64, html, "walk icon")
 walk_ink_b64 = (BASE / "walk-icon-ink.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__WALK_ICON_INK__\*/', lambda _: walk_ink_b64, html, "walk icon ink")

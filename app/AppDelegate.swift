@@ -261,6 +261,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var transferEffectView: UIVisualEffectView!
     var transferSwapButton: UIButton!
     var transferSearchButton: UIButton!
+    // 26E123 ⑥: full-row tap layers for the transfer card — each
+    // covers its row band at full card width UNDER the row contents,
+    // so tapping any blank part of a row focuses that row's field.
+    // The swap button and the badge / clear buttons are added above
+    // them and keep their own taps.
+    var fromRowTap: UIButton!
+    var toRowTap: UIButton!
+    // 26E123 ⑤: profile page native Liquid Glass pieces — a
+    // clear-glass backplate for the info card plus three glass rows
+    // (Save / Redeem / Sign Out), frame-positioned from the web's
+    // profileFrame posts (placeProfile). The identity badges are
+    // NOT glass (user exception) and stay web plain-solid chips.
+    var profileCardGlass: UIVisualEffectView!
+    var profileSaveRow: UIView!
+    var profileSaveLabel: UILabel!
+    var profileRedeemRow: UIView!
+    var profileRedeemLabel: UILabel!
+    var profileLogoutRow: UIView!
+    var profileLogoutLabel: UILabel!
     var fromField: UITextField!
     var toField: UITextField!
     // Label buttons beside the native transfer fields (出发/到达), stored
@@ -869,6 +888,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "transferFrame")
         config.userContentController.add(self, name: "themeFrame")
         config.userContentController.add(self, name: "switchFrame")
+        config.userContentController.add(self, name: "profileFrame")
         config.userContentController.add(self, name: "stationPicked")
         config.userContentController.add(self, name: "fastNote")
         config.userContentController.add(self, name: "redeemCode")
@@ -1295,6 +1315,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         setupNearbySmartSwitch()
         setupTransferControls()
         setupActionButtons()
+        setupProfileControls()
         // Native launch splash (build 53, user 2026-11-15 "点进去为什么
         // 第一时刻没有开屏动画是白屏"): the web splash only appears after
         // the 6.7 MB page loads, so the first moment was a white screen
@@ -2602,6 +2623,151 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         webView.evaluateJavaScript("window.__switchDiag && window.__switchDiag(\(json))", completionHandler: nil)
     }
 
+    // MARK: - Profile page native Liquid Glass (26E123 ⑤)
+
+    // One native Liquid Glass row for the profile page: a
+    // clear-glass plate (the same makeClearGlassEffectView as the
+    // transfer card — real UIGlassEffect, no CSS imitation) with a
+    // label and, for the redeem row, a trailing chevron mirroring
+    // the web row; a clear tap button on top routes the tap back
+    // into the web via window.__profileTap, where the exact method
+    // the web row runs handles it — behaviour unchanged.
+    func makeProfileGlassRow(chevron: Bool, action: Selector) -> (UIView, UILabel) {
+        let row = UIView()
+        row.layer.cornerRadius = 28
+        row.clipsToBounds = true
+        row.isHidden = true
+        let glass = makeClearGlassEffectView()
+        glass.translatesAutoresizingMaskIntoConstraints = false
+        glass.isUserInteractionEnabled = false
+        row.addSubview(glass)
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 16)
+        label.textColor = .label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        row.addSubview(label)
+        var constraints: [NSLayoutConstraint] = [
+            glass.leadingAnchor.constraint(equalTo: row.leadingAnchor),
+            glass.trailingAnchor.constraint(equalTo: row.trailingAnchor),
+            glass.topAnchor.constraint(equalTo: row.topAnchor),
+            glass.bottomAnchor.constraint(equalTo: row.bottomAnchor),
+            label.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+        ]
+        if chevron {
+            let chev = UIImageView(image: UIImage(systemName: "chevron.right"))
+            chev.tintColor = UIColor(red: 199.0 / 255.0, green: 199.0 / 255.0, blue: 204.0 / 255.0, alpha: 1)
+            chev.translatesAutoresizingMaskIntoConstraints = false
+            row.addSubview(chev)
+            constraints.append(label.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 16))
+            constraints.append(chev.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -16))
+            constraints.append(chev.centerYAnchor.constraint(equalTo: row.centerYAnchor))
+            constraints.append(chev.widthAnchor.constraint(equalToConstant: 10))
+            constraints.append(chev.heightAnchor.constraint(equalToConstant: 16))
+        } else {
+            constraints.append(label.centerXAnchor.constraint(equalTo: row.centerXAnchor))
+        }
+        let tap = UIButton(type: .custom)
+        tap.translatesAutoresizingMaskIntoConstraints = false
+        tap.addTarget(self, action: action, for: .touchUpInside)
+        row.addSubview(tap)
+        constraints.append(tap.leadingAnchor.constraint(equalTo: row.leadingAnchor))
+        constraints.append(tap.trailingAnchor.constraint(equalTo: row.trailingAnchor))
+        constraints.append(tap.topAnchor.constraint(equalTo: row.topAnchor))
+        constraints.append(tap.bottomAnchor.constraint(equalTo: row.bottomAnchor))
+        NSLayoutConstraint.activate(constraints)
+        view.addSubview(row)
+        return (row, label)
+    }
+
+    func setupProfileControls() {
+        // Info-card backplate: clear glass, NON-interactive — the
+        // web rows (nickname input, Home City row) stay visible
+        // through it and keep receiving their taps.
+        profileCardGlass = makeClearGlassEffectView()
+        profileCardGlass.layer.cornerRadius = 28
+        profileCardGlass.clipsToBounds = true
+        profileCardGlass.isUserInteractionEnabled = false
+        profileCardGlass.isHidden = true
+        view.addSubview(profileCardGlass)
+        let save = makeProfileGlassRow(chevron: false, action: #selector(profileSaveTapped))
+        profileSaveRow = save.0
+        profileSaveLabel = save.1
+        profileSaveLabel.textColor = .systemBlue
+        profileSaveLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        let redeem = makeProfileGlassRow(chevron: true, action: #selector(profileRedeemTapped))
+        profileRedeemRow = redeem.0
+        profileRedeemLabel = redeem.1
+        let logout = makeProfileGlassRow(chevron: false, action: #selector(profileLogoutTapped))
+        profileLogoutRow = logout.0
+        profileLogoutLabel = logout.1
+        profileLogoutLabel.textColor = .systemRed
+    }
+
+    @objc func profileSaveTapped() {
+        webView.evaluateJavaScript("window.__profileTap && window.__profileTap('save')", completionHandler: nil)
+    }
+
+    @objc func profileRedeemTapped() {
+        webView.evaluateJavaScript("window.__profileTap && window.__profileTap('redeem')", completionHandler: nil)
+    }
+
+    @objc func profileLogoutTapped() {
+        webView.evaluateJavaScript("window.__profileTap && window.__profileTap('logout')", completionHandler: nil)
+    }
+
+    // Place the profile glass pieces over the web's reported rects
+    // (profileFrame posts; same webOffset math as placeSwitch).
+    // Zero rects — profile page closed, or no signed-in profile for
+    // the redeem / sign-out cards — hide the matching piece.
+    func placeProfile(frame dict: [String: Any]) {
+        func rectOf(_ key: String) -> CGRect? {
+            guard let r = dict[key] as? [String: Any],
+                  let w = r["width"] as? Double, let h = r["height"] as? Double, w > 0, h > 0 else { return nil }
+            return CGRect(x: ((r["x"] as? Double) ?? 0) + webOffset.x,
+                          y: ((r["y"] as? Double) ?? 0) + webOffset.y,
+                          width: w, height: h)
+        }
+        let show = currentTab == "more" && !splashShowing
+        if show, let f = rectOf("card") {
+            profileCardGlass.frame = f
+            profileCardGlass.isHidden = false
+            view.bringSubviewToFront(profileCardGlass)
+        } else {
+            profileCardGlass.isHidden = true
+        }
+        if show, let f = rectOf("save") {
+            profileSaveRow.frame = f
+            profileSaveRow.isHidden = false
+            if let t = dict["saveLabel"] as? String, t != profileSaveLabel.text { profileSaveLabel.text = t }
+            view.bringSubviewToFront(profileSaveRow)
+        } else {
+            profileSaveRow.isHidden = true
+        }
+        if show, let f = rectOf("redeem") {
+            profileRedeemRow.frame = f
+            profileRedeemRow.isHidden = false
+            if let t = dict["redeemLabel"] as? String, t != profileRedeemLabel.text { profileRedeemLabel.text = t }
+            view.bringSubviewToFront(profileRedeemRow)
+        } else {
+            profileRedeemRow.isHidden = true
+        }
+        if show, let f = rectOf("logout") {
+            profileLogoutRow.frame = f
+            profileLogoutRow.isHidden = false
+            if let t = dict["logoutLabel"] as? String, t != profileLogoutLabel.text { profileLogoutLabel.text = t }
+            view.bringSubviewToFront(profileLogoutRow)
+        } else {
+            profileLogoutRow.isHidden = true
+        }
+    }
+
+    func hideProfileControls() {
+        profileCardGlass?.isHidden = true
+        profileSaveRow?.isHidden = true
+        profileRedeemRow?.isHidden = true
+        profileLogoutRow?.isHidden = true
+    }
+
     // MARK: - Creator redemption (26E122)
 
     // The native half of the profile page's 兑换码 row: a
@@ -2751,6 +2917,34 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             fromRow.heightAnchor.constraint(equalTo: toRow.heightAnchor),
         ])
 
+        // 26E123 ⑥: full-row tap layers. Each spans the FULL card
+        // width and its row's full height band (the two bands meet
+        // at the divider's centre), inserted at the BACK of the
+        // card's content — under the rows, the divider and the swap
+        // button — so blank-area taps focus the row's field while
+        // the label button, line badges, clear button and swap
+        // button (all above) keep their own taps untouched.
+        fromRowTap = UIButton(type: .custom)
+        fromRowTap.tag = 0
+        fromRowTap.addTarget(self, action: #selector(transferRowTapTapped(_:)), for: .touchUpInside)
+        fromRowTap.translatesAutoresizingMaskIntoConstraints = false
+        content.insertSubview(fromRowTap, at: 0)
+        toRowTap = UIButton(type: .custom)
+        toRowTap.tag = 1
+        toRowTap.addTarget(self, action: #selector(transferRowTapTapped(_:)), for: .touchUpInside)
+        toRowTap.translatesAutoresizingMaskIntoConstraints = false
+        content.insertSubview(toRowTap, at: 0)
+        NSLayoutConstraint.activate([
+            fromRowTap.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            fromRowTap.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            fromRowTap.topAnchor.constraint(equalTo: content.topAnchor),
+            fromRowTap.bottomAnchor.constraint(equalTo: divider.centerYAnchor),
+            toRowTap.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            toRowTap.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            toRowTap.topAnchor.constraint(equalTo: divider.centerYAnchor),
+            toRowTap.bottomAnchor.constraint(equalTo: content.bottomAnchor),
+        ])
+
         // Swap button: a frosted white circle at the right, vertically
         // centred (mirrors the web .tr-swap; it sits on the glass card).
         transferSwapButton = UIButton(type: .system)
@@ -2833,7 +3027,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         f.autocapitalizationType = .none
         f.spellCheckingType = .no
         f.returnKeyType = .search
-        f.inputAccessoryView = makeKeyboardToolbar()
+        // 26E123 ⑦: NO inputAccessoryView. The app used to attach
+        // makeKeyboardToolbar() here — a UIToolbar whose Done item
+        // ("完成") is exactly the blue capsule the user circled
+        // floating over the keyboard (26E121 misjudged it as a
+        // system accessory; it was ours all along). Removed: the
+        // keyboard now dismisses via the Search return key and by
+        // tapping elsewhere, like the rest of the app.
         f.addTarget(self, action: #selector(transferFieldChanged(_:)), for: .editingChanged)
         return f
     }
@@ -2879,16 +3079,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return b
     }
 
-    func makeKeyboardToolbar() -> UIToolbar {
-        let tb = UIToolbar()
-        tb.sizeToFit()
-        let done = UIBarButtonItem(title: L("time.done"), style: .done, target: self, action: #selector(dismissTransferKeyboard))
-        tb.items = [UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil), done]
-        return tb
-    }
-
-    @objc func dismissTransferKeyboard() {
-        view.endEditing(true)
+    // 26E123 ⑥: a tap on a transfer row's blank area (the full-row
+    // tap layer under the row contents) focuses that row's field.
+    @objc func transferRowTapTapped(_ sender: UIButton) {
+        if sender.tag == 0 { fromField.becomeFirstResponder() } else { toField.becomeFirstResponder() }
     }
 
     // Place the native transfer card + search button over the web rows'
@@ -3014,6 +3208,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // Dark-mode picker only lives on the settings tab.
         if currentTab != "more" {
             for btn in themeButtons { btn.isHidden = true }
+            // 26E123 ⑤: the profile glass pieces live on the
+            // settings tab too.
+            hideProfileControls()
         }
     }
 
@@ -4289,6 +4486,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "switchFrame",
                   let dict = message.body as? [String: Any] {
             placeSwitch(frame: dict)
+        } else if message.name == "profileFrame",
+                  let dict = message.body as? [String: Any] {
+            // 26E123 ⑤: profile page glass placement (info-card
+            // backplate + Save / Redeem / Sign Out glass rows).
+            placeProfile(frame: dict)
         } else if message.name == "stationPicked",
                   let dict = message.body as? [String: Any] {
             // The user tapped a web suggestion row: mirror the picked
