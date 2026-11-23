@@ -139,6 +139,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // and performs the exact back-button action (subViewBackTapped).
     var subViewEdgePan: UIScreenEdgePanGestureRecognizer?
     var subBackLeadingConstraint: NSLayoutConstraint?
+    var cityPillLeadingConstraint: NSLayoutConstraint?
     var subBackTopConstraint: NSLayoutConstraint?
     var subHeaderGlass: UIVisualEffectView!
     var subHeaderTitle: UILabel!
@@ -268,12 +269,29 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // them and keep their own taps.
     var fromRowTap: UIButton!
     var toRowTap: UIButton!
-    // 26E123 ⑤: profile page native Liquid Glass pieces — a
-    // clear-glass backplate for the info card plus three glass rows
-    // (Save / Redeem / Sign Out), frame-positioned from the web's
-    // profileFrame posts (placeProfile). The identity badges are
-    // NOT glass (user exception) and stay web plain-solid chips.
-    var profileCardGlass: UIVisualEffectView!
+    // Profile page native Liquid Glass pieces. 26E123 ⑤ shipped
+    // a clear-glass BACKPLATE for the info card plus three glass
+    // rows (Save / Redeem / Sign Out); on device the backplate
+    // blurred the web rows under it into mush. 26E124: the info
+    // card is rendered ENTIRELY natively (profileInfoCard: glass
+    // card + native nickname field + native labels, rebuilt from
+    // the profileFrame payload's rows) — the web card is only a
+    // layout anchor now. The three glass rows are unchanged. The
+    // identity badges are NOT glass (user exception) and stay web
+    // plain-solid chips.
+    var profileInfoCard: UIView!
+    var profileInfoStack: UIStackView!
+    var profileNameField: UITextField?
+    var profileRowsSignature: String = ""
+    // 26E124: the map station card — rendered ENTIRELY natively
+    // (Liquid Glass card, native badges at 60% of the web badge
+    // size, native buttons) from the web's mapCardFrame posts.
+    var mapCardView: UIView!
+    var mapCardNameLabel: UILabel!
+    var mapCardBadgeArea: UIView!
+    var mapCardBadgeHeight: NSLayoutConstraint?
+    var mapCardFromButton: UIButton!
+    var mapCardToButton: UIButton!
     var profileSaveRow: UIView!
     var profileSaveLabel: UILabel!
     var profileRedeemRow: UIView!
@@ -889,6 +907,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "themeFrame")
         config.userContentController.add(self, name: "switchFrame")
         config.userContentController.add(self, name: "profileFrame")
+        config.userContentController.add(self, name: "mapCardFrame")
         config.userContentController.add(self, name: "stationPicked")
         config.userContentController.add(self, name: "fastNote")
         config.userContentController.add(self, name: "redeemCode")
@@ -1316,6 +1335,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         setupTransferControls()
         setupActionButtons()
         setupProfileControls()
+        setupMapCard()
         // Native launch splash (build 53, user 2026-11-15 "点进去为什么
         // 第一时刻没有开屏动画是白屏"): the web splash only appears after
         // the 6.7 MB page loads, so the first moment was a white screen
@@ -1440,6 +1460,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         button.isHidden = !visible
         subViewEdgePan?.isEnabled = visible
         if visible { view.bringSubviewToFront(button) }
+        updateCityPillLeading()
+    }
+
+    // 26E124: on the map tab the docked sub-view back button and
+    // the city pill share the top-left corner — the button (40pt
+    // at leading 22) covered the pill's left half (only the last
+    // character of the city name showed). Whenever both are up,
+    // the pill moves right of the button with the standard 8pt
+    // gap; otherwise it keeps its 12pt home. The map tools pill
+    // (top-right) and map pan/zoom are untouched.
+    func updateCityPillLeading() {
+        guard let c = cityPillLeadingConstraint else { return }
+        let backUp = subViewBackButton != nil && !subViewBackButton.isHidden
+        let pillUp = cityPill != nil && !cityPill.isHidden
+        if backUp && pillUp {
+            c.constant = (subBackLeadingConstraint?.constant ?? 22) + 40 + 8
+        } else {
+            c.constant = 12
+        }
     }
 
     // Position the native back button exactly over the web back
@@ -1454,6 +1493,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let topBase: CGFloat = (UIDevice.current.userInterfaceIdiom == .pad) ? tabBar.frame.maxY : view.safeAreaInsets.top
         leading.constant = (centerX - 20) - view.safeAreaInsets.left
         top.constant = (centerY - 20) - topBase
+        updateCityPillLeading()
     }
 
     // Docked position: inside the 44pt safe-area header strip — the
@@ -1468,6 +1508,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // margin instead of hugging the safe-area edge at 16.
         subBackLeadingConstraint?.constant = 22
         subBackTopConstraint?.constant = 2
+        updateCityPillLeading()
     }
 
     func resetSubViewBackButtonPosition() {
@@ -1830,9 +1871,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         view.addSubview(mapToolsPill)
         // Pills sit at the top safe area on iPhone. On iPad the tab bar
         // floats at the top (build 74), so the pills sit below it.
+        cityPillLeadingConstraint = cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12)
         let pillTopAnchor: NSLayoutYAxisAnchor = (UIDevice.current.userInterfaceIdiom == .pad) ? tabBar.bottomAnchor : view.safeAreaLayoutGuide.topAnchor
         NSLayoutConstraint.activate([
-            cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+            cityPillLeadingConstraint!,
             cityPill.topAnchor.constraint(equalTo: pillTopAnchor, constant: 10),
             mapToolsPill.trailingAnchor.constraint(equalTo: webView.trailingAnchor, constant: -12), // The content's right edge: with the Duo sidebar active this sits just left of the sidebar; otherwise it is the screen edge (the safe area inset left it floating mid-screen on the Duo).
             mapToolsPill.topAnchor.constraint(equalTo: pillTopAnchor, constant: 10),
@@ -2588,40 +2630,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             sw.isHidden = true
         }
-        // DIAG-26E122: feed the readout under the switch row with
-        // this placement's real numbers.
-        sendSwitchDiag(reported: dict)
     }
 
-    // DIAG-26E122: push the REAL placement numbers to the web
-    // readout under the Siri switch row: the rect exactly as the
-    // web reported it, this webView's bounds, the switch's final
-    // frame, the screen width, the root view's bounds width and
-    // the webView's origin x. Two on-device fix attempts for the
-    // switch sliding off the right edge have failed (the 26E121
-    // settled-rect theory included), so this round only measures —
-    // one screenshot of the readout pins which quantity is wrong:
-    // rx+rw beyond bw means the web layout itself overflows the
-    // webView; a sane rect with px+pw beyond sw means the native
-    // math/clamp is at fault; a sane placed frame that still
-    // renders off-screen means the root view itself is wider or
-    // shifted versus the screen (vw/wox expose that). Remove with
-    // the other DIAG-26E122 markers once the cause is pinned.
-    func sendSwitchDiag(reported dict: [String: Any]) {
-        guard let sw = nearbySmartSwitch else { return }
-        let payload: [String: Any] = [
-            "rx": (dict["x"] as? Double) ?? 0, "ry": (dict["y"] as? Double) ?? 0,
-            "rw": (dict["width"] as? Double) ?? 0, "rh": (dict["height"] as? Double) ?? 0,
-            "bw": Double(webView.bounds.width), "bh": Double(webView.bounds.height),
-            "px": Double(sw.frame.origin.x), "py": Double(sw.frame.origin.y),
-            "pw": Double(sw.frame.width), "ph": Double(sw.frame.height),
-            "sw": Double(UIScreen.main.bounds.width), "vw": Double(view.bounds.width),
-            "wox": Double(webOffset.x), "hid": sw.isHidden
-        ]
-        guard let data = try? JSONSerialization.data(withJSONObject: payload, options: []),
-              let json = String(data: data, encoding: .utf8) else { return }
-        webView.evaluateJavaScript("window.__switchDiag && window.__switchDiag(\(json))", completionHandler: nil)
-    }
 
     // MARK: - Profile page native Liquid Glass (26E123 ⑤)
 
@@ -2680,15 +2690,35 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func setupProfileControls() {
-        // Info-card backplate: clear glass, NON-interactive — the
-        // web rows (nickname input, Home City row) stay visible
-        // through it and keep receiving their taps.
-        profileCardGlass = makeClearGlassEffectView()
-        profileCardGlass.layer.cornerRadius = 28
-        profileCardGlass.clipsToBounds = true
-        profileCardGlass.isUserInteractionEnabled = false
-        profileCardGlass.isHidden = true
-        view.addSubview(profileCardGlass)
+        // 26E124: the info card is a whole native component — a
+        // clear-glass card (same makeClearGlassEffectView as the
+        // rows below) with a stack of native rows inside, rebuilt
+        // from the profileFrame payload whenever the rows change.
+        profileInfoCard = UIView()
+        profileInfoCard.layer.cornerRadius = 28
+        profileInfoCard.clipsToBounds = true
+        profileInfoCard.isHidden = true
+        let cardGlass = makeClearGlassEffectView()
+        cardGlass.translatesAutoresizingMaskIntoConstraints = false
+        cardGlass.isUserInteractionEnabled = false
+        profileInfoCard.addSubview(cardGlass)
+        profileInfoStack = UIStackView()
+        profileInfoStack.axis = .vertical
+        profileInfoStack.alignment = .fill
+        profileInfoStack.distribution = .fillEqually
+        profileInfoStack.translatesAutoresizingMaskIntoConstraints = false
+        profileInfoCard.addSubview(profileInfoStack)
+        NSLayoutConstraint.activate([
+            cardGlass.leadingAnchor.constraint(equalTo: profileInfoCard.leadingAnchor),
+            cardGlass.trailingAnchor.constraint(equalTo: profileInfoCard.trailingAnchor),
+            cardGlass.topAnchor.constraint(equalTo: profileInfoCard.topAnchor),
+            cardGlass.bottomAnchor.constraint(equalTo: profileInfoCard.bottomAnchor),
+            profileInfoStack.leadingAnchor.constraint(equalTo: profileInfoCard.leadingAnchor, constant: 16),
+            profileInfoStack.trailingAnchor.constraint(equalTo: profileInfoCard.trailingAnchor, constant: -16),
+            profileInfoStack.topAnchor.constraint(equalTo: profileInfoCard.topAnchor, constant: 4),
+            profileInfoStack.bottomAnchor.constraint(equalTo: profileInfoCard.bottomAnchor, constant: -4),
+        ])
+        view.addSubview(profileInfoCard)
         let save = makeProfileGlassRow(chevron: false, action: #selector(profileSaveTapped))
         profileSaveRow = save.0
         profileSaveLabel = save.1
@@ -2704,7 +2734,24 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     @objc func profileSaveTapped() {
+        // Commit the nickname field first (same order as the old
+        // web input: its value lands in profileNameDraft before
+        // saveProfile reads it).
+        if let tf = profileNameField, tf.isFirstResponder {
+            tf.resignFirstResponder()
+        }
+        if let tf = profileNameField {
+            pushProfileName(tf.text ?? "")
+        }
         webView.evaluateJavaScript("window.__profileTap && window.__profileTap('save')", completionHandler: nil)
+    }
+
+    @objc func profileCityTapped() {
+        webView.evaluateJavaScript("window.__profileTap && window.__profileTap('commonCity')", completionHandler: nil)
+    }
+
+    func pushProfileName(_ text: String) {
+        webView.evaluateJavaScript("window.__profileName && window.__profileName(\(jsStringLiteral(text)))", completionHandler: nil)
     }
 
     @objc func profileRedeemTapped() {
@@ -2729,11 +2776,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         let show = currentTab == "more" && !splashShowing
         if show, let f = rectOf("card") {
-            profileCardGlass.frame = f
-            profileCardGlass.isHidden = false
-            view.bringSubviewToFront(profileCardGlass)
+            profileInfoCard.frame = f
+            profileInfoCard.isHidden = false
+            if let rows = dict["rows"] as? [[String: Any]] {
+                rebuildProfileInfoRows(rows)
+            }
+            view.bringSubviewToFront(profileInfoCard)
         } else {
-            profileCardGlass.isHidden = true
+            profileInfoCard.isHidden = true
         }
         if show, let f = rectOf("save") {
             profileSaveRow.frame = f
@@ -2761,11 +2811,275 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
     }
 
+    // 26E124: rebuild the native info card's rows from the
+    // profileFrame payload. Row types: "name" (label + native
+    // text field), "value" (label + value), "city" (label +
+    // value + chevron, tappable). Rebuilds only when the payload
+    // signature changes; the field's text is never overwritten
+    // while it is being edited.
+    func rebuildProfileInfoRows(_ rows: [[String: Any]]) {
+        let sig = rows.map { ($0["type"] as? String ?? "") + ":" + ($0["label"] as? String ?? "") + ":" + ($0["value"] as? String ?? "") + ":" + ($0["ph"] as? String ?? "") }.joined(separator: "|")
+        if sig == profileRowsSignature { return }
+        profileRowsSignature = sig
+        for v in profileInfoStack.arrangedSubviews {
+            profileInfoStack.removeArrangedSubview(v)
+            v.removeFromSuperview()
+        }
+        profileNameField = nil
+        for (idx, row) in rows.enumerated() {
+            let type = row["type"] as? String ?? "value"
+            let container = UIView()
+            let label = UILabel()
+            label.font = .systemFont(ofSize: 17)
+            label.textColor = .label
+            label.text = row["label"] as? String ?? ""
+            label.translatesAutoresizingMaskIntoConstraints = false
+            container.addSubview(label)
+            var constraints: [NSLayoutConstraint] = [
+                label.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                label.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            ]
+            if type == "name" {
+                let tf = UITextField()
+                tf.font = .systemFont(ofSize: 17)
+                tf.textColor = .label
+                tf.textAlignment = .right
+                tf.text = row["value"] as? String ?? ""
+                tf.placeholder = row["ph"] as? String ?? ""
+                tf.autocorrectionType = .no
+                tf.autocapitalizationType = .none
+                tf.spellCheckingType = .no
+                tf.returnKeyType = .done
+                tf.delegate = self
+                tf.translatesAutoresizingMaskIntoConstraints = false
+                container.addSubview(tf)
+                constraints.append(tf.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 12))
+                constraints.append(tf.trailingAnchor.constraint(equalTo: container.trailingAnchor))
+                constraints.append(tf.centerYAnchor.constraint(equalTo: container.centerYAnchor))
+                profileNameField = tf
+            } else {
+                let value = UILabel()
+                value.font = .systemFont(ofSize: 17)
+                value.textColor = .label
+                value.textAlignment = .right
+                value.text = row["value"] as? String ?? ""
+                value.translatesAutoresizingMaskIntoConstraints = false
+                container.addSubview(value)
+                constraints.append(value.leadingAnchor.constraint(greaterThanOrEqualTo: label.trailingAnchor, constant: 12))
+                if type == "city" {
+                    let chev = UIImageView(image: UIImage(systemName: "chevron.right"))
+                    chev.tintColor = UIColor(red: 199.0 / 255.0, green: 199.0 / 255.0, blue: 204.0 / 255.0, alpha: 1)
+                    chev.translatesAutoresizingMaskIntoConstraints = false
+                    container.addSubview(chev)
+                    constraints.append(value.trailingAnchor.constraint(equalTo: chev.leadingAnchor, constant: -6))
+                    constraints.append(chev.trailingAnchor.constraint(equalTo: container.trailingAnchor))
+                    constraints.append(chev.centerYAnchor.constraint(equalTo: container.centerYAnchor))
+                    constraints.append(chev.widthAnchor.constraint(equalToConstant: 10))
+                    constraints.append(chev.heightAnchor.constraint(equalToConstant: 16))
+                    let tap = UIButton(type: .custom)
+                    tap.translatesAutoresizingMaskIntoConstraints = false
+                    tap.addTarget(self, action: #selector(profileCityTapped), for: .touchUpInside)
+                    container.addSubview(tap)
+                    constraints.append(tap.leadingAnchor.constraint(equalTo: container.leadingAnchor))
+                    constraints.append(tap.trailingAnchor.constraint(equalTo: container.trailingAnchor))
+                    constraints.append(tap.topAnchor.constraint(equalTo: container.topAnchor))
+                    constraints.append(tap.bottomAnchor.constraint(equalTo: container.bottomAnchor))
+                } else {
+                    constraints.append(value.trailingAnchor.constraint(equalTo: container.trailingAnchor))
+                }
+                constraints.append(value.centerYAnchor.constraint(equalTo: container.centerYAnchor))
+            }
+            if idx < rows.count - 1 {
+                let hair = UIView()
+                hair.backgroundColor = .separator
+                hair.translatesAutoresizingMaskIntoConstraints = false
+                container.addSubview(hair)
+                constraints.append(hair.leadingAnchor.constraint(equalTo: container.leadingAnchor))
+                constraints.append(hair.trailingAnchor.constraint(equalTo: container.trailingAnchor))
+                constraints.append(hair.bottomAnchor.constraint(equalTo: container.bottomAnchor))
+                constraints.append(hair.heightAnchor.constraint(equalToConstant: 0.5))
+            }
+            NSLayoutConstraint.activate(constraints)
+            profileInfoStack.addArrangedSubview(container)
+        }
+    }
+
     func hideProfileControls() {
-        profileCardGlass?.isHidden = true
+        profileInfoCard?.isHidden = true
         profileSaveRow?.isHidden = true
         profileRedeemRow?.isHidden = true
         profileLogoutRow?.isHidden = true
+    }
+
+    // MARK: - Map station card (26E124)
+
+    func setupMapCard() {
+        mapCardView = UIView()
+        mapCardView.layer.cornerRadius = 20
+        mapCardView.clipsToBounds = true
+        mapCardView.isHidden = true
+        let glass = makeClearGlassEffectView()
+        glass.translatesAutoresizingMaskIntoConstraints = false
+        glass.isUserInteractionEnabled = false
+        mapCardView.addSubview(glass)
+        mapCardNameLabel = UILabel()
+        mapCardNameLabel.font = .systemFont(ofSize: 17, weight: .bold)
+        mapCardNameLabel.textColor = .label
+        mapCardBadgeArea = UIView()
+        mapCardBadgeHeight = mapCardBadgeArea.heightAnchor.constraint(equalToConstant: 0)
+        func makeButton(_ color: UIColor, _ action: Selector) -> UIButton {
+            let b = UIButton(type: .custom)
+            b.backgroundColor = UIColor(red: 120.0 / 255.0, green: 120.0 / 255.0, blue: 128.0 / 255.0, alpha: 0.12)
+            b.layer.cornerRadius = 12
+            b.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
+            b.setTitleColor(color, for: .normal)
+            b.addTarget(self, action: action, for: .touchUpInside)
+            return b
+        }
+        mapCardFromButton = makeButton(.systemBlue, #selector(mapCardFromTapped))
+        mapCardToButton = makeButton(UIColor(red: 229.0 / 255.0, green: 72.0 / 255.0, blue: 77.0 / 255.0, alpha: 1), #selector(mapCardToTapped))
+        let actions = UIStackView(arrangedSubviews: [mapCardFromButton, mapCardToButton])
+        actions.axis = .horizontal
+        actions.spacing = 10
+        actions.distribution = .fillEqually
+        let stack = UIStackView(arrangedSubviews: [mapCardNameLabel, mapCardBadgeArea, actions])
+        stack.axis = .vertical
+        stack.spacing = 8
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        mapCardView.addSubview(stack)
+        mapCardView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(mapCardView)
+        NSLayoutConstraint.activate([
+            glass.leadingAnchor.constraint(equalTo: mapCardView.leadingAnchor),
+            glass.trailingAnchor.constraint(equalTo: mapCardView.trailingAnchor),
+            glass.topAnchor.constraint(equalTo: mapCardView.topAnchor),
+            glass.bottomAnchor.constraint(equalTo: mapCardView.bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: mapCardView.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: mapCardView.trailingAnchor, constant: -16),
+            stack.topAnchor.constraint(equalTo: mapCardView.topAnchor, constant: 14),
+            stack.bottomAnchor.constraint(equalTo: mapCardView.bottomAnchor, constant: -14),
+            mapCardBadgeHeight!,
+            mapCardFromButton.heightAnchor.constraint(equalToConstant: 41),
+            mapCardView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            mapCardView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            mapCardView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -84),
+        ])
+    }
+
+    // One line badge at 60% of the web .ln-badge (the map card's
+    // pills were the big suggestion-row badges: 54pt number,
+    // 20/11pt zh/en, 10/18 padding, radius 12 — here 32pt, 12/7pt,
+    // 6/11 padding, radius 7), same layout: big number left, the
+    // 号线 / Line stack right; a pinned line keeps its green
+    // check disc.
+    func makeMapBadge(_ line: [String: Any]) -> UIView {
+        let badge = UIView()
+        badge.backgroundColor = colorFromHex(line["color"] as? String ?? "") ?? .systemGray
+        badge.layer.cornerRadius = 7
+        let fg = colorFromHex(line["text"] as? String ?? "") ?? .white
+        let num = UILabel()
+        num.text = line["left"] as? String ?? ""
+        num.font = .systemFont(ofSize: 32, weight: .heavy)
+        num.textColor = fg
+        num.sizeToFit()
+        let top = line["top"] as? String ?? ""
+        let zh = UILabel()
+        zh.text = top
+        zh.font = .systemFont(ofSize: 12, weight: .bold)
+        zh.textColor = fg
+        zh.sizeToFit()
+        let en = UILabel()
+        en.text = line["bottom"] as? String ?? ""
+        en.font = .systemFont(ofSize: 7, weight: .semibold)
+        en.textColor = fg.withAlphaComponent(0.92)
+        en.sizeToFit()
+        let txtW = top.isEmpty ? en.frame.width : max(zh.frame.width, en.frame.width)
+        let txtH = top.isEmpty ? en.frame.height : zh.frame.height + en.frame.height + 1
+        let w = 10 + num.frame.width + 6 + txtW + 11
+        let h = max(num.frame.height, txtH) + 12
+        badge.frame = CGRect(x: 0, y: 0, width: w, height: h)
+        num.frame.origin = CGPoint(x: 10, y: (h - num.frame.height) / 2)
+        badge.addSubview(num)
+        if top.isEmpty {
+            en.frame.origin = CGPoint(x: 10 + num.frame.width + 6, y: (h - en.frame.height) / 2)
+            badge.addSubview(en)
+        } else {
+            zh.frame.origin = CGPoint(x: 10 + num.frame.width + 6, y: (h - txtH) / 2)
+            en.frame.origin = CGPoint(x: 10 + num.frame.width + 6, y: (h - txtH) / 2 + zh.frame.height + 1)
+            badge.addSubview(zh)
+            badge.addSubview(en)
+        }
+        if (line["pinned"] as? Bool) == true {
+            let disc = UIView()
+            disc.backgroundColor = UIColor(red: 52.0 / 255.0, green: 199.0 / 255.0, blue: 89.0 / 255.0, alpha: 1)
+            disc.layer.cornerRadius = 6
+            disc.frame = CGRect(x: w - 8, y: -4, width: 12, height: 12)
+            let check = UILabel()
+            check.text = "✓"
+            check.font = .systemFont(ofSize: 8, weight: .heavy)
+            check.textColor = .white
+            check.textAlignment = .center
+            check.frame = disc.bounds
+            disc.addSubview(check)
+            badge.addSubview(disc)
+        }
+        let tap = UIButton(type: .custom)
+        tap.frame = badge.bounds
+        tap.accessibilityIdentifier = line["key"] as? String ?? ""
+        tap.addTarget(self, action: #selector(mapCardBadgeTapped(_:)), for: .touchUpInside)
+        badge.addSubview(tap)
+        return badge
+    }
+
+    func placeMapCard(_ dict: [String: Any]) {
+        guard (dict["show"] as? Bool) == true,
+              let name = dict["name"] as? String,
+              let lines = dict["lines"] as? [[String: Any]],
+              currentTab == "map", !splashShowing else {
+            hideMapCard()
+            return
+        }
+        mapCardNameLabel.text = name
+        mapCardFromButton.setTitle(dict["fromLabel"] as? String ?? "", for: .normal)
+        mapCardToButton.setTitle(dict["toLabel"] as? String ?? "", for: .normal)
+        for v in mapCardBadgeArea.subviews { v.removeFromSuperview() }
+        let avail = view.bounds.width - 64
+        var x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0
+        if lines.count > 1 {
+            for line in lines {
+                let badge = makeMapBadge(line)
+                if x > 0 && x + badge.frame.width > avail {
+                    x = 0
+                    y += rowH + 6
+                    rowH = 0
+                }
+                badge.frame.origin = CGPoint(x: x, y: y)
+                mapCardBadgeArea.addSubview(badge)
+                x += badge.frame.width + 6
+                rowH = max(rowH, badge.frame.height)
+            }
+        }
+        mapCardBadgeHeight?.constant = lines.count > 1 ? y + rowH : 0
+        mapCardBadgeArea.isHidden = lines.count <= 1
+        mapCardView.isHidden = false
+        view.bringSubviewToFront(mapCardView)
+    }
+
+    func hideMapCard() {
+        mapCardView?.isHidden = true
+    }
+
+    @objc func mapCardFromTapped() {
+        webView.evaluateJavaScript("window.__mapCardTap && window.__mapCardTap('from', null)", completionHandler: nil)
+    }
+
+    @objc func mapCardToTapped() {
+        webView.evaluateJavaScript("window.__mapCardTap && window.__mapCardTap('to', null)", completionHandler: nil)
+    }
+
+    @objc func mapCardBadgeTapped(_ sender: UIButton) {
+        let key = sender.accessibilityIdentifier ?? ""
+        webView.evaluateJavaScript("window.__mapCardTap && window.__mapCardTap('pin', \(jsStringLiteral(key)))", completionHandler: nil)
     }
 
     // MARK: - Creator redemption (26E122)
@@ -3505,15 +3819,33 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func textFieldDidBeginEditing(_ textField: UITextField) {
+        // 26E124: the profile card's native nickname field.
+        if let pf = profileNameField, textField === pf {
+            webView.evaluateJavaScript("window.__profileNameFocus && window.__profileNameFocus(true)", completionHandler: nil)
+            return
+        }
         let which = textField.tag == 0 ? "from" : "to"
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setNativeFocus('\(which)')", completionHandler: nil)
     }
 
     func textFieldDidEndEditing(_ textField: UITextField) {
+        // 26E124: the nickname field commits its text to the web
+        // (profileNameDraft) and reports the focus release.
+        if let pf = profileNameField, textField === pf {
+            pushProfileName(textField.text ?? "")
+            webView.evaluateJavaScript("window.__profileNameFocus && window.__profileNameFocus(false)", completionHandler: nil)
+            return
+        }
         webView.evaluateJavaScript("window.metroApp && window.metroApp.setNativeBlur()", completionHandler: nil)
     }
 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        // 26E124: Done on the nickname field just resigns (the
+        // transfer fields keep their search-on-return behaviour).
+        if let pf = profileNameField, textField === pf {
+            textField.resignFirstResponder()
+            return true
+        }
         textField.resignFirstResponder()
         transferSearchTapped()
         return true
@@ -3578,6 +3910,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let show = currentTab == "map" && !splashShowing
         cityPill.isHidden = !show
         mapToolsPill.isHidden = !show
+        updateCityPillLeading()
     }
 
     // Called when the web splash finishes (or the fallback timer fires):
@@ -4401,6 +4734,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // The native Siri-page switch only exists on the
             // Settings tab (26C101).
             if tab != "more" { hideNearbySmartSwitch() }
+            if tab != "map" { hideMapCard() }
         } else if message.name == "cityMenu" {
             presentCityMenuPopover()
         } else if message.name == "splashDone" {
@@ -4491,6 +4825,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // 26E123 ⑤: profile page glass placement (info-card
             // backplate + Save / Redeem / Sign Out glass rows).
             placeProfile(frame: dict)
+        } else if message.name == "mapCardFrame",
+                  let dict = message.body as? [String: Any] {
+            // 26E124: the map station card's state — the whole
+            // card is native (placeMapCard).
+            placeMapCard(dict)
         } else if message.name == "stationPicked",
                   let dict = message.body as? [String: Any] {
             // The user tapped a web suggestion row: mirror the picked

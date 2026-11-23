@@ -19,7 +19,7 @@ if not SVG.exists():
     SVG = pathlib.Path('/home/hatch/workspace/metro-app/vendor/MTR2.8.0.svg')
 NS = '{http://www.w3.org/2000/svg}'
 # Labels that look like stations but are not (legend / area / place names).
-DENY = {'图例', '图例东', '图例桥西', '上地软件园', '万安', '上岸', '九号村', '东北旺'}
+DENY = {'图例', '图例东', '图例桥西', '九号村'}  # 26E124: 上地软件园/万安/上岸/东北旺 removed — real stations, hand-filled coords in stations.json (coords package 2026-11-24)
 
 def parse_transform(s):
     m = (1, 0, 0, 1, 0, 0)

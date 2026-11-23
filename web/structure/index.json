@@ -2395,7 +2395,31 @@
   "urls": {
    "spatial": "https://cdn.jsdelivr.net/gh/Andy-transport/Subway-Tools@e1703fda61145087446da24ac72a13dea008e325/web/structure/sz-%E7%A6%8F%E7%94%B0%E5%8F%A3%E5%B2%B8-spatial.jpg.b64",
    "plan": "https://cdn.jsdelivr.net/gh/Andy-transport/Subway-Tools@e1703fda61145087446da24ac72a13dea008e325/web/structure/sz-%E7%A6%8F%E7%94%B0%E5%8F%A3%E5%B2%B8-plan.jpg.b64"
-  }
+  },
+  "sets": [
+   {
+    "line": "4",
+    "spatial": "sz-福田口岸-spatial.jpg",
+    "plan": null,
+    "sources": {
+     "spatial": "https://static.wikia.nocookie.net/szbus/images/4/43/%E7%A6%8F%E7%94%B0%E5%8F%A3%E5%B2%B8%E7%AB%99_L4%E8%BD%A6%E7%AB%99%E7%A9%BA%E9%97%B4%E7%A4%BA%E6%84%8F%E5%9B%BE%EF%BC%88202512%EF%BC%89.jpg/revision/latest?cb=20260519164910"
+    },
+    "urls": {
+     "spatial": "https://cdn.jsdelivr.net/gh/Andy-transport/Subway-Tools@e1703fda61145087446da24ac72a13dea008e325/web/structure/sz-%E7%A6%8F%E7%94%B0%E5%8F%A3%E5%B2%B8-spatial.jpg.b64"
+    }
+   },
+   {
+    "line": "10",
+    "spatial": null,
+    "plan": "sz-福田口岸-plan.jpg",
+    "sources": {
+     "plan": "https://static.wikia.nocookie.net/szbus/images/9/9c/%E7%A6%8F%E7%94%B0%E5%8F%A3%E5%B2%B8%E7%AB%99_L10_%E8%BD%A6%E7%AB%99%E5%B9%B3%E9%9D%A2%E5%9B%BE_202604.jpg/revision/latest?cb=20260515143207"
+    },
+    "urls": {
+     "plan": "https://cdn.jsdelivr.net/gh/Andy-transport/Subway-Tools@e1703fda61145087446da24ac72a13dea008e325/web/structure/sz-%E7%A6%8F%E7%94%B0%E5%8F%A3%E5%B2%B8-plan.jpg.b64"
+    }
+   }
+  ]
  },
  "sz:会展中心": {
   "spatial": "sz-会展中心-spatial.jpg",

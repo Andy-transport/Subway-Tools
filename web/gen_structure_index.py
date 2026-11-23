@@ -70,6 +70,31 @@ for census_path in sorted(SDIR.glob("census-*.json")):
                 put(key, item.get("station"), kind, item.get("file"),
                     item.get("source_url") or item.get("source_page") or "")
 
+# 26E124: per-line diagram sets. sz:福田口岸 is an out-of-gate
+# interchange (Lines 4 / 10) whose two harvested diagrams belong to
+# DIFFERENT lines — the spatial diagram is Line 4's, the plan is
+# Line 10's (the census collected one spatial + one plan per station
+# regardless of line). Restructure the flat entry into "sets": one
+# set per line, each carrying only the diagrams that belong to it.
+# The flat spatial/plan fields stay for backward compatibility
+# (list badges); the detail panel reads "sets" when present.
+# The missing Line 4 plan and Line 10 spatial were NOT found on the
+# szbus (深圳交通百科) wiki file list for this station (checked
+# 2026-11-24) and szmc.net is unreachable from the build machine —
+# they stay null, never substituted with another station's diagram.
+_ft = index.get("sz:福田口岸")
+if _ft:
+    index["sz:福田口岸"] = dict(_ft, sets=[
+        {"line": "4",
+         "spatial": _ft.get("spatial"), "plan": None,
+         "sources": {"spatial": (_ft.get("sources") or {}).get("spatial")},
+         "urls": {"spatial": (_ft.get("urls") or {}).get("spatial")}},
+        {"line": "10",
+         "spatial": None, "plan": _ft.get("plan"),
+         "sources": {"plan": (_ft.get("sources") or {}).get("plan")},
+         "urls": {"plan": (_ft.get("urls") or {}).get("plan")}},
+    ])
+
 out = SDIR / "index.json"
 out.write_text(json.dumps(index, ensure_ascii=False, indent=1), encoding="utf-8")
 n_spatial = sum(1 for e in index.values() if e.get("spatial"))

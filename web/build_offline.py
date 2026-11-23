@@ -213,7 +213,8 @@ dl_transfers = (BASE / "dalian" / "transfers.json").read_text(encoding="utf-8")
 jh_transfers = (BASE / "jinhua" / "transfers.json").read_text(encoding="utf-8")
 cz_transfers = (BASE / "changzhou" / "transfers.json").read_text(encoding="utf-8")
 cq_transfers = (BASE / "chongqing" / "transfers.json").read_text(encoding="utf-8")
-for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers, cq_transfers):
+sz_transfers = (BASE / "shenzhen" / "transfers.json").read_text(encoding="utf-8")
+for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers, cq_transfers, sz_transfers):
     assert "</script" not in _t, "per-city transfers json must not contain </script"
 html = sub_once(r'/\*__SY_TRANSFERS__\*/\{\}', lambda _: sy_transfers, html, "sy transfers json")
 html = sub_once(r'/\*__SH_TRANSFERS__\*/\{\}', lambda _: sh_transfers, html, "sh transfers json")
@@ -222,9 +223,12 @@ html = sub_once(r'/\*__DL_TRANSFERS__\*/\{\}', lambda _: dl_transfers, html, "dl
 html = sub_once(r'/\*__JH_TRANSFERS__\*/\{\}', lambda _: jh_transfers, html, "jh transfers json")
 html = sub_once(r'/\*__CZ_TRANSFERS__\*/\{\}', lambda _: cz_transfers, html, "cz transfers json")
 html = sub_once(r'/\*__CQ_TRANSFERS__\*/\{\}', lambda _: cq_transfers, html, "cq transfers json")
-# Shenzhen virtual transfers are NOT yet built (湖贝 / 福田口岸 /
-# 红岭南 counterparts + distances unverified) — SZ_TRANSFERS is empty.
-html = sub_once(r'/\*__SZ_TRANSFERS__\*/\{\}', lambda _: '{}', html, "sz transfers json")
+# Shenzhen virtual transfers (26E124): 福田口岸 4<->10 is an
+# out-of-gate transfer (user's first-hand report) — modelled in
+# shenzhen/transfers.json with NO dist and NO walkMin (no measured
+# source; the engine's standard transfer penalty applies). 湖贝 /
+# 红岭南 stay unbuilt — counterparts + distances unverified.
+html = sub_once(r'/\*__SZ_TRANSFERS__\*/\{\}', lambda _: sz_transfers, html, "sz transfers json")
 
 # M. inline the per-city splash (launch) images.
 # BJ splash = the native LaunchScreen image (app/splash.b64, Beijing 北京/配线查询);

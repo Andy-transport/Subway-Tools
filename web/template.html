@@ -817,13 +817,17 @@
 		   placeholder, spilled off the left screen edge. With the
 		   inset the placeholder spans x 16-50 and the circle lands
 		   at x 13-53, fully on screen like the settings sub-pages. */
-		#structurePanel .tt-title { padding: 8px 16px 12px; }
+		#structurePanel .tt-title { padding: 8px 52px 12px 16px; }
 		.native-app .struct-seg { background: transparent; }
 		.native-app .struct-seg button { visibility: hidden; }
 		.struct-seg button { flex: 1; border: none; background: transparent; padding: 7px 0; font-size: 14px; font-weight: 600; color: #333; border-radius: 8px; cursor: pointer; font-family: inherit; }
 		.struct-seg button.on { background: #ffffff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18); color: #000; }
 		html.dark .struct-seg button { color: #ddd; }
 		html.dark .struct-seg button.on { background: #3a3a3c; color: #fff; }
+		.struct-lines { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 12px 0; flex: none; }
+		.struct-line-btn { display: flex; align-items: center; gap: 8px; border: 1px solid rgba(120, 120, 128, 0.35); background: transparent; border-radius: 12px; padding: 6px 10px; cursor: pointer; font-family: inherit; }
+		.struct-line-btn.on { border-color: #007aff; box-shadow: 0 0 0 1px #007aff inset; }
+		.struct-line-kinds { font-size: 13px; color: var(--muted, #8e8e93); }
 		.struct-viewer { flex: 1; overflow: hidden; position: relative; touch-action: none; margin-top: 6px; }
 		.struct-viewer img { position: absolute; left: 50%; top: 50%; width: 96%; max-width: none; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
 		.struct-pending { padding: 56px 24px; text-align: center; color: #888; font-size: 15px; }
@@ -1072,7 +1076,7 @@
 		   mask over a theme-coloured box — dark grey on light,
 		   light grey on dark, so it follows the appearance like the
 		   neighbouring rows' icons. Only this row uses it. */
-		.more-train-icon { width: 28px; height: 28px; flex: none; margin-right: 10px; background: #3a3a3c; -webkit-mask-image: url('data:image/png;base64,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'); -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; mask-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAMHElEQVR42u2d248kdRXHP1XVt9ne2Z3dBQGXi1wSUQENgnfDg4KXF6MJ8ZYgJj5poj4YEv0HTNSgiaIPXoIG9EUTAzHGaIxGDSoJkqiAiLigLhpYZtnZ6Z3pS5UP9T2pM0X1MN2Tqp5a6iS/VF+q61d17uf8zu80NNBAAw000EADDTTQQAMNNNDAiwmCEq8d7uCcRCMEWkCk0dVoAz2gDyzpvI47F2ACxMBYY1OfbWicAYYaI51rx2CHOIjLQlJrQYRPdOwDl2hcDhwFzgf2CfmBkG5I9TBxTNQqQGRLv2trPKvxJPCEjo8Ba7qfYMp9BnWWgKIHiMXVbwHeLYQfBNbFsbG4NRD3Lonbkyn3nkyZfygihOL4jqQqBg5JWv4J/AH4CXB6G3zEZ4MKMkS9FLgNuEDv14Ssjri6pTES4mP3fTLD/LEQPhYhD4nIbb1v6fuWPr8deKQAL8mM884EUUXSFQghlwFfEjJPOf0dOmSFQnik340kBZMZ5+86Xb8MDHTNTc3fcZ+1gRuBx4GnylY7i1BBCXAu8AU98LrU0EQPH0kS9glpfR3tu6Fe7xTGuvZ+4GknVWYTYqeaQvdZD/gscMzdd3A2qKAW8CngTcBx4IDT7xtCVl+vQ31+P3APsDqHs2DIawEfBl4jbjfJGDhvK3Ae0mFJwG3ODpVqA6pQQTHwWuADwAlx2Vhc53W+qZ+epOErwH9ElMGMY13HNeAB4FohN9CckVTQ2CG3pfNfIvX42A4MfSW++m7dzTbwLsd1OONqBIrdw5pEnMz56cEcw1xYm3OSU1N5ZjGJfKdeJyXjpxICXAxc4byJeBuRNoKtKC7w3JfMOOw3F8j+jHdwr2YXzgeuqYIAVQRiV8nPP+78+e3m3ZCN+CTwG6mhzox62CSgA3xI+nzgIu3tXNehjtcAf6wzAYybX+kevq8HDKdwZODcwyXgffKMzswp2V25liuae/0F7OHEBWuX6B4GdZaAZamgYU7vxlNC/kQqYCLED2S4u3PMPRZS9+vaa86VnUyJ0I0IE+BS4MgLEG1P24BEnsc5zsMxgzjK6V3z9Y0D7dx15yaOp4xJwWdDJ1FDXSdxKi4S8yU5PLR1b6fFAOfU3QacJw48IdUSuSDIRiDXc5/zzWOHmEhH7zUlBZIUTnGtJ47g9v2yEnNxLl810r2MNI4CD9Y1GxqJABs5pIT6rKP3jygzeUpqYlVIG7rknKmFxCHNezve9YzcPC1xdZcspX1IxyuUGuk64+sTeInyVlGdCXBJgQEdySg+DHzN+ftxgdu3WzcwmPLepGUf8HHgaocPSwQOZAdaOQmqjQ2IxEHj3DyWbPumVFOSC5DygdRuRuCOQU4tTSRx35D09VxkHDgV1KmrEe4qoNl0Dz+R/r1fSbKgxNxUso0UBe7Z14D7XKzh7c9Bqa5aEqCnB0hySOkB/8pJRhlJwWAHBDLV94QYpuO+m7igsJYEOOyCmND58rG4v9SFjh1IhodV3WveqMdKY9TSDe07AtvCi60+rbI4CHIxCHIE1l0gFjjXd6WuEnDIRaNWtdDWg56kwlWnHRBkTfcVFsQQ59ZZBVnuve3cTNOtewFM5QxzzkI+nVJbCfChvnkZZ1xKgj2giiw22cjhwxZvSk1HlGkDDuZ8bqtq2OCFc/NVE2IipogKEnTn1VUC+mQZxsClEcZlhvZzQuzc4rggoKwlAdq5OazKYcLWJci9Al4yw6pc5LIjYY/oWATYixKAswGhw0tSZwnoFaQEoj2KfPOEykqLLIQAltYdO106WVD0u1MChFUToVUBcRNnE8Z7mADk1GXCbNV4e04CzL2zMvNpXsZeQn7i7ttyQaO6EqAo6gxpYGEEaKAhQEOABhoCvPgI4DdDtFncxsBpjgHOTd4kW8Q/qyTA1gSeI63Jaeci5GDBDBiQrl+EFJfH1JoAVoiFpOBK4PVOOnAR8rQy891yeX74xaGYtC7oFWwt/qoEWhWoHytJNykYAbeQVk3/lbQ26IyGZSRjh5y4QF3sNLCySjmrBY1Ic1RLpCWTK8CFpBv0lsiKyHwRb60JEJJtQzJbcJK01ONtGpsOuacc8q3wduLeW95+5N6bzjb7YkdDuP/eE6NLtgv/BFkVtJ0zctFxbQlgKQjbmxvqgW0LEuI82056gK3p38BJTz6NERcYU19wNSmQRpwqjHQPJ5xdMmax2tR9ZaujsgmQ5JAYO6mwIqihO2csNeQRaVtY2w7J23kzeeNvxIicdNl+YVNJ9toYBnd+XLaKqALGbM00+h3wG+6BrXLO7EVPquHINsj3+t7XgJq9Gbp5N53x9fcUTSFe6R7RIgOxoUT/VUL0ERnFDUmm3z+8Noeraq0KzC4MgIvImoFcpKPf6FE5tBaI/HOBPwFfJOtY8nLg/WRbi07lDOkscYf1lzDVdYC0IvtBshL5dwBv1PwLWa1bBAHG4vafAnezdf/AE8DfgM9IOjpOlcwKHUeEM8CXgb87u3Qc+AfpzvibWVC1XtUqKBFC/gv8SIgxDjcuPwb8UBw7dJ7JrOoHZ2R/BTzK1h001jviHhGmtwg1FFYsXbF0+gNOrxf1AfqLbEDPGcx5gsBAuv/XOSfAVr0sSn+A6fsAgroSIJ4iAcZ5fqtongibpDsVd8sAw5wK83knX4J+JpefOiskYFhABPOzV5yEFCXj+mR1RdEcKigR51sHloMuFsm3MgiViBtu8xy1JMCI51cVRPJsrpU7OK1C7kYhbewM96wRuO2wXyZtFhI639+ro8PAm0kzta0pxryWBHh8iljHcjFvERF8ljIAbgBuUopgvzgwmUMCvA14g1zOKMf9h4BPSCKncfpzZedqyoK3Ap8m3RAdFSBoSXr+d6TN83qSjKtdxGpJtOEc9+pz++ZJ/Zu0AcizpOnn60m7qZwuyCdZIPcz4Ht1jAMeY2vN/cQRwjoitoC3u0RYW/54SwQZ7EKyQ5f7sT5Al5Nu0G47G3WSrGFgxyXibEfn78uUgDILTzdIc+2XOZfS54KMKJbwGvD8jdSW05k1J2P7EPpk/SLajiCQ9Y+w/nRWhGX7GFaAh4B7y4wPyrQBE+D78vf7EvNYD2jN8roFmc+JQ4i9Tpi9W5ZvNRM6ju+QbciLcu5uxyUHY+BOSq6MK1MCQj3oo8DryNYBzP/fJOuMsq7Id52sqceGU5HtOfI0vjmUP1rbyi5ZHwvrU7TpXODbJQGlLsqUaYQDd/NHgY+QrgWvke0VGLC1Bt83y+g4zyScg1k2yVbiIod8I6Y1Cuw6/R8pFXKH8lIBJe9nrqJvqOnktjyOV5OmoJflgx8kaxvZd6/XpEaCXaQiLJXRJysOHgnpFo2fVmzyZ9I16mNky5HbRfV7ngBRLtBKCua8GXivENByRvHzQoivWJ5nUd5+cxXwOaf7jdg/B76bM95FeInL5NIyM59BgUqyB7oQeI9TO0NJxH3ixN2Wp/hqiofkTi67vM+GXOAL3blnZTo6j0BTR7c4jyNxHsldLlO5G6QEufzTXVI7B931I+CjUlXJIohQBQGCnDpIFCVfp/cDcf8K8B1FqXkO3u0IgWeAbzkjHEv1XU/a2TcvtZVkRqtcETMiHAE+qFyP+eIrpCtTy3JZ/W7KrosbZuX+ibMtlhV9xgVfAWnjkFul9k5RcUq66v8PCIGPkf55w8ipo4HcwENkW5paUkkRs+/VSti6J80cgg2yAqyxc1fPAX5JumYcb2NPaicBeZG+UpnOk7mo1xrrrZLVBi3t0gPynVrsOpEL7Oya+zXvDaQrZw9XaQeq6J5uSbEl0nbEB8i6Jvrcy6bj1g5b+73N0ysucoY24vktE3zHLAvMLgV+y9aaoVLtQRWliVYNdxNp2Yn9f4CV/kUuDXGY8lvZmDqxDr2nJAUD4GW6z3urQH5VNiAmXXj5qkT9gI590hKUr4vjWi5wS0pmCJP8W6V6nnaf9UjLYp6igj9wqMIGhMoDWSJuVcY2Ar6t98GU4K3se/uBc4etOq5L2jT8jrMhDrAY4KhUy373kHcC/2NrX0//uuwRav67Sfub9sjWfy+qihGqMMIJ6VLgdWR/UfIL4Me5iLdq7re5ntTxYnlHq6QdfZ+rMiBroIEGGmiggQYaaKCBBhpooIEGGqgA/g9gTfH7bJ0mtQAAAABJRU5ErkJggg=='); mask-repeat: no-repeat; mask-position: center; mask-size: contain; }
+		.more-train-icon { width: 28px; height: 28px; flex: none; margin-right: 10px; background: #3a3a3c; -webkit-mask-image: url('data:image/png;base64,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'); -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; mask-image: url('data:image/png;base64,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'); mask-repeat: no-repeat; mask-position: center; mask-size: contain; }
 		html.dark .more-train-icon { background: #e9e9ee; }
 		/* Settings row glyph icons (26E119, user-supplied glyphs):
 		   the user's nine glyph photos became alpha templates on a
@@ -1168,11 +1172,6 @@
 		.tester-badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: #007aff; color: #fff; font-size: 11px; font-weight: 600; line-height: 1.5; vertical-align: 1px; white-space: nowrap; }
 		.more-redeem-input { text-align: left; }
 		.more-redeem-go { flex: none; margin-left: 10px; color: #007aff; font-weight: 600; cursor: pointer; }
-		/* DIAG-26E122: diagnostic readout under the Siri switch row —
-		   small monospace grey text, fed by the native side through
-		   window.__switchDiag. Remove with the other DIAG-26E122
-		   markers once the switch-overflow cause is pinned. */
-		.switch-diag { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; line-height: 1.5; color: #8e8e93; padding: 8px 16px 12px; word-break: break-all; }
 		.more-city-row .more-city-name { flex: 1; }
 		.more-city-row .more-check { margin-left: 8px; }
 		.more-bj-type { padding-left: 36px; font-size: 15px; }
@@ -1459,6 +1458,43 @@
 		html.dark .trd-sum { color: #e8eaf2; }
 		.trd .tr-fare { padding: 6px 0 0; }
 		.trd-body { margin-top: 10px; }
+		/* 26E124: first-launch What's New page. */
+		.wn-page { position: fixed; inset: 0; z-index: 99990; background: var(--bg, #f2f2f7); display: flex; align-items: center; justify-content: center; padding: 24px; }
+		html.dark .wn-page { background: #101420; }
+		.wn-card { width: 100%; max-width: 430px; max-height: 100%; overflow-y: auto; background: var(--card, #ffffff); border-radius: 28px; padding: 26px 22px 22px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18); }
+		html.dark .wn-card { background: #1c1c1e; }
+		.wn-title { font-size: 21px; font-weight: 800; margin-bottom: 14px; }
+		.wn-line { font-size: 14.5px; line-height: 1.55; margin: 0 0 10px; color: var(--text, #000); }
+		.wn-btn { width: 100%; border: none; border-radius: 14px; padding: 13px 0; font-size: 16px; font-weight: 600; background: #007aff; color: #fff; cursor: pointer; margin-top: 6px; font-family: inherit; }
+		/* 26E124: the route detail is its own page over the list. */
+		.trd-page { position: absolute; inset: 0; background: var(--bg, #f2f2f7); z-index: 40; display: flex; flex-direction: column; animation: trdPageIn 0.28s ease; }
+		html.dark .trd-page { background: #101420; }
+		@keyframes trdPageIn { from { transform: translateX(48px); opacity: 0.4; } to { transform: translateX(0); opacity: 1; } }
+		.trd-page-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px 6px; flex: none; }
+		.trd-back { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(120,120,128,0.24); color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; padding: 0; }
+		html.dark .trd-back { background: rgba(255,255,255,0.16); color: #fff; }
+		.trd-page-title { font-size: 17px; font-weight: 700; }
+		.trd-page-scroll { flex: 1; overflow-y: auto; padding: 4px 16px 40px; -webkit-overflow-scrolling: touch; }
+		.trd-summary { background: var(--card, #ffffff); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
+		html.dark .trd-summary { background: #1c1c1e; }
+		.trd-summary .ropt-time { font-size: 17px; font-weight: 700; }
+		.trd-summary .ropt-time span { font-size: 13px; font-weight: 500; margin-left: 8px; color: var(--muted, #8e8e93); }
+		.trd-summary-badges { margin-top: 8px; display: flex; gap: 6px; }
+		.trd-trip-start { width: 100%; border: none; border-radius: 14px; padding: 13px 0; font-size: 16px; font-weight: 600; background: #007aff; color: #fff; cursor: pointer; margin-bottom: 12px; font-family: inherit; }
+		.trd-tripbar { display: flex; align-items: center; gap: 10px; background: var(--card, #ffffff); border-radius: 16px; padding: 12px 14px; margin-bottom: 12px; }
+		html.dark .trd-tripbar { background: #1c1c1e; }
+		.trd-trip-info { flex: 1; min-width: 0; }
+		.trd-trip-next { font-size: 16px; font-weight: 700; }
+		.trd-trip-left { font-size: 13px; color: var(--muted, #8e8e93); margin-top: 2px; }
+		.trd-trip-btn { flex: none; border: none; border-radius: 12px; padding: 10px 16px; font-size: 15px; font-weight: 600; background: #34c759; color: #fff; cursor: pointer; font-family: inherit; }
+		.trd-trip-exit { flex: none; border: none; border-radius: 12px; padding: 10px 12px; font-size: 14px; background: rgba(120,120,128,0.16); color: var(--text, #000); cursor: pointer; font-family: inherit; }
+		.trd-seg.trip-done { opacity: 0.4; }
+		.trd-seg.trip-now { background: rgba(0, 122, 255, 0.10); border-radius: 10px; }
+		.tr-td-edit { margin-top: 10px; border-top: 1px solid rgba(120,120,128,0.18); padding-top: 10px; }
+		.tr-td-edit-btn { border: none; background: rgba(0,122,255,0.12); color: #007aff; border-radius: 10px; padding: 7px 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+		.tr-td-alts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+		.tr-td-alt { border: 1px solid rgba(120,120,128,0.4); background: transparent; color: var(--text, #000); border-radius: 10px; padding: 7px 12px; font-size: 14px; cursor: pointer; font-family: inherit; }
+		.tr-td-alt-none, .tr-td-alt-msg { font-size: 13px; color: var(--muted, #8e8e93); }
 		.trd-node { display: flex; gap: 10px; align-items: flex-start; background: rgba(0, 0, 0, 0.03); border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
 		html.dark .trd-node { background: rgba(255, 255, 255, 0.05); }
 		.trd-dot { flex: none; width: 13px; height: 13px; border-radius: 50%; border: 3px solid #999; margin-top: 3px; position: relative; }
@@ -1640,8 +1676,8 @@
 		   scroller padding-bottom counted as 0 scrollable area in
 		   WKWebView; 26D107's in-flow spacers fixed max-scroll only.) */
 		.tt-list-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-		.tt-title { display: flex; align-items: center; gap: 10px; padding: 8px 0 12px; }
-		.tt-back { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(120,120,128,0.24); color: #000; font-size: 22px; font-weight: 600; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; flex: none; }
+		.tt-title { display: flex; align-items: center; gap: 10px; padding: 8px 44px 12px 0; position: relative; }
+		.tt-back { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(120,120,128,0.24); color: #000; font-size: 22px; font-weight: 600; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; flex: none; position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
 		.tt-station { font-size: 20px; font-weight: 700; color: #111; }
 		.tt-line { margin-bottom: 16px; }
 		.tt-line-head { margin-bottom: 6px; }
@@ -1858,7 +1894,17 @@
 			}
 		} catch (e) {}
 		</script>
-		<div id="app" :class="{ 'sy-theme': city === 'sy', 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'cc-theme': city === 'cc', 'sz-theme': city === 'sz', 'cd-theme': city === 'cd', 'qd-theme': city === 'qd', 'sjz-theme': city === 'sjz', 'tj-theme': city === 'tj', 'wx-theme': city === 'wx', 'native-app': nativeApp, ['lang-' + lang]: true }">
+		<div id="app" :class="{ 'sy-theme': city === 'sy',
+			</div> 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'cc-theme': city === 'cc', 'sz-theme': city === 'sz', 'cd-theme': city === 'cd', 'qd-theme': city === 'qd', 'sjz-theme': city === 'sjz', 'tj-theme': city === 'tj', 'wx-theme': city === 'wx', 'native-app': nativeApp, ['lang-' + lang]: true }">
+			<!-- 26E124: first-launch What's New for this build
+				 (once per version; see mounted / confirmWhatsNew). -->
+			<div class="wn-page" v-if="showWhatsNew">
+				<div class="wn-card">
+					<div class="wn-title">{{ t('wn.title') }} · v{{ releaseNotes.length ? releaseNotes[0].v : '' }}</div>
+					<div class="wn-lines"><p class="wn-line" v-for="(ln, j) in (releaseNotes.length ? releaseNotes[0].lines : [])" :key="j">{{ li(ln) }}</p></div>
+					<button class="wn-btn" @click="confirmWhatsNew()">{{ t('wn.confirm') }}</button>
+				</div>
+			</div>
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="mapLoadingOverlay" :class="{ hidden: !mapLoading }"><div class="map-loading-box"><div class="map-loading-spin"></div><div class="map-loading-city">{{ cityName }}</div></div></div>
 			<div id="sideMenuDiv">
@@ -2016,6 +2062,13 @@
 						<span class="tt-count" style="font-size:17px;font-weight:700">{{ stNameStr(structStation.n) }}</span>
 						<div class="struct-actions"></div>
 					</div>
+					<!-- 26E124: per-line diagram sets — a station whose
+						 lines are separate paid areas (out-of-gate
+						 interchange) holds one set per line; the switcher
+						 shows only when the index entry carries sets. -->
+					<div class="struct-lines" v-if="structSets.length > 1">
+						<button class="struct-line-btn" v-for="(set, si) in structSets" :key="set.line" :class="{ on: structSetIdx === si }" @click="setStructSet(si)"><span class="ln-badge" :class="{ named: badgeParts(lineChip(set.line)).named }" :style="{ background: '#' + lineChip(set.line).color, color: lineChip(set.line).text }"><span class="ln-num">{{ badgeParts(lineChip(set.line)).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(lineChip(set.line)).top }}</span><span class="ln-en">{{ badgeParts(lineChip(set.line)).bottom }}</span></span></span><span class="struct-line-kinds">{{ structSetKindsText(set) }}</span></button>
+					</div>
 					<div class="struct-seg">
 						<button :class="{ on: structKind==='spatial' }" @click="setStructKind('spatial')">{{ t('struct.spatial') }}</button>
 						<button :class="{ on: structKind==='plan' }" @click="setStructKind('plan')">{{ t('struct.plan') }}</button>
@@ -2113,6 +2166,32 @@
 						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="r.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="r.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 					</div>
 				</div>
+				<div class="fast-note-backdrop" v-if="fastNoteEntry" @click="fastNoteEntry = null">
+					<div class="fast-note-card" @click.stop>
+						<div class="fast-note-title">{{ stNameStr(fastNoteEntry.st) }} · {{ t('tr.fastTag') }}</div>
+						<div class="fast-note-body">{{ fastNoteText(fastNoteEntry) }}</div>
+						<button class="fast-note-btn" @click="fastNoteEntry = null">{{ t('tr.fastOk') }}</button>
+					</div>
+				</div>
+				<div class="tr-scroll-pad"></div>
+				</div>
+				<div class="trd-page" v-if="routeDetailOpen && routeResult">
+					<div class="trd-page-head"><button class="trd-back" @click="closeRouteDetail()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button><div class="trd-page-title">{{ t('trd.title') }}</div></div>
+					<div class="trd-page-scroll">
+						<div class="trd-summary">
+							<div class="ropt-time">{{ routeResult.depart }} → {{ routeResult.arrive }}<span>{{ t('tr.minutes', {n: routeResult.minutes}) }}</span></div>
+							<div class="ropt-meta"><span v-if="routeResult.fare != null">{{ fareRangeText(routeResult.fare) }} · </span>{{ t('tr.transfers', {n: routeResult.transfers}) }} · {{ t('tr.km', {n: routeResult.km}) }}</div>
+							<div class="ropt-opwarn" v-if="routeOpWarning(routeResult)">⚠ {{ routeOpWarning(routeResult) }}</div>
+							<div class="ropt-chain"><template v-for="(seg, si) in routeResult.segments" :key="seg.line + seg.from"><span v-if="seg.virtual" class="ropt-walkseg"><img :src="walkIconThemed" alt=""><span v-if="si === 0" class="ropt-virtual">{{ t('tr.virtualTag') }}</span></span><span v-else class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < routeResult.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(routeResult, si)">{{ stNameStr(seg.to) }}</span><span v-if="isVirtualAt(routeResult, si+1)" class="ropt-virtual">{{ t('tr.virtualTag') }}</span><span v-if="fastTransferAt(routeResult, si+1)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, si+1)">{{ t('tr.fastTag') }}</span><span v-if="virtualDistFor(routeResult, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(routeResult, si+1)}) }}</span><span v-else-if="transferEstFor(routeResult, si+1) && transferEstFor(routeResult, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, si+1)) }}</span></span></template></div>
+							<div class="ropt-badges trd-summary-badges"><span class="ropt-badge early" v-if="routeResult.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="routeResult.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="routeResult.isCheap">{{ t('tr.badge.cheap') }}</span></div>
+						</div>
+						<button class="trd-trip-start" v-if="!pageTrip" @click="startPageTrip()">▶ {{ t('trip.start') }}</button>
+						<div class="trd-tripbar" v-if="pageTrip && tripInfo">
+							<div class="trd-trip-info" v-if="!tripInfo.arrived"><div class="trd-trip-next">{{ t('trip.next') }} {{ stNameStr(tripInfo.next) }}</div><div class="trd-trip-left">{{ t('trip.remain', {n: tripInfo.remainStops}) }} · {{ t('trip.eta', {n: tripInfo.remainMin}) }}</div></div>
+							<div class="trd-trip-info" v-else><div class="trd-trip-next">{{ t('trip.arrived') }}</div></div>
+							<button class="trd-trip-btn" v-if="!tripInfo.arrived" @click="pageTripAdvance()">{{ t('trip.arriveBtn') }}</button>
+							<button class="trd-trip-exit" @click="pageTrip = null">{{ t('trip.exit') }}</button>
+						</div>
 				<div class="trd" v-if="routeResult">
 					<div class="trd-head">
 						<div class="trd-chips"><template v-for="(seg, si) in routeResult.segments" :key="'chip' + si"><span v-if="si > 0 && !seg.virtual && !routeResult.segments[si - 1].virtual" class="trd-arrow">▸</span><span v-if="!seg.virtual" class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></template></div>
@@ -2123,30 +2202,15 @@
 					<div class="trd-body">
 						<div class="trd-node trd-origin"><span class="trd-dot dot-origin" :style="routeResult.segments[0].virtual ? null : { borderColor: '#' + routeResult.segments[0].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[0].from) }}</span></div>
 						<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
-							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-split" :style="{ background: 'conic-gradient(from 90deg, #' + seg.color + ' 0deg 180deg, #' + routeResult.segments[i - 1].color + ' 180deg 360deg)' }"><span class="trd-dot-hole"></span></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div></div></div></div>
-							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div></div></div></div>
-							<div class="trd-seg" v-if="!seg.virtual" @click="goSegment(seg)"><span class="trd-rail" :style="{ background: '#' + seg.color }"></span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span class="trd-dir" v-if="segDirection(seg)">{{ t('trd.toward', {st: stNameStr(segDirection(seg))}) }}</span><span class="trd-ride">{{ t('trd.ride', {n: seg.stops, min: seg.stops * 2}) }}</span></div>
+							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-split" :style="{ background: 'conic-gradient(from 90deg, #' + seg.color + ' 0deg 180deg, #' + routeResult.segments[i - 1].color + ' 180deg 360deg)' }"><span class="trd-dot-hole"></span></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
+							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
+							<div class="trd-seg" v-if="!seg.virtual" :class="{ 'trip-now': pageTrip && tripSegIndex() === i, 'trip-done': pageTrip && tripSegIndex() > i }" @click="goSegment(seg)"><span class="trd-rail" :style="{ background: '#' + seg.color }"></span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span class="trd-dir" v-if="segDirection(seg)">{{ t('trd.toward', {st: stNameStr(segDirection(seg))}) }}</span><span class="trd-ride">{{ t('trd.ride', {n: seg.stops, min: seg.stops * 2}) }}</span></div>
 						</template>
 						<div class="trd-node trd-dest"><span class="trd-dot dot-dest" :style="routeResult.segments[routeResult.segments.length - 1].virtual ? null : { borderColor: '#' + routeResult.segments[routeResult.segments.length - 1].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[routeResult.segments.length - 1].to) }}</span></div>
 					</div>
 					<div class="tr-hint">{{ t('tr.hint') }}</div>
 				</div>
-				<div class="tr-trip" v-if="routeResult && !tripActive">
-					<button class="tr-trip-start" @click="startTrip">&#9654; {{ t('live.start') }}</button>
-					<span class="tr-trip-note">{{ stNameStr(fromStation.n) }} &rarr; {{ stNameStr(toStation.n) }} &middot; {{ t('tr.minutes', {n: routeResult.minutes}) }}</span>
-				</div>
-				<div class="tr-trip active" v-if="tripActive">
-					<div class="tr-trip-info"><span class="tr-trip-next">{{ t('live.next') }} {{ tripNext }}</span><span class="tr-trip-left">{{ t('live.stopsLeft', {n: tripRemaining}) }} &middot; {{ tripEtaText }} {{ t('tr.arrive') }}</span></div>
-					<button class="tr-trip-end" @click="endTrip">{{ t('live.end') }}</button>
-				</div>
-				<div class="fast-note-backdrop" v-if="fastNoteEntry" @click="fastNoteEntry = null">
-					<div class="fast-note-card" @click.stop>
-						<div class="fast-note-title">{{ stNameStr(fastNoteEntry.st) }} · {{ t('tr.fastTag') }}</div>
-						<div class="fast-note-body">{{ fastNoteText(fastNoteEntry) }}</div>
-						<button class="fast-note-btn" @click="fastNoteEntry = null">{{ t('tr.fastOk') }}</button>
 					</div>
-				</div>
-				<div class="tr-scroll-pad"></div>
 				</div>
 			</div>
 
@@ -2323,15 +2387,6 @@
 							<button v-if="!nativeApp" class="more-switch" :class="{ on: nearbySmart }" @click="toggleNearbySmart" role="switch" :aria-checked="nearbySmart ? 'true' : 'false'"><span class="more-switch-knob"></span></button>
 							<span v-else id="nearbySmartSlot" class="more-switch-slot"></span>
 						</div>
-						<!-- DIAG-26E122: on-device diagnostic readout for the
-						     switch-overflow hunt (two fix attempts failed on
-						     device; this round measures instead of guessing).
-						     The values are computed by the NATIVE side and
-						     pushed through window.__switchDiag — reported
-						     rect, webView bounds, final placed frame, screen
-						     width — never web-side arithmetic. Remove every
-						     DIAG-26E122 marker once the cause is pinned. -->
-						<div class="switch-diag" v-if="switchDiagText">{{ switchDiagText }}</div>
 					</div>
 					<div class="more-up-note">{{ t('siri.nearbySmart.desc') }}</div>
 					<div class="more-card">
@@ -2380,7 +2435,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E123)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E124)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2416,7 +2471,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E123)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E124)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2449,16 +2504,18 @@
 						<input ref="avatarInput" type="file" accept="image/*" style="display:none" @change="onAvatarFile">
 					</div>
 					<div class="more-card pf-card-info">
-						<div class="more-row"><span>{{ t('profile.name') }}</span><input class="more-profile-input" ref="profileNameInput" @focus="onProfileNameFocus()" type="text" v-model="profileNameDraft" :placeholder="t('profile.namePh')" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-						<div class="more-row" v-if="profile"><span>ID</span><span class="more-row-value">{{ profile.id }}</span></div>
-						<div class="more-row" v-if="profile"><span>{{ t('profile.since') }}</span><span class="more-row-value">{{ profile.since }}</span></div>
-						<!-- 26E122: Home City （常用城市）. Stored on the
-							 profile (commonCity = city key); at cold
-							 start it outranks the last-used city (see
-							 window._metroCommonCity). Manual city
-							 switches never write it. -->
-						<div class="more-row" v-if="profile" @click="askCommonCity()"><span>{{ t('profile.commonCity') }}</span><span class="more-row-value">{{ commonCityName }}</span><span class="more-chev">›</span></div>
-						<div class="more-row" v-if="!profile"><span>ID</span><span class="more-row-value">{{ t('profile.idAuto') }}</span></div>
+						<!-- 26E124: the info card is rendered ENTIRELY
+							 natively (native glass card + native text
+							 field + native labels, fed by the
+							 profileFrame payload's rows). The 26E123
+							 design — a clear-glass backplate over these
+							 web rows — blurred the rows into mush on
+							 device, so the web rows are GONE: this card
+							 is only the layout anchor whose rect the
+							 native card fills. Spacer height = the old
+							 rows' height (49px per .more-row): 4 rows
+							 signed in, 2 rows signed out. -->
+						<div class="pf-info-spacer" :style="{ height: (profile ? 196 : 98) + 'px' }"></div>
 					</div>
 					<!-- 26E122: Home City picker, web fallback only — in
 						 the native shell the same list is a UIAlertController
@@ -2521,11 +2578,12 @@
 			</div>
 
 <span id="svgDiv" v-html="curr.svgDom"></span>
-<div class="map-st-card" v-if="mapCard">
-	<div class="map-st-name">{{ stName(mapCard.st) }}</div>
-	<div class="map-st-lines" v-if="mapCardLines().length > 1"><span class="ln-badge" v-for="ln in mapCardLines()" :key="ln.key" :class="{ named: badgeParts(ln).named, locked: mapCard.pinKey === ln.key }" :style="{ background: '#' + ln.color, color: ln.text }" @click="mapCardPin(ln)"><span class="ln-num">{{ badgeParts(ln).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ln).top }}</span><span class="ln-en">{{ badgeParts(ln).bottom }}</span></span></span></div>
-	<div class="map-st-actions"><button class="map-st-btn from" @click="mapSetEndpoint('from')">{{ t('map.setFrom') }}</button><button class="map-st-btn to" @click="mapSetEndpoint('to')">{{ t('map.setTo') }}</button></div>
-</div>
+<!-- 26E124: the map station card is rendered ENTIRELY natively
+     (Liquid Glass card, SDK 27.2 — station name, line badges at
+     60% scale, both buttons) via the mapCardFrame bridge; the web
+     card markup is gone so no glass ever sits over web content.
+     State still lives here (mapCard / pinKey); native taps come
+     back through window.__mapCardTap. -->
 
 
 
@@ -2574,8 +2632,8 @@ var I18N = {
   'search.total': ['共 {n} 个车站', '共 {n} 個車站', '{n} stations'],
   'search.empty': ['没有找到相关车站', '沒有找到相關車站', 'No matching stations'],
   'map.searchStation': ['搜车站', '搜車站', 'Search stations'],
-  'map.setFrom': ['设为起点', '設為起點', 'Set as Start'],
-  'map.setTo': ['设为终点', '設為終點', 'Set as End'],
+  'map.setFrom': ['设为出发站', '設為出發站', 'Set as Departure'],
+  'map.setTo': ['设为到达站', '設為到達站', 'Set as Destination'],
   'map.verInfo': ['{c}地铁线网图 , {d} , {l}条线 {s}站', '{c}地鐵線網圖 , {d} , {l}條線 {s}站', '{c} Metro network map, {d}, {l} lines, {s} stations'],
   'map.type.track': ['配线图', '配線圖', 'Track Layout'],
   'map.type.line': ['线路图', '線路圖', 'Line Map'],
@@ -2630,6 +2688,20 @@ var I18N = {
   'tr.fare.virtual': ['虚拟换乘需出站', '虛擬換乘需出站', 'Virtual transfer: exit station'],
   'tr.fare.airport': ['机场线需单独购票', '機場線需單獨購票', 'Airport line: separate ticket'],
   'tr.virtual': ['虚拟换乘 · 出站步行{dist}', '虛擬換乘 · 出站步行{dist}', 'Virtual transfer · exit and walk {dist}'],
+  'tr.virtualOut': ['出闸换乘', '出閘換乘', 'Out-of-gate transfer'],
+  'trd.title': ['路线详情', '路線詳情', 'Route Details'],
+  'wn.title': ['更新内容', '更新內容', 'What’s New'],
+  'wn.confirm': ['知道了', '知道了', 'Got It'],
+  'trip.start': ['开始行程', '開始行程', 'Start Trip'],
+  'trip.next': ['下一站', '下一站', 'Next Stop'],
+  'trip.remain': ['剩余 {n} 站', '剩餘 {n} 站', '{n} stops left'],
+  'trip.eta': ['预计约 {n} 分钟', '預計約 {n} 分鐘', 'About {n} min left'],
+  'trip.arriveBtn': ['到站', '到站', 'Arrived'],
+  'trip.arrived': ['已到达目的地', '已到達目的地', 'You have arrived'],
+  'trip.exit': ['退出行程', '退出行程', 'End Trip'],
+  'tr.editTransfer': ['编辑换乘', '編輯換乘', 'Edit Transfer'],
+  'tr.editNone': ['无其他可换乘站', '無其他可換乘站', 'No alternative transfer station'],
+  'tr.editFailed': ['无法按此换乘站重新规划', '無法按此換乘站重新規劃', 'Could not replan via this station'],
   'tr.virtualTag': ['虚拟换乘', '虛擬換乘', 'Virtual transfer'],
   'tr.fastTag': ['快速换乘', '快速換乘', 'Fast transfer'],
   'tr.fastOk': ['知道了', '知道了', 'Got it'],
@@ -3326,6 +3398,7 @@ function titlePy(py) {
 						structQuery: '',
 						structStation: null,
 						structKind: 'spatial',
+						structSetIdx: 0,
 						structView: { s: 1, x: 0, y: 0 },
 						// On-demand structure images (26E113): data URIs
 						// of diagrams already fetched this session, keyed
@@ -3619,6 +3692,10 @@ function titlePy(py) {
 						suggestFor: null,
 						pickFor: null,
 						routeResult: null,
+						routeDetailOpen: false,
+						pageTrip: null,
+						editAltFor: -1,
+						editMsg: '',
 						routeError: '',
 						routeList: [],
 						routeTab: 'rec',
@@ -3639,9 +3716,6 @@ function titlePy(py) {
 						searchDate: null, payMethod: 'cash', arriveTarget: null, pendingCond: null,
 						transferFocus: -1,
 						fastNoteEntry: null,
-						// DIAG-26E122: switch diagnostic readout text, fed
-						// by the native side via window.__switchDiag.
-						switchDiagText: '',
 						// 26E122: creator redemption UI state (web
 						// fallback input + web fallback result card).
 						redeemOpen: false,
@@ -3675,7 +3749,18 @@ function titlePy(py) {
 					showWhatsNewSub: false,
 						relSel: -1,
 						verFull: false,
+						showWhatsNew: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E124)', date: '2026-11-24', lines: [
+							['路线详情改为独立页面：点任意路线整页进入详情（顶部带列表卡摘要，下面是完整时间线），返回时列表停在原滚动位置；新增「开始行程」——按站手动点「到站」推进，高亮当前乘坐段并显示下一站、剩余站数与预计剩余时间；新增「编辑换乘」——每个换乘站可改选同两条线的其他换乘站并按新换乘站重新规划', '路線詳情改為獨立頁面：點任意路線整頁進入詳情（頂部帶列表卡摘要，下面是完整時間線），返回時列表停在原捲動位置；新增「開始行程」——按站手動點「到站」推進，高亮當前乘坐段並顯示下一站、剩餘站數與預計剩餘時間；新增「編輯換乘」——每個換乘站可改選同兩條線的其他換乘站並按新換乘站重新規劃', 'Route details are now a full page: tap any route to open it (list-card summary on top, the full timeline below); going back keeps the list where you left it. New Start Trip: advance station by station with the Arrived button — the current segment is highlighted with next stop, stops left and estimated time left. New Edit Transfer: at each interchange you can pick another station shared by the same two lines and the route replans through it'],
+							['资料页信息卡改为全原生渲染：昵称是原生输入框，ID、登录日期、常用城市都是原生行，修复上一版玻璃背板把整卡糊住的问题；保存、兑换码、退出登录的原生玻璃按钮不变', '資料頁資訊卡改為全原生渲染：暱稱是原生輸入框，ID、登入日期、常用城市都是原生行，修復上一版玻璃背板把整卡糊住的問題；保存、兌換碼、退出登入的原生玻璃按鈕不變', 'The profile info card is now rendered entirely natively: a native text field for the nickname and native rows for ID, sign-in date and Home City — fixing the last build’s glass backplate blurring the whole card. The native glass Save / Redeem / Sign Out buttons are unchanged'],
+							['线路图点站卡改为原生液态玻璃整卡：站名、线路徽标、两个按钮全部原生绘制，线路徽标整体缩小 40%；按钮改名「设为出发站」「设为到达站」，只设一端时留在地图继续选，两端设齐才跳到换乘页', '線路圖點站卡改為原生液態玻璃整卡：站名、線路徽標、兩個按鈕全部原生繪製，線路徽標整體縮小 40%；按鈕改名「設為出發站」「設為到達站」，只設一端時留在地圖繼續選，兩端設齊才跳到換乘頁', 'The map station card is now one native Liquid Glass card: station name, line badges and both buttons are all drawn natively, with the badges at 60% size. The buttons are renamed Set as Departure / Set as Destination — setting one end keeps you on the map; the trip planner opens only once both ends are set'],
+							['北京补站入链：6 号线潞阳、西郊线万安、S1 线上岸、18 号线上地软件园 / 东北旺 / 龙泽西此前缺链，现已按站序接入换乘与搜索（新接入线路一侧的首末班时刻暂无可核实来源，显示暂无数据）；首都机场线补齐三元桥至机场岔口的主干线', '北京補站入鏈：6 號線潞陽、西郊線萬安、S1 線上岸、18 號線上地軟件園 / 東北旺 / 龍澤西此前缺鏈，現已按站序接入換乘與搜尋（新接入線路一側的首末班時刻暫無可核實來源，顯示暫無數據）；首都機場線補齊三元橋至機場岔口的主幹線', 'Beijing stations linked in: Luyang (Line 6), Wan’an (Western Suburban), Shang’an (S1) and Shangdi Software Park / Dongbeiwang / Longzexi (Line 18) were missing from their line chains and are now connected in order for routing and search (first/last trains on the newly linked sides have no verifiable source yet and show no data). The Capital Airport Express gains its missing Sanyuanqiao–airport junction trunk'],
+							['深圳福田口岸 4 / 10 号线改为出闸换乘：路线详情会标注出闸换乘（步行时间按系统通用换乘罚时估算，无实测来源）；该站结构图按线分套——空间图属 4 号线、平面图属 10 号线，缺的 4 号线平面图与 10 号线空间图暂未采到，不以他站图顶替', '深圳福田口岸 4 / 10 號線改為出閘換乘：路線詳情會標註出閘換乘（步行時間按系統通用換乘罰時估算，無實測來源）；該站結構圖按線分套——空間圖屬 4 號線、平面圖屬 10 號線，缺的 4 號線平面圖與 10 號線空間圖暫未採到，不以他站圖頂替', 'Shenzhen Futian Checkpoint Lines 4 / 10 are now an out-of-gate transfer: route details label it as such (walking time uses the standard transfer penalty estimate — no measured source). Its structure diagrams are split per line — the spatial diagram belongs to Line 4, the plan to Line 10; the missing Line 4 plan and Line 10 spatial could not be obtained and are never replaced with another station’s diagram'],
+							['线路图页返回按钮不再遮挡城市胶囊（15 城城市名完整显示）；时刻表页线路头与下方车站列表左对齐（全 15 城）', '線路圖頁返回按鈕不再遮擋城市膠囊（15 城城市名完整顯示）；時刻表頁線路頭與下方車站列表左對齊（全 15 城）', 'The map page’s back button no longer covers the city capsule (all 15 city names show in full), and timetable line headers now align left with the station list below (all 15 cities)'],
+							['修复 Siri 子页开关滑出屏幕：改为上报开关槽位的布局位置（不受页面滑入动画影响），诊断读数已移除；车型检索图标换成新图', '修復 Siri 子頁開關滑出螢幕：改為上報開關槽位的布局位置（不受頁面滑入動畫影響），診斷讀數已移除；車型檢索圖標換成新圖', 'Fixed the Siri page switch sliding off-screen: the page now reports the switch slot’s layout position, unaffected by the slide-in animation, and the diagnostic readout is removed. The train-model search icon is the new artwork'],
+							['新版本首次打开会先展示本页更新内容，每个版本只弹一次', '新版本首次打開會先展示本頁更新內容，每個版本只彈一次', 'A new version now opens with this What’s New page once — once per version only'],
+							] },
 							{ v: '1.1.0 (26E123)', date: '2026-11-23', lines: [
 							['北京换乘距离标注：百余座换乘站新增站内换乘步行距离（实测图值，显示约多少米）；虚拟换乘距离同步更新，并新增出入口指引（牛街 D2 口出 → 广安门内 B 口进、木樨地 F 口出 → 1 号线 A1 口进、大钟寺 D 口出 → B 口进；复兴门—太平桥按北京日报实测约 700 米）', '北京換乘距離標註：百餘座換乘站新增站內換乘步行距離（實測圖值，顯示約多少米）；虛擬換乘距離同步更新，並新增出入口指引（牛街 D2 口出 → 廣安門內 B 口進、木樨地 F 口出 → 1 號線 A1 口進、大鐘寺 D 口出 → B 口進；復興門—太平橋按北京日報實測約 700 米）', 'Beijing transfer distances: over a hundred interchanges now show measured in-station walking distances (about X m). Virtual-transfer distances are updated too, with entrance guidance (Niujie exit D2 → Guang’anmennei entrance B; Muxidi exit F → Line 1 entrance A1; Dazhongsi exit D → entrance B; Fuxingmen–Taipingqiao about 700 m as measured by Beijing Daily)'],
 							['修复四个换乘站缺失：海淀黄庄（4 号线）、西局（10 号线）、西坝河（12 号线）、花庄（7 号线）此前在所属线路上整站缺失、换乘中断，现已恢复，站序与换乘一并修正（四站在恢复线路上的首末班时刻暂无可核实来源，页面显示暂无数据）', '修復四個換乘站缺失：海淀黃莊（4 號線）、西局（10 號線）、西壩河（12 號線）、花莊（7 號線）此前在所屬線路上整站缺失、換乘中斷，現已恢復，站序與換乘一併修正（四站在恢復線路上的首末班時刻暫無可核實來源，頁面顯示暫無數據）', 'Four missing interchanges restored: Haidian Huangzhuang (Line 4), Xiju (Line 10), Xibahe (Line 12) and Huazhuang (Line 7) were absent from those lines entirely, breaking their transfers. Station order and transfers are fixed (first/last trains on the restored lines have no verifiable source yet, so those rows show no data)'],
@@ -4284,8 +4369,37 @@ function titlePy(py) {
 					},
 					openStructStation(st) {
 						this.structStation = st;
-						this.structKind = 'spatial';
+						this.structSetIdx = 0;
+						var set0 = this.structSets[0];
+						this.structKind = (set0 && !set0.spatial && set0.plan) ? 'plan' : 'spatial';
 						this.resetStructView();
+					},
+					// 26E124: switch the per-line diagram set; if the
+					// current kind is not in the new set, fall to the
+					// kind the set actually has (never a fake image).
+					setStructSet(i) {
+						this.structSetIdx = i;
+						var set = this.structSetEntry;
+						if (set && !set[this.structKind]) {
+							if (set.spatial) this.structKind = 'spatial';
+							else if (set.plan) this.structKind = 'plan';
+						}
+						this.resetStructView();
+						this.ensureStructImg();
+					},
+					lineChip(key) {
+						var L = this.routes && this.routes.lines ? this.routes.lines[key] : null;
+						if (!L) return { key: key, name: key, color: '8e8e93', text: '#ffffff' };
+						var hex = L.color;
+						var r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
+						var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+						return { key: key, name: L.name, color: hex, text: lum > 0.6 ? '#1a1a1a' : '#ffffff' };
+					},
+					structSetKindsText(set) {
+						var parts = [];
+						if (set.spatial) parts.push(this.t('struct.spatial'));
+						if (set.plan) parts.push(this.t('struct.plan'));
+						return parts.length ? parts.join(' · ') : this.t('struct.pendingShort');
 					},
 					setStructKind(k) {
 						this.structKind = k;
@@ -4299,13 +4413,13 @@ function titlePy(py) {
 					// "being prepared" placeholder, which only stations
 					// with no diagram on record may show.
 					ensureStructImg() {
-						var e = this.structEntry;
+						var e = this.structSetEntry;
 						if (!e || !e[this.structKind]) { this.structLoadState = 'idle'; return; }
 						if (this.structCache[e[this.structKind]]) { this.structLoadState = 'ready'; return; }
 						this.loadStructImg();
 					},
 					loadStructImg() {
-						var e = this.structEntry;
+						var e = this.structSetEntry;
 						if (!e) return;
 						var kind = this.structKind;
 						var f = e[kind];
@@ -4910,12 +5024,42 @@ function titlePy(py) {
 					mapCardPin(ln) {
 						if (!this.mapCard) return;
 						this.mapCard.pinKey = this.mapCard.pinKey === ln.key ? null : ln.key;
+						this.reportMapCard();
+					},
+					// 26E124: post the card state to the native shell,
+					// which renders the whole card in native Liquid
+					// Glass. Lines carry everything a badge needs
+					// (parts pre-split by badgeParts, line colour, the
+					// text colour, the pinned flag); the native side
+					// draws them at 60% of the web badge size.
+					reportMapCard() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.mapCardFrame;
+						if (!h) return;
+						if (!this.mapCard) { h.postMessage({ show: false }); return; }
+						var self = this;
+						var lines = this.mapCardLines().map(function(ln) {
+							var p = self.badgeParts(ln);
+							return { key: ln.key, color: ln.color, text: ln.text, left: p.left, top: p.top, bottom: p.bottom, named: p.named, pinned: self.mapCard.pinKey === ln.key };
+						});
+						h.postMessage({ show: true, name: this.stName(this.mapCard.st), lines: lines, fromLabel: this.t('map.setFrom'), toLabel: this.t('map.setTo') });
+					},
+					// 26E124: a tap on the native card comes back here —
+					// the exact web methods the old web card ran.
+					mapCardTap(action, key) {
+						if (!this.mapCard) return;
+						if (action === 'close') { this.mapCard = null; return; }
+						if (action === 'from' || action === 'to') { this.mapSetEndpoint(action); return; }
+						if (action === 'pin') {
+							var lines = this.mapCardLines();
+							for (var i = 0; i < lines.length; i++) if (lines[i].key === key) { this.mapCardPin(lines[i]); return; }
+						}
 					},
 					// Write the endpoint (+ its pin) into the
 					// transfer planning state — exactly what
 					// pickSuggest writes — sync the native card
 					// via stationPicked, and switch to the
-					// transfer tab. Never auto-searches.
+					// transfer tab once BOTH endpoints are set.
+					// Never auto-searches.
 					mapSetEndpoint(which) {
 						if (!this.mapCard) return;
 						var st = this.mapCard.st, ln = null;
@@ -4930,7 +5074,12 @@ function titlePy(py) {
 						this.routeError = '';
 						this.postStationPicked(which, st, ln);
 						this.mapCard = null;
-						this.setTab('transfer');
+						// 26E124: jump to the transfer tab ONLY when both
+						// endpoints are now set (whichever end was just
+						// written, and counting an end that was already
+						// set before entering the map). Setting just one
+						// end keeps the user on the map to pick the other.
+						if (this.fromStation && this.toStation) this.setTab('transfer');
 					},
 					hideSuggest() {
 						var self = this;
@@ -5993,7 +6142,12 @@ function titlePy(py) {
 							if (!info.lines) return '';
 							if (info.lines.indexOf(prev) < 0 || info.lines.indexOf(cur) < 0) return '';
 						}
-						return this.t('tr.virtual', { dist: info.dist });
+						if (info.dist) return this.t('tr.virtual', { dist: info.dist });
+						// 26E124: a same-name entry WITHOUT a measured
+						// dist （福田口岸 4<->10, out-of-gate per the
+						// user's first-hand report) labels as a plain
+						// out-of-gate transfer — no distance is invented.
+						return this.t('tr.virtualOut');
 					},
 					// Walking distance for a virtual (out-of-station)
 					// transfer at the boundary before segment i, or ''.
@@ -6175,33 +6329,31 @@ function titlePy(py) {
 					// slot (same frame-report pattern as the theme
 					// buttons). A zero rect hides the switch — posted
 					// whenever the Siri page is not the visible sub-view.
-					reportSwitchFrame(followUp) {
+					reportSwitchFrame() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.switchFrame;
 						if (!h) return;
 						var el = document.getElementById('nearbySmartSlot');
 						if (!this.showSiriSub || !el) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
-						var r = el.getBoundingClientRect();
-						if (!r.width || r.bottom < 0 || r.top > window.innerHeight) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
-						h.postMessage({ id: 'nearbySmart', x: r.left, y: r.top, width: r.width, height: r.height, on: this.nearbySmart });
-						// 26E121 C: the slot's rect includes any in-flight
-						// transform, and a sub-view's enter transition
-						// (.more-sub-enter-from, translateX(48px) over
-						// .28s) shifts the whole page right while it runs.
-						// Reports fire from updated() on rAF + a 300ms
-						// timer that every updated() re-arms — so the
-						// LAST report of an open could still catch the
-						// tail of the slide (the user's switch sat ~12pt
-						// too far right, half off the screen, and nothing
-						// ever corrected it). Every non-follow-up report
-						// now schedules ONE re-report 480ms later — past
-						// the .28s transition — so the settled rect is
-						// always the final word. The native side also
-						// clamps the switch on-screen as a backstop.
-						if (!followUp) {
-							var self = this;
-							if (self._switchFollowTimer) clearTimeout(self._switchFollowTimer);
-							self._switchFollowTimer = setTimeout(function() { self._switchFollowTimer = null; self.reportSwitchFrame(true); }, 480);
-						}
+						// 26E124: report the slot's LAYOUT position, not
+						// getBoundingClientRect. Root cause pinned by the
+						// 26E123 on-device diagnostic readout (r:363,189.6,51,31):
+						// the settled slot sits at x=315 (right edge 366,
+						// inside the card); the reported 363 was exactly
+						// 315 + 48 — the .more-sub-enter-from
+						// translateX(48px) mid-transition rect, and the
+						// 26E121 480ms settled re-report never became the
+						// final word on device. offsetLeft/offsetTop are
+						// transform-independent, so the FIRST report is
+						// already final; scrolled ancestors are backed
+						// out via the parent chain so the result stays a
+						// viewport position. The follow-up timer is gone.
+						var x = 0, y = 0, n = el;
+						while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
+						n = el.parentNode;
+						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
+						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+						if (!w || y + hh < 0 || y > window.innerHeight) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
+						h.postMessage({ id: 'nearbySmart', x: x, y: y, width: w, height: hh, on: this.nearbySmart });
 					},
 					requestNearbyStations() {
 						this.nearbyMsg = '';
@@ -6852,7 +7004,13 @@ function titlePy(py) {
 							logout: rect('.pf-card-logout'),
 							saveLabel: this.profile ? this.t('profile.save') : this.t('profile.login'),
 							redeemLabel: this.t('profile.redeem'),
-							logoutLabel: this.logoutArm ? this.t('profile.logoutConfirm') : this.t('profile.logout')
+							logoutLabel: this.logoutArm ? this.t('profile.logoutConfirm') : this.t('profile.logout'),
+							// 26E124: the info card's CONTENT rides along —
+							// the native side renders the whole card from
+							// these rows (name = native text field wired
+							// back via window.__profileName; city = native
+							// tap row via window.__profileTap('commonCity')).
+							rows: this.profileInfoRows()
 						};
 						var json = JSON.stringify(msg);
 						if (window._lastPfFrameJSON === json) return;
@@ -6878,6 +7036,137 @@ function titlePy(py) {
 						if (this.tripActive && this.tripRoute !== r) this.endTrip();
 						this.routeResult = r;
 						this.transferFocus = -1;
+						// 26E124: the detail is its own page now — the
+						// list stays mounted underneath (scroll position
+						// preserved), the page slides over it.
+						this.routeDetailOpen = true;
+						this.pageTrip = null;
+						this.editAltFor = -1;
+						this.editMsg = '';
+					},
+					confirmWhatsNew() {
+						try { window.localStorage.setItem('metro-lastSeenVersion', '26E124'); } catch (e) {}
+						this.showWhatsNew = false;
+					},
+					closeRouteDetail() {
+						this.routeDetailOpen = false;
+						this.pageTrip = null;
+						this.editAltFor = -1;
+					},
+					// ---- 26E124: manual trip mode on the detail page.
+					// The rider advances station by station with the
+					// 到站 button — there is NO live position feed, so
+					// nothing auto-advances and remaining time is the
+					// engine's own estimate (2 min/stop + 5 min per
+					// remaining transfer + walk minutes), labelled 预计.
+					startPageTrip() {
+						if (this.routeResult) this.pageTrip = { idx: 0 };
+					},
+					tripSegIndex() {
+						if (!this.pageTrip || !this.routeResult) return -1;
+						var idx = this.pageTrip.idx, acc = 0, segs = this.routeResult.segments;
+						for (var i = 0; i < segs.length; i++) {
+							var span = segs[i].virtual ? 1 : segs[i].stops;
+							if (idx < acc + span) return i;
+							acc += span;
+						}
+						return segs.length - 1;
+					},
+					pageTripAdvance() {
+						if (!this.pageTrip || !this.routeResult) return;
+						if (this.pageTrip.idx < this.routeResult.stations.length - 1) this.pageTrip.idx++;
+					},
+					// ---- 26E124: edit a transfer station. Alternatives
+					// are the two lines' other common stations; picking
+					// one replans as two pinned legs (origin -> alt
+					// arriving on line A, alt -> destination departing
+					// on line B — the same pin semantics as the
+					// fromLine/toLine pins) plus the standard transfer
+					// penalty, then re-decorates like findRoutes does.
+					transferAlternatives(r, i) {
+						if (!r || !r.segments || i <= 0 || i >= r.segments.length) return [];
+						var a = r.segments[i - 1].line, b = r.segments[i].line;
+						if (!a || !b || a === 'VT' || b === 'VT') return [];
+						var R = this.routes;
+						if (!R || !R.lines || !R.lines[a] || !R.lines[b]) return [];
+						var inB = {};
+						R.lines[b].stations.forEach(function(x) { inB[x] = 1; });
+						var cur = r.segments[i].from;
+						return R.lines[a].stations.filter(function(x) { return inB[x] && x !== cur; });
+					},
+					toggleEditTransfer(i) {
+						this.editAltFor = this.editAltFor === i ? -1 : i;
+						this.editMsg = '';
+					},
+					applyTransferEdit(i, alt) {
+						var r = this.routeResult;
+						if (!r || !r.segments || i <= 0 || i >= r.segments.length) return;
+						var origin = r.segments[0].from, dest = r.segments[r.segments.length - 1].to;
+						var lineA = r.segments[i - 1].line, lineB = r.segments[i].line;
+						var leg1 = this.findRoute(origin, alt, 'time', null, this.fromLine ? this.fromLine.key : null, lineA);
+						var leg2 = this.findRoute(alt, dest, 'time', null, lineB, this.toLine ? this.toLine.key : null);
+						if (!leg1 || !leg2 || !leg1.segments.length || !leg2.segments.length
+							|| leg1.segments[leg1.segments.length - 1].line !== lineA
+							|| leg2.segments[0].line !== lineB) {
+							this.editMsg = this.t('tr.editFailed');
+							return;
+						}
+						var merged = {
+							stops: leg1.stops + leg2.stops,
+							transfers: leg1.transfers + leg2.transfers + 1,
+							minutes: leg1.minutes + leg2.minutes + 5,
+							segments: leg1.segments.concat(leg2.segments),
+							stations: leg1.stations.concat(leg2.stations.slice(1))
+						};
+						this.decorateRoute(merged, origin, dest);
+						var ix = this.routeList.indexOf(r);
+						if (ix >= 0) this.routeList.splice(ix, 1, merged);
+						this.routeResult = merged;
+						this.transferFocus = -1;
+						this.editAltFor = -1;
+						this.editMsg = '';
+						this.pageTrip = null;
+						this.refreshRouteBadges();
+					},
+					// The per-route decoration findRoutes applies
+					// (depart/arrive from the same base, the one OD
+					// fare, km, virtual / repeat flags).
+					decorateRoute(r, fromName, toName) {
+						var self = this;
+						function fmt(d) { var h = d.getHours(), m = d.getMinutes(); return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; }
+						var now = self.departBase();
+						r.depart = fmt(now);
+						r.arrive = fmt(new Date(now.getTime() + r.minutes * 60000));
+						r.fare = self.odFare(fromName, toName);
+						r.km = self.routeKm(r);
+						r.hasVirtual = self.routeHasVirtual(r);
+						r.hasRepeat = (function() {
+							var seen = {};
+							for (var i = 0; i < r.stations.length; i++) {
+								if (seen[r.stations[i]]) return true;
+								seen[r.stations[i]] = 1;
+							}
+							return false;
+						})();
+					},
+					// Badge flags are list-relative (findRoutes assigns
+					// them from the list minima) — recompute after an
+					// edit replaces a route in place.
+					refreshRouteBadges() {
+						var list = this.routeList;
+						if (!list.length) return;
+						var minMin = Infinity, minStops = Infinity, minFare = Infinity, maxFare = -Infinity;
+						list.forEach(function(r) {
+							if (r.minutes < minMin) minMin = r.minutes;
+							if (r.stops < minStops) minStops = r.stops;
+							if (r.fare != null && r.fare < minFare) minFare = r.fare;
+							if (r.fare != null && r.fare > maxFare) maxFare = r.fare;
+						});
+						list.forEach(function(r) {
+							r.isEarly = r.minutes === minMin;
+							r.isShortest = r.stops === minStops;
+							r.isCheap = r.fare != null && r.fare === minFare && minFare < maxFare;
+						});
 					},
 					// ---- Live Activity trip (build 65) ----
 					// City theme colour for the Live Activity (matches the
@@ -7497,21 +7786,6 @@ function titlePy(py) {
 						}
 						this.commonCityOpen = true;
 					},
-					// DIAG-26E122: receive the native side's switch
-					// measurements and format them for the readout line
-					// under the Siri switch row. Every value arrives
-					// from the native side (reported rect, webView
-					// bounds, placed frame, screen width, root-view
-					// width, webView origin x) — the web computes
-					// nothing here, it only formats.
-					setSwitchDiag(d) {
-						if (!d) return;
-						var f = function(n) { return (typeof n === 'number' && isFinite(n)) ? Math.round(n * 10) / 10 : '?'; };
-						this.switchDiagText = 'DIAG r:' + f(d.rx) + ',' + f(d.ry) + ',' + f(d.rw) + ',' + f(d.rh)
-							+ ' b:' + f(d.bw) + 'x' + f(d.bh)
-							+ ' p:' + f(d.px) + ',' + f(d.py) + ',' + f(d.pw) + ',' + f(d.ph)
-							+ ' s:' + f(d.sw) + ' v:' + f(d.vw) + ' o:' + f(d.wox) + ' hid:' + (d.hid ? 1 : 0);
-					},
 					// 26E122: creator redemption. Tapping the profile
 					// page's redeem row asks the native shell for its
 					// UIAlertController text field (redeemCode bridge;
@@ -7537,6 +7811,33 @@ function titlePy(py) {
 						if (which === 'save') this.saveProfile();
 						else if (which === 'redeem') this.askRedeemCode();
 						else if (which === 'logout') this.askLogout();
+						else if (which === 'commonCity') this.askCommonCity();
+					},
+					// 26E124: the info card's rows, in display order —
+					// the single source the native card renders from.
+					// Home City is stored on the profile (commonCity =
+					// city key); at cold start it outranks the
+					// last-used city (window._metroCommonCity).
+					profileInfoRows() {
+						var rows = [{ type: 'name', label: this.t('profile.name'), value: this.profileNameDraft || '', ph: this.t('profile.namePh') }];
+						if (this.profile) {
+							rows.push({ type: 'value', label: 'ID', value: this.profile.id });
+							rows.push({ type: 'value', label: this.t('profile.since'), value: this.profile.since });
+							rows.push({ type: 'city', label: this.t('profile.commonCity'), value: this.commonCityName });
+						} else {
+							rows.push({ type: 'value', label: 'ID', value: this.t('profile.idAuto') });
+						}
+						return rows;
+					},
+					// 26E124: the native nickname field pushes its text
+					// back here (on end-editing, and synchronously
+					// before a save tap), so saveProfile keeps reading
+					// profileNameDraft exactly as with the old web input.
+					profileNameFromNative(text) {
+						this.profileNameDraft = text == null ? '' : String(text);
+					},
+					profileNameFocusNative(focused) {
+						if (focused) this.profileOverflow = true;
 					},
 					redeemEntered(text) {
 						// null = the native alert was cancelled: silent.
@@ -7784,8 +8085,43 @@ function titlePy(py) {
 						var idx = window.STRUCTURE_INDEX || {};
 						return idx[this.city + ':' + this.structStation.n] || null;
 					},
-					structFile() {
+					tripInfo() {
+						var r = this.routeResult;
+						if (!this.pageTrip || !r || !r.stations) return null;
+						var idx = this.pageTrip.idx, total = r.stations.length - 1;
+						var arrived = idx >= total;
+						var remainMin = 0;
+						if (!arrived) {
+							var acc = 0;
+							for (var i = 0; i < r.segments.length; i++) {
+								var seg = r.segments[i], span = seg.virtual ? 1 : seg.stops, segEnd = acc + span;
+								if (segEnd > idx) {
+									if (seg.virtual) remainMin += this.walkMinutesAt(r, i) || 5;
+									else remainMin += (segEnd - Math.max(idx, acc)) * 2;
+								}
+								acc = segEnd;
+							}
+							acc = 0;
+							for (var j = 0; j < r.segments.length - 1; j++) {
+								acc += r.segments[j].virtual ? 1 : r.segments[j].stops;
+								if (acc > idx || (acc === idx && idx > 0)) remainMin += 5;
+							}
+						}
+						return { next: arrived ? null : r.stations[idx + 1], current: r.stations[idx], remainStops: total - idx, remainMin: remainMin, arrived: arrived };
+					},
+					structSets() {
 						var e = this.structEntry;
+						if (!e) return [];
+						if (e.sets && e.sets.length) return e.sets;
+						return [{ line: null, spatial: e.spatial, plan: e.plan, sources: e.sources || {}, urls: e.urls || {} }];
+					},
+					structSetEntry() {
+						var sets = this.structSets;
+						if (!sets.length) return null;
+						return sets[Math.min(this.structSetIdx, sets.length - 1)];
+					},
+					structFile() {
+						var e = this.structSetEntry;
 						if (!e) return null;
 						return e[this.structKind] || null;
 					},
@@ -7795,7 +8131,7 @@ function titlePy(py) {
 						return this.structCache[f] || null;
 					},
 					structSource() {
-						var e = this.structEntry;
+						var e = this.structSetEntry;
 						if (!e || !e.sources) return '';
 						return e.sources[this.structKind] || '';
 					},
@@ -7941,8 +8277,10 @@ function titlePy(py) {
 				watch: {
 					showProfileSub(open) { if (open) this.resetProfileFit(); },
 					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (this.tab === 'more') { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); },
+					mapCard() { this.reportMapCard(); },
 					structStation() { this.ensureStructImg(); },
-					structKind() { this.ensureStructImg(); }
+					structKind() { this.ensureStructImg(); },
+					structSetIdx() { this.ensureStructImg(); }
 				},
 				updated: function() {
 					this.syncHtmlClasses();
@@ -7966,6 +8304,14 @@ function titlePy(py) {
 					}
 				},
 				mounted: function() {
+					// 26E124: first-launch What's New — show this
+					// build's notes once per version. The seen build
+					// is stored in localStorage; a different (or
+					// missing) value shows the page, the confirm
+					// button writes the current build and dismisses.
+					try {
+						if (window.localStorage.getItem('metro-lastSeenVersion') !== '26E124') this.showWhatsNew = true;
+					} catch (e) { this.showWhatsNew = true; }
 					// Re-check native shell (build 36): the data() check can run
 					// before the native handlers are injected, which left the
 					// web tab row visible under the native segmented control.
@@ -8174,9 +8520,6 @@ function titlePy(py) {
 			// here so the Vue state + localStorage update exactly as
 			// the old CSS switch's tap did (setNearbySmart).
 			window.__setNearbySmart = function(v) { if (window.metroApp) window.metroApp.setNearbySmart(v); };
-		// DIAG-26E122: the native side pushes its switch measurements
-		// here after every placeSwitch (see AppDelegate sendSwitchDiag).
-		window.__switchDiag = function(d) { if (window.metroApp) window.metroApp.setSwitchDiag(d); };
 		// 26E122: the native redeem alert hands the entered code back
 		// here (null when the user cancelled).
 		window.__redeemEntered = function(text) { if (window.metroApp) window.metroApp.redeemEntered(text); };
@@ -8186,6 +8529,13 @@ function titlePy(py) {
 		// recommendation confirm answers in __recommendCityConfirmed.
 		window.__commonCityPicked = function(key) { if (window.metroApp) window.metroApp.commonCityPicked(key); };
 		window.__profileTap = function(which) { if (window.metroApp) window.metroApp.profileTap(which); };
+		// 26E124: the native info card's nickname field pushes its
+		// text / focus state back into the page.
+		window.__profileName = function(text) { if (window.metroApp) window.metroApp.profileNameFromNative(text); };
+		window.__profileNameFocus = function(f) { if (window.metroApp) window.metroApp.profileNameFocusNative(!!f); };
+		// 26E124: taps on the native map station card (pin a line,
+		// set departure / destination, close).
+		window.__mapCardTap = function(action, key) { if (window.metroApp) window.metroApp.mapCardTap(action, key); };
 		window.__commonCityLoc = function() { if (window.metroApp) window.metroApp.recommendCommonCityByLoc(); };
 		window.__recommendCityConfirmed = function(yes) { if (window.metroApp) window.metroApp.recommendCityConfirmed(yes); };
 			// Swipe left/right on the tab bar to switch tabs; the pill slides with it.
