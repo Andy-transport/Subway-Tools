@@ -472,8 +472,9 @@
 		.fast-note-card { width: 100%; max-width: 320px; border-radius: 18px; padding: 18px; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); color: #111; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.25); }
 		html.dark .fast-note-card { background: rgba(38, 38, 42, 0.9); color: #f2f2f5; }
 		.fast-note-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-		.fast-note-body { font-size: 14px; line-height: 1.55; }
+		.fast-note-body { font-size: 14px; line-height: 1.55; white-space: pre-line; }
 		.fast-note-btn { margin-top: 14px; width: 100%; border: 0; border-radius: 999px; padding: 10px 0; font-size: 15px; font-weight: 600; background: #177245; color: #fff; cursor: pointer; }
+		.fast-note-btn-cancel { background: transparent; color: inherit; border: 1px solid rgba(120, 120, 128, 0.45); }
 		/* 26E111: a WALK segment (routable different-name virtual
 		   transfer) renders a walk glyph in the chain instead of a
 		   line badge; in the detail list it is its own row. */
@@ -1103,6 +1104,17 @@
 		.more-profile-save > span { flex: none; text-align: center; color: #007aff; font-weight: 600; }
 		.more-profile-logout { justify-content: center; }
 		.more-profile-logout > span { flex: none; text-align: center; color: #ff3b30; }
+		/* Creator badge + redemption (26E122): shown next to the ID
+		   on the profile page and the Settings account card once a
+		   creator code has been redeemed. */
+		.creator-badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: #ff9500; color: #fff; font-size: 11px; font-weight: 600; line-height: 1.5; vertical-align: 1px; white-space: nowrap; }
+		.more-redeem-input { text-align: left; }
+		.more-redeem-go { flex: none; margin-left: 10px; color: #007aff; font-weight: 600; cursor: pointer; }
+		/* DIAG-26E122: diagnostic readout under the Siri switch row —
+		   small monospace grey text, fed by the native side through
+		   window.__switchDiag. Remove with the other DIAG-26E122
+		   markers once the switch-overflow cause is pinned. */
+		.switch-diag { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; line-height: 1.5; color: #8e8e93; padding: 8px 16px 12px; word-break: break-all; }
 		.more-city-row .more-city-name { flex: 1; }
 		.more-city-row .more-check { margin-left: 8px; }
 		.more-bj-type { padding-left: 36px; font-size: 15px; }
@@ -1761,8 +1773,22 @@
 		   at parse time — long before Vue mounts — so the launch splash
 		   poster gets an early correction even if the mounted() posts
 		   (cityChanged / themeState) are delayed or lost on device. */
+		/* 26E122: the profile's Home City (常用城市， profile.commonCity)
+		   outranks every other startup-city source at cold start: when
+		   set, the app opens on it instead of the last-used city. Every
+		   startup-city consumer (this splash post, the Vue data
+		   initializer, mounted()'s restore and the post-load restore)
+		   resolves through this one helper; unset -> null -> the
+		   pre-26E122 behaviour, byte for byte. */
+		window._metroCommonCity = function() {
+			try {
+				var p = JSON.parse(window.localStorage.getItem('metro-profile') || 'null');
+				var c = p && p.commonCity;
+				return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'sjz' || c === 'tj' || c === 'wx' || c === 'bj') ? c : null;
+			} catch (e) { return null; }
+		};
 		try {
-			var _sc = window._metroInitCity || window.localStorage.getItem('metro-city') || 'bj';
+			var _sc = window._metroCommonCity() || window._metroInitCity || window.localStorage.getItem('metro-city') || 'bj';
 			var _sd = false;
 			if (typeof window._metroInitDark === 'boolean') { _sd = window._metroInitDark; }
 			else {
@@ -2051,7 +2077,7 @@
 				<div class="fast-note-backdrop" v-if="fastNoteEntry" @click="fastNoteEntry = null">
 					<div class="fast-note-card" @click.stop>
 						<div class="fast-note-title">{{ stNameStr(fastNoteEntry.st) }} · {{ t('tr.fastTag') }}</div>
-						<div class="fast-note-body">{{ t(fastNoteEntry.noteKey) }}</div>
+						<div class="fast-note-body">{{ fastNoteText(fastNoteEntry) }}</div>
 						<button class="fast-note-btn" @click="fastNoteEntry = null">{{ t('tr.fastOk') }}</button>
 					</div>
 				</div>
@@ -2074,7 +2100,7 @@
 					<span class="more-account-avatar more-account-guest" v-else><svg viewBox="0 0 24 24" width="30" height="30"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.9 0-8 2-8 4.5V20h16v-1.5C20 16 15.9 14 12 14z" fill="currentColor"/></svg></span>
 					<div class="more-account-text">
 						<div class="more-account-name">{{ profile ? profile.name : t('profile.login') }}</div>
-						<div class="more-account-sub" v-if="profile">ID: {{ profile.id }} · {{ t('profile.since') }}: {{ profile.since }}</div>
+						<div class="more-account-sub" v-if="profile">ID: {{ profile.id }}<span class="creator-badge" v-if="profile.creator">{{ t('profile.creator') }}</span> · {{ t('profile.since') }}: {{ profile.since }}</div>
 						<div class="more-account-sub" v-else>{{ t('profile.tapLogin') }}</div>
 					</div>
 					<span class="more-chev">›</span>
@@ -2232,6 +2258,15 @@
 							<button v-if="!nativeApp" class="more-switch" :class="{ on: nearbySmart }" @click="toggleNearbySmart" role="switch" :aria-checked="nearbySmart ? 'true' : 'false'"><span class="more-switch-knob"></span></button>
 							<span v-else id="nearbySmartSlot" class="more-switch-slot"></span>
 						</div>
+						<!-- DIAG-26E122: on-device diagnostic readout for the
+						     switch-overflow hunt (two fix attempts failed on
+						     device; this round measures instead of guessing).
+						     The values are computed by the NATIVE side and
+						     pushed through window.__switchDiag — reported
+						     rect, webView bounds, final placed frame, screen
+						     width — never web-side arithmetic. Remove every
+						     DIAG-26E122 marker once the cause is pinned. -->
+						<div class="switch-diag" v-if="switchDiagText">{{ switchDiagText }}</div>
 					</div>
 					<div class="more-up-note">{{ t('siri.nearbySmart.desc') }}</div>
 					<div class="more-card">
@@ -2279,7 +2314,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.0.0 (A26107)' : '1.0.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E122)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2315,7 +2350,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.0.0 (A26107)' : '1.0.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E122)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2342,15 +2377,71 @@
 					</div>
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('profile.name') }}</span><input class="more-profile-input" type="text" v-model="profileNameDraft" :placeholder="t('profile.namePh')" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-						<div class="more-row" v-if="profile"><span>ID</span><span class="more-row-value">{{ profile.id }}</span></div>
+						<div class="more-row" v-if="profile"><span>ID</span><span class="more-row-value">{{ profile.id }}<span class="creator-badge" v-if="profile.creator">{{ t('profile.creator') }}</span></span></div>
 						<div class="more-row" v-if="profile"><span>{{ t('profile.since') }}</span><span class="more-row-value">{{ profile.since }}</span></div>
+						<!-- 26E122: Home City （常用城市）. Stored on the
+							 profile (commonCity = city key); at cold
+							 start it outranks the last-used city (see
+							 window._metroCommonCity). Manual city
+							 switches never write it. -->
+						<div class="more-row" v-if="profile" @click="askCommonCity()"><span>{{ t('profile.commonCity') }}</span><span class="more-row-value">{{ commonCityName }}</span><span class="more-chev">›</span></div>
 						<div class="more-row" v-if="!profile"><span>ID</span><span class="more-row-value">{{ t('profile.idAuto') }}</span></div>
+					</div>
+					<!-- 26E122: Home City picker, web fallback only — in
+						 the native shell the same list is a UIAlertController
+						 action sheet (commonCityPick bridge), headed by
+						 the same Use-My-Location row. -->
+					<div class="more-card" v-if="profile && commonCityOpen && !nativeApp">
+						<div class="more-city-row" @click="recommendCommonCityByLoc()"><span class="more-city-name"><span>{{ t('profile.commonCityLoc') }}</span></span><span class="more-chev">›</span></div>
+						<div class="more-city-row" v-for="c in cityList" :key="'cc-' + c.key" @click="setCommonCity(c.key)"><span class="more-city-name"><span>{{ c.name }}</span></span><span class="more-check" v-if="profile.commonCity === c.key">✓</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row more-profile-save" @click="saveProfile()"><span>{{ profile ? t('profile.save') : t('profile.login') }}</span></div>
 					</div>
+					<!-- 26E122: creator redemption. Tapping the row asks
+						 the native shell for its UIAlertController text
+						 field (redeemCode bridge); with no native shell
+						 an inline input row expands instead. A hit swaps
+						 the profile ID for the paired creator ID and
+						 raises the creator badge; see applyRedeemCode. -->
+					<div class="more-card" v-if="profile">
+						<div class="more-row" @click="askRedeemCode()"><span>{{ t('profile.redeem') }}</span><span class="more-chev">›</span></div>
+						<div class="more-row" v-if="redeemOpen && !nativeApp">
+							<input class="more-profile-input more-redeem-input" type="text" v-model="redeemDraft" :placeholder="t('profile.redeemPh')" autocomplete="off" autocapitalize="characters" spellcheck="false">
+							<span class="more-redeem-go" @click="redeemEntered(redeemDraft)">{{ t('profile.redeemBtn') }}</span>
+						</div>
+					</div>
 					<div class="more-card" v-if="profile">
 						<div class="more-row more-profile-logout" @click="askLogout()"><span>{{ logoutArm ? t('profile.logoutConfirm') : t('profile.logout') }}</span></div>
+					</div>
+					<!-- 26E122: redeem result prompt, web fallback only —
+						 in the native shell the same texts go out through
+						 the redeemNote bridge and iOS presents its own
+						 alert. Styled with the fast-note card family. -->
+					<div class="fast-note-backdrop" v-if="redeemNoteEntry" @click="redeemNoteEntry = null">
+						<div class="fast-note-card" @click.stop>
+							<div class="fast-note-title">{{ redeemNoteEntry.title }}</div>
+							<div class="fast-note-body" v-if="redeemNoteEntry.body">{{ redeemNoteEntry.body }}</div>
+							<button class="fast-note-btn" @click="redeemNoteEntry = null">{{ t('tr.fastOk') }}</button>
+						</div>
+					</div>
+					<!-- 26E122: Home City location recommendation +
+						 location-unavailable cards, web fallback only —
+						 in the native shell both are UIAlertControllers
+						 (recommendCity / commonCityNote bridges). -->
+					<div class="fast-note-backdrop" v-if="recommendEntry" @click="recommendCityConfirmed(false)">
+						<div class="fast-note-card" @click.stop>
+							<div class="fast-note-title">{{ t('profile.commonCityLoc') }}</div>
+							<div class="fast-note-body">{{ recommendEntry.text }}</div>
+							<button class="fast-note-btn" @click="recommendCityConfirmed(true)">{{ t('profile.commonCityOk') }}</button>
+							<button class="fast-note-btn fast-note-btn-cancel" @click="recommendCityConfirmed(false)">{{ t('native.cancel') }}</button>
+						</div>
+					</div>
+					<div class="fast-note-backdrop" v-if="commonCityNoteEntry" @click="commonCityNoteEntry = null">
+						<div class="fast-note-card" @click.stop>
+							<div class="fast-note-title">{{ commonCityNoteEntry.title }}</div>
+							<button class="fast-note-btn" @click="commonCityNoteEntry = null">{{ t('tr.fastOk') }}</button>
+						</div>
 					</div>
 				</div>
 				</transition>
@@ -2465,6 +2556,19 @@ var I18N = {
   'tr.fastNote.suzhoujie': ['前往10号线中部/16号线中部乘坐直梯即可快速换乘', '前往10號線中部/16號線中部乘坐直梯即可快速換乘', 'Head to the middle of the Line 10 / Line 16 platforms and take the lift for a fast transfer'],
   'tr.fastNote.erligou': ['前往16号线站台外挂厅/6号线外挂厅通过直梯换乘', '前往16號線站台外掛廳/6號線外掛廳通過直梯換乘', 'Head to the outer hall of the Line 16 platform / the Line 6 outer hall and transfer via the lift'],
   'tr.fastNote.channel': ['通过换乘通道乘坐直梯即可快速换乘', '通過換乘通道乘坐直梯即可快速換乘', 'Take the lift in the transfer passage for a fast transfer'],
+  'tr.fastType.lift': ['直梯辅助型', '直梯輔助型', 'Lift-assisted'],
+  'tr.fastType.short': ['短通道型', '短通道型', 'Short-passage'],
+  'tr.fastType.hub3': ['三线集中型', '三線集中型', 'Three-line hub'],
+  'tr.fastType.timed': ['分时段抄近道型', '分時段抄近道型', 'Timed shortcut'],
+  'tr.fastType.dualNode': ['双向节点', '雙向節點', 'Two-way node'],
+  'tr.fastNote.yonganli': ['直梯连接站台、站厅与换乘厅', '直梯連接月台、站廳與換乘廳', 'Lifts connect the platforms, the concourse and the transfer hall'],
+  'tr.fastNote.dongdaqiao': ['换乘距离较短', '換乘距離較短', 'A short transfer walk'],
+  'tr.fastNote.wangjingxi': ['三条线路集中衔接', '三條線路集中銜接', 'Three lines meet in one hub'],
+  'tr.fastNote.cishousi': ['特定时段开放反向通道', '特定時段開放反向通道', 'A reverse passage opens at set times'],
+  'tr.fastNote.shoujingmao': ['缩短换乘距离', '縮短換乘距離', 'Shortens the transfer walk'],
+  'tr.fastNote.zhushikou': ['减少绕行时间', '減少繞行時間', 'Cuts the detour time'],
+  'tr.fastNote.jimenqiao': ['利用换乘楼梯实现双向通行', '利用換乘樓梯實現雙向通行', 'Transfer stairs carry both directions'],
+  'tr.fastNote.dongsishitiao': ['两个方向采用不同换乘路径', '兩個方向採用不同換乘路徑', 'Each direction uses a different transfer path'],
   'trd.toward': ['{st}方向', '{st}方向', 'towards {st}'],
   'trd.ride': ['乘坐{n}站（约{min}分钟）', '乘坐{n}站（約{min}分鐘）', '{n} stops (~{min} min)'],
   'trd.walk': ['步行{dist}', '步行{dist}', 'Walk {dist}'],
@@ -2546,6 +2650,18 @@ var I18N = {
   'profile.idAuto': ['登录后自动生成', '登入後自動生成', 'Generated on login'],
   'profile.defaultName': ['乘客', '乘客', 'Passenger'],
   'profile.tapLogin': ['登录后可设置头像与昵称', '登入後可設定頭像與暱稱', 'Log in to set an avatar and nickname'],
+  'profile.redeem': ['兑换码', '兌換碼', 'Redeem Code'],
+  'profile.redeemPh': ['输入兑换码', '輸入兌換碼', 'Enter redemption code'],
+  'profile.redeemBtn': ['兑换', '兌換', 'Redeem'],
+  'profile.redeemOk': ['兑换成功', '兌換成功', 'Redeemed'],
+  'profile.redeemBad': ['兑换码无效', '兌換碼無效', 'Invalid redemption code'],
+  'profile.creator': ['创作者', '創作者', 'Creator'],
+  'profile.commonCity': ['常用城市', '常用城市', 'Home City'],
+  'profile.commonCityUnset': ['未设置', '未設定', 'Not set'],
+  'profile.commonCityLoc': ['定位推荐', '定位推薦', 'Use My Location'],
+  'profile.commonCityRecommend': ['推荐设为 {name}（约 {km} 公里）', '推薦設為 {name}（約 {km} 公里）', 'Set to {name}? (about {km} km away)'],
+  'profile.commonCityOk': ['确认', '確認', 'Confirm'],
+  'profile.commonCityLocFail': ['定位不可用', '定位不可用', 'Location unavailable'],
   'more.about.desc': ['城市轨道交通出行工具', '城市軌道交通出行工具', 'A metro and rail transit tool'],
   'more.loc': ['定位', '定位', 'Location'],
   'more.loc.unknown': ['未请求', '未請求', 'Not Requested'],
@@ -2906,6 +3022,59 @@ function titlePy(py) {
 					try { db.transaction('imgs', 'readwrite').objectStore('imgs').put(val, key); } catch (e) {}
 				});
 			}
+			// Creator redemption tables (26E122, user-supplied verbatim,
+			// 2026-11-23): CREATOR_REDEEM_CODES[i] redeems
+			// CREATOR_IDS[i] — the two tables are index-aligned, 20
+			// entries each, and the gate asserts both verbatim. Local
+			// profile only: a hit swaps the profile ID and raises the
+			// creator badge (profile.creator). Codes are NOT consumed
+			// — a local-only profile cannot stop a code being reused
+			// on another device, and no attempt is made to pretend
+			// otherwise.
+			var CREATOR_REDEEM_CODES = [
+				'R7KM-9Q2X-4TPN-8LVD',
+				'F3HN-6W8R-2JQZ-5MCP',
+				'T9VB-4K7L-X2DN-8QRS',
+				'P6YC-1M5H-9WKF-3ZTN',
+				'D8QX-2R7N-6VBL-4MJP',
+				'H4ZW-9C3K-7PYS-2NFQ',
+				'K2MN-8T6V-1QDR-5XLB',
+				'V7PL-3F9H-6CJW-8RQS',
+				'B5TR-1X8N-4MKZ-7DQP',
+				'N9KC-6Q2V-8LHF-3WYS',
+				'X3DM-7P5R-2TBN-9QKL',
+				'Q8LF-4V1K-7ZMC-6HNT',
+				'M6WQ-9N3D-5RXP-1LBF',
+				'C2HJ-8S7M-4QVN-6TKD',
+				'Z5RN-1L9C-8WPF-3XQM',
+				'L7BX-3T6Q-9MND-2VKR',
+				'Y4KP-8C2H-6RWL-5QZN',
+				'W9MF-5Q1X-3BTV-7LDP',
+				'J3VN-7R8K-2MCQ-9XHF',
+				'S6QD-2W4L-8PNT-1KZR'
+			];
+			var CREATOR_IDS = [
+				'Crt2026K8M3Q7X2P',
+				'Crt2026R4T9N6B1V',
+				'Crt2026H2W5Y8L3D',
+				'Crt2026F7P1C9S4M',
+				'Crt2026J3X6Z2A8R',
+				'Crt2026Q9B4N7K1T',
+				'Crt2026L5V8D2W6H',
+				'Crt2026S1M7P3Y9C',
+				'Crt2026T6R2F8X4N',
+				'Crt2026D8K1H5Q3V',
+				'Crt2026N4C9L2B7Z',
+				'Crt2026V7Y3S6M1P',
+				'Crt2026B2Q8T4R9K',
+				'Crt2026X5H1N7D3W',
+				'Crt2026P3L6V9C2F',
+				'Crt2026M9A4J8Y5S',
+				'Crt2026W1E7K3B6Q',
+				'Crt2026Y6N2P9H4L',
+				'Crt2026C4S8R1T7X',
+				'Crt2026Z7D5M2Q8V'
+			];
 			const App = Vue.createApp({
 				data() {
 					return {
@@ -2939,7 +3108,7 @@ function titlePy(py) {
 						ttLine: null,
 						showMore: false,
 						query: '',
-						city: (function() { try { var ic = window._metroInitCity; if (ic === 'sy' || ic === 'sh' || ic === 'hb' || ic === 'dl' || ic === 'jh' || ic === 'cz' || ic === 'cq' || ic === 'cc' || ic === 'sz' || ic === 'cd' || ic === 'qd' || ic === 'sjz' || ic === 'tj' || ic === 'wx' || ic === 'bj') return ic; var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'sjz' || c === 'tj' || c === 'wx' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
+						city: (function() { try { var cc = window._metroCommonCity ? window._metroCommonCity() : null; if (cc) return cc; var ic = window._metroInitCity; if (ic === 'sy' || ic === 'sh' || ic === 'hb' || ic === 'dl' || ic === 'jh' || ic === 'cz' || ic === 'cq' || ic === 'cc' || ic === 'sz' || ic === 'cd' || ic === 'qd' || ic === 'sjz' || ic === 'tj' || ic === 'wx' || ic === 'bj') return ic; var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'sjz' || c === 'tj' || c === 'wx' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
 						lang: savedLang(),
 					langPref: savedLangPref(),
 					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
@@ -3231,6 +3400,19 @@ function titlePy(py) {
 						searchDate: null, payMethod: 'cash', arriveTarget: null, pendingCond: null,
 						transferFocus: -1,
 						fastNoteEntry: null,
+						// DIAG-26E122: switch diagnostic readout text, fed
+						// by the native side via window.__switchDiag.
+						switchDiagText: '',
+						// 26E122: creator redemption UI state (web
+						// fallback input + web fallback result card).
+						redeemOpen: false,
+						redeemDraft: '',
+						redeemNoteEntry: null,
+						// 26E122: Home City picker state (web fallback
+						// list + web fallback recommendation/note cards).
+						commonCityOpen: false,
+						recommendEntry: null,
+						commonCityNoteEntry: null,
 						fromLine: null,
 						toLine: null,
 						smartList: [], userLat: null, userLng: null,
@@ -3254,6 +3436,12 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E122)', date: '2026-11-23', lines: [
+							['石家庄地铁 1 号线首末班车时刻按 2026 年 11 月 23 日的调整更新：两端末班车延至 22:30，各站首末班时刻同步更新（2、3 号线不变）', '石家莊地鐵 1 號線首末班車時刻按 2026 年 11 月 23 日的調整更新：兩端末班車延至 22:30，各站首末班時刻同步更新（2、3 號線不變）', 'Shijiazhuang Metro Line 1 first/last-train times updated for the 23 Nov 2026 adjustment: last trains at both termini now run to 22:30 and every station’s times are updated (Lines 2 and 3 unchanged)'],
+							['个人资料新增「兑换码」：输入创作者兑换码即可换领创作者专属 ID，ID 旁显示「创作者」标识', '個人資料新增「兌換碼」：輸入創作者兌換碼即可換領創作者專屬 ID，ID 旁顯示「創作者」標識', 'Profile gains Redeem Code: enter a creator redemption code to claim a creator ID, shown with a Creator badge next to the ID'],
+							['「快速换乘」按换乘类型表扩充 8 站并标注类型：永安里（直梯辅助型）、东大桥（短通道型）、望京西（三线集中型）、慈寿寺、首经贸、珠市口、蓟门桥（分时段抄近道型）、东四十条（双向节点）；点标签先看类型、再看说明', '「快速換乘」按換乘類型表擴充 8 站並標註類型：永安里（直梯輔助型）、東大橋（短通道型）、望京西（三線集中型）、慈壽寺、首經貿、珠市口、薊門橋（分時段抄近道型）、東四十條（雙向節點）；點標籤先看類型、再看說明', 'Fast Transfer expands by the transfer-type table — eight stations, now with types: Yong’anli (Lift-assisted), Dongdaqiao (Short-passage), Wangjingxi (Three-line hub), Cishousi, Shoujingmao, Zhushikou and Jimenqiao (Timed shortcut), and Dongsishitiao (Two-way node). Tap the tag to read the type, then the note'],
+							['个人资料新增「常用城市」：设定后每次打开 App 都从这座城市开始；选城市时可先定位推荐离你最近的城市，也可以手动选', '個人資料新增「常用城市」：設定後每次打開 App 都從這座城市開始；選城市時可先定位推薦離你最近的城市，也可以手動選', 'Profile gains Home City: once set, every launch opens on that city. The picker can recommend the nearest city from your location first, or you can pick manually'],
+							] },
 							{ v: '1.0.0 (A26107)', date: '2026-11-23', lines: [
 							['正式版发布：测试阶段的全部功能与修复转入正式版', '正式版發布：測試階段的全部功能與修復轉入正式版', 'Formal release: the test phase’s full feature set and fixes graduate to the release build'],
 							['修复北京 1 号线公主坟站缺失：公主坟恢复为 1 号线 / 10 号线换乘站，站序、距离与搜索徽章一并修正（1 号线在该站的首末班时刻暂无可核实来源，页面显示暂无数据）', '修復北京 1 號線公主墳站缺失：公主墳恢復為 1 號線 / 10 號線換乘站，站序、距離與搜尋徽章一併修正（1 號線在該站的首末班時刻暫無可核實來源，頁面顯示暫無數據）', 'Beijing Line 1’s Gongzhufen station is restored: it is once again a Line 1 / Line 10 interchange, with station order, distances and search badges corrected (no verifiable source exists yet for its Line 1 first/last trains, so that row shows no data)'],
@@ -4075,7 +4263,7 @@ function titlePy(py) {
 							// transparent on them (no strip, no top band).
 							var expT = null;
 							try {
-								if (this.showWhatsNewSub) expT = (this.relSel >= 0) ? this.t('more.whatsnew.title') : this.t('more.whatsnew', {v: '1.0.0'});
+								if (this.showWhatsNewSub) expT = (this.relSel >= 0) ? this.t('more.whatsnew.title') : this.t('more.whatsnew', {v: '1.1.0'});
 								else if (this.showSiriSub) expT = this.t('more.siri');
 								else if (this.showAboutSub) expT = this.t('more.about');
 							else if (this.showProfileSub) expT = this.t('profile.title');
@@ -5213,13 +5401,43 @@ function titlePy(py) {
 					// 磁器口 5<->7 (lift in the transfer passage).
 					// Beijing only for now.
 					fastTransferTable() {
+						// 26E122 expansion (user's transfer-type table):
+						// entries may carry a typeKey — the popup body
+						// then reads as two lines (type, then note; see
+						// fastNoteText). Entries without a typeKey keep
+						// the 26E120 single-note body verbatim. 永安里
+						// previously shared the channel note with
+						// 蒲黄榆/磁器口； the user's table gives it its
+						// own lift note, so its noteKey changed to the
+						// dedicated tr.fastNote.yonganli (the shared
+						// channel text no longer applies to it).
+						// 望京西 is a three-line station: all three
+						// pairs carry the tag.
 						return [
 							{ city: 'bj', st: '苏州街', lines: ['10', '16'], noteKey: 'tr.fastNote.suzhoujie' },
 							{ city: 'bj', st: '二里沟', lines: ['6', '16'], noteKey: 'tr.fastNote.erligou' },
-							{ city: 'bj', st: '永安里', lines: ['1', '17'], noteKey: 'tr.fastNote.channel' },
+							{ city: 'bj', st: '永安里', lines: ['1', '17'], noteKey: 'tr.fastNote.yonganli', typeKey: 'tr.fastType.lift' },
 							{ city: 'bj', st: '蒲黄榆', lines: ['5', '14'], noteKey: 'tr.fastNote.channel' },
-							{ city: 'bj', st: '磁器口', lines: ['5', '7'], noteKey: 'tr.fastNote.channel' }
+							{ city: 'bj', st: '磁器口', lines: ['5', '7'], noteKey: 'tr.fastNote.channel' },
+							{ city: 'bj', st: '东大桥', lines: ['6', '17'], noteKey: 'tr.fastNote.dongdaqiao', typeKey: 'tr.fastType.short' },
+							{ city: 'bj', st: '望京西', lines: ['13', '15'], noteKey: 'tr.fastNote.wangjingxi', typeKey: 'tr.fastType.hub3' },
+							{ city: 'bj', st: '望京西', lines: ['13', '17'], noteKey: 'tr.fastNote.wangjingxi', typeKey: 'tr.fastType.hub3' },
+							{ city: 'bj', st: '望京西', lines: ['15', '17'], noteKey: 'tr.fastNote.wangjingxi', typeKey: 'tr.fastType.hub3' },
+							{ city: 'bj', st: '慈寿寺', lines: ['6', '10'], noteKey: 'tr.fastNote.cishousi', typeKey: 'tr.fastType.timed' },
+							{ city: 'bj', st: '首经贸', lines: ['10', 'FS'], noteKey: 'tr.fastNote.shoujingmao', typeKey: 'tr.fastType.timed' },
+							{ city: 'bj', st: '珠市口', lines: ['7', '8'], noteKey: 'tr.fastNote.zhushikou', typeKey: 'tr.fastType.timed' },
+							{ city: 'bj', st: '蓟门桥', lines: ['12', 'CP'], noteKey: 'tr.fastNote.jimenqiao', typeKey: 'tr.fastType.timed' },
+							{ city: 'bj', st: '东四十条', lines: ['2', '3'], noteKey: 'tr.fastNote.dongsishitiao', typeKey: 'tr.fastType.dualNode' }
 						];
+					},
+					// 26E122: the popup body for a fast-transfer entry —
+					// typed entries read as two lines (type, then the
+					// note); untyped entries keep the single note line,
+					// exactly as 26E120/121. Used by the native-alert
+					// post and by the web fallback card alike.
+					fastNoteText(e) {
+						if (!e) return '';
+						return e.typeKey ? (this.t(e.typeKey) + '\n' + this.t(e.noteKey)) : this.t(e.noteKey);
 					},
 					// The fast-transfer table entry for the
 					// boundary INTO segment i of route r, or null.
@@ -5252,7 +5470,7 @@ function titlePy(py) {
 						// fallback.
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.fastNote;
 						if (h) {
-							h.postMessage({ station: this.stNameStr(e.st), note: this.t(e.noteKey), tag: this.t('tr.fastTag'), ok: this.t('tr.fastOk') });
+							h.postMessage({ station: this.stNameStr(e.st), note: this.fastNoteText(e), tag: this.t('tr.fastTag'), ok: this.t('tr.fastOk') });
 						} else {
 							this.fastNoteEntry = e;
 						}
@@ -5547,6 +5765,10 @@ function titlePy(py) {
 					// coordinates are skipped, never guessed. If no station in the
 					// current city has coordinates yet, say so plainly.
 					showNearbyStations(lat, lng) {
+						// 26E122: a fix requested by the Home City
+						// location recommendation routes there instead
+						// of the nearby-stations UI.
+						if (this._locPurpose === 'commonCity') { this._locPurpose = null; this.locFixForCommonCity(lat, lng); return; }
 						this.nearbyLoading = false;
 						var list = [];
 						var sts = this.stations || [];
@@ -5575,6 +5797,10 @@ function titlePy(py) {
 						else { this.nearbyNote = ''; }
 					},
 					nearbyError(msg) {
+						// 26E122: same routing for the error side — the
+						// Home City flow prompts and falls back to the
+						// manual list instead of touching the nearby UI.
+						if (this._locPurpose === 'commonCity') { this._locPurpose = null; this.locUnavailableForCommonCity(); return; }
 						this.nearbyLoading = false;
 						this.nearbyMsg = msg || this.t('tr.nearby.failed');
 						this.mapLocMsg = msg || this.t('tr.nearby.failed');
@@ -6642,15 +6868,189 @@ function titlePy(py) {
 						rd.readAsDataURL(f);
 						e.target.value = '';
 					},
+					// 26E122: Home City （常用城市）. The picker prefers
+					// the native action sheet (commonCityPick bridge:
+					// the Use-My-Location row first, then the 15
+					// adapted cities, then Cancel); with no native
+					// shell the inline list expands in the page (same
+					// rows, same order). The pick lands in
+					// window.__commonCityPicked / __commonCityLoc.
+					askCommonCity() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.commonCityPick;
+						if (h) {
+							h.postMessage({ title: this.t('profile.commonCity'), locLabel: this.t('profile.commonCityLoc'), cities: this.cityList.map(function(c) { return { key: c.key, name: c.name }; }), cancel: this.t('native.cancel') });
+						} else {
+							this.commonCityOpen = !this.commonCityOpen;
+						}
+					},
+					commonCityPicked(key) {
+						// null = the sheet was cancelled: stay silent.
+						if (key === null || key === undefined) return;
+						this.setCommonCity(key);
+					},
+					setCommonCity(key) {
+						if (!this.profile) return;
+						var valid = false, l = this.cityList;
+						for (var i = 0; i < l.length; i++) { if (l[i].key === key) { valid = true; break; } }
+						if (!valid) return;
+						this.profile.commonCity = key;
+						try { window.localStorage.setItem('metro-profile', JSON.stringify(this.profile)); } catch (err) {}
+						this.commonCityOpen = false;
+					},
+					// Location recommendation: one fix through the
+					// SAME one-shot channel as Nearest Stations (the
+					// requestLocation bridge / HTML5 geolocation);
+					// _locPurpose routes the fix to locFixForCommonCity
+					// instead of the nearby-stations UI (see the tops
+					// of showNearbyStations / nearbyError).
+					recommendCommonCityByLoc() {
+						this.commonCityOpen = false;
+						this._locPurpose = 'commonCity';
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.requestLocation;
+						if (h) { h.postMessage({}); return; }
+						if (navigator.geolocation) {
+							var self = this;
+							navigator.geolocation.getCurrentPosition(function(pos) { self._locPurpose = null; self.locFixForCommonCity(pos.coords.latitude, pos.coords.longitude); }, function() { self._locPurpose = null; self.locUnavailableForCommonCity(); }, { timeout: 10000 });
+						} else {
+							this._locPurpose = null;
+							this.locUnavailableForCommonCity();
+						}
+					},
+					// Nearest adapted city for a fix: the minimum
+					// haversine over EVERY station coordinate of every
+					// adapted city (the per-city lat/lng tables — a
+					// city's own nearest station decides its distance).
+					// The result is reported honestly however far it is;
+					// the confirm carries the approximate distance and
+					// the user decides.
+					locFixForCommonCity(lat, lng) {
+						var keys = ['bj', 'sy', 'sh', 'hb', 'dl', 'jh', 'cz', 'cq', 'cc', 'sz', 'cd', 'qd', 'sjz', 'tj', 'wx'];
+						var best = null;
+						for (var k = 0; k < keys.length; k++) {
+							var table = this.latLngFor(keys[k]);
+							if (!table) continue;
+							for (var name in table) {
+								var ll = table[name];
+								if (!ll) continue;
+								var d = this.haversineKm(lat, lng, ll[0], ll[1]);
+								if (!best || d < best.dist) best = { key: keys[k], dist: d };
+							}
+						}
+						if (!best) { this.locUnavailableForCommonCity(); return; }
+						var cityName = best.key, l = this.cityList;
+						for (var i = 0; i < l.length; i++) { if (l[i].key === best.key) { cityName = l[i].name; break; } }
+						var km = best.dist >= 9.95 ? String(Math.round(best.dist)) : best.dist.toFixed(1);
+						var msg = this.t('profile.commonCityRecommend', { name: cityName, km: km });
+						this._pendingRecommendCity = best.key;
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.recommendCity;
+						if (h) {
+							h.postMessage({ title: this.t('profile.commonCityLoc'), message: msg, ok: this.t('profile.commonCityOk'), cancel: this.t('native.cancel'), city: best.key });
+						} else {
+							this.recommendEntry = { key: best.key, text: msg };
+						}
+					},
+					recommendCityConfirmed(yes) {
+						if (yes && this._pendingRecommendCity) this.setCommonCity(this._pendingRecommendCity);
+						this._pendingRecommendCity = null;
+						this.recommendEntry = null;
+					},
+					// Denied / timed out / no coordinates at all:
+					// NEVER silent — a native prompt (commonCityNote
+					// bridge; the shell re-opens the picker sheet
+					// after it) or the web card, and the manual list
+					// comes back either way.
+					locUnavailableForCommonCity() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.commonCityNote;
+						if (h) {
+							h.postMessage({ title: this.t('profile.commonCityLocFail'), message: '', ok: this.t('tr.fastOk') });
+						} else {
+							this.commonCityNoteEntry = { title: this.t('profile.commonCityLocFail') };
+						}
+						this.commonCityOpen = true;
+					},
+					// DIAG-26E122: receive the native side's switch
+					// measurements and format them for the readout line
+					// under the Siri switch row. Every value arrives
+					// from the native side (reported rect, webView
+					// bounds, placed frame, screen width, root-view
+					// width, webView origin x) — the web computes
+					// nothing here, it only formats.
+					setSwitchDiag(d) {
+						if (!d) return;
+						var f = function(n) { return (typeof n === 'number' && isFinite(n)) ? Math.round(n * 10) / 10 : '?'; };
+						this.switchDiagText = 'DIAG r:' + f(d.rx) + ',' + f(d.ry) + ',' + f(d.rw) + ',' + f(d.rh)
+							+ ' b:' + f(d.bw) + 'x' + f(d.bh)
+							+ ' p:' + f(d.px) + ',' + f(d.py) + ',' + f(d.pw) + ',' + f(d.ph)
+							+ ' s:' + f(d.sw) + ' v:' + f(d.vw) + ' o:' + f(d.wox) + ' hid:' + (d.hid ? 1 : 0);
+					},
+					// 26E122: creator redemption. Tapping the profile
+					// page's redeem row asks the native shell for its
+					// UIAlertController text field (redeemCode bridge;
+					// the localized strings ride along) and the entered
+					// text comes back through window.__redeemEntered.
+					// With no native shell an inline input row expands
+					// in the page instead.
+					askRedeemCode() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.redeemCode;
+						if (h) {
+							h.postMessage({ title: this.t('profile.redeem'), ph: this.t('profile.redeemPh'), ok: this.t('profile.redeemBtn'), cancel: this.t('native.cancel') });
+						} else {
+							this.redeemOpen = !this.redeemOpen;
+						}
+					},
+					redeemEntered(text) {
+						// null = the native alert was cancelled: silent.
+						if (text === null || text === undefined) return;
+						this.applyRedeemCode(text);
+					},
+					// Codes compare normalized: spaces and hyphens
+					// stripped, uppercased — 'r7km9q2x4tpn8lvd' hits
+					// 'R7KM-9Q2X-4TPN-8LVD'.
+					redeemNorm(s) { return String(s == null ? '' : s).replace(/[\s\-]+/g, '').toUpperCase(); },
+					applyRedeemCode(raw) {
+						this.redeemOpen = false;
+						this.redeemDraft = '';
+						if (!this.profile) return;
+						var norm = this.redeemNorm(raw), idx = -1;
+						for (var i = 0; i < CREATOR_REDEEM_CODES.length; i++) {
+							if (this.redeemNorm(CREATOR_REDEEM_CODES[i]) === norm) { idx = i; break; }
+						}
+						if (idx < 0) { this.showRedeemNote(this.t('profile.redeemBad'), ''); return; }
+						this.profile.id = CREATOR_IDS[idx];
+						this.profile.creator = true;
+						try { window.localStorage.setItem('metro-profile', JSON.stringify(this.profile)); } catch (err) {}
+						this.showRedeemNote(this.t('profile.redeemOk'), this.profile.id);
+					},
+					// Redeem result prompt: a native alert through the
+					// redeemNote bridge when the shell is present, the
+					// web card (fast-note family) otherwise.
+					showRedeemNote(title, body) {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.redeemNote;
+						if (h) {
+							h.postMessage({ title: title, message: body || '', ok: this.t('tr.fastOk') });
+						} else {
+							this.redeemNoteEntry = { title: title, body: body || '' };
+						}
+					},
 					saveProfile() {
 						var name = (this.profileNameDraft || '').trim() || this.t('profile.defaultName');
 						var id = this.profile ? this.profile.id : '';
 						var since = this.profile ? this.profile.since : '';
+						// 26E122: a redeemed creator identity survives a
+						// profile re-save (the creator ID already does —
+						// it rides the id field; the badge flag rides
+						// this one).
+						var creator = this.profile ? !!this.profile.creator : false;
+						// 26E122: the Home City rides the profile too —
+						// a re-save must not drop it.
+						var commonCity = this.profile ? this.profile.commonCity : null;
 						if (!id) {
 							id = this.genAppUid();
 							since = this.fmtDate(new Date().toISOString());
 						}
 						this.profile = { name: name, avatar: this.profileAvatarDraft || '', id: id, since: since };
+						if (creator) this.profile.creator = true;
+						if (commonCity) this.profile.commonCity = commonCity;
 						try { window.localStorage.setItem('metro-profile', JSON.stringify(this.profile)); } catch (err) {}
 						this.showProfileSub = false;
 					},
@@ -6665,6 +7065,15 @@ function titlePy(py) {
 						this.profileNameDraft = '';
 						this.profileAvatarDraft = '';
 						this.logoutArm = false;
+						// 26E122: creator state lives inside the profile
+						// object, so it is cleared with the logout above;
+						// only the transient redeem UI state resets here.
+						this.redeemOpen = false;
+						this.redeemDraft = '';
+						// 26E122: commonCity dies with the profile
+						// object as well; reset its picker UI state.
+						this.commonCityOpen = false;
+						this.recommendEntry = null;
 						try { window.localStorage.removeItem('metro-profile'); } catch (err) {}
 						this.showProfileSub = false;
 					},
@@ -6711,6 +7120,14 @@ function titlePy(py) {
 					// character of the nickname; the profile page shows
 					// the draft avatar (fresh pick or saved) if any.
 					profileInitial() { return (this.profile && this.profile.name) ? this.profile.name.charAt(0) : ''; },
+					// 26E122: the Home City row's value — the city's
+					// display name, or 未设置 when none is stored.
+					commonCityName() {
+						if (!this.profile || !this.profile.commonCity) return this.t('profile.commonCityUnset');
+						var l = this.cityList;
+						for (var i = 0; i < l.length; i++) { if (l[i].key === this.profile.commonCity) return l[i].name; }
+						return this.t('profile.commonCityUnset');
+					},
 					profileDraftInitial() { var n = (this.profileNameDraft || '').trim() || (this.profile ? this.profile.name : ''); return n ? n.charAt(0) : ''; },
 					profileAvatarShown() { return this.profileAvatarDraft || (this.profile ? (this.profile.avatar || '') : ''); },
 					// Cities for the settings switcher (build 63). Jinhua ('jh'),
@@ -7044,7 +7461,7 @@ function titlePy(py) {
 						// cleared/reset web store skipped the restore
 						// switch entirely and the app (and its splash)
 						// came up on the wrong city.
-						var _savedCity = window._metroInitCity || window.localStorage.getItem('metro-city');
+						var _savedCity = (window._metroCommonCity ? window._metroCommonCity() : null) || window._metroInitCity || window.localStorage.getItem('metro-city');
 						// Relaunch restore (build 63): data() already set
 						// this.city from the same localStorage value, so
 						// _savedCity === this.city and the old
@@ -7166,6 +7583,19 @@ function titlePy(py) {
 			// here so the Vue state + localStorage update exactly as
 			// the old CSS switch's tap did (setNearbySmart).
 			window.__setNearbySmart = function(v) { if (window.metroApp) window.metroApp.setNearbySmart(v); };
+		// DIAG-26E122: the native side pushes its switch measurements
+		// here after every placeSwitch (see AppDelegate sendSwitchDiag).
+		window.__switchDiag = function(d) { if (window.metroApp) window.metroApp.setSwitchDiag(d); };
+		// 26E122: the native redeem alert hands the entered code back
+		// here (null when the user cancelled).
+		window.__redeemEntered = function(text) { if (window.metroApp) window.metroApp.redeemEntered(text); };
+		// 26E122: Home City — the native action sheet hands the picked
+		// city key back here (null on cancel), the sheet's
+		// Use-My-Location row lands in __commonCityLoc, and the native
+		// recommendation confirm answers in __recommendCityConfirmed.
+		window.__commonCityPicked = function(key) { if (window.metroApp) window.metroApp.commonCityPicked(key); };
+		window.__commonCityLoc = function() { if (window.metroApp) window.metroApp.recommendCommonCityByLoc(); };
+		window.__recommendCityConfirmed = function(yes) { if (window.metroApp) window.metroApp.recommendCityConfirmed(yes); };
 			// Swipe left/right on the tab bar to switch tabs; the pill slides with it.
 			// Claim the gesture on touchmove (a diagonal swipe used to be stolen by the
 			// browser and end as touchcancel), and swallow the synthetic click that
@@ -7225,7 +7655,7 @@ function titlePy(py) {
 			// localStorage. Re-apply the saved non-Beijing city now so the
 			// map matches the pill. No-op when the saved city is Beijing.
 			try {
-				var _rc2 = window.localStorage.getItem('metro-city');
+				var _rc2 = (window._metroCommonCity ? window._metroCommonCity() : null) || window.localStorage.getItem('metro-city');
 				if (_rc2 && _rc2 !== 'bj' && window.metroApp && window.metroApp.switchCity) { window.metroApp.switchCity(_rc2, true); }
 			} catch (e) {}
 

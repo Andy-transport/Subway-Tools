@@ -241,6 +241,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // so it can never be mistaken for a user toggle.
     var nearbySmartSwitch: UISwitch!
     var nearbySmartApplying = false
+    // 26E122: the last Home City picker payload, kept so the
+    // location-unavailable alert can hand the user straight back
+    // to the manual list (re-presenting the same action sheet).
+    var lastCommonCityPick: [String: Any]?
     // Web view's origin in the main view: the web view is full-screen
     // on every device (build 63 removed the iPad top strip), so the
     // origin is (0, 0) and web getBoundingClientRect coordinates map
@@ -867,6 +871,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "switchFrame")
         config.userContentController.add(self, name: "stationPicked")
         config.userContentController.add(self, name: "fastNote")
+        config.userContentController.add(self, name: "redeemCode")
+        config.userContentController.add(self, name: "redeemNote")
+        config.userContentController.add(self, name: "commonCityPick")
+        config.userContentController.add(self, name: "recommendCity")
+        config.userContentController.add(self, name: "commonCityNote")
         config.userContentController.add(self, name: "timePicker")
         config.userContentController.add(self, name: "openTransitApp")
         config.userContentController.add(self, name: "openRideCode")
@@ -2558,6 +2567,110 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             sw.isHidden = true
         }
+        // DIAG-26E122: feed the readout under the switch row with
+        // this placement's real numbers.
+        sendSwitchDiag(reported: dict)
+    }
+
+    // DIAG-26E122: push the REAL placement numbers to the web
+    // readout under the Siri switch row: the rect exactly as the
+    // web reported it, this webView's bounds, the switch's final
+    // frame, the screen width, the root view's bounds width and
+    // the webView's origin x. Two on-device fix attempts for the
+    // switch sliding off the right edge have failed (the 26E121
+    // settled-rect theory included), so this round only measures —
+    // one screenshot of the readout pins which quantity is wrong:
+    // rx+rw beyond bw means the web layout itself overflows the
+    // webView; a sane rect with px+pw beyond sw means the native
+    // math/clamp is at fault; a sane placed frame that still
+    // renders off-screen means the root view itself is wider or
+    // shifted versus the screen (vw/wox expose that). Remove with
+    // the other DIAG-26E122 markers once the cause is pinned.
+    func sendSwitchDiag(reported dict: [String: Any]) {
+        guard let sw = nearbySmartSwitch else { return }
+        let payload: [String: Any] = [
+            "rx": (dict["x"] as? Double) ?? 0, "ry": (dict["y"] as? Double) ?? 0,
+            "rw": (dict["width"] as? Double) ?? 0, "rh": (dict["height"] as? Double) ?? 0,
+            "bw": Double(webView.bounds.width), "bh": Double(webView.bounds.height),
+            "px": Double(sw.frame.origin.x), "py": Double(sw.frame.origin.y),
+            "pw": Double(sw.frame.width), "ph": Double(sw.frame.height),
+            "sw": Double(UIScreen.main.bounds.width), "vw": Double(view.bounds.width),
+            "wox": Double(webOffset.x), "hid": sw.isHidden
+        ]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload, options: []),
+              let json = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.__switchDiag && window.__switchDiag(\(json))", completionHandler: nil)
+    }
+
+    // MARK: - Creator redemption (26E122)
+
+    // The native half of the profile page's 兑换码 row: a
+    // UIAlertController with a text field collects the code and the
+    // entered text returns through window.__redeemEntered (null on
+    // cancel). Code matching and both tables live in the web — this
+    // side only collects text and presents result alerts
+    // (redeemNote), so the strings stay single-sourced in the page.
+    func presentRedeemInput(dict: [String: Any]) {
+        guard presentedViewController == nil else { return }
+        let alert = UIAlertController(title: dict["title"] as? String ?? "",
+                                      message: nil, preferredStyle: .alert)
+        alert.addTextField { tf in
+            tf.placeholder = dict["ph"] as? String ?? ""
+            tf.autocapitalizationType = .allCharacters
+            tf.autocorrectionType = .no
+            tf.spellCheckingType = .no
+        }
+        alert.addAction(UIAlertAction(title: dict["ok"] as? String ?? "OK", style: .default, handler: { _ in
+            let text = alert.textFields?.first?.text ?? ""
+            self.webView.evaluateJavaScript("window.__redeemEntered && window.__redeemEntered(\(self.jsStringLiteral(text)))", completionHandler: nil)
+        }))
+        alert.addAction(UIAlertAction(title: dict["cancel"] as? String ?? "Cancel", style: .cancel, handler: { _ in
+            self.webView.evaluateJavaScript("window.__redeemEntered && window.__redeemEntered(null)", completionHandler: nil)
+        }))
+        present(alert, animated: true, completion: nil)
+    }
+
+    // 26E122: the Home City picker as a native action sheet — the
+    // Use-My-Location row first (its tap routes back into the web's
+    // one-shot location flow via __commonCityLoc), then one action
+    // per adapted city, then Cancel. The pick returns through
+    // window.__commonCityPicked (null on cancel).
+    func presentCommonCitySheet(dict: [String: Any]) {
+        lastCommonCityPick = dict
+        guard presentedViewController == nil else { return }
+        let alert = UIAlertController(title: dict["title"] as? String ?? "",
+                                      message: nil, preferredStyle: .actionSheet)
+        if let loc = dict["locLabel"] as? String, !loc.isEmpty {
+            alert.addAction(UIAlertAction(title: loc, style: .default, handler: { _ in
+                self.webView.evaluateJavaScript("window.__commonCityLoc && window.__commonCityLoc()", completionHandler: nil)
+            }))
+        }
+        if let cities = dict["cities"] as? [[String: Any]] {
+            for c in cities {
+                guard let key = c["key"] as? String, let name = c["name"] as? String else { continue }
+                alert.addAction(UIAlertAction(title: name, style: .default, handler: { _ in
+                    self.webView.evaluateJavaScript("window.__commonCityPicked && window.__commonCityPicked(\(self.jsStringLiteral(key)))", completionHandler: nil)
+                }))
+            }
+        }
+        alert.addAction(UIAlertAction(title: dict["cancel"] as? String ?? "Cancel", style: .cancel, handler: { _ in
+            self.webView.evaluateJavaScript("window.__commonCityPicked && window.__commonCityPicked(null)", completionHandler: nil)
+        }))
+        if let pop = alert.popoverPresentationController {
+            pop.sourceView = webView
+            pop.sourceRect = CGRect(x: webView.bounds.midX, y: webView.bounds.midY, width: 0, height: 0)
+            pop.permittedArrowDirections = []
+        }
+        present(alert, animated: true, completion: nil)
+    }
+
+    // JSON string literal, safe to interpolate into evaluateJavaScript.
+    func jsStringLiteral(_ s: String) -> String {
+        if let d = try? JSONSerialization.data(withJSONObject: [s], options: []),
+           let t = String(data: d, encoding: .utf8), t.hasPrefix("["), t.hasSuffix("]") {
+            return String(t.dropFirst().dropLast())
+        }
+        return "\"\""
     }
 
     // MARK: - Native Liquid Glass transfer input area (build 37)
@@ -4217,6 +4330,60 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 let title = tag.isEmpty ? station : station + " · " + tag
                 let alert = UIAlertController(title: title, message: note, preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: ok, style: .default, handler: nil))
+                present(alert, animated: true, completion: nil)
+            }
+        } else if message.name == "redeemCode",
+                  let dict = message.body as? [String: Any] {
+            // 26E122: creator redemption input — a native
+            // UIAlertController with a text field collects the code;
+            // the entered text returns via window.__redeemEntered.
+            presentRedeemInput(dict: dict)
+        } else if message.name == "redeemNote",
+                  let dict = message.body as? [String: Any] {
+            // 26E122: creator redemption result — a native alert
+            // carrying the web-composed (already localized) title
+            // and message （兑换成功 / 兑换码无效）.
+            let title = dict["title"] as? String ?? ""
+            let msg = dict["message"] as? String ?? ""
+            let ok = dict["ok"] as? String ?? "OK"
+            if presentedViewController == nil {
+                let alert = UIAlertController(title: title, message: msg.isEmpty ? nil : msg, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: ok, style: .default, handler: nil))
+                present(alert, animated: true, completion: nil)
+            }
+        } else if message.name == "commonCityPick",
+                  let dict = message.body as? [String: Any] {
+            // 26E122: Home City picker — a native action sheet (the
+            // Use-My-Location row first, then the adapted cities).
+            presentCommonCitySheet(dict: dict)
+        } else if message.name == "recommendCity",
+                  let dict = message.body as? [String: Any] {
+            // 26E122: Home City location recommendation — a native
+            // confirm alert ("推荐设为 {城市名}（约 N 公里）"); only a
+            // confirm writes the city (via __recommendCityConfirmed).
+            if presentedViewController == nil {
+                let alert = UIAlertController(title: dict["title"] as? String ?? "",
+                                              message: dict["message"] as? String ?? "", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: dict["ok"] as? String ?? "OK", style: .default, handler: { _ in
+                    self.webView.evaluateJavaScript("window.__recommendCityConfirmed && window.__recommendCityConfirmed(true)", completionHandler: nil)
+                }))
+                alert.addAction(UIAlertAction(title: dict["cancel"] as? String ?? "Cancel", style: .cancel, handler: { _ in
+                    self.webView.evaluateJavaScript("window.__recommendCityConfirmed && window.__recommendCityConfirmed(false)", completionHandler: nil)
+                }))
+                present(alert, animated: true, completion: nil)
+            }
+        } else if message.name == "commonCityNote",
+                  let dict = message.body as? [String: Any] {
+            // 26E122: location unavailable for the Home City
+            // recommendation — never silent: this alert, and on OK
+            // the picker sheet comes back (the manual list).
+            if presentedViewController == nil {
+                let msg = dict["message"] as? String ?? ""
+                let alert = UIAlertController(title: dict["title"] as? String ?? "",
+                                              message: msg.isEmpty ? nil : msg, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: dict["ok"] as? String ?? "OK", style: .default, handler: { _ in
+                    if let p = self.lastCommonCityPick { self.presentCommonCitySheet(dict: p) }
+                }))
                 present(alert, animated: true, completion: nil)
             }
         } else if message.name == "timePicker",
