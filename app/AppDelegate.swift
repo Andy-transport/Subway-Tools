@@ -977,6 +977,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 // no UIDesignRequiresCompatibility opt-out, so a
                 // stock bar adopts the glass by itself.)
                 appearance.configureWithDefaultBackground()
+                // A26108 (user 2026-11-23): in light mode the stock
+                // glass read almost clear over the app's light pages —
+                // rows underneath stayed legible through the capsule
+                // （底栏液态玻璃透明度有问题）. Tint the DEFAULT
+                // background (no backgroundEffect override, no extra
+                // glass view — the 26E113/115 lessons stand): light
+                // mode gets a translucent white that strengthens the
+                // frost, dark mode a faint dark tint (dark already
+                // read fine, keep it near-stock). The system glass
+                // and its sliding selection capsule are untouched.
+                appearance.backgroundColor = UIColor { traits in
+                    traits.userInterfaceStyle == .dark
+                        ? UIColor(white: 0.08, alpha: 0.18)
+                        : UIColor(white: 1.0, alpha: 0.38)
+                }
             }
             appearance.stackedLayoutAppearance.normal.iconColor = .secondaryLabel
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.secondaryLabel]
