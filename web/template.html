@@ -3959,7 +3959,7 @@ function titlePy(py) {
 							}
 						} catch (e) {}
 						if (!window.fetch) return;
-						fetch('https://raw.githubusercontent.com/Andy-transport/Subway-motion/main/web/briefing.json', { cache: 'no-cache' })
+						fetch('https://raw.githubusercontent.com/Andy-transport/Subway-Tools/main/web/briefing.json', { cache: 'no-cache' })
 							.then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
 							.then(function (data) {
 								if (!data || !Array.isArray(data.items) || !data.items.length) return;
@@ -4111,7 +4111,7 @@ function titlePy(py) {
 						if (seed && seed.cities && seed.cities.length) { self.trainItems = seed.cities; return; }
 						var done = function (d) { if (d && d.cities) self.trainItems = d.cities; };
 						fetch('trains.json').then(function (r) { return r.json(); }).then(done).catch(function () {
-							fetch('https://raw.githubusercontent.com/Andy-transport/Subway-motion/main/web/trains.json').then(function (r) { return r.json(); }).then(done).catch(function () {});
+							fetch('https://raw.githubusercontent.com/Andy-transport/Subway-Tools/main/web/trains.json').then(function (r) { return r.json(); }).then(done).catch(function () {});
 						});
 					},
 					// Train search results, grouped by city. A city-name
@@ -7421,7 +7421,7 @@ function titlePy(py) {
 
 
 			function openRepo() {
-				openExternal("https://github.com/Andy-transport/Subway-motion");
+				openExternal("https://github.com/Andy-transport/Subway-Tools");
 			};
 
 
