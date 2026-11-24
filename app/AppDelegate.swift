@@ -686,6 +686,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // splash image from launch, covering the white gap before the web
     // page loads and its own splash appears. Hidden in splashFinished().
     var splashImageView: UIImageView!
+    // First-launch What's New, native full-screen page (26E125):
+    // the 26E124 web overlay's confirm button sat under the native
+    // tab bar, so users could not enter the app at all. The page is
+    // native, shown after the splash, covering the webView and all
+    // native chrome; the confirm button is pinned above the safe
+    // area and never moves. pendingWhatsNew holds the web's payload
+    // until the splash ends.
+    var pendingWhatsNew: [String: Any]? = nil
+    var whatsNewShowing = false
+    var whatsNewView: UIView? = nil
     // Location (build 63): find the nearest station. The permission
     // prompt appears only when the user taps 附近车站, never at launch.
     var locationManager: CLLocationManager?
@@ -925,6 +935,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "langChanged")
         config.userContentController.add(self, name: "splashDone")
         config.userContentController.add(self, name: "splashState")
+        config.userContentController.add(self, name: "whatsNew")
         config.userContentController.add(self, name: "themeState")
         config.userContentController.add(self, name: "liveActivity")
         config.userContentController.add(self, name: "clearCache")
@@ -2604,7 +2615,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
         let w = (dict["width"] as? Double) ?? 0
         let h = (dict["height"] as? Double) ?? 0
-        if w > 0 && h > 0 && currentTab == "more" && !splashShowing {
+        if w > 0 && h > 0 && currentTab == "more" && !splashShowing && !whatsNewShowing {
             let size = sw.intrinsicContentSize
             var fx = CGFloat(x) + CGFloat(w) - size.width
             // 26E121 C (native backstop): a switch must never render
@@ -2774,7 +2785,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                           y: ((r["y"] as? Double) ?? 0) + webOffset.y,
                           width: w, height: h)
         }
-        let show = currentTab == "more" && !splashShowing
+        let show = currentTab == "more" && !splashShowing && !whatsNewShowing
         if show, let f = rectOf("card") {
             profileInfoCard.frame = f
             profileInfoCard.isHidden = false
@@ -3035,7 +3046,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard (dict["show"] as? Bool) == true,
               let name = dict["name"] as? String,
               let lines = dict["lines"] as? [[String: Any]],
-              currentTab == "map", !splashShowing else {
+              currentTab == "map", !splashShowing, !whatsNewShowing else {
             hideMapCard()
             return
         }
@@ -3907,7 +3918,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updatePillVisibility() {
-        let show = currentTab == "map" && !splashShowing
+        let show = currentTab == "map" && !splashShowing && !whatsNewShowing
         cityPill.isHidden = !show
         mapToolsPill.isHidden = !show
         updateCityPillLeading()
@@ -3988,10 +3999,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard splashShowing else { return }
         splashShowing = false
         hideNearbySmartSwitch()
-        // Reveal the tab bar or the Duo sidebar, whichever the current
-        // layout uses (build 63).
-        updateSideBarLayout()
-        updatePillVisibility()
         // Remove the native launch splash WITHOUT its own fade (flash
         // fix, user 2026-11-19): splashDone is posted at the moment the
         // web overlay — the identical poster, underneath this view —
@@ -4004,6 +4011,96 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             splash.removeFromSuperview()
             splashImageView = nil
         }
+        // 26E125: if the web posted this build's What's New, show
+        // the native page now — the chrome stays hidden until the
+        // user confirms, exactly like the splash gate above.
+        if pendingWhatsNew != nil {
+            showWhatsNewPage()
+            return
+        }
+        // Reveal the tab bar or the Duo sidebar, whichever the current
+        // layout uses (build 63).
+        updateSideBarLayout()
+        updatePillVisibility()
+    }
+
+    // MARK: - First-launch What's New, native full-screen page (26E125)
+
+    // Show the native What's New page: title + a scrollable body +
+    // a confirm button pinned above the safe area. The body scrolls;
+    // the button never moves, on any screen size — the 26E124 web
+    // overlay's button sat at the bottom of its card, under the
+    // native tab bar, and users could not enter the app. The page
+    // covers the webView and every native control (added last, on
+    // top); chrome stays hidden through the whatsNewShowing gate.
+    func showWhatsNewPage() {
+        guard let payload = pendingWhatsNew, !whatsNewShowing else { return }
+        whatsNewShowing = true
+        pendingWhatsNew = nil
+        let dark = splashDarkResolved()
+        let page = UIView()
+        page.translatesAutoresizingMaskIntoConstraints = false
+        page.backgroundColor = dark ? UIColor(red: 16.0 / 255.0, green: 20.0 / 255.0, blue: 32.0 / 255.0, alpha: 1) : UIColor(red: 242.0 / 255.0, green: 242.0 / 255.0, blue: 247.0 / 255.0, alpha: 1)
+        let fg: UIColor = dark ? .white : .black
+        let titleLabel = UILabel()
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.text = (payload["title"] as? String) ?? ""
+        titleLabel.font = .boldSystemFont(ofSize: 22)
+        titleLabel.textColor = fg
+        titleLabel.numberOfLines = 0
+        let body = UITextView()
+        body.translatesAutoresizingMaskIntoConstraints = false
+        body.isEditable = false
+        body.isScrollEnabled = true
+        body.backgroundColor = .clear
+        body.textColor = fg
+        body.font = .systemFont(ofSize: 16)
+        body.text = ((payload["lines"] as? [String]) ?? []).joined(separator: "\n\n")
+        body.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        body.textContainer.lineFragmentPadding = 0
+        let confirmButton = UIButton(type: .system)
+        confirmButton.translatesAutoresizingMaskIntoConstraints = false
+        confirmButton.setTitle((payload["confirm"] as? String) ?? "", for: .normal)
+        confirmButton.titleLabel?.font = .boldSystemFont(ofSize: 17)
+        confirmButton.setTitleColor(.white, for: .normal)
+        confirmButton.backgroundColor = .systemBlue
+        confirmButton.layer.cornerRadius = 14
+        confirmButton.addTarget(self, action: #selector(dismissWhatsNewPage), for: .touchUpInside)
+        page.addSubview(titleLabel)
+        page.addSubview(body)
+        page.addSubview(confirmButton)
+        view.addSubview(page)
+        view.bringSubviewToFront(page)
+        NSLayoutConstraint.activate([
+            page.topAnchor.constraint(equalTo: view.topAnchor),
+            page.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            page.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            page.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            titleLabel.topAnchor.constraint(equalTo: page.safeAreaLayoutGuide.topAnchor, constant: 24),
+            titleLabel.leadingAnchor.constraint(equalTo: page.leadingAnchor, constant: 24),
+            titleLabel.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -24),
+            body.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            body.leadingAnchor.constraint(equalTo: page.leadingAnchor, constant: 24),
+            body.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -24),
+            body.bottomAnchor.constraint(equalTo: confirmButton.topAnchor, constant: -16),
+            confirmButton.leadingAnchor.constraint(equalTo: page.leadingAnchor, constant: 24),
+            confirmButton.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -24),
+            confirmButton.bottomAnchor.constraint(equalTo: page.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            confirmButton.heightAnchor.constraint(equalToConstant: 52)
+        ])
+        whatsNewView = page
+    }
+
+    // Confirm: record the seen build in the web store (the same key
+    // the 26E124 confirm wrote), then reveal the app.
+    @objc func dismissWhatsNewPage() {
+        guard whatsNewShowing else { return }
+        whatsNewShowing = false
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26E125')}catch(e){}", completionHandler: nil)
+        whatsNewView?.removeFromSuperview()
+        whatsNewView = nil
+        updateSideBarLayout()
+        updatePillVisibility()
     }
 
     // MARK: - Search Conditions screen (build 65; wired in place
@@ -4488,8 +4585,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // UITabBar is the visible bar (bottom on iPhone, top
         // capsule on iPad); the Duo sidebar replaces it on a wide
         // iPhone, and the splash gate hides both.
-        tabBar.isHidden = show || splashShowing
-        sideBar.isHidden = !show || splashShowing
+        tabBar.isHidden = show || splashShowing || whatsNewShowing
+        sideBar.isHidden = !show || splashShowing || whatsNewShowing
         updateSideBarSelection()
         reportBarFrame()
     }
@@ -4739,6 +4836,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             presentCityMenuPopover()
         } else if message.name == "splashDone" {
             splashFinished()
+        } else if message.name == "whatsNew" {
+            // 26E125: the web posts this build's What's New entry
+            // from mounted() when the stored build differs. Hold it
+            // until the splash ends; if the splash is already done
+            // (late post), show it at once.
+            if let dict = message.body as? [String: Any] {
+                pendingWhatsNew = dict
+                if !splashShowing && !whatsNewShowing { showWhatsNewPage() }
+            }
         } else if message.name == "splashState" {
             // 26C102: the page posts its resolved city + dark state
             // from an inline script at parse time — long before Vue

@@ -1458,14 +1458,6 @@
 		html.dark .trd-sum { color: #e8eaf2; }
 		.trd .tr-fare { padding: 6px 0 0; }
 		.trd-body { margin-top: 10px; }
-		/* 26E124: first-launch What's New page. */
-		.wn-page { position: fixed; inset: 0; z-index: 99990; background: var(--bg, #f2f2f7); display: flex; align-items: center; justify-content: center; padding: 24px; }
-		html.dark .wn-page { background: #101420; }
-		.wn-card { width: 100%; max-width: 430px; max-height: 100%; overflow-y: auto; background: var(--card, #ffffff); border-radius: 28px; padding: 26px 22px 22px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18); }
-		html.dark .wn-card { background: #1c1c1e; }
-		.wn-title { font-size: 21px; font-weight: 800; margin-bottom: 14px; }
-		.wn-line { font-size: 14.5px; line-height: 1.55; margin: 0 0 10px; color: var(--text, #000); }
-		.wn-btn { width: 100%; border: none; border-radius: 14px; padding: 13px 0; font-size: 16px; font-weight: 600; background: #007aff; color: #fff; cursor: pointer; margin-top: 6px; font-family: inherit; }
 		/* 26E124: the route detail is its own page over the list. */
 		.trd-page { position: absolute; inset: 0; background: var(--bg, #f2f2f7); z-index: 40; display: flex; flex-direction: column; animation: trdPageIn 0.28s ease; }
 		html.dark .trd-page { background: #101420; }
@@ -1896,15 +1888,6 @@
 		</script>
 		<div id="app" :class="{ 'sy-theme': city === 'sy',
 			</div> 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'cc-theme': city === 'cc', 'sz-theme': city === 'sz', 'cd-theme': city === 'cd', 'qd-theme': city === 'qd', 'sjz-theme': city === 'sjz', 'tj-theme': city === 'tj', 'wx-theme': city === 'wx', 'native-app': nativeApp, ['lang-' + lang]: true }">
-			<!-- 26E124: first-launch What's New for this build
-				 (once per version; see mounted / confirmWhatsNew). -->
-			<div class="wn-page" v-if="showWhatsNew">
-				<div class="wn-card">
-					<div class="wn-title">{{ t('wn.title') }} · v{{ releaseNotes.length ? releaseNotes[0].v : '' }}</div>
-					<div class="wn-lines"><p class="wn-line" v-for="(ln, j) in (releaseNotes.length ? releaseNotes[0].lines : [])" :key="j">{{ li(ln) }}</p></div>
-					<button class="wn-btn" @click="confirmWhatsNew()">{{ t('wn.confirm') }}</button>
-				</div>
-			</div>
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="mapLoadingOverlay" :class="{ hidden: !mapLoading }"><div class="map-loading-box"><div class="map-loading-spin"></div><div class="map-loading-city">{{ cityName }}</div></div></div>
 			<div id="sideMenuDiv">
@@ -2435,7 +2418,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E124)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E125)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2471,7 +2454,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E124)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E125)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -3749,8 +3732,18 @@ function titlePy(py) {
 					showWhatsNewSub: false,
 						relSel: -1,
 						verFull: false,
-						showWhatsNew: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E125)', date: '2026-11-24', lines: [
+							['修复更新页挡住入口的问题：更新页改为开屏后全屏展示，确认按钮固定在底部，点「知道了」即可进入 App（此前确认按钮会被底部栏盖住导致进不去）', '修復更新頁擋住入口的問題：更新頁改為開屏後全螢幕展示，確認按鈕固定在底部，點「知道了」即可進入 App（此前確認按鈕會被底部欄蓋住導致進不去）', 'Fixed the What’s New page blocking entry: it now shows full-screen right after the splash, with the confirm button pinned at the bottom — tap Got It to enter the app (the button used to hide behind the bottom bar, leaving no way in)'],
+							['路线详情改为独立页面：点任意路线整页进入详情（顶部带列表卡摘要，下面是完整时间线），返回时列表停在原滚动位置；新增「开始行程」——按站手动点「到站」推进，高亮当前乘坐段并显示下一站、剩余站数与预计剩余时间；新增「编辑换乘」——每个换乘站可改选同两条线的其他换乘站并按新换乘站重新规划', '路線詳情改為獨立頁面：點任意路線整頁進入詳情（頂部帶列表卡摘要，下面是完整時間線），返回時列表停在原捲動位置；新增「開始行程」——按站手動點「到站」推進，高亮當前乘坐段並顯示下一站、剩餘站數與預計剩餘時間；新增「編輯換乘」——每個換乘站可改選同兩條線的其他換乘站並按新換乘站重新規劃', 'Route details are now a full page: tap any route to open it (list-card summary on top, the full timeline below); going back keeps the list where you left it. New Start Trip: advance station by station with the Arrived button — the current segment is highlighted with next stop, stops left and estimated time left. New Edit Transfer: at each interchange you can pick another station shared by the same two lines and the route replans through it'],
+							['资料页信息卡改为全原生渲染：昵称是原生输入框，ID、登录日期、常用城市都是原生行，修复上一版玻璃背板把整卡糊住的问题；保存、兑换码、退出登录的原生玻璃按钮不变', '資料頁資訊卡改為全原生渲染：暱稱是原生輸入框，ID、登入日期、常用城市都是原生行，修復上一版玻璃背板把整卡糊住的問題；保存、兌換碼、退出登入的原生玻璃按鈕不變', 'The profile info card is now rendered entirely natively: a native text field for the nickname and native rows for ID, sign-in date and Home City — fixing the last build’s glass backplate blurring the whole card. The native glass Save / Redeem / Sign Out buttons are unchanged'],
+							['线路图点站卡改为原生液态玻璃整卡：站名、线路徽标、两个按钮全部原生绘制，线路徽标整体缩小 40%；按钮改名「设为出发站」「设为到达站」，只设一端时留在地图继续选，两端设齐才跳到换乘页', '線路圖點站卡改為原生液態玻璃整卡：站名、線路徽標、兩個按鈕全部原生繪製，線路徽標整體縮小 40%；按鈕改名「設為出發站」「設為到達站」，只設一端時留在地圖繼續選，兩端設齊才跳到換乘頁', 'The map station card is now one native Liquid Glass card: station name, line badges and both buttons are all drawn natively, with the badges at 60% size. The buttons are renamed Set as Departure / Set as Destination — setting one end keeps you on the map; the trip planner opens only once both ends are set'],
+							['北京补站入链：6 号线潞阳、西郊线万安、S1 线上岸、18 号线上地软件园 / 东北旺 / 龙泽西此前缺链，现已按站序接入换乘与搜索（新接入线路一侧的首末班时刻暂无可核实来源，显示暂无数据）；首都机场线补齐三元桥至机场岔口的主干线', '北京補站入鏈：6 號線潞陽、西郊線萬安、S1 線上岸、18 號線上地軟件園 / 東北旺 / 龍澤西此前缺鏈，現已按站序接入換乘與搜尋（新接入線路一側的首末班時刻暫無可核實來源，顯示暫無數據）；首都機場線補齊三元橋至機場岔口的主幹線', 'Beijing stations linked in: Luyang (Line 6), Wan’an (Western Suburban), Shang’an (S1) and Shangdi Software Park / Dongbeiwang / Longzexi (Line 18) were missing from their line chains and are now connected in order for routing and search (first/last trains on the newly linked sides have no verifiable source yet and show no data). The Capital Airport Express gains its missing Sanyuanqiao–airport junction trunk'],
+							['深圳福田口岸 4 / 10 号线改为出闸换乘：路线详情会标注出闸换乘（步行时间按系统通用换乘罚时估算，无实测来源）；该站结构图按线分套——空间图属 4 号线、平面图属 10 号线，缺的 4 号线平面图与 10 号线空间图暂未采到，不以他站图顶替', '深圳福田口岸 4 / 10 號線改為出閘換乘：路線詳情會標註出閘換乘（步行時間按系統通用換乘罰時估算，無實測來源）；該站結構圖按線分套——空間圖屬 4 號線、平面圖屬 10 號線，缺的 4 號線平面圖與 10 號線空間圖暫未採到，不以他站圖頂替', 'Shenzhen Futian Checkpoint Lines 4 / 10 are now an out-of-gate transfer: route details label it as such (walking time uses the standard transfer penalty estimate — no measured source). Its structure diagrams are split per line — the spatial diagram belongs to Line 4, the plan to Line 10; the missing Line 4 plan and Line 10 spatial could not be obtained and are never replaced with another station’s diagram'],
+							['线路图页返回按钮不再遮挡城市胶囊（15 城城市名完整显示）；时刻表页线路头与下方车站列表左对齐（全 15 城）', '線路圖頁返回按鈕不再遮擋城市膠囊（15 城城市名完整顯示）；時刻表頁線路頭與下方車站列表左對齊（全 15 城）', 'The map page’s back button no longer covers the city capsule (all 15 city names show in full), and timetable line headers now align left with the station list below (all 15 cities)'],
+							['修复 Siri 子页开关滑出屏幕：改为上报开关槽位的布局位置（不受页面滑入动画影响），诊断读数已移除；车型检索图标换成新图', '修復 Siri 子頁開關滑出螢幕：改為上報開關槽位的布局位置（不受頁面滑入動畫影響），診斷讀數已移除；車型檢索圖標換成新圖', 'Fixed the Siri page switch sliding off-screen: the page now reports the switch slot’s layout position, unaffected by the slide-in animation, and the diagnostic readout is removed. The train-model search icon is the new artwork'],
+							['新版本首次打开会先展示本页更新内容，每个版本只弹一次', '新版本首次打開會先展示本頁更新內容，每個版本只彈一次', 'A new version now opens with this What’s New page once — once per version only'],
+							] },
 							{ v: '1.1.0 (26E124)', date: '2026-11-24', lines: [
 							['路线详情改为独立页面：点任意路线整页进入详情（顶部带列表卡摘要，下面是完整时间线），返回时列表停在原滚动位置；新增「开始行程」——按站手动点「到站」推进，高亮当前乘坐段并显示下一站、剩余站数与预计剩余时间；新增「编辑换乘」——每个换乘站可改选同两条线的其他换乘站并按新换乘站重新规划', '路線詳情改為獨立頁面：點任意路線整頁進入詳情（頂部帶列表卡摘要，下面是完整時間線），返回時列表停在原捲動位置；新增「開始行程」——按站手動點「到站」推進，高亮當前乘坐段並顯示下一站、剩餘站數與預計剩餘時間；新增「編輯換乘」——每個換乘站可改選同兩條線的其他換乘站並按新換乘站重新規劃', 'Route details are now a full page: tap any route to open it (list-card summary on top, the full timeline below); going back keeps the list where you left it. New Start Trip: advance station by station with the Arrived button — the current segment is highlighted with next stop, stops left and estimated time left. New Edit Transfer: at each interchange you can pick another station shared by the same two lines and the route replans through it'],
 							['资料页信息卡改为全原生渲染：昵称是原生输入框，ID、登录日期、常用城市都是原生行，修复上一版玻璃背板把整卡糊住的问题；保存、兑换码、退出登录的原生玻璃按钮不变', '資料頁資訊卡改為全原生渲染：暱稱是原生輸入框，ID、登入日期、常用城市都是原生行，修復上一版玻璃背板把整卡糊住的問題；保存、兌換碼、退出登入的原生玻璃按鈕不變', 'The profile info card is now rendered entirely natively: a native text field for the nickname and native rows for ID, sign-in date and Home City — fixing the last build’s glass backplate blurring the whole card. The native glass Save / Redeem / Sign Out buttons are unchanged'],
@@ -7044,9 +7037,28 @@ function titlePy(py) {
 						this.editAltFor = -1;
 						this.editMsg = '';
 					},
-					confirmWhatsNew() {
-						try { window.localStorage.setItem('metro-lastSeenVersion', '26E124'); } catch (e) {}
-						this.showWhatsNew = false;
+					// 26E125: first-launch What's New is a NATIVE
+					// full-screen page now (the 26E124 web overlay's
+					// confirm button sat under the native tab bar,
+					// so users could not enter the app). Post this
+					// build's entry to the shell; the shell shows it
+					// after the splash and writes the seen build
+					// back into localStorage on confirm. The shell
+					// only posts back the confirm — there is no web
+					// overlay left to dismiss.
+					reportWhatsNew() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.whatsNew;
+						if (!h || !this.releaseNotes.length) return;
+						var seen = null;
+						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
+						if (seen === '26E125') return;
+						var self = this;
+						var entry = this.releaseNotes[0];
+						h.postMessage({
+							title: this.t('wn.title') + ' · v' + entry.v,
+							lines: entry.lines.map(function (ln) { return self.li(ln); }),
+							confirm: this.t('wn.confirm')
+						});
 					},
 					closeRouteDetail() {
 						this.routeDetailOpen = false;
@@ -8304,14 +8316,12 @@ function titlePy(py) {
 					}
 				},
 				mounted: function() {
-					// 26E124: first-launch What's New — show this
-					// build's notes once per version. The seen build
-					// is stored in localStorage; a different (or
-					// missing) value shows the page, the confirm
-					// button writes the current build and dismisses.
-					try {
-						if (window.localStorage.getItem('metro-lastSeenVersion') !== '26E124') this.showWhatsNew = true;
-					} catch (e) { this.showWhatsNew = true; }
+					// 26E125: first-launch What's New — post this
+					// build's entry to the native shell (native
+					// full-screen page after the splash). A stored
+					// build equal to this one posts nothing, so the
+					// same version never re-shows.
+					this.reportWhatsNew();
 					// Re-check native shell (build 36): the data() check can run
 					// before the native handlers are injected, which left the
 					// web tab row visible under the native segmented control.
