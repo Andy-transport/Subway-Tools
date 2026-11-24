@@ -25,7 +25,7 @@ enum SettingsData {
     ]
     static func cityName(_ key: String, lang: SettingsLanguage) -> String {
         guard let c = cities.first(where: { $0.key == key }) else { return key }
-        switch lang { case .zhHans: return c.nameHans; case .zhHant: return c.nameHant; case .english: return c.nameEn }
+        switch lang { case .zhHans: return c.nameHans; case .zhHant: return c.nameHant; case .english: return c.nameEn; case .system: return cityName(key, lang: SettingsLanguage.systemLanguage()) }
     }
 
     /// More-cities directory: CAMET 2026-Q3, 44 entries incl. the Xiong'an placeholder.
