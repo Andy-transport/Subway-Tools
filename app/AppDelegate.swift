@@ -188,6 +188,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // a full-screen native grouped list, opened by the web's
     // "openLanguage" post. Nil while closed.
     var languageView: LanguageView?
+    // Native Settings page (Settings tab -> SwiftUI, SDK 27.2 Apple UI):
+    // the Settings tab no longer shows the web's #moreSheet. The store
+    // is created lazily and kept across tab switches so Settings state
+    // survives; the hosting controller is nil while another tab is up.
+    var settingsStore: SettingsStore?
+    var settingsHosting: SettingsHostingController?
+    var settingsActive = false
     var tabBar: UITabBar!
     // Last bottom-clearance value reported to the web (26E115,
     // reportBarFrame): the distance from the screen's bottom edge
@@ -843,6 +850,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if let lv = languageView {
             lv.relocalize(pageTitle: L("more.lang"), systemTitle: L("more.lang.system"), hansTitle: L("more.lang.hans"), hantTitle: L("more.lang.hant"), enTitle: L("more.lang.en"), systemDetail: systemLangDisplayName())
         }
+        // Native Settings page follows the new language at once: the
+        // store re-reads the persisted choice and SwiftUI re-renders.
+        settingsStore?.reloadFromDefaults()
     }
 
     override func viewDidLoad() {
@@ -3653,6 +3663,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func setWebTab(index: Int) {
         guard index >= 0 && index < tabKeys.count else { return }
         let key = tabKeys[index]
+        // Leaving the Settings tab: take the native Settings page down
+        // first so the web view is visible again before it switches.
+        if key != "more" && settingsActive { dismissNativeSettings() }
         currentTab = key
         view.backgroundColor = rootBackgroundColor() // Sidebar strip follows the tab's page background.
         updatePillVisibility()
@@ -3664,7 +3677,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // (the web closes the panel in the same setTab pass and its
         // next structFrame post reports panel: false).
         if key != "more" { hideStructChrome() }
-        webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
+        // Native Settings tab: the Settings page is SwiftUI now — the
+        // web's #moreSheet is never shown, so the web's setTab('more')
+        // is skipped (its tab stays on the previous tab, which is
+        // harmless: leaving Settings always calls setTab(newKey)).
+        // The other four tabs are untouched and still go through the web.
+        if key == "more" {
+            presentNativeSettings()
+        } else {
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.setTab('\(key)')", completionHandler: nil)
+        }
     }
 
     @objc func handleTabSwipe(_ gesture: UISwipeGestureRecognizer) {

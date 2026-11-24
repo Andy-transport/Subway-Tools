@@ -6,13 +6,13 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "== 0. select Xcode (prefer 27.3 beta, then 27.2/27.1/27.0) =="
+echo "== 0. select Xcode (pinned to 27.2 per user rule: all builds use SDK 27.2) =="
 echo "Installed Xcode versions:"
 ls -d /Applications/Xcode*.app 2>/dev/null || echo "(none found)"
-# Try Xcode 27.3 beta first (user request), then 27.2, 27.1, 27.0.
-# The Scene lifecycle migration fixed the SDK 27 launch crash, so SDK 27.x is safe.
+# Pinned to Xcode 27.2 only (user rule 2026-11-21: 编译都用SDK27.2).
+# Do not prefer 27.3 beta or any other version.
 XCODE_SEL=""
-for v in 27.3 27.2 27.1 27.0; do
+for v in 27.2; do
   CAND=$(ls -d /Applications/Xcode_${v}*.app 2>/dev/null | head -n 1)
   if [ -n "$CAND" ]; then XCODE_SEL="$CAND"; break; fi
 done
@@ -68,7 +68,11 @@ mkdir -p build/obj
 # harvest below emits NO .swiftconstvalues at all (experiments 1-3,
 # 2026-11-21); with it plus the plain-AppIntent declarations the
 # harvest produces the real 57 KB file the metadata step consumes.
-SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
+# Native Settings page (Settings tab -> SwiftUI, SDK 27.2): the six
+# Settings*.swift files join the single compile+link invocation.
+# The e8-sources list below is generated from SWIFT_SOURCES, so the
+# App Intents metadata step picks them up automatically.
+SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift app/SettingsStore.swift app/SettingsStrings.swift app/SettingsData.swift app/SettingsSeedData.swift app/SettingsViews.swift app/SettingsHosting.swift"
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -const-gather-protocols-list Metro_const_extract_protocols.json \
   -module-name Metro -c \
@@ -78,7 +82,7 @@ xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emi
 ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -module-name Metro \
-  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
+  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -framework SwiftUI -framework PhotosUI -Xlinker -weak_framework -Xlinker ActivityKit \
   $SWIFT_SOURCES -o "build/Payload/Subway Tools.app/Subway Tools"
 # The metadata processor locates the module's const values beside the
 # binary (Xcode leaves them in the products dir during its run); copy
@@ -315,6 +319,15 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/ShijiazhuangLogo
 python3 -c "import base64; open('build/Payload/Subway Tools.app/TianjinLogo.png','wb').write(base64.b64decode(open('web/tianjin/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/WuxiLogo.png','wb').write(base64.b64decode(open('web/wuxi/logo-mark.b64').read()))" # 26E117: the native pill/menu slot is 26pt — use the cropped red symbol, not the full lockup (see web/build_offline.py)
 python3 -c "import base64; [open('build/Payload/Subway Tools.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
+# Native Settings page artwork (user-supplied, used as-is, never redrawn):
+# the Siri row orb (light + dark pair, swapped by theme) and the
+# More-cities logos (verified Wikimedia files). City logos for the 15
+# supported cities are already decoded above as <City>Logo.png.
+python3 -c "import base64; open('build/Payload/Subway Tools.app/SiriOrb.png','wb').write(base64.b64decode(open('app/siri-icon.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/SiriOrbDark.png','wb').write(base64.b64decode(open('app/siri-icon-dark.b64').read()))"
+# Appearance row icon (app/appearance-icon.b64, user-supplied, used as-is).
+python3 -c "import base64; open('build/Payload/Subway Tools.app/AppearanceIcon.png','wb').write(base64.b64decode(open('app/appearance-icon.b64').read()))"
+for _soon in web/upcoming-logos/*.b64; do _stem=$(basename "$_soon" .b64); python3 -c "import base64,sys; open('build/Payload/Subway Tools.app/SoonLogo_' + sys.argv[1] + '.png','wb').write(base64.b64decode(open(sys.argv[2]).read()))" "$_stem" "$_soon"; done
 
 echo "== 3a. app icon asset catalog (Assets.car, dark home-screen icon) =="
 # The loose icon files decoded in step 3 carry ~dark variants, but iOS
