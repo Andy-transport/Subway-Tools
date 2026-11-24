@@ -143,11 +143,9 @@ html = sub_once(r'/\*__METRO_ROUTES__\*/null', lambda _: routes, html, "routes j
 # are drawn on the SVG but are NOT in stations-line.json (not in the
 # shared routes.json Line 18 route — searchable-but-unroutable otherwise).
 import json as _json
-bj_line_map = (BASE / "beijing" / "map-line.svg").read_text(encoding="utf-8")
 bj_line_stations = (BASE / "beijing" / "stations-line.json").read_text(encoding="utf-8")
-assert "</script" not in bj_line_map, "bj line map svg must not contain </script"
 assert "</script" not in bj_line_stations, "bj line stations json must not contain </script"
-html = sub_once(r'/\*__BJ_LINE_MAP__\*/""', lambda _: _json.dumps(bj_line_map), html, "bj line map svg")
+html = sub_once(r'/\*__BJ_LINE_MAP__\*/""', lambda _: '""', html, "bj line map svg (26E126 J: on-demand, no longer bundled)")
 html = sub_once(r'/\*__BJ_LINE_STATIONS__\*/\[\]', lambda _: bj_line_stations, html, "bj line stations json")
 
 # K. inline the Shenyang Metro data (6 operating lines, no Line 6).
@@ -157,14 +155,12 @@ html = sub_once(r'/\*__BJ_LINE_STATIONS__\*/\[\]', lambda _: bj_line_stations, h
 import json as _json
 sy_stations = (BASE / "shenyang" / "stations.json").read_text(encoding="utf-8")
 sy_routes = (BASE / "shenyang" / "routes.json").read_text(encoding="utf-8")
-sy_map = (BASE / "shenyang" / "map.svg").read_text(encoding="utf-8")
 sy_logo_b64 = (BASE / "shenyang" / "logo.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in sy_stations, "sy stations json must not contain </script"
 assert "</script" not in sy_routes, "sy routes json must not contain </script"
-assert "</script" not in sy_map, "sy map svg must not contain </script"
 html = sub_once(r'/\*__SY_STATIONS__\*/\[\]', lambda _: sy_stations, html, "sy stations json")
 html = sub_once(r'/\*__SY_ROUTES__\*/null', lambda _: sy_routes, html, "sy routes json")
-html = sub_once(r'/\*__SY_MAP__\*/""', lambda _: _json.dumps(sy_map), html, "sy map svg")
+html = sub_once(r'/\*__SY_MAP__\*/""', lambda _: '""', html, "sy map svg (26E126 J: on-demand, no longer bundled)")
 html = sub_once(r'/\*__SY_LOGO__\*/', lambda _: sy_logo_b64, html, "sy logo")
 
 # L. inline the virtual-transfer data + walking icon (Beijing).
@@ -191,6 +187,20 @@ html = sub_once(r'/\*__BJ_TRANSFER_DIST__\*/\{\}', lambda _: bj_dist, html, "bj 
 bj_vtx = (BASE / "vt-exits-bj.json").read_text(encoding="utf-8")
 assert "</script" not in bj_vtx, "bj vt exits json must not contain </script"
 html = sub_once(r'/\*__BJ_VT_EXITS__\*/\[\]', lambda _: bj_vtx, html, "bj vt exits json")
+# L1c (26E126). inline the Line 1 transfer-carriage tips (user's
+# verbatim 2026-11-24 data, 11 interchanges; see
+# transfer-carriage-bj.json + ~/workspace/line1-transfer-carriage/SOURCE.md).
+# Display-only data.
+bj_car = (BASE / "transfer-carriage-bj.json").read_text(encoding="utf-8")
+assert "</script" not in bj_car, "bj transfer carriage json must not contain </script"
+html = sub_once(r'/\*__BJ_TRANSFER_CARRIAGE__\*/\{\}', lambda _: bj_car, html, "bj transfer carriage json")
+# L1d (26E126). inline the Beijing fastest-exit-doors data (user's
+# 2026-11-24 CSVs, 129 rows, cross-refs resolved at build time; see
+# transfer-doors-bj.json + ~/workspace/transfer-doors/SOURCE.md and
+# build-doors.js). Display-only data.
+bj_door = (BASE / "transfer-doors-bj.json").read_text(encoding="utf-8")
+assert "</script" not in bj_door, "bj transfer doors json must not contain </script"
+html = sub_once(r'/\*__BJ_TRANSFER_DOORS__\*/\{\}', lambda _: bj_door, html, "bj transfer doors json")
 html = sub_once(r'/\*__WALK_ICON__\*/', lambda _: walk_b64, html, "walk icon")
 walk_ink_b64 = (BASE / "walk-icon-ink.b64").read_text(encoding="utf-8").strip()
 html = sub_once(r'/\*__WALK_ICON_INK__\*/', lambda _: walk_ink_b64, html, "walk icon ink")
@@ -313,15 +323,13 @@ if msx_icon_path.exists():
 # 上海/配线查询 image (shanghai/splash.b64).
 sh_stations = (BASE / "shanghai" / "stations.json").read_text(encoding="utf-8")
 sh_routes = (BASE / "shanghai" / "routes.json").read_text(encoding="utf-8")
-sh_map = (BASE / "shanghai" / "map.svg").read_text(encoding="utf-8")
 sh_logo_b64 = (BASE / "shanghai" / "logo.b64").read_text(encoding="utf-8").strip()
 sh_splash_b64 = (BASE / "shanghai" / "splash.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in sh_stations, "sh stations json must not contain </script"
 assert "</script" not in sh_routes, "sh routes json must not contain </script"
-assert "</script" not in sh_map, "sh map svg must not contain </script"
 html = sub_once(r'/\*__SH_STATIONS__\*/\[\]', lambda _: sh_stations, html, "sh stations json")
 html = sub_once(r'/\*__SH_ROUTES__\*/null', lambda _: sh_routes, html, "sh routes json")
-html = sub_once(r'/\*__SH_MAP__\*/""', lambda _: _json.dumps(sh_map), html, "sh map svg")
+html = sub_once(r'/\*__SH_MAP__\*/""', lambda _: '""', html, "sh map svg (26E126 J: on-demand, no longer bundled)")
 html = sub_once(r'/\*__SH_LOGO__\*/', lambda _: sh_logo_b64, html, "sh logo")
 html = sub_once(r'/\*__SH_SPLASH__\*/', lambda _: sh_splash_b64, html, "sh splash")
 sh_splash_dark_b64 = (BASE / "shanghai" / "splash-dark.b64").read_text(encoding="utf-8").strip()
@@ -335,15 +343,13 @@ html = sub_once(r'/\*__SH_SPLASH_DARK__\*/', lambda _: sh_splash_dark_b64, html,
 # image (harbin/splash.b64, from splash-user.jpg).
 hb_stations = (BASE / "harbin" / "stations.json").read_text(encoding="utf-8")
 hb_routes = (BASE / "harbin" / "routes.json").read_text(encoding="utf-8")
-hb_map = (BASE / "harbin" / "map.svg").read_text(encoding="utf-8")
 hb_logo_b64 = (BASE / "harbin" / "logo.b64").read_text(encoding="utf-8").strip()
 hb_splash_b64 = (BASE / "harbin" / "splash.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in hb_stations, "hb stations json must not contain </script"
 assert "</script" not in hb_routes, "hb routes json must not contain </script"
-assert "</script" not in hb_map, "hb map svg must not contain </script"
 html = sub_once(r'/\*__HB_STATIONS__\*/\[\]', lambda _: hb_stations, html, "hb stations json")
 html = sub_once(r'/\*__HB_ROUTES__\*/null', lambda _: hb_routes, html, "hb routes json")
-html = sub_once(r'/\*__HB_MAP__\*/""', lambda _: _json.dumps(hb_map), html, "hb map svg")
+html = sub_once(r'/\*__HB_MAP__\*/""', lambda _: '""', html, "hb map svg (26E126 J: on-demand, no longer bundled)")
 html = sub_once(r'/\*__HB_LOGO__\*/', lambda _: hb_logo_b64, html, "hb logo")
 html = sub_once(r'/\*__HB_SPLASH__\*/', lambda _: hb_splash_b64, html, "hb splash")
 hb_splash_dark_b64 = (BASE / "harbin" / "splash-dark.b64").read_text(encoding="utf-8").strip()
@@ -358,15 +364,13 @@ html = sub_once(r'/\*__HB_SPLASH_DARK__\*/', lambda _: hb_splash_dark_b64, html,
 # splash-user.jpg). Line 3 branch is a separate "3B" line (not a loop).
 dl_stations = (BASE / "dalian" / "stations.json").read_text(encoding="utf-8")
 dl_routes = (BASE / "dalian" / "routes.json").read_text(encoding="utf-8")
-dl_map = (BASE / "dalian" / "map.svg").read_text(encoding="utf-8")
 dl_logo_b64 = (BASE / "dalian" / "logo.b64").read_text(encoding="utf-8").strip()
 dl_splash_b64 = (BASE / "dalian" / "splash.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in dl_stations, "dl stations json must not contain </script"
 assert "</script" not in dl_routes, "dl routes json must not contain </script"
-assert "</script" not in dl_map, "dl map svg must not contain </script"
 html = sub_once(r'/\*__DL_STATIONS__\*/\[\]', lambda _: dl_stations, html, "dl stations json")
 html = sub_once(r'/\*__DL_ROUTES__\*/null', lambda _: dl_routes, html, "dl routes json")
-html = sub_once(r'/\*__DL_MAP__\*/""', lambda _: _json.dumps(dl_map), html, "dl map svg")
+html = sub_once(r'/\*__DL_MAP__\*/""', lambda _: '""', html, "dl map svg (26E126 J: on-demand, no longer bundled)")
 html = sub_once(r'/\*__DL_LOGO__\*/', lambda _: dl_logo_b64, html, "dl logo")
 html = sub_once(r'/\*__DL_SPLASH__\*/', lambda _: dl_splash_b64, html, "dl splash")
 dl_splash_dark_b64 = (BASE / "dalian" / "splash-dark.b64").read_text(encoding="utf-8").strip()
@@ -378,15 +382,13 @@ html = sub_once(r'/\*__DL_SPLASH_DARK__\*/', lambda _: dl_splash_dark_b64, html,
 # (Wikimedia); the splash is the user's real image (web/jinhua/splash.b64).
 jh_stations = (BASE / "jinhua" / "stations.json").read_text(encoding="utf-8")
 jh_routes = (BASE / "jinhua" / "routes.json").read_text(encoding="utf-8")
-jh_map = (BASE / "jinhua" / "map.svg").read_text(encoding="utf-8")
 jh_logo_b64 = (BASE / "jinhua" / "logo.b64").read_text(encoding="utf-8").strip()
 jh_splash_b64 = (BASE / "jinhua" / "splash.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in jh_stations, "jh stations json must not contain </script"
 assert "</script" not in jh_routes, "jh routes json must not contain </script"
-assert "</script" not in jh_map, "jh map svg must not contain </script"
 html = sub_once(r'/\*__JH_STATIONS__\*/\[\]', lambda _: jh_stations, html, "jh stations json")
 html = sub_once(r'/\*__JH_ROUTES__\*/null', lambda _: jh_routes, html, "jh routes json")
-html = sub_once(r'/\*__JH_MAP__\*/""', lambda _: _json.dumps(jh_map), html, "jh map svg")
+html = sub_once(r'/\*__JH_MAP__\*/""', lambda _: '""', html, "jh map svg (26E126 J: on-demand, no longer bundled)")
 html = sub_once(r'/\*__JH_LOGO__\*/', lambda _: jh_logo_b64, html, "jh logo")
 html = sub_once(r'/\*__JH_SPLASH__\*/', lambda _: jh_splash_b64, html, "jh splash")
 jh_splash_dark_b64 = (BASE / "jinhua" / "splash-dark.b64").read_text(encoding="utf-8").strip()
@@ -398,15 +400,13 @@ html = sub_once(r'/\*__JH_SPLASH_DARK__\*/', lambda _: jh_splash_dark_b64, html,
 # but under construction and are NOT in the data files.
 cz_stations = (BASE / "changzhou" / "stations.json").read_text(encoding="utf-8")
 cz_routes = (BASE / "changzhou" / "routes.json").read_text(encoding="utf-8")
-cz_map = (BASE / "changzhou" / "map.svg").read_text(encoding="utf-8")
 cz_logo_b64 = (BASE / "changzhou" / "logo.b64").read_text(encoding="utf-8").strip()
 cz_splash_b64 = (BASE / "changzhou" / "splash.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in cz_stations, "cz stations json must not contain </script"
 assert "</script" not in cz_routes, "cz routes json must not contain </script"
-assert "</script" not in cz_map, "cz map svg must not contain </script"
 html = sub_once(r'/\*__CZ_STATIONS__\*/\[\]', lambda _: cz_stations, html, "cz stations json")
 html = sub_once(r'/\*__CZ_ROUTES__\*/null', lambda _: cz_routes, html, "cz routes json")
-html = sub_once(r'/\*__CZ_MAP__\*/""', lambda _: _json.dumps(cz_map), html, "cz map svg")
+html = sub_once(r'/\*__CZ_MAP__\*/""', lambda _: '""', html, "cz map svg (26E126 J: on-demand, no longer bundled)")
 html = sub_once(r'/\*__CZ_LOGO__\*/', lambda _: cz_logo_b64, html, "cz logo")
 html = sub_once(r'/\*__CZ_SPLASH__\*/', lambda _: cz_splash_b64, html, "cz splash")
 cz_splash_dark_b64 = (BASE / "changzhou" / "splash-dark.b64").read_text(encoding="utf-8").strip()
@@ -422,15 +422,10 @@ assert "</script" not in sz_stations, "sz stations json must not contain </scrip
 assert "</script" not in sz_routes, "sz routes json must not contain </script"
 html = sub_once(r'/\*__SZ_STATIONS__\*/\[\]', lambda _: sz_stations, html, "sz stations json")
 html = sub_once(r'/\*__SZ_ROUTES__\*/null', lambda _: sz_routes, html, "sz routes json")
-# map.svg is exported by a browser task and may land after wiring;
-# warn and leave the marker empty rather than failing the build.
-sz_map_path = BASE / "shenzhen" / "map.svg"
-if sz_map_path.exists():
-    sz_map = sz_map_path.read_text(encoding="utf-8")
-    assert "</script" not in sz_map, "sz map svg must not contain </script"
-    html = sub_once(r'/\*__SZ_MAP__\*/""', lambda _: _json.dumps(sz_map), html, "sz map svg")
-else:
-    print("WARNING: web/shenzhen/map.svg missing; Shenzhen map will be empty")
+# 26E126 J: the Shenzhen map is on-demand now (jsDelivr, cached in
+# IndexedDB) like the other 14 — the file stays in the repo so the CDN
+# can serve it; nothing is inlined here any more.
+html = sub_once(r'/\*__SZ_MAP__\*/""', lambda _: '""', html, "sz map svg (26E126 J: on-demand, no longer bundled)")
 # Shenzhen splash (user-supplied 深圳/配线查询 image, web/shenzhen/splash.b64,
 # JPEG). The template uses the empty-string comment pattern
 # (window.SZ_SPLASH = /*__SZ_SPLASH__*/''), so match the marker + '' and
@@ -464,13 +459,11 @@ else:
 # drawn on the map or under construction but are NOT in the data files.
 cd_stations = (BASE / "chengdu" / "stations.json").read_text(encoding="utf-8")
 cd_routes = (BASE / "chengdu" / "routes.json").read_text(encoding="utf-8")
-cd_map = (BASE / "chengdu" / "map.svg").read_text(encoding="utf-8")
 assert "</script" not in cd_stations, "cd stations json must not contain </script"
 assert "</script" not in cd_routes, "cd routes json must not contain </script"
-assert "</script" not in cd_map, "cd map svg must not contain </script"
 html = sub_once(r'/\*__CD_STATIONS__\*/\[\]', lambda _: cd_stations, html, "cd stations json")
 html = sub_once(r'/\*__CD_ROUTES__\*/null', lambda _: cd_routes, html, "cd routes json")
-html = sub_once(r'/\*__CD_MAP__\*/""', lambda _: _json.dumps(cd_map), html, "cd map svg")
+html = sub_once(r'/\*__CD_MAP__\*/""', lambda _: '""', html, "cd map svg (26E126 J: on-demand, no longer bundled)")
 # Chengdu logo (official Chengdu Rail Transit icon, Wikimedia) and splash
 # (user-supplied 成都/配线查询 image), both in web/chengdu/*.b64. The splash
 # is a JPEG inlined under the template's image/png data URL, the same
@@ -501,13 +494,11 @@ else:
 # but-unopened 东南山 are NOT in the data files.
 qd_stations = (BASE / "qingdao" / "stations.json").read_text(encoding="utf-8")
 qd_routes = (BASE / "qingdao" / "routes.json").read_text(encoding="utf-8")
-qd_map = (BASE / "qingdao" / "map.svg").read_text(encoding="utf-8")
 assert "</script" not in qd_stations, "qd stations json must not contain </script"
 assert "</script" not in qd_routes, "qd routes json must not contain </script"
-assert "</script" not in qd_map, "qd map svg must not contain </script"
 html = sub_once(r'/\*__QD_STATIONS__\*/\[\]', lambda _: qd_stations, html, "qd stations json")
 html = sub_once(r'/\*__QD_ROUTES__\*/null', lambda _: qd_routes, html, "qd routes json")
-html = sub_once(r'/\*__QD_MAP__\*/""', lambda _: _json.dumps(qd_map), html, "qd map svg")
+html = sub_once(r'/\*__QD_MAP__\*/""', lambda _: '""', html, "qd map svg (26E126 J: on-demand, no longer bundled)")
 # Qingdao logo (official Qingdao Metro lockup, Wikimedia) and splash
 # (user-supplied 青岛/配线查询 image), both in web/qingdao/*.b64.
 qd_logo_path = BASE / "qingdao" / "logo.b64"
@@ -536,13 +527,11 @@ else:
 # in the data files.
 sjz_stations = (BASE / "shijiazhuang" / "stations.json").read_text(encoding="utf-8")
 sjz_routes = (BASE / "shijiazhuang" / "routes.json").read_text(encoding="utf-8")
-sjz_map = (BASE / "shijiazhuang" / "map.svg").read_text(encoding="utf-8")
 assert "</script" not in sjz_stations, "sjz stations json must not contain </script"
 assert "</script" not in sjz_routes, "sjz routes json must not contain </script"
-assert "</script" not in sjz_map, "sjz map svg must not contain </script"
 html = sub_once(r'/\*__SJZ_STATIONS__\*/\[\]', lambda _: sjz_stations, html, "sjz stations json")
 html = sub_once(r'/\*__SJZ_ROUTES__\*/null', lambda _: sjz_routes, html, "sjz routes json")
-html = sub_once(r'/\*__SJZ_MAP__\*/""', lambda _: _json.dumps(sjz_map), html, "sjz map svg")
+html = sub_once(r'/\*__SJZ_MAP__\*/""', lambda _: '""', html, "sjz map svg (26E126 J: on-demand, no longer bundled)")
 # Shijiazhuang logo: the official original is not prepared yet (see
 # shijiazhuang/NOTES.md) — substitute only when the file appears,
 # mirroring the Shenzhen logo pattern (placeholder default is '').
@@ -579,13 +568,11 @@ else:
 # them in routes.json, so no cross-segment direct ride can be built.
 tj_stations = (BASE / "tianjin" / "stations.json").read_text(encoding="utf-8")
 tj_routes = (BASE / "tianjin" / "routes.json").read_text(encoding="utf-8")
-tj_map = (BASE / "tianjin" / "map.svg").read_text(encoding="utf-8")
 assert "</script" not in tj_stations, "tj stations json must not contain </script"
 assert "</script" not in tj_routes, "tj routes json must not contain </script"
-assert "</script" not in tj_map, "tj map svg must not contain </script"
 html = sub_once(r'/\*__TJ_STATIONS__\*/\[\]', lambda _: tj_stations, html, "tj stations json")
 html = sub_once(r'/\*__TJ_ROUTES__\*/null', lambda _: tj_routes, html, "tj routes json")
-html = sub_once(r'/\*__TJ_MAP__\*/""', lambda _: _json.dumps(tj_map), html, "tj map svg")
+html = sub_once(r'/\*__TJ_MAP__\*/""', lambda _: '""', html, "tj map svg (26E126 J: on-demand, no longer bundled)")
 # Tianjin logo: the verified early red roundel (same file the
 # upcoming-cities directory uses, web/upcoming-logos/tianjin.b64) —
 # substitute only when the file appears, mirroring the SJZ pattern.
@@ -619,13 +606,11 @@ else:
 # with Line 1 red per the official palette.
 wx_stations = (BASE / "wuxi" / "stations.json").read_text(encoding="utf-8")
 wx_routes = (BASE / "wuxi" / "routes.json").read_text(encoding="utf-8")
-wx_map = (BASE / "wuxi" / "map.svg").read_text(encoding="utf-8")
 assert "</script" not in wx_stations, "wx stations json must not contain </script"
 assert "</script" not in wx_routes, "wx routes json must not contain </script"
-assert "</script" not in wx_map, "wx map svg must not contain </script"
 html = sub_once(r'/\*__WX_STATIONS__\*/\[\]', lambda _: wx_stations, html, "wx stations json")
 html = sub_once(r'/\*__WX_ROUTES__\*/null', lambda _: wx_routes, html, "wx routes json")
-html = sub_once(r'/\*__WX_MAP__\*/""', lambda _: _json.dumps(wx_map), html, "wx map svg")
+html = sub_once(r'/\*__WX_MAP__\*/""', lambda _: '""', html, "wx map svg (26E126 J: on-demand, no longer bundled)")
 wx_logo_path = BASE / "wuxi" / "logo.b64"
 if wx_logo_path.exists():
     wx_logo_b64 = wx_logo_path.read_text(encoding="utf-8").strip()
@@ -663,15 +648,13 @@ else:
 # from the map; the splash is the user's real image, edited (see NOTES.md).
 cq_stations = (BASE / "chongqing" / "stations.json").read_text(encoding="utf-8")
 cq_routes = (BASE / "chongqing" / "routes.json").read_text(encoding="utf-8")
-cq_map = (BASE / "chongqing" / "map.svg").read_text(encoding="utf-8")
 cq_logo_b64 = (BASE / "chongqing" / "logo.b64").read_text(encoding="utf-8").strip()
 cq_splash_b64 = (BASE / "chongqing" / "splash.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in cq_stations, "cq stations json must not contain </script"
 assert "</script" not in cq_routes, "cq routes json must not contain </script"
-assert "</script" not in cq_map, "cq map svg must not contain </script"
 html = sub_once(r'/\*__CQ_STATIONS__\*/\[\]', lambda _: cq_stations, html, "cq stations json")
 html = sub_once(r'/\*__CQ_ROUTES__\*/null', lambda _: cq_routes, html, "cq routes json")
-html = sub_once(r'/\*__CQ_MAP__\*/""', lambda _: _json.dumps(cq_map), html, "cq map svg")
+html = sub_once(r'/\*__CQ_MAP__\*/""', lambda _: '""', html, "cq map svg (26E126 J: on-demand, no longer bundled)")
 html = sub_once(r'/\*__CQ_LOGO__\*/', lambda _: cq_logo_b64, html, "cq logo")
 html = sub_once(r'/\*__CQ_SPLASH__\*/', lambda _: cq_splash_b64, html, "cq splash")
 cq_splash_dark_b64 = (BASE / "chongqing" / "splash-dark.b64").read_text(encoding="utf-8").strip()
@@ -684,15 +667,13 @@ html = sub_once(r'/\*__CQ_SPLASH_DARK__\*/', lambda _: cq_splash_dark_b64, html,
 # closed 辽宁路 are drawn on the map but are NOT in the data files.
 cc_stations = (BASE / "changchun" / "stations.json").read_text(encoding="utf-8")
 cc_routes = (BASE / "changchun" / "routes.json").read_text(encoding="utf-8")
-cc_map = (BASE / "changchun" / "map.svg").read_text(encoding="utf-8")
 cc_logo_b64 = (BASE / "changchun" / "logo.b64").read_text(encoding="utf-8").strip()
 cc_splash_b64 = (BASE / "changchun" / "splash.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in cc_stations, "cc stations json must not contain </script"
 assert "</script" not in cc_routes, "cc routes json must not contain </script"
-assert "</script" not in cc_map, "cc map svg must not contain </script"
 html = sub_once(r'/\*__CC_STATIONS__\*/\[\]', lambda _: cc_stations, html, "cc stations json")
 html = sub_once(r'/\*__CC_ROUTES__\*/null', lambda _: cc_routes, html, "cc routes json")
-html = sub_once(r'/\*__CC_MAP__\*/""', lambda _: _json.dumps(cc_map), html, "cc map svg")
+html = sub_once(r'/\*__CC_MAP__\*/""', lambda _: '""', html, "cc map svg (26E126 J: on-demand, no longer bundled)")
 html = sub_once(r'/\*__CC_LOGO__\*/', lambda _: cc_logo_b64, html, "cc logo")
 html = sub_once(r'/\*__CC_SPLASH__\*/', lambda _: cc_splash_b64, html, "cc splash")
 cc_splash_dark_b64 = (BASE / "changchun" / "splash-dark.b64").read_text(encoding="utf-8").strip()

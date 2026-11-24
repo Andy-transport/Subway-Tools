@@ -659,7 +659,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     let wuxiRed = UIColor(red: 238.0 / 255.0, green: 39.0 / 255.0, blue: 55.0 / 255.0, alpha: 1)
     let wuxiRedDark = UIColor(red: 188.0 / 255.0, green: 31.0 / 255.0, blue: 43.0 / 255.0, alpha: 1)
     var currentCity = "bj"
-    var currentTab = "map"
+    var currentTab = "transfer"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
     // ABOVE the WKWebView, so they showed on top of the web splash
     // animation for 2s. Keep them hidden until the web says the splash
@@ -765,6 +765,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "siri.add.title": ["添加到 Siri 快捷指令", "添加到 Siri 快捷指令", "Add to Siri Shortcuts"],
         "siri.add.open": ["打开快捷指令", "打開快捷指令", "Open Shortcuts"],
         "siri.add.message": ["「{name}」已就绪。在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可添加。添加后可对 Siri 说出对应短语使用。", "「{name}」已就緒。在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可添加。添加後可對 Siri 說出對應短語使用。", "“{name}” is ready. In the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”. Once added, use it by speaking its phrase to Siri."],
+        "siri.openFailed.title": ["无法打开快捷指令", "無法打開捷徑", "Can\u2019t Open Shortcuts"],
+        "siri.openFailed.message": ["没有打开「快捷指令」App。请手动打开「快捷指令」，点 + 新建快捷指令，添加操作并搜索「城轨通」，选择对应操作即可添加。", "沒有打開「捷徑」App。請手動打開「捷徑」，點 + 新增捷徑，添加操作並搜尋「城軌通」，選擇對應操作即可添加。", "Shortcuts could not be opened. Open the Shortcuts app manually, tap + for a new shortcut, add an action and search for \u201cSubway Tools\u201d to add it."],
+        "map.downloadAll": ["下载全部线路图", "下載全部線路圖", "Download all line maps"],
+        "map.downloading": ["正在下载…", "正在下載…", "Downloading…"],
+        "map.downloaded": ["已下载 {n}/15 张线路图", "已下載 {n}/15 張線路圖", "Downloaded {n}/15 line maps"],
+        "map.downloadingCount": ["正在下载 {done}/{total}", "正在下載 {done}/{total}", "Downloading {done}/{total}"],        "common.ok": ["知道了", "知道了", "OK"],
         "siri.add.message.nodonate": ["未能自动准备「{name}」，但仍可手动添加：在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可。", "未能自動準備「{name}」，但仍可手動添加：在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可。", "“{name}” could not be prepared automatically, but you can still add it manually: in the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”."],
         "tr.nearby": ["附近车站", "附近車站", "Nearby Stations"],
         "tr.nearby.locating": ["定位中…", "定位中…", "Locating…"],
@@ -941,6 +947,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "clearCache")
         config.userContentController.add(self, name: "addShortcut")
         config.userContentController.add(self, name: "subView")
+        config.userContentController.add(self, name: "topChrome")
+        config.userContentController.add(self, name: "mapState")
+        config.userContentController.add(self, name: "mapsDownloadFrame")
+        config.userContentController.add(self, name: "mapProgress")
         config.userContentController.add(self, name: "openAppearance")
         config.userContentController.add(self, name: "openLanguage")
         // Inject the iOS per-app language + device idiom before the page's
@@ -983,7 +993,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             items.append(UITabBarItem(title: _titles[i], image: tabBarItemImage(_images[i]), tag: i))
         }
         tabBar.items = items
-        tabBar.selectedItem = items[1] // default tab is the map, same as the web page
+        tabBar.selectedItem = items[0] // default tab is transfer (26E126, user 2026-11-24), same as the web page
         // Floating Liquid Glass capsule (iOS 26 / SDK 27.2, user 2026-11-15):
         // the bar floats above the content with rounded ends. The glass is
         // the UITabBar's OWN Apple glass (default appearance on iOS 26+)
@@ -1683,6 +1693,59 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
     }
 
+    // 26E126 R: iPad top chrome hides on scroll-down, returns on
+    // scroll-up (user 2026-11-24). The web posts topChrome {hide}
+    // from the #moreSheet scroll listener. iPad only; the splash /
+    // whatsnew gate owns visibility while either page is up, so
+    // posts are ignored then. The sub-view strip is only hidden
+    // when it was actually up (topChromeHidSubChrome) — on the
+    // Settings root page there is no strip to hide, only the pill.
+    // Force-shown again on sub-view open/close and on every tab
+    // switch (setWebTab).
+    var topChromeHidden = false
+    var topChromeHidSubChrome = false
+    func setTopChromeHidden(_ hidden: Bool) {
+        guard UIDevice.current.userInterfaceIdiom == .pad else { return }
+        guard !splashShowing && !whatsNewShowing else { return }
+        if hidden == topChromeHidden { return }
+        topChromeHidden = hidden
+        if hidden {
+            topChromeHidSubChrome = !(subHeaderGlass?.isHidden ?? true)
+            UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut], animations: {
+                self.tabBar.alpha = 0
+                self.subHeaderGlass?.alpha = 0
+                self.subViewBackButton?.alpha = 0
+                self.subTopCover?.alpha = 0
+                self.tabBar.transform = CGAffineTransform(translationX: 0, y: -12)
+                self.subHeaderGlass?.transform = CGAffineTransform(translationX: 0, y: -12)
+                self.subViewBackButton?.transform = CGAffineTransform(translationX: 0, y: -12)
+            }, completion: { _ in
+                self.tabBar.isHidden = true
+                if self.topChromeHidSubChrome {
+                    self.subHeaderGlass?.isHidden = true
+                    self.subViewBackButton?.isHidden = true
+                    self.subTopCover?.isHidden = true
+                }
+            })
+        } else {
+            tabBar.isHidden = false
+            if topChromeHidSubChrome {
+                subHeaderGlass?.isHidden = false
+                subViewBackButton?.isHidden = false
+                subTopCover?.isHidden = false
+            }
+            UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut], animations: {
+                self.tabBar.alpha = 1
+                self.subHeaderGlass?.alpha = 1
+                self.subViewBackButton?.alpha = 1
+                self.subTopCover?.alpha = 1
+                self.tabBar.transform = .identity
+                self.subHeaderGlass?.transform = .identity
+                self.subViewBackButton?.transform = .identity
+            })
+        }
+    }
+
     // MARK: - Native Appearance picker (user 2026-11-19)
 
     // Present the native 外观 picker. Reads the current theme from the
@@ -2076,56 +2139,110 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         searchPill.tintColor = accentColor()
     }
 
+    // 26E126 J: maps on demand. The city pill menu lists all 15
+    // cities; a downloaded city switches at once, an undownloaded
+    // one shows a "↓" affordance and downloads first, then
+    // switches (never a dead end). Beijing's default (track) map
+    // comes from its own loadProd path, so 'bj' is always ready.
+    // The set is fed by the web's mapState posts and is rebuilt
+    // whenever it changes.
+    var downloadedMapCities: Set<String> = ["bj"]
+    // Line maps actually downloaded (bj counts only when its LINE
+    // map is ready) — same number the web status line shows.
+    var downloadedLineMapCount: Int = 0
     func cityMenu() -> UIMenu {
-        // City logos in front of each name (build 65, user request):
-        // .alwaysOriginal so the menu shows the logos in their own
-        // colours instead of tinting them as template images.
-        let bj = UIAction(title: L("city.bj"), image: cityLogoImage(for: "bj")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "bj" ? .on : .off) { [weak self] _ in
-            self?.pickCity("bj")
+        let keys = ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"]
+        var actions: [UIAction] = []
+        for key in keys {
+            let ready = downloadedMapCities.contains(key)
+            let title = ready ? L("city." + key) : "↓ " + L("city." + key)
+            let a = UIAction(title: title, image: cityLogoImage(for: key)?.withRenderingMode(.alwaysOriginal)) { [weak self] _ in
+                if ready { self?.pickCity(key) } else { self?.downloadCityMap(key) }
+            }
+            actions.append(a)
         }
-        let sy = UIAction(title: L("city.sy"), image: cityLogoImage(for: "sy")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sy" ? .on : .off) { [weak self] _ in
-            self?.pickCity("sy")
+        return UIMenu(title: "", children: actions)
+    }
+
+    // Download one city's line map via the web (which switches to
+    // it when the download lands); the web's cityChanged post then
+    // mirrors the switch natively, so no local sync is needed here.
+    func downloadCityMap(_ city: String) {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.downloadCityMap('\(city)')", completionHandler: nil)
+    }
+
+    // Native "download all line maps" control, positioned over the
+    // web's #mapsDownloadSlot in the city sub-page (same frame
+    // pattern as placeSwitch: dict + webOffset, hidden unless the
+    // Settings tab is up and no splash/update page is showing).
+    var mapsDownloadContainer: UIView?
+    var mapsDownloadButton: UIButton?
+    var mapsDownloadProgress: UIProgressView?
+    var mapsDownloadLabel: UILabel?
+    func placeMapsDownload(frame dict: [String: Any]) {
+        let x = ((dict["x"] as? Double) ?? 0) + webOffset.x
+        let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
+        let w = (dict["width"] as? Double) ?? 0
+        let h = (dict["height"] as? Double) ?? 0
+        guard w > 0 && h > 0 && currentTab == "more" && !splashShowing && !whatsNewShowing else {
+            mapsDownloadContainer?.isHidden = true
+            return
         }
-        let sh = UIAction(title: L("city.sh"), image: cityLogoImage(for: "sh")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sh" ? .on : .off) { [weak self] _ in
-            self?.pickCity("sh")
+        if mapsDownloadContainer == nil {
+            let c = UIView()
+            c.backgroundColor = .clear
+            let btn = UIButton(type: .system)
+            btn.setTitle(L("map.downloadAll"), for: .normal)
+            btn.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+            btn.backgroundColor = .systemBlue
+            btn.setTitleColor(.white, for: .normal)
+            btn.layer.cornerRadius = 10
+            btn.addTarget(self, action: #selector(mapsDownloadTapped), for: .touchUpInside)
+            let prog = UIProgressView(progressViewStyle: .default)
+            prog.isHidden = true
+            let lbl = UILabel()
+            lbl.font = .systemFont(ofSize: 13)
+            lbl.textColor = .secondaryLabel
+            lbl.textAlignment = .center
+            lbl.text = L("map.downloaded").replacingOccurrences(of: "{n}", with: "\(downloadedLineMapCount)")
+            c.addSubview(btn); c.addSubview(prog); c.addSubview(lbl)
+            btn.translatesAutoresizingMaskIntoConstraints = false
+            prog.translatesAutoresizingMaskIntoConstraints = false
+            lbl.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                btn.topAnchor.constraint(equalTo: c.topAnchor), btn.leadingAnchor.constraint(equalTo: c.leadingAnchor), btn.trailingAnchor.constraint(equalTo: c.trailingAnchor), btn.heightAnchor.constraint(equalToConstant: 44),
+                prog.topAnchor.constraint(equalTo: btn.bottomAnchor, constant: 8), prog.leadingAnchor.constraint(equalTo: c.leadingAnchor), prog.trailingAnchor.constraint(equalTo: c.trailingAnchor),
+                lbl.topAnchor.constraint(equalTo: prog.bottomAnchor, constant: 6), lbl.leadingAnchor.constraint(equalTo: c.leadingAnchor), lbl.trailingAnchor.constraint(equalTo: c.trailingAnchor), lbl.bottomAnchor.constraint(equalTo: c.bottomAnchor)
+            ])
+            view.addSubview(c)
+            mapsDownloadContainer = c; mapsDownloadButton = btn; mapsDownloadProgress = prog; mapsDownloadLabel = lbl
         }
-        let hb = UIAction(title: L("city.hb"), image: cityLogoImage(for: "hb")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "hb" ? .on : .off) { [weak self] _ in
-            self?.pickCity("hb")
+        let rect = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
+        mapsDownloadContainer?.frame = rect
+        mapsDownloadContainer?.isHidden = false
+        view.bringSubviewToFront(mapsDownloadContainer!)
+    }
+
+    @objc func mapsDownloadTapped() {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.downloadAllMaps()", completionHandler: nil)
+    }
+
+    func updateMapsDownloadUI(done: Int, total: Int) {
+        guard let prog = mapsDownloadProgress, let lbl = mapsDownloadLabel, let btn = mapsDownloadButton else { return }
+        if total > 0 && done < total {
+            prog.isHidden = false
+            prog.progress = Float(done) / Float(total)
+            lbl.text = L("map.downloadingCount").replacingOccurrences(of: "{done}", with: "\(done)").replacingOccurrences(of: "{total}", with: "\(total)")
+            btn.setTitle(L("map.downloading"), for: .normal)
+            btn.isEnabled = false
+        } else {
+            // Finished (done == total) or nothing to do (total == 0):
+            // back to the idle state with the fresh count.
+            prog.isHidden = true
+            lbl.text = L("map.downloaded").replacingOccurrences(of: "{n}", with: "\(downloadedLineMapCount)")
+            btn.setTitle(L("map.downloadAll"), for: .normal)
+            btn.isEnabled = true
         }
-        let dl = UIAction(title: L("city.dl"), image: cityLogoImage(for: "dl")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "dl" ? .on : .off) { [weak self] _ in
-            self?.pickCity("dl")
-        }
-        let jh = UIAction(title: L("city.jh"), image: cityLogoImage(for: "jh")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "jh" ? .on : .off) { [weak self] _ in
-            self?.pickCity("jh")
-        }
-        let cz = UIAction(title: L("city.cz"), image: cityLogoImage(for: "cz")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "cz" ? .on : .off) { [weak self] _ in
-            self?.pickCity("cz")
-        }
-        let cq = UIAction(title: L("city.cq"), image: cityLogoImage(for: "cq")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "cq" ? .on : .off) { [weak self] _ in
-            self?.pickCity("cq")
-        }
-        let cc = UIAction(title: L("city.cc"), image: cityLogoImage(for: "cc")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "cc" ? .on : .off) { [weak self] _ in
-            self?.pickCity("cc")
-        }
-        let sz = UIAction(title: L("city.sz"), image: cityLogoImage(for: "sz")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sz" ? .on : .off) { [weak self] _ in
-            self?.pickCity("sz")
-        }
-        let cd = UIAction(title: L("city.cd"), image: cityLogoImage(for: "cd")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "cd" ? .on : .off) { [weak self] _ in
-            self?.pickCity("cd")
-        }
-        let qd = UIAction(title: L("city.qd"), image: cityLogoImage(for: "qd")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "qd" ? .on : .off) { [weak self] _ in
-            self?.pickCity("qd")
-        }
-        let sjz = UIAction(title: L("city.sjz"), image: cityLogoImage(for: "sjz")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "sjz" ? .on : .off) { [weak self] _ in
-            self?.pickCity("sjz")
-        }
-        let tj = UIAction(title: L("city.tj"), image: cityLogoImage(for: "tj")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "tj" ? .on : .off) { [weak self] _ in
-            self?.pickCity("tj")
-        }
-        let wx = UIAction(title: L("city.wx"), image: cityLogoImage(for: "wx")?.withRenderingMode(.alwaysOriginal), identifier: nil, discoverabilityTitle: nil, attributes: [], state: currentCity == "wx" ? .on : .off) { [weak self] _ in
-            self?.pickCity("wx")
-        }
-        return UIMenu(title: "", children: [bj, sy, sh, hb, dl, jh, cz, cq, cc, sz, cd, qd, sjz, tj, wx])
     }
 
     // The transfer panel's city row (web) also asks for the city menu:
@@ -2137,7 +2254,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // so the logo is attached with setValue(forKey: "image") — the
         // long-established way to put an image on an alert action.
         func cityAction(_ city: String) -> UIAlertAction {
-            let a = UIAlertAction(title: currentCity == city ? "✓ " + L("city." + city) : L("city." + city), style: .default) { [weak self] _ in
+            // 26E126 J: undownloaded cities show the "↓" mark;
+            // tapping still switches (the web downloads the map in
+            // the background and fills the pane when it lands).
+            let a = UIAlertAction(title: (currentCity == city ? "✓ " : "") + (downloadedMapCities.contains(city) ? "" : "↓ ") + L("city." + city), style: .default) { [weak self] _ in
                 self?.pickCity(city)
             }
             if let img = cityLogoImage(for: city)?.withRenderingMode(.alwaysOriginal) {
@@ -2266,6 +2386,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let w = (dict["width"] as? Double) ?? 0
         let h = (dict["height"] as? Double) ?? 0
         let tab = dict["tab"] as? String ?? ""
+        // 26E126: the route-detail page covers the transfer panel —
+        // its native chrome must hide while the detail is open, or
+        // it floats over the detail page (user screenshot, 26E125:
+        // the search card covered the detail). The web re-posts
+        // detailOpen with every frame report, so the state
+        // re-asserts itself after tab switches.
+        if dict["detailOpen"] as? Bool == true {
+            sortTabs.isHidden = true
+            return
+        }
         if w > 0 && h > 0 && currentTab == "transfer" {
             sortTabs.frame = CGRect(x: x + webOffset.x, y: y + webOffset.y, width: w, height: h)
             sortTabs.isHidden = false
@@ -3418,6 +3548,18 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // from the web while the user is NOT typing in that field, so the
     // caret never jumps.
     func placeTransfer(frame dict: [String: Any]) {
+        // 26E126: the route-detail page covers the transfer panel —
+        // the native card / search button / action pills must hide
+        // while the detail is open (user screenshot, 26E125: the
+        // search card covered the detail page). The web re-posts
+        // detailOpen with every frame report, so the state
+        // re-asserts itself after tab switches.
+        if dict["detailOpen"] as? Bool == true {
+            transferCard.isHidden = true
+            transferSearchButton.isHidden = true
+            hideActionButtons()
+            return
+        }
         guard let f = dict["fields"] as? [String: Any],
               let s = dict["search"] as? [String: Any] else {
             transferCard.isHidden = true
@@ -4096,7 +4238,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26E125')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26E126')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
@@ -4394,6 +4536,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard index >= 0 && index < tabKeys.count else { return }
         let key = tabKeys[index]
         currentTab = key
+        setTopChromeHidden(false) // 26E126 R: a tab switch always re-shows the top chrome.
         view.backgroundColor = rootBackgroundColor() // Sidebar strip follows the tab's page background.
         updatePillVisibility()
         updateTransferVisibility()
@@ -5112,11 +5255,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                         // the next scroll post — and a page that never
                         // scrolls (What's New) kept it for good.
                         setSubChromeVisible(true)
+                        setTopChromeHidden(false) // 26E126 R: opening a sub-view re-shows the top chrome.
                         applySubScrollState(animated: false)
                     } else {
                         subViewStatic = false
                         setSubViewHeader(title: nil)
                         setSubChromeVisible(false)
+                        setTopChromeHidden(false) // 26E126 R: closing a sub-view re-shows the top chrome.
                         // No sub-view open: the Siri page (and its
                         // native switch) is gone too (26C101). Opening
                         // a DIFFERENT sub-view posts fresh zero frames
@@ -5125,6 +5270,30 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                     }
                 }
             }
+        } else if message.name == "topChrome" {
+            // 26E126 R: iPad scroll-hide for the top chrome.
+            if let dict = message.body as? [String: Any], let hide = dict["hide"] as? Bool {
+                setTopChromeHidden(hide)
+            }
+        } else if message.name == "mapState",
+              let dict = message.body as? [String: Any],
+              let downloaded = dict["downloaded"] as? [String] {
+            // 26E126 J: the web reports which cities have a
+            // downloaded line map. Rebuild the city pill menu so
+            // its download affordances match, and refresh the
+            // download button's count.
+            downloadedMapCities = Set(downloaded)
+            if let lm = dict["lineMaps"] as? Int { downloadedLineMapCount = lm }
+            cityPill.menu = cityMenu()
+            mapsDownloadLabel?.text = L("map.downloaded").replacingOccurrences(of: "{n}", with: "\(downloadedLineMapCount)")
+        } else if message.name == "mapsDownloadFrame",
+                  let dict = message.body as? [String: Any] {
+            placeMapsDownload(frame: dict)
+        } else if message.name == "mapProgress",
+                  let dict = message.body as? [String: Any],
+                  let done = dict["done"] as? Int,
+                  let total = dict["total"] as? Int {
+            updateMapsDownloadUI(done: done, total: total)
         } else if message.name == "openLanguage" {
             // Native Language picker (user 2026-11-19): the web posts
             // here instead of opening its own 语言 sub-view (the template
@@ -5307,13 +5476,33 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // Open the Shortcuts app at the new-shortcut editor, where the user
     // taps Add Action, searches "Subway Tools" and picks the shortcut.
-    // Falls back to the Shortcuts home if the editor URL fails.
+    // Falls back to the Shortcuts home if the editor URL fails. If
+    // BOTH opens fail (Shortcuts unavailable or restricted), say so
+    // with the manual steps — the tap used to fail silently and the
+    // user reported "tap does nothing" (26E126).
     func openShortcutsAppForAdding() {
         guard let editorURL = URL(string: "shortcuts://create-shortcut") else { return }
-        UIApplication.shared.open(editorURL, options: [:]) { success in
-            if !success, let homeURL = URL(string: "shortcuts://") {
-                UIApplication.shared.open(homeURL, options: [:], completionHandler: nil)
+        UIApplication.shared.open(editorURL, options: [:]) { [weak self] success in
+            if success { return }
+            guard let homeURL = URL(string: "shortcuts://") else { return }
+            UIApplication.shared.open(homeURL, options: [:]) { [weak self] homeOK in
+                if homeOK { return }
+                self?.showShortcutOpenFailedAlert()
             }
+        }
+    }
+
+    func showShortcutOpenFailedAlert() {
+        let alert = UIAlertController(
+            title: L("siri.openFailed.title"),
+            message: L("siri.openFailed.message"),
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: L("common.ok"), style: .default))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            var vc: UIViewController = self
+            while let p = vc.presentedViewController { vc = p }
+            vc.present(alert, animated: true)
         }
     }
 

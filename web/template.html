@@ -82,6 +82,8 @@
 			window.BJ_TRANSFER_TIMES = /*__BJ_TRANSFER_TIMES__*/{};
 			window.BJ_TRANSFER_DIST = /*__BJ_TRANSFER_DIST__*/{};
 			window.BJ_VT_EXITS = /*__BJ_VT_EXITS__*/[];
+			window.BJ_TRANSFER_CARRIAGE = /*__BJ_TRANSFER_CARRIAGE__*/{};
+			window.BJ_TRANSFER_DOORS = /*__BJ_TRANSFER_DOORS__*/{};
 			window.SY_TRANSFERS = /*__SY_TRANSFERS__*/{};
 			window.SH_TRANSFERS = /*__SH_TRANSFERS__*/{};
 			window.HB_TRANSFERS = /*__HB_TRANSFERS__*/{};
@@ -469,6 +471,12 @@
 		   tappable in the route chain (opens the note popup). */
 		.ropt-fast { font-size: 11px; font-weight: 700; color: #177245; background: rgba(23,114,69,0.13); border-radius: 4px; padding: 1px 5px; margin-left: 4px; white-space: nowrap; cursor: pointer; }
 		html.dark .ropt-fast { color: #4cc38a; background: rgba(76,195,138,0.16); }
+		/* 26E126: tidal-transfer no-passage tag — solid red, not a
+		   clickable chip: it only warns, never reroutes. */
+		.ropt-tidal { font-size: 11px; font-weight: 700; color: #fff; background: #ff3b30; border-radius: 4px; padding: 1px 5px; margin-left: 4px; white-space: nowrap; }
+		html.dark .ropt-tidal { background: #ff453a; }
+		.tr-td-tidal { color: #ff3b30; font-weight: 600; }
+		html.dark .tr-td-tidal { color: #ff6961; }
 		.ropt-fast-static { margin-left: 0; cursor: default; }
 		.fast-note-backdrop { position: fixed; inset: 0; z-index: 99922; background: rgba(0, 0, 0, 0.35); display: flex; align-items: center; justify-content: center; padding: 24px; }
 		.fast-note-card { width: 100%; max-width: 320px; border-radius: 18px; padding: 18px; background: rgba(255, 255, 255, 0.88); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); color: #111; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.25); }
@@ -1046,6 +1054,11 @@
 		   unchanged (bottom bar). window._metroIsPad is injected by native
 		   at document start; undefined (offline preview) means iPhone. */
 		html.is-pad #moreSheet { padding-top: calc(env(safe-area-inset-top) + 118px); padding-bottom: calc(28px + env(safe-area-inset-bottom)); } /* Settings also carries the native sub-view header strip (44pt) below the tab bar, so its top clearance is 72 + 44 + margin (user 2026-11-21: iPad scroll safe areas). */
+		/* 26E126 R: on iPad a sub-page starts at the screen top edge —
+		   the 118px clearance (tab-bar zone + header strip) was the
+		   blank the user reported. The floating pill + sub header sit
+		   ABOVE the content and hide on scroll-down (topChrome). */
+		html.is-pad #moreSheet.sub-open { padding-top: 0; }
 		html.is-pad #stationPanel, html.is-pad #transferPanel, html.is-pad #timetablePanel, html.is-pad #structurePanel { padding-top: calc(env(safe-area-inset-top) + 72px); padding-bottom: calc(16px + env(safe-area-inset-bottom)); bottom: 0; } /* bottom: 0 cancels #timetablePanel's phone bottom inset on iPad (26D108; its tab bar is at the top) — a no-op restatement for the other two, which keep inset: 0. */
 		.more-title { font-size: 34px; font-weight: 700; color: #000; margin: 8px 4px 16px; }
 		html.dark .more-title { color: #fff; }
@@ -1076,7 +1089,7 @@
 		   mask over a theme-coloured box — dark grey on light,
 		   light grey on dark, so it follows the appearance like the
 		   neighbouring rows' icons. Only this row uses it. */
-		.more-train-icon { width: 28px; height: 28px; flex: none; margin-right: 10px; background: #3a3a3c; -webkit-mask-image: url('data:image/png;base64,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'); -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; mask-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAALhUlEQVR42u1dWY8cZxU9VdXLLB4Tb5jFgVghMmuAgNkcQoKQkPLEE+Iv8oAEL4CQISFBgSQgFAgSJgIJ7Dgh2DFee7q76ise6lzVqevqmZ4eV82UqSuVeqanu5a73/Pd+w3QU0899dRTTz311FNPPfXUU0//TxQ1eO7NXa6bAwh8TQCM+JoAGPL3AV/HPGL5TMQjyLkyAClf5wBmAKb8OeVrkL9Fcq6cxyK62wSTBi0IOK8RduDrUQAfAnACwGkAHwDwCJke8zMJGZa5cyizkpprDsjkmD9PycQbAK4DuAbgHQDvUzixu8+86xZwhA8RySvIyA0AnwHwJBk+Fq20z4DvDcngZRgS3M8xDxPeiO+Pec73AVwF8BqAd0UIdUp0t8suSF3OhwE8D+A4/zYVDczFLSjD0wXM2YlysfBt3s+M507FA0Q898sA/si/DUSAoUkXlDQogJEwP6IWPgrgB9TqbRFKJA89EAbZ99bEKpalIc+fAVgXd5TJ31NRjifIjys11haJdXZOAOZSTgH4Ph9uRgYECbpTfscYHkkQzvk63MMR6OpmPGcizxyLleT8fQ7gMQD36JZi50LnXQzCRmsAniFDbvD3uWjhlO+lwph3AfwewH/JjGgF95oDeArAp3kNiIXl4oLMUqYAngVwGcB7e4g9hzoLymjejwO4TU1WP5uIX7agmQJ4CcDbK/h+Hwcu0gWd5XmDe/Yg97FNJfkGgJ86F9UIxQ0zP2fG8aT4YB9k1Q1ArOCGy9P3esSSis55nkyeW/P+WNzmjMpy0mVVnRMAJOs5Jb/vVvBYTDjrspBVtD9jtnVqiSAenJv7XBu+uY0YcIYu4JZoYbRA+FoZP8us6dqKvjiWGLDGNHK0hNAs4D7K7826KgBzP2f4EBr0FlWa5qIsRnxWirRoxee7yfNtAZjsYPWxxIKY1z3BOJR0UQCB1fAjEmCzXcr8IK+WIU1WvM9MYkgsWdBOQVWFs0H3eaXLFnCUmjeVAJu4KlO1PifjIcBaItnIXq+v382o1akD4DRbG0llnjB+xF0VQERwbUz/O6hxNZZ2DsU/D9w5Yue2gmNycEBaXGNVmQhkItlO5oqtIO4mk/ufdlEAA7of778jvjfiz+8RFLvHPPwuGZEKCqpM9Id3H7ET8IDHGgV9hNc+RiR27K6XODyrswIYMoh592HYzH8A/JzMj4XBcMz1iGq+oN7YDWSM5P1EoI5vEpnV9zNBdDdZjXdOADFNOF0QIF8A8G/ew9y5jlX9rl97iGoEGsk9zQH8mr7+DK1wIPFpi8G4k5XwiEE4k+sYFn+F+X20QFsXuZp8lwM18SI4Buauwp4C+CsZn7tMbUQLiLsogDFdjX/4EWGGbXnoZfCWfA9WkC8QbrQg5b3u4odZ6YzPkHRRAEeliowc+HVriZrgQaTB+ZIuakr3EztIJKMb6qQFrDmfb7n1HMCdplHGPcSKiNZ4x2FPFow3umoBG07LLBbMRAAHQXVuac70N6lJFja7KoAjwvTEuYVtHBzlNXhUxnuKFyQT6KIANl32kqC68hTh4CmXtHTbuUVzR521gHWXbcRi7ukhEYA2DEwXuKDOxoCxaL5qXCZCOeggbBYQBDLJRXEiqRk6JwCv4dr7k+HwUeayoxj1XX2dqoT9zSeHUAC5uKG69seoq3XAoMbcFXSLDpkFpFhuoaZTLsjD0Aft+3eiIFYK54qiprW0yRiQudJ+WeznIFyRrtKFNqw0bvjc1hKoPzce2PahMH6pFDVxoTMC6KkXQC+AnnoB9ALo6YAFoGmnH454EPcQrfh5/70EVeDwobIAA7RsHXhNrh9csbNKB9xuhaC2rWsVHsv76yKE8DAJwMZ/rNr8IIqmW6BYHTMkUud9d2Jo3bFIMIpsamu8nyX+KIBPogoYtkJtjSjBVcNfR9n4eptM2CZD5igBu0yYF5ZwPR5jsi4HmzmwrucRNX4dRYfcJ1D0Bt2T+1xmeLsTAtA1gYgPOQZwjoeikBNUJ+h17UBbFFUo2oaYyBE7N5O4VxPIBu/pnotToY2KvS0BmBuKyHzIA48EL1oTYQXc3yYSlvT92grv531jcTUzlN1wiYMdtL0977oLyt2DBLm2zg7YCKt3W6kLnIso1MSfyH3fBvWsPXEs19bZsUjO2XksKK9hqgVDHco2wZg7sX79DVS71nZ6HvX7kARAgy9QXRSqg5zjXSytk0FYKeP1T6MYI7J7uYNyljcSIayqYCbQbRTdeiNeYwNlN4TFnAFahskPSgApinaPtwH8gsE3oOjXPy+BdLqk61kkYAhTNwH8CcAllIPhTzAlnh4E8w9KANbqcQnAL6mN5mcvMzV9ngzTPSRWSXl1MPsigL+g2v1wGUVj7nNoeBryMGFBAxRtgK+gaNLV/R1iCuBVlFvL5Pu4z4TXuwrgzxTISNLQFMAbAP4m13toBBAt0P4RXc8tSS21x992LJmQSdmKjNGVtzfEx6eoLjmmAP6OcoOPnQq7h8IC7KHnNXiNvc6x//5Ry/PNFenWOL79sK4rDjXYUacEkO7wQGviCoJ7zQUugKtq90IzlJPuR+Vc/l5iFDMA6Q5W28kRpWzB+Sco5rFOo34CPkexT8OWA/H2SiNRgi+IMCJX7a4zE5osuJdkgTIdegFcw/2bbcQCPzxNQfg5rs/zuINyp6xVBBAEdjiGYu+JDVRR100A3yYwOK/hh+2U1ViG1GSAuQDgO7h/9MeYYwXWP1CMrCYAPoYCGlagTbGbVcnOdQfAWyhGY08QBT2GEg6Pa+7xKoCf8DudqgPecZoTHFxgAfIcih2tLNhN+XebZg/7sG5DTy3DOQrgK+JeAspFIji8yKZj/okGB0qa3DMuo2mfRLk9mWqjb1Wco366UT+b7+FIBYZIHdCWi9aPUR1pjaUATAG8SCtuJA40nQW9TO3RfXcU3Ry4gGeoqKWNmUsZ93IMRZMTB/qlAvxtozo7nIlgXmGlnHTRAtZQrHbdQLH71di5oRmqW8nYvkCGA81RXbNdJb5pa7lC04a0zqUYNI0f8t7/AOB3Lhh3SgAGLVxn5XscxXpwLmliEFTUu6ex88sqjGWOusV33SwwkkBrmZkJ/iKA11013YgA2to51x70NICPA/gIyjXZTeePzW1MRIirDnQYwjlEdTEolphim3tfpaL8C9XlyUZ3zm1SAFuoribpfnCaqp6nH7aHXUcBUb/5gKCAQIF/D9Vx2Yi1yo+kQAvOfSmm1IgAmgzCfhhDV6lSWsNTqO6KtYECIr7kCrSwjwPU7jd5fltjyFhznEN1OENdWOPrA20vSeaC9TzttNuY8pLLzYHV9g318eB1FnxbqG5vf4FFmV8XjlrwEq0IwAfFQOzlccnHZ9TOV1nAaTPXqhaQSSobsQp+wVnWjAL5Mu6f4GllQqatthQdiD6OojHrtrikLf4+JBA3kHx8uCIzIlSncszF3USxjYLVItsodva9xADs0dLGtbONLMg0KgHwXRRrsWlNYbYhSqFWsAokrZtya4fEVFxhkAztNoAfouyO80K421UL0GziMZQ7mZvJG4OsKg0CXexnoE8tz1uQrjNbQXaclvBbtNgf2saSZCTA1gXBiSKnBAq8DWvOscrm3YuKON0wPAgIeB7FPtOhrSDc9MatOh35Raaet1D+rwBrCVxH2SrS9BR9QHVnxImztm8B+LG7j07OCasgTjLw3qUl2ENfB/AzwWTylu7H4s6XAHyV/t+EcxbAp1B0UTTeHdf0oLZp/zPyIBNq+gDAr1Duntj2/HBgbXAW5fKnbSb1NRQLN5OG8bJGY4BudHGMPn4kqeVrKP9Xi26yHbVwWMvibQC/QfUfxVlanLShEG38E5+cfv8syjWAt1CsFaQ1+EwbWZlmSDepHKcFj3qRBaF+9kA653rqqaeeeuqpp5566qmnnnrqqaeeHiD9D0+2AS+UU9kTAAAAAElFTkSuQmCC'); mask-repeat: no-repeat; mask-position: center; mask-size: contain; }
+		.more-train-icon { width: 28px; height: 28px; flex: none; margin-right: 10px; background: #3a3a3c; -webkit-mask-image: url('data:image/png;base64,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'); -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; mask-image: url('data:image/png;base64,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'); mask-repeat: no-repeat; mask-position: center; mask-size: contain; }
 		html.dark .more-train-icon { background: #e9e9ee; }
 		/* Settings row glyph icons (26E119, user-supplied glyphs):
 		   the user's nine glyph photos became alpha templates on a
@@ -1139,6 +1152,21 @@
 		.more-row > span.more-train-icon + span { flex: 1; }
 		/* Same fix for the 26E119 glyph icons: keep the icon at its
 		   fixed 24px and give the slack to the label span. */
+		.more-city-dl { font-size: 13px; color: #007aff; margin-left: 8px; white-space: nowrap; }
+		html.dark .more-city-dl { color: #0a84ff; }
+		.more-maps-head { font-size: 13px; font-weight: 700; color: #888; padding: 10px 0 6px; }
+		html.dark .more-maps-head { color: #aaa; }
+		.more-maps-row { padding: 4px 0 10px; }
+		.more-maps-btn { width: 100%; padding: 10px 0; border: none; border-radius: 10px; background: #007aff; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; }
+		.more-maps-btn:disabled { opacity: 0.5; }
+		.more-maps-slot { display: block; height: 96px; }
+		.more-maps-status { font-size: 13px; color: #888; padding: 2px 0 8px; }
+		html.dark .more-maps-status { color: #aaa; }
+		.map-state { text-align: center; padding: 48px 16px 12px; }
+		.map-state-text { font-size: 14px; color: #888; margin-bottom: 12px; }
+		html.dark .map-state-text { color: #aaa; }
+		.map-state-btn { padding: 8px 20px; border: 1px solid #007aff; border-radius: 20px; background: none; color: #007aff; font-size: 15px; cursor: pointer; }
+		html.dark .map-state-btn { border-color: #0a84ff; color: #0a84ff; }
 		.more-row > span.more-glyph-icon:first-of-type { flex: none; }
 		.more-row > span.more-glyph-icon + span { flex: 1; }
 		/* Local profile (26E109): account card at the top of Settings
@@ -1459,14 +1487,14 @@
 		.trd .tr-fare { padding: 6px 0 0; }
 		.trd-body { margin-top: 10px; }
 		/* 26E124: the route detail is its own page over the list. */
-		.trd-page { position: absolute; inset: 0; background: var(--bg, #f2f2f7); z-index: 40; display: flex; flex-direction: column; animation: trdPageIn 0.28s ease; }
+		.trd-page { position: absolute; left: 0; right: 0; top: max(10px, env(safe-area-inset-top)); bottom: 0; background: var(--bg, #f2f2f7); z-index: 40; display: flex; flex-direction: column; animation: trdPageIn 0.28s ease; }
 		html.dark .trd-page { background: #101420; }
 		@keyframes trdPageIn { from { transform: translateX(48px); opacity: 0.4; } to { transform: translateX(0); opacity: 1; } }
 		.trd-page-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px 6px; flex: none; }
 		.trd-back { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(120,120,128,0.24); color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; padding: 0; }
 		html.dark .trd-back { background: rgba(255,255,255,0.16); color: #fff; }
 		.trd-page-title { font-size: 17px; font-weight: 700; }
-		.trd-page-scroll { flex: 1; overflow-y: auto; padding: 4px 16px 40px; -webkit-overflow-scrolling: touch; }
+		.trd-page-scroll { flex: 1; overflow-y: auto; padding: 4px 16px calc(104px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; }
 		.trd-summary { background: var(--card, #ffffff); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
 		html.dark .trd-summary { background: #1c1c1e; }
 		.trd-summary .ropt-time { font-size: 17px; font-weight: 700; }
@@ -1515,6 +1543,12 @@
 		.trd-node-main { flex: 1; min-width: 0; }
 		.trd-tline, .trd-walkline { margin-top: 3px; font-size: 13px; color: #b26a00; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 		html.dark .trd-tline, html.dark .trd-walkline { color: #e8a33d; }
+		.trd-carriage { margin-top: 3px; font-size: 13px; color: #007aff; font-weight: 600; }
+		html.dark .trd-carriage { color: #0a84ff; }
+		.trd-doors { margin-top: 3px; font-size: 13px; color: #007aff; font-weight: 600; }
+		html.dark .trd-doors { color: #0a84ff; }
+		.trd-tip { margin-top: 3px; font-size: 13px; color: #666; font-weight: 500; }
+		html.dark .trd-tip { color: #9aa0b0; }
 		.trd-walkline img { width: 15px; height: 15px; }
 		.trd-seg { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; flex-wrap: wrap; }
 		.trd-rail { flex: none; width: 5px; align-self: stretch; min-height: 30px; border-radius: 3px; }
@@ -1557,7 +1591,11 @@
 
 
 				/* 附近车站 (build 63): row + nearest-station list, same style as the transit rows. */
-		.tr-smart { margin: 8px 0; padding: 10px 12px; background: rgba(0,51,128,0.04); border-radius: 10px; }
+		/* 26E126 M: the smart block used to span edge-to-edge with 12px
+		   inner padding, so its head/empty rows sat at 12 while the
+		   nearby/history cards sat at 16. Now it is an inset card on the
+		   same 16px edge as its siblings; head + empty rows start at 16. */
+		.tr-smart { margin: 8px 16px 0; padding: 10px 0; background: rgba(0,51,128,0.04); border-radius: 10px; }
 		html.dark .tr-smart { background: rgba(255,255,255,0.05); }
 		.tr-smart-head { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #000; margin-bottom: 6px; }
 		.tr-smart-head img { width: 22px; height: 22px; border-radius: 6px; }
@@ -1574,7 +1612,7 @@
 		html.dark .tr-nearby-item { color: #f0f2f8; border-bottom-color: rgba(255,255,255,0.08); }
 		.tr-nearby-dist { font-size: 13px; font-weight: 400; color: #888; }
 		html.dark .tr-nearby-dist { color: #aaa; }
-		.tr-nearby-msg { margin: 8px 16px 0; font-size: 13px; color: #888; text-align: center; }
+		.tr-nearby-msg { margin: 8px 16px 0; font-size: 13px; color: #888; text-align: left; }
 		.tr-nearby-note { margin: 6px 16px 0; font-size: 12px; color: #999; text-align: center; }
 		html.dark .tr-nearby-note { color: #999; }
 		/* 搜索记录 (build 63). */
@@ -2144,7 +2182,7 @@
 							<div class="ropt-time">{{ r.depart }} → {{ r.arrive }}<span>{{ t('tr.minutes', {n: r.minutes}) }}</span></div>
 							<div class="ropt-meta"><span v-if="r.fare != null">{{ fareRangeText(r.fare) }} · </span>{{ t('tr.transfers', {n: r.transfers}) }} · {{ t('tr.km', {n: r.km}) }}</div>
 							<div class="ropt-opwarn" v-if="routeOpWarning(r)">⚠ {{ routeOpWarning(r) }}</div>
-							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span v-if="seg.virtual" class="ropt-walkseg"><img :src="walkIconThemed" alt=""><span v-if="si === 0" class="ropt-virtual">{{ t('tr.virtualTag') }}</span></span><span v-else class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="isVirtualAt(r, si+1)" class="ropt-virtual">{{ t('tr.virtualTag') }}</span><span v-if="fastTransferAt(r, si+1)" class="ropt-fast" @click.stop="showFastTransfer(r, si+1)">{{ t('tr.fastTag') }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span><span v-else-if="transferEstFor(r, si+1) && transferEstFor(r, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(r, si+1)) }}</span></span></template></div>
+							<div class="ropt-chain"><template v-for="(seg, si) in r.segments" :key="seg.line + seg.from"><span v-if="seg.virtual" class="ropt-walkseg"><img :src="walkIconThemed" alt=""><span v-if="si === 0" class="ropt-virtual">{{ t('tr.virtualTag') }}</span></span><span v-else class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < r.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(r, si)">{{ stNameStr(seg.to) }}</span><span v-if="isVirtualAt(r, si+1)" class="ropt-virtual">{{ t('tr.virtualTag') }}</span><span v-if="fastTransferAt(r, si+1)" class="ropt-fast" @click.stop="showFastTransfer(r, si+1)">{{ t('tr.fastTag') }}</span><span v-if="tidalBlockedAtRoute(r, si+1)" class="ropt-tidal">{{ t('tr.tidalBan') }}</span><span v-if="virtualDistFor(r, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(r, si+1)}) }}</span><span v-else-if="transferEstFor(r, si+1) && transferEstFor(r, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(r, si+1)) }}</span></span></template></div>
 						</div>
 						<div class="ropt-badges"><span class="ropt-badge early" v-if="r.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="r.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="r.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 					</div>
@@ -2165,7 +2203,7 @@
 							<div class="ropt-time">{{ routeResult.depart }} → {{ routeResult.arrive }}<span>{{ t('tr.minutes', {n: routeResult.minutes}) }}</span></div>
 							<div class="ropt-meta"><span v-if="routeResult.fare != null">{{ fareRangeText(routeResult.fare) }} · </span>{{ t('tr.transfers', {n: routeResult.transfers}) }} · {{ t('tr.km', {n: routeResult.km}) }}</div>
 							<div class="ropt-opwarn" v-if="routeOpWarning(routeResult)">⚠ {{ routeOpWarning(routeResult) }}</div>
-							<div class="ropt-chain"><template v-for="(seg, si) in routeResult.segments" :key="seg.line + seg.from"><span v-if="seg.virtual" class="ropt-walkseg"><img :src="walkIconThemed" alt=""><span v-if="si === 0" class="ropt-virtual">{{ t('tr.virtualTag') }}</span></span><span v-else class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < routeResult.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(routeResult, si)">{{ stNameStr(seg.to) }}</span><span v-if="isVirtualAt(routeResult, si+1)" class="ropt-virtual">{{ t('tr.virtualTag') }}</span><span v-if="fastTransferAt(routeResult, si+1)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, si+1)">{{ t('tr.fastTag') }}</span><span v-if="virtualDistFor(routeResult, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(routeResult, si+1)}) }}</span><span v-else-if="transferEstFor(routeResult, si+1) && transferEstFor(routeResult, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, si+1)) }}</span></span></template></div>
+							<div class="ropt-chain"><template v-for="(seg, si) in routeResult.segments" :key="seg.line + seg.from"><span v-if="seg.virtual" class="ropt-walkseg"><img :src="walkIconThemed" alt=""><span v-if="si === 0" class="ropt-virtual">{{ t('tr.virtualTag') }}</span></span><span v-else class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < routeResult.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(routeResult, si)">{{ stNameStr(seg.to) }}</span><span v-if="isVirtualAt(routeResult, si+1)" class="ropt-virtual">{{ t('tr.virtualTag') }}</span><span v-if="fastTransferAt(routeResult, si+1)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, si+1)">{{ t('tr.fastTag') }}</span><span v-if="tidalBlockedAtRoute(routeResult, si+1)" class="ropt-tidal">{{ t('tr.tidalBan') }}</span><span v-if="virtualDistFor(routeResult, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(routeResult, si+1)}) }}</span><span v-else-if="transferEstFor(routeResult, si+1) && transferEstFor(routeResult, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, si+1)) }}</span></span></template></div>
 							<div class="ropt-badges trd-summary-badges"><span class="ropt-badge early" v-if="routeResult.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="routeResult.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="routeResult.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 						</div>
 						<button class="trd-trip-start" v-if="!pageTrip" @click="startPageTrip()">▶ {{ t('trip.start') }}</button>
@@ -2185,8 +2223,8 @@
 					<div class="trd-body">
 						<div class="trd-node trd-origin"><span class="trd-dot dot-origin" :style="routeResult.segments[0].virtual ? null : { borderColor: '#' + routeResult.segments[0].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[0].from) }}</span></div>
 						<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
-							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-split" :style="{ background: 'conic-gradient(from 90deg, #' + seg.color + ' 0deg 180deg, #' + routeResult.segments[i - 1].color + ' 180deg 360deg)' }"><span class="trd-dot-hole"></span></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
-							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
+							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-split" :style="{ background: 'conic-gradient(from 90deg, #' + seg.color + ' 0deg 180deg, #' + routeResult.segments[i - 1].color + ' 180deg 360deg)' }"><span class="trd-dot-hole"></span></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span><span v-if="tidalBlockedAtRoute(routeResult, i)" class="ropt-tidal">{{ t('tr.tidalBan') }}</span></div><div class="trd-carriage" v-for="(cl, ci) in carriageLines(routeResult, i)" :key="'cg' + ci">{{ cl }}</div><div class="trd-doors" v-for="(dl, di) in doorLines(routeResult, i)" :key="'dr' + di">{{ dl }}</div><div class="trd-tip" v-for="(tp, ti) in tipLines(routeResult, i)" :key="'tp' + ti">{{ tp }}</div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-tidal" v-if="tidalBlockedAtRoute(routeResult, i)"><span class="ropt-tidal">{{ t('tr.tidalBan') }}</span> {{ t('tr.tidalHours') }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
+							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="trd-carriage" v-for="(cl, ci) in carriageLines(routeResult, i)" :key="'cg' + ci">{{ cl }}</div><div class="trd-doors" v-for="(dl, di) in doorLines(routeResult, i)" :key="'dr' + di">{{ dl }}</div><div class="trd-tip" v-for="(tp, ti) in tipLines(routeResult, i)" :key="'tp' + ti">{{ tp }}</div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-tidal" v-if="tidalBlockedAtRoute(routeResult, i)"><span class="ropt-tidal">{{ t('tr.tidalBan') }}</span> {{ t('tr.tidalHours') }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
 							<div class="trd-seg" v-if="!seg.virtual" :class="{ 'trip-now': pageTrip && tripSegIndex() === i, 'trip-done': pageTrip && tripSegIndex() > i }" @click="goSegment(seg)"><span class="trd-rail" :style="{ background: '#' + seg.color }"></span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span class="trd-dir" v-if="segDirection(seg)">{{ t('trd.toward', {st: stNameStr(segDirection(seg))}) }}</span><span class="trd-ride">{{ t('trd.ride', {n: seg.stops, min: seg.stops * 2}) }}</span></div>
 						</template>
 						<div class="trd-node trd-dest"><span class="trd-dot dot-dest" :style="routeResult.segments[routeResult.segments.length - 1].virtual ? null : { borderColor: '#' + routeResult.segments[routeResult.segments.length - 1].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[routeResult.segments.length - 1].to) }}</span></div>
@@ -2198,7 +2236,7 @@
 			</div>
 
 			<div id="sheetBackdrop" v-show="showMore" @click="closeMore"></div>
-			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen && !locPermHint && !homeOverflow, 'home-scroll': showMore && !anySubViewOpen && homeOverflow, 'profile-lock': showMore && showProfileSub && !profileOverflow, 'profile-scroll': showMore && showProfileSub && profileOverflow }" v-show="showMore">
+			<div id="moreSheet" class="glass" :class="{ 'home-lock': showMore && !anySubViewOpen && !locPermHint && !homeOverflow, 'home-scroll': showMore && !anySubViewOpen && homeOverflow, 'profile-lock': showMore && showProfileSub && !profileOverflow, 'profile-scroll': showMore && showProfileSub && profileOverflow, 'sub-open': showMore && anySubViewOpen }" v-show="showMore">
 				<div class="more-main" v-show="!showCitySub && !showLangSub && !showWhatsNewSub && !showUpcomingSub && !showBriefingSub && !showAppearanceSub && !showGeneralSub && !showTrainSub && !showSiriSub && !showAboutSub && !showProfileSub && !showStructSub && !showRankingSub">
 				<div class="more-title">{{ t('app.name') }}</div>
 				<!-- 26E117: the account (login) card is FIRST on the
@@ -2228,7 +2266,6 @@
 				<div class="more-card">
 					<div class="more-row" @click="showCitySub = true"><img class="more-city-logo" :src="cityLogo" alt=""><span>{{ cityName }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showGeneralSub = true"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.general') }}</span><span class="more-chev">›</span></div>
-					<div class="more-row" @click="showAboutSub = true"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAFKklEQVR42u2dy28cRRDGf7NrwDjabLzOg8iJTXJAAokTCHFAXIED/DVI3DjAARDHSHBAAoWHkCIQIYmToCjmEdtgwltcOUYCKSgIFJAd7yyH6WaK8Wx2vN7umZ6pT2rt2j7M7lfVVV9XdbdBoVAoFAqFQqFQKBQKRfXREu8fBN4ErgGDXYzYvP4GnAYeAqZynqfkAxEwA7ywS9JHjRPAAfPctlKfeuJe4H1D0qbw3kmNGNgy7y8D8+a5U2oC2AecM+RsOPT+GLhl3n8BHG+yESLz2gWuCM8feBjWCF8BR5sYjiz508CKZ/LtTLDP+xK4p0mJuSU8brkE8uWwOWEdONiEmWC/3B5gKRMOyhp98/pD3Y3QFgn344qQnx3fA0fqmJhlwj1bctgZtWi7ChyrmxEio/MvepCak1gnrNdFolrPv9vo7iqGnSISNUh11Mohf7Pi5GcXa5+JskWw5C8HRH7eTHgtNFXUFrWdTwIJO6Mk6qOhkT8HnPfo+X0HxTupjE6FFHb2CbWziftywoZY1W44MsTNUGZAB7jkiXz58/Xb/G1SY8fSz6fUHJiYvwQ8ZrzRtX6+AbwM/Aj8bsobDwCvGEcYTJCLQVWlqP1QdwKfe/T8X0nalnm4D/izzBlQRmHtU08J16qpp8TsmzKO0BYe/3TdDSCl5kVPUtNKwl9I2onRkLAQmT7DH2UZoOUh7PSBHkkP9wlDvuuYb0n4CfjrNsTY3/2c+dkbXBIRmTjcBd4DnjTk3+Hhe1kipws8r2VCYy0xW1J5wVYrrwMLhuTWEPI7ImTVIgdEQuevllhesOXiV0d83jfqlITlvp3VChTW+sb4Lw75vC/VaSHWNl+4Q7Jv53FPi6yiuGa8/YbR/8+YGv6AyS9IfS9w/5Oas6KqGVpJOdgQZMnveSqs7TY5xw5rQN4NEHmuauoMyCF/1lNtRw2QQ/5eYE3J92sAKzW7FZGajTKA7GSFsnXEd5L/xzX5HdIerpK/XWG949IAUyRN56ruWCtz2DD8sMvK6XPq+bnDOuMJ0/FzgvuBv3FzJivkIXfGOS1rv53pNulIyV8m3ZborA4Uq+fnkr8C7PfRYVTStyfcK2Yx6qO9q8RnPP9rEfO9lJ+V/JT870gPb3ur/WvYSV7XgMUyGi9b6vmsmCa/7IN4w7u43dBadfJXRdgp5RDGolgDxA0jf430XHCpPe5nSc9FxQ2K+V1fUnNUE+Yu4HXcXRNTlWHz3Tc+Vrg7qYa2jDecElM0rmnYuVqG1CyyA6JlvOI8bs9clX3ud6Fq5Ge3oRwi3fcZUy+1s1im2tmJEXrAmZqpnfmqk59tUU6TXicTYqnaqp114HAo5GeNsAe4EGBiljF/f2jk5zXrzwRkBFnVnKtqwh1HHZ0LwAi3RNiZD5182bSPjBEuVFiiygv4gr5iZpgRMHWTSxWUqDLmHws15heVqF2SO5irRr70/Npewiol6tkKhCNJfiOunJRGmOH/Nx/GlJdwe3WL+UWMYC/h+6gEI9iq5remdFILtTOuRJ3zvE6Qnn+0qeRnJepB0qNMfU/k39u0sDNKHR0QRnBN/vGmJNxxyhZLjslfqLvUHBdRjkTdmkBOkIusQ+r5xauopydghDypGSnNxSRqB/iA8Rv9m0JqHlbyx5OoPeDDMYywIcLOESV/fCNEJA2Rk2y/dmzUnc1LIuHq//vapUSdIdn8dZNi94A+T3JkVsmfYGLGhJO3GF7Ovgw8kmNAhUKhUCgUCoVCoVAoFArFcPwLA5AhHICqHTsAAAAASUVORK5CYII=')"></span><span>{{ t('more.about') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="requestLocPerm">
 						<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
 						<span>{{ t('more.loc') }}</span>
@@ -2236,6 +2273,18 @@
 						<span class="more-chev">›</span>
 					</div>
 					<div class="more-loc-hint" v-if="locPermHint">{{ t('more.loc.hint') }}</div>
+					<!-- 26E126: the 附近车站智能显示 switch lived on the Siri
+						 sub-page until 26E125, where its location copy read as a
+						 Siri description (user report). It belongs with the
+						 定位 row on the Settings home. -->
+					<div class="more-card">
+					<div class="more-row more-row-switch">
+					<span>{{ t('siri.nearbySmart') }}</span>
+					<button v-if="!nativeApp" class="more-switch" :class="{ on: nearbySmart }" @click="toggleNearbySmart" role="switch" :aria-checked="nearbySmart ? 'true' : 'false'"><span class="more-switch-knob"></span></button>
+					<span v-else id="nearbySmartSlot" class="more-switch-slot"></span>
+					</div>
+					</div>
+					<div class="more-up-note">{{ t('siri.nearbySmart.desc') }}</div>
 					<div class="more-row" @click="relSel = -1; showWhatsNewSub = true"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showRankingSub = true"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAHIklEQVR42u2cW6gVVRjHf3P2Pp5Tal4qL4UpgWREN6MMy6jAyAfLQEpLsrAgkpCIiAiKiuylC0H40D0IFbtJN7o8ZBSV4YM9mIqWplYUGpqlnnP2nulhfYv9Oc4+zuwz4+yZvf6wmHP2rJlZ893Xt75Z4ODg4ODg4ODg4ODg4ODg0J7okuN44F5gJxAAPrALeAI4W/X1HMnSgyXmpcCPQviotheYH2KYQ0rEnwr8JoTuF8nXxB+Q4xFgXuhahyGiCmwVAtcU0evS9P8B8Jdc49CixHcDw4AeOc5RBLaS/xgwQto9QJ/yCQFwv1zbK8dupxGt43UhrJX+lRF9nlSmyAc+K5J9zeN5QcS5QJznEuBc1W8RME4YUAVmA1/KOXvPc4BNwoBu4G/gDblfAOwB3gT2yW9+grGVIoTsOg5j7PnnBolyrI1/MIJwi5WPqDe5fhVwcuh5xwt7C4+K+nsccAXwqJiRD4Dz1fnLgYMinYcl2umLiHj+k+uso50SmhfYY5+6h/URN6vnTQJeAt4VE3YVcGbI+Zdi8jQRWAb8ERE6XqP6LxwkzAxCBA7EpLwA/BtxLtyOyPFu9bxpMonT/fqBp8WkhQWokJI/C9gQETpaKb9WXXNTRLQTxGBEEKO/1YAl6nlTJbz1RRi06dqhhKOStYRmgQCYDLwMXKIIYNMEnry4H2JaENMJekKwWsgZJ33/ivIJlh79Ytbek7H7RWQAwMOiyv0S03uhKGNAmsUwFQ15MbWsmoD44fs2Cw6GybhGizkaUUQGnAfcJtLT3STk65WoxGKvstX145iUVponGmMxXFoUuqXvbOCiIjLgapGcZtJcE60Yo6RuPbBRXr6iTFUarQf4XeYP9t6nAmMHGaOdQyzIMseSFW4chMmeMkMzgbfl7wPAXRKmXiYaEvYb9YQmp1uc/XrgWeBXYXZdtLSqJm/NBHQBsLRoM+E9oZi6mT0+JI5ui0hpnxBoVGh8XouzVMvsA3Jv+4xJwNfAWTFpUbg8UhwbbkPH74AJcl1PRmFfRe4NcBLwTgJf41NAxHWMlgkbgBtOwLiuB9a24MALl4xLMmhf7G0N+ETM1z6RToYQ51uf0SWz8QnAdaIB9YSa5pWZAbRAkKGg1kIAUnoGoGxynGxlUlhTVxmCNpWeAe2MTGjlKgdyhmOAY4BjgEOOaJcltyCUavBOkGPPPb3QDlGQH0MTg4zG6iewAqUOQ7cCr2ASZrdiUtlRxNktkygv4TsGEfcbRSMVXghtaYUBgzW7lLiOYxdF3ufoPNFh4AEhWJVGpVuc1ksj1Wyr7Xoxhb4/ET8hR5kY4GOWKQNgrvTvobFGO5lGsW0AvJqytlvfN1eeU8uLAXk6YWsO7OqXfsldHJ2vWa/G67dI+EA90y7w7Ab2A6cl9AelMEFWAx6JuPaOUN/NmKKutIXvcTE//XRgOtpGNkeA+4AvMCtVFwJvYdZr9Ti3Ay+2SAxfSbhdprwYuD1vWrVTMm4TpsJtRsK5QVrzj45mgLb3daK/8bKRU5o+yC3IKNRDDrLd4NLRZUQ7aEDQxNx4TaKqNN/dy5tW7WKC6sDHEpPPx5QrtltcXjoGWAJvB26RtIAvk6LPMVVrvpLUNcDyIUh6TTndLkzl3TOSBonD7NLlgsL1+poAM0P5mY8yGuMimYQN9kFIKVMRgXr2XhUSWkn8VojSK33WqugoDWJUhMGbZe4xRmlbLvmYPOypzemMlr/r6vdZmMylxVzVx0+h2U9ZLwBOEfPUlRch8vYBuzAfYm+R34djUtTTQ1K5CliBSU13JdAE+xGGfV5dpSKeEgGIMyMudRTkY0rU/8Hs83C6i4Lacx7gZTBGlwtSWtDKBMlpQEoM6MisQbuUpdiNOGyIWKFDUCQfUG/RDzS7v2V2R/sAS5wdmJ1N9mM23ZjufED2DLALLz8Ad8qsFMymfGswG2do6V2OKVfRDjvJOwahyed4zFf8Ezs1F2QXwhdL/x41+53G0WUpr2U0xvkyjlon5oKsxB2kUW4yIHb5F9EQO77vpX81JWJUhejbMFvfjM4rF5SnBths6DLlEC1T5qm8TYD5njcLPMSxGwF2VFlKAPyJ2Yh1rfw+A1iN2a0kUONcB3woEps0F6R3V6xitlCYgilLGRmTFqWvitgp4zkD8xlps1Cy1ZREMMT37vhcUNrJOT8UFXV8KiJo83Cv1KmIQsbZacDVBTkGOAY4OAYUYlLpGFDGACFLBmzMWnpOIA4VkQGrKfB2X0p4AjLcCj9LBnxVgtjeFoutLOLgh2MqnnXuv0jNZki3YRZtCum4ZijiF4kJ/TQWhOYUVX1tmmMhZtHFblcfZ2f0PJqtPdUrcUuLniaxPuZK4NMCacA3mG8WCk38sCaMFEY8D/xMY0WsHdoAZkvjFZjK7LGhsTs4ODg4ODg4ODg4ODg4ODiUAf8DNWic2pChUOgAAAAASUVORK5CYII=')"></span><span>{{ t('more.ranking') }}</span><span class="more-chev">›</span></div>
@@ -2243,6 +2292,7 @@
 					<div class="more-row" @click="showTrainSub = true; loadTrains()"><span class="more-train-icon"></span><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="openStructSub()"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.structure') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showSiriSub = true"><img class="more-row-icon" :src="siriRowIcon" alt=""><span>{{ t('more.siri') }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="showAboutSub = true"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAFKklEQVR42u2dy28cRRDGf7NrwDjabLzOg8iJTXJAAokTCHFAXIED/DVI3DjAARDHSHBAAoWHkCIQIYmToCjmEdtgwltcOUYCKSgIFJAd7yyH6WaK8Wx2vN7umZ6pT2rt2j7M7lfVVV9XdbdBoVAoFAqFQqFQKBQKRfXREu8fBN4ErgGDXYzYvP4GnAYeAqZynqfkAxEwA7ywS9JHjRPAAfPctlKfeuJe4H1D0qbw3kmNGNgy7y8D8+a5U2oC2AecM+RsOPT+GLhl3n8BHG+yESLz2gWuCM8feBjWCF8BR5sYjiz508CKZ/LtTLDP+xK4p0mJuSU8brkE8uWwOWEdONiEmWC/3B5gKRMOyhp98/pD3Y3QFgn344qQnx3fA0fqmJhlwj1bctgZtWi7ChyrmxEio/MvepCak1gnrNdFolrPv9vo7iqGnSISNUh11Mohf7Pi5GcXa5+JskWw5C8HRH7eTHgtNFXUFrWdTwIJO6Mk6qOhkT8HnPfo+X0HxTupjE6FFHb2CbWziftywoZY1W44MsTNUGZAB7jkiXz58/Xb/G1SY8fSz6fUHJiYvwQ8ZrzRtX6+AbwM/Aj8bsobDwCvGEcYTJCLQVWlqP1QdwKfe/T8X0nalnm4D/izzBlQRmHtU08J16qpp8TsmzKO0BYe/3TdDSCl5kVPUtNKwl9I2onRkLAQmT7DH2UZoOUh7PSBHkkP9wlDvuuYb0n4CfjrNsTY3/2c+dkbXBIRmTjcBd4DnjTk3+Hhe1kipws8r2VCYy0xW1J5wVYrrwMLhuTWEPI7ImTVIgdEQuevllhesOXiV0d83jfqlITlvp3VChTW+sb4Lw75vC/VaSHWNl+4Q7Jv53FPi6yiuGa8/YbR/8+YGv6AyS9IfS9w/5Oas6KqGVpJOdgQZMnveSqs7TY5xw5rQN4NEHmuauoMyCF/1lNtRw2QQ/5eYE3J92sAKzW7FZGajTKA7GSFsnXEd5L/xzX5HdIerpK/XWG949IAUyRN56ruWCtz2DD8sMvK6XPq+bnDOuMJ0/FzgvuBv3FzJivkIXfGOS1rv53pNulIyV8m3ZborA4Uq+fnkr8C7PfRYVTStyfcK2Yx6qO9q8RnPP9rEfO9lJ+V/JT870gPb3ur/WvYSV7XgMUyGi9b6vmsmCa/7IN4w7u43dBadfJXRdgp5RDGolgDxA0jf430XHCpPe5nSc9FxQ2K+V1fUnNUE+Yu4HXcXRNTlWHz3Tc+Vrg7qYa2jDecElM0rmnYuVqG1CyyA6JlvOI8bs9clX3ud6Fq5Ge3oRwi3fcZUy+1s1im2tmJEXrAmZqpnfmqk59tUU6TXicTYqnaqp114HAo5GeNsAe4EGBiljF/f2jk5zXrzwRkBFnVnKtqwh1HHZ0LwAi3RNiZD5182bSPjBEuVFiiygv4gr5iZpgRMHWTSxWUqDLmHws15heVqF2SO5irRr70/Npewiol6tkKhCNJfiOunJRGmOH/Nx/GlJdwe3WL+UWMYC/h+6gEI9iq5remdFILtTOuRJ3zvE6Qnn+0qeRnJepB0qNMfU/k39u0sDNKHR0QRnBN/vGmJNxxyhZLjslfqLvUHBdRjkTdmkBOkIusQ+r5xauopydghDypGSnNxSRqB/iA8Rv9m0JqHlbyx5OoPeDDMYywIcLOESV/fCNEJA2Rk2y/dmzUnc1LIuHq//vapUSdIdn8dZNi94A+T3JkVsmfYGLGhJO3GF7Ovgw8kmNAhUKhUCgUCoVCoVAoFArFcPwLA5AhHICqHTsAAAAASUVORK5CYII=')"></span><span>{{ t('more.about') }}</span><span class="more-chev">›</span></div>
 				</div>
 				<div class="more-credit">{{ t('more.credit', {c: t('city.' + city)}) }}</div>
 				</div>
@@ -2252,10 +2302,19 @@
 						<button class="more-sub-back" @click="closeCitySub"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
 						<div class="more-sub-title">{{ t('more.switchCity') }}</div>
 					</div>
+					<div class="more-card">
+						<div class="more-maps-head">{{ t('map.downloadTitle') }}</div>
+						<div class="more-maps-row" v-if="!nativeApp">
+							<button class="more-maps-btn" @click="downloadAllMaps" :disabled="mapDownloadingAll">{{ mapDownloadingAll ? t('map.downloadingShort') : t('map.downloadAll') }}</button>
+						</div>
+						<span v-else id="mapsDownloadSlot" class="more-maps-slot"></span>
+						<div class="more-maps-status" v-if="mapDownloadProgress">{{ t('map.downloadingCount', {done: mapDownloadProgress.done, total: mapDownloadProgress.total}) }}</div>
+						<div class="more-maps-status">{{ t('map.downloadedCount', {n: downloadedMapCount()}) }}</div>
+					</div>
 					<div class="more-section">{{ t('more.switchCity') }}</div>
 					<div class="more-card">
 						<div v-for="c in cityList" :key="c.key">
-							<div class="more-city-row" @click="onCityRowTap(c.key)"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-check" v-if="city === c.key">✓</span><span class="more-chev" v-if="c.key === 'bj'">{{ bjMapExpanded ? '⌄' : '›' }}</span></div>
+							<div class="more-city-row" @click="onCityRowTap(c.key)"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-check" v-if="city === c.key">✓</span><span class="more-city-dl" v-if="c.key !== 'bj' && mapState[c.key] !== 'ready'">{{ mapState[c.key] === 'loading' ? t('map.downloadingShort') : (mapState[c.key] === 'error' ? t('map.retry') : t('map.download')) }}</span><span class="more-chev" v-if="c.key === 'bj'">{{ bjMapExpanded ? '⌄' : '›' }}</span></div>
 							<div v-if="c.key === 'bj' && bjMapExpanded">
 								<div class="more-city-row more-bj-type" @click="pickBjMapType('track')"><span class="more-city-name"><span>{{ t('map.type.track') }}</span></span><span class="more-check" v-if="city === 'bj' && bjMapType === 'track'">✓</span></div>
 								<div class="more-city-row more-bj-type" @click="pickBjMapType('line')"><span class="more-city-name"><span>{{ t('map.type.line') }}</span></span><span class="more-check" v-if="city === 'bj' && bjMapType === 'line'">✓</span></div>
@@ -2365,14 +2424,6 @@
 					</div>
 					<div class="more-up-note">{{ t('more.siri.note') }}</div>
 					<div class="more-card">
-						<div class="more-row more-row-switch">
-							<span>{{ t('siri.nearbySmart') }}</span>
-							<button v-if="!nativeApp" class="more-switch" :class="{ on: nearbySmart }" @click="toggleNearbySmart" role="switch" :aria-checked="nearbySmart ? 'true' : 'false'"><span class="more-switch-knob"></span></button>
-							<span v-else id="nearbySmartSlot" class="more-switch-slot"></span>
-						</div>
-					</div>
-					<div class="more-up-note">{{ t('siri.nearbySmart.desc') }}</div>
-					<div class="more-card">
 						<div class="more-row" v-for="s in siriShortcuts" :key="s.id" @click="addShortcut(s.id)">
 							<div class="more-siri-text"><div class="more-siri-name">{{ t(s.nameKey) }}</div><div class="more-siri-desc">{{ t(s.descKey) }}</div><div class="more-siri-voice">{{ t(s.voiceKey) }}</div></div>
 							<span class="more-chev">›</span>
@@ -2418,10 +2469,10 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E125)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E126)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
-						<div class="more-row" @click="openAppearance"><img class="more-row-icon" :src="appearanceIcon" alt=""><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(data:image/png;base64,' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
 						<div class="more-row" @click="openLanguage"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.lang') }}</span><span class="more-row-value">{{ langDisplayName }}</span><span class="more-chev">›</span></div>
 					</div>
 					<div class="more-section">{{ t('more.general') }}</div>
@@ -2454,7 +2505,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E125)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E126)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2560,6 +2611,17 @@
 				</transition>
 			</div>
 
+<!-- 26E126 J: on-demand map state — shown only while the current
+     city's map is still downloading or failed (the overlay covers
+     the switch itself). Beijing 'track' never reaches this: its
+     loadProd path owns that map. -->
+<div class="map-state" v-if="tab === 'map' && !curr.svgDom && mapState[city] === 'error'">
+	<div class="map-state-text">{{ t('map.downloadFailed') }}</div>
+	<button class="map-state-btn" @click="ensureMap(city)">{{ t('map.retry') }}</button>
+</div>
+<div class="map-state" v-else-if="tab === 'map' && !curr.svgDom && mapState[city] === 'loading'">
+	<div class="map-state-text">{{ t('map.downloading') }}</div>
+</div>
 <span id="svgDiv" v-html="curr.svgDom"></span>
 <!-- 26E124: the map station card is rendered ENTIRELY natively
      (Liquid Glass card, SDK 27.2 — station name, line badges at
@@ -2620,7 +2682,15 @@ var I18N = {
   'map.verInfo': ['{c}地铁线网图 , {d} , {l}条线 {s}站', '{c}地鐵線網圖 , {d} , {l}條線 {s}站', '{c} Metro network map, {d}, {l} lines, {s} stations'],
   'map.type.track': ['配线图', '配線圖', 'Track Layout'],
   'map.type.line': ['线路图', '線路圖', 'Line Map'],
-  'tr.applepay': ['Apple Pay', 'Apple Pay', 'Apple Pay'],
+  'map.downloadTitle': ['线路图下载', '線路圖下載', 'Line maps'],
+  'map.downloadAll': ['下载全部线路图', '下載全部線路圖', 'Download all line maps'],
+  'map.download': ['下载', '下載', 'Download'],
+  'map.downloading': ['正在下载线路图…', '正在下載線路圖…', 'Downloading line map…'],
+  'map.downloadingShort': ['下载中…', '下載中…', 'Downloading…'],
+  'map.downloadingCount': ['正在下载 {done}/{total}', '正在下載 {done}/{total}', 'Downloading {done}/{total}'],
+  'map.downloadedCount': ['已下载 {n}/15 张线路图', '已下載 {n}/15 張線路圖', 'Downloaded {n}/15 line maps'],
+  'map.downloadFailed': ['线路图下载失败，请检查网络后重试', '線路圖下載失敗，請檢查網絡後重試', 'Line map download failed — check the network and retry'],
+  'map.retry': ['重试', '重試', 'Retry'],  'tr.applepay': ['Apple Pay', 'Apple Pay', 'Apple Pay'],
   'tt.phLine': ['输入线路名', '輸入線路名', 'Enter line name'],
   'tt.phStation': ['输入车站名', '輸入車站名', 'Enter station name'],
   'tt.foundLines': ['找到 {n} 条', '找到 {n} 條', '{n} lines found'],
@@ -2687,6 +2757,8 @@ var I18N = {
   'tr.editFailed': ['无法按此换乘站重新规划', '無法按此換乘站重新規劃', 'Could not replan via this station'],
   'tr.virtualTag': ['虚拟换乘', '虛擬換乘', 'Virtual transfer'],
   'tr.fastTag': ['快速换乘', '快速換乘', 'Fast transfer'],
+  'tr.tidalBan': ['禁止通行', '禁止通行', 'No passage'],
+  'tr.tidalHours': ['工作日 7:20–9:20、16:30–20:00', '工作日 7:20–9:20、16:30–20:00', 'Weekdays 7:20–9:20, 16:30–20:00'],
   'tr.fastOk': ['知道了', '知道了', 'Got it'],
   'tr.fastNote.suzhoujie': ['前往10号线中部/16号线中部乘坐直梯即可快速换乘', '前往10號線中部/16號線中部乘坐直梯即可快速換乘', 'Head to the middle of the Line 10 / Line 16 platforms and take the lift for a fast transfer'],
   'tr.fastNote.erligou': ['前往16号线站台外挂厅/6号线外挂厅通过直梯换乘', '前往16號線站台外掛廳/6號線外掛廳通過直梯換乘', 'Head to the outer hall of the Line 16 platform / the Line 6 outer hall and transfer via the lift'],
@@ -2696,7 +2768,8 @@ var I18N = {
   'tr.fastType.hub3': ['三线集中型', '三線集中型', 'Three-line hub'],
   'tr.fastType.timed': ['分时段抄近道型', '分時段抄近道型', 'Timed shortcut'],
   'tr.fastType.dualNode': ['双向节点', '雙向節點', 'Two-way node'],
-  'tr.fastNote.yonganli': ['直梯连接站台、站厅与换乘厅', '直梯連接月台、站廳與換乘廳', 'Lifts connect the platforms, the concourse and the transfer hall'],
+  'tr.fastNote.yonganli': ['换乘通道直梯，可以跨过17号线站厅', '換乘通道直梯，可以跨過17號線站廳', 'The transfer passage lift lets you cross over the Line 17 concourse'],
+  'tr.fastNote.beitucheng': ['通过直梯快速到达各自线路站台', '通過直梯快速到達各自線路站台', 'Lifts take you quickly to each line\u2019s own platform'],
   'tr.fastNote.dongdaqiao': ['换乘距离较短', '換乘距離較短', 'A short transfer walk'],
   'tr.fastNote.wangjingxi': ['三条线路集中衔接', '三條線路集中銜接', 'Three lines meet in one hub'],
   'tr.fastNote.cishousi': ['特定时段开放反向通道', '特定時段開放反向通道', 'A reverse passage opens at set times'],
@@ -2713,6 +2786,17 @@ var I18N = {
   'tr.inStation': ['站内换乘', '站內換乘', 'In-station transfer'],
   'tr.transferEst': ['站内换乘 · 约{dist}米 · 约{min}分钟（预估）', '站內換乘 · 約{dist}米 · 約{min}分鐘（預估）', 'In-station transfer · about {dist} m · about {min} min (estimate)'],
   'tr.transferDist': ['站内换乘 · 约{dist}米', '站內換乘 · 約{dist}米', 'In-station transfer · about {dist} m'],
+  'tr.carriage': ['换乘{line}号线建议乘{car}号车厢{note}', '換乘{line}號線建議乘{car}號車廂{note}', 'Transferring to Line {line}: ride car {car}{note}'],
+  'tr.carriageRing': ['换乘{line}号线{ring}建议乘{car}号车厢{note}', '換乘{line}號線{ring}建議乘{car}號車廂{note}', 'Transferring to Line {line} ({ring}): ride car {car}{note}'],
+  'tr.carriageRingInner': ['内环', '內環', 'inner loop'],
+  'tr.carriageRingOuter': ['外环', '外環', 'outer loop'],
+  'tr.carriageOffpeak': ['非高峰：换乘{line}号线建议乘{car}号车厢{note}', '非高峰：換乘{line}號線建議乘{car}號車廂{note}', 'Off-peak: transferring to Line {line}, ride car {car}{note}'],
+  'tr.carriagePeak': ['高峰：换乘{line}号线建议乘{car}号车厢{note}', '高峰：換乘{line}號線建議乘{car}號車廂{note}', 'Peak: transferring to Line {line}, ride car {car}{note}'],
+  'tr.carriageText': ['换乘{line}号线建议乘{car}车厢{note}', '換乘{line}號線建議乘{car}車廂{note}', 'Transferring to Line {line}: ride {car} cars{note}'],
+  'tr.doors': ['换乘{line}号线建议下车门：{doors}', '換乘{line}號線建議下車門：{doors}', 'Transferring to Line {line}: fastest exit doors — {doors}'],
+  'tr.doorsBranch': ['换乘{line}号线建议下车门（{branch}）：{doors}', '換乘{line}號線建議下車門（{branch}）：{doors}', 'Transferring to Line {line} ({branch}): fastest exit doors — {doors}'],
+  'tr.doorsForm4A': ['4A编组', '4A編組', '4A formation'],
+  'tr.doorsForm8A': ['8A编组', '8A編組', '8A formation'],
   'tr.transferOut': ['出站换乘 · 约{dist}米 · 约{min}分钟（预估）', '出站換乘 · 約{dist}米 · 約{min}分鐘（預估）', 'Out-of-station transfer · about {dist} m · about {min} min (estimate)'],
   'tr.hint': ['点一段可在图上查看', '點一段可在圖上查看', 'Tap a segment to view it on the map'],
   'tr.history': ['搜索记录', '搜索記錄', 'Search History'],
@@ -2877,8 +2961,8 @@ var I18N = {
   'more.briefing': ['轨道交通信息简报', '軌道交通資訊簡報', 'Transit Briefing'],
   'more.briefing.updated': ['更新于 {d}', '更新於 {d}', 'Updated {d}'],
   'more.briefing.empty': ['暂无该城市简报', '暫無該城市簡報', 'No briefing for this city'],
-  'more.siri': ['Siri AI快捷指令', 'Siri AI快捷指令', 'Siri AI Shortcuts'],
-  'more.siri.note': ['在 Siri 里说出下面的口令即可使用。点按一条可将其添加到 Siri。', '在 Siri 裡說出下面的口令即可使用。點按一條可將其加入 Siri。', 'Say the phrase below to Siri to use it. Tap an item to add it to Siri.'],
+  'more.siri': ['Siri快捷指令', 'Siri快捷指令', 'Siri Shortcuts'],
+  'more.siri.note': ['在 Siri 里说出下面的口令即可使用。点按一条会在「快捷指令」App 里打开新建编辑器，搜索「城轨通」即可添加。', '在 Siri 裡說出下面的口令即可使用。點按一條會在「捷徑」App 裡打開新建編輯器，搜尋「城軌通」即可添加。', 'Say the phrase below to Siri to use it. Tap a row to open the Shortcuts editor, then search \u201cSubway Tools\u201d to add the action.'],
   'siri.nearbySmart': ['附近车站智能显示', '附近車站智能顯示', 'Smart Nearby Stations'],
   'siri.nearbySmart.desc': ['开启后，换乘页会根据定位智能显示 1.5 公里内的最近车站；关闭后只显示普通附近车站列表。', '開啟後，換乘頁會根據定位智能顯示 1.5 公里內的最近車站；關閉後只顯示普通附近車站列表。', 'When on, the Transfer tab smartly shows the nearest stations within 1.5 km based on your location; when off, only the regular nearby list is shown.'],
   'siri.openApp': ['打开城轨通', '打開城軌通', 'Open Subway tools'],
@@ -3167,6 +3251,42 @@ function titlePy(py) {
 					try { db.transaction('imgs', 'readwrite').objectStore('imgs').put(val, key); } catch (e) {}
 				});
 			}
+			// 26E126 J: on-demand line maps — IndexedDB 'metro-maps'
+			// (store 'maps', key 'map:<city>'), same shape as the
+			// structure-image cache above. Every failure resolves to
+			// null (memory-only behaviour), never throws into the page.
+			var _mapDbPromise = null;
+			function mapDb() {
+				if (_mapDbPromise) return _mapDbPromise;
+				_mapDbPromise = new Promise(function(resolve) {
+					try {
+						if (!window.indexedDB) { resolve(null); return; }
+						var req = window.indexedDB.open('metro-maps', 1);
+						req.onupgradeneeded = function() { try { req.result.createObjectStore('maps'); } catch (e) {} };
+						req.onsuccess = function() { resolve(req.result); };
+						req.onerror = function() { resolve(null); };
+					} catch (e) { resolve(null); }
+				});
+				return _mapDbPromise;
+			}
+			function mapIdbGet(key) {
+				return mapDb().then(function(db) {
+					return new Promise(function(resolve) {
+						if (!db) { resolve(null); return; }
+						try {
+							var rq = db.transaction('maps', 'readonly').objectStore('maps').get(key);
+							rq.onsuccess = function() { resolve(rq.result || null); };
+							rq.onerror = function() { resolve(null); };
+						} catch (e) { resolve(null); }
+					});
+				});
+			}
+			function mapIdbPut(key, val) {
+				mapDb().then(function(db) {
+					if (!db) return;
+					try { db.transaction('maps', 'readwrite').objectStore('maps').put(val, key); } catch (e) {}
+				});
+			}
 			// Creator redemption tables (26E122, user-supplied verbatim,
 			// 2026-11-23): CREATOR_REDEEM_CODES[i] redeems
 			// CREATOR_IDS[i] — the two tables are index-aligned, 20
@@ -3367,7 +3487,7 @@ function titlePy(py) {
 						// ({st, pinKey} while a tapped station's
 						// card is up, else null).
 						mapCard: null,
-						tab: 'map',
+						tab: 'transfer',
 						showStations: false,
 						showStructure: false,
 						// Structure as a Settings sub-page (26E112): the
@@ -3427,6 +3547,8 @@ function titlePy(py) {
 						bjTransferTimes: (window.BJ_TRANSFER_TIMES || {}),
 						bjTransferDist: (window.BJ_TRANSFER_DIST || {}),
 						bjVtExits: (window.BJ_VT_EXITS || []),
+						bjTransferCarriage: (window.BJ_TRANSFER_CARRIAGE || {}),
+						bjTransferDoors: (window.BJ_TRANSFER_DOORS || {}),
 						walkIcon: (window.WALK_ICON || ''),
 						walkIconInk: (window.WALK_ICON_INK || ''),
 						pinIcon: (window.PIN_ICON || ''),
@@ -3550,6 +3672,14 @@ function titlePy(py) {
 						wxLogo: (window.WX_LOGO || ''),
 						wxMark: (window.WX_MARK || ''),
 						wxMap: (window.WX_MAP || ''),
+						// 26E126 J: maps on demand — the 15 line maps are no
+						// longer bundled. mapState tracks each city's download
+						// ('' = not downloaded, 'loading', 'ready', 'error').
+						// Beijing's default (track) map still comes from its
+						// own loadProd path; 'bj' here is the LINE map.
+						mapState: { bj: '', sy: '', sh: '', hb: '', dl: '', jh: '', cz: '', cq: '', cc: '', sz: '', cd: '', qd: '', sjz: '', tj: '', wx: '' },
+						mapDownloadingAll: false,
+						mapDownloadProgress: null,
 						wxTimetable: (window.WX_TIMETABLE || {}),
 						wxLatLng: (window.WX_LATLNG || {}),
 						wxSplash: (window.WX_SPLASH || ''),
@@ -3733,6 +3863,25 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E126)', date: '2026-11-24', lines: [
+								['1 号线换乘车厢建议：11 个换乘站新增上车车厢提示，在 1 号线换乘其他线路时，路线详情的换乘节点会提示建议乘坐的车厢号（如换乘 10 号线内环建议乘 6 号车厢；建国门同时列出高峰与非高峰建议）；1 号线西行方向改称往苹果园方向（上行终点站是苹果园）', '1 號線換乘車廂建議：11 個換乘站新增上車車廂提示，在 1 號線換乘其他線路時，路線詳情的換乘節點會提示建議乘坐的車廂號（如換乘 10 號線內環建議乘 6 號車廂；建國門同時列出高峰與非高峰建議）；1 號線西行方向改稱往蘋果園方向（上行終點站是蘋果園）', 'Line 1 transfer car tips: all 11 Line 1 interchanges now suggest which car to ride — the route-detail transfer node shows the recommended car when you change off Line 1 (e.g. car 6 for the Line 10 inner loop; Jianguomen lists peak and off-peak side by side). The Line 1 westbound direction is now named toward Pingguoyuan (the up-direction terminus)'],
+								['换乘最快车门：北京各线换乘站新增最快下车门提示，路线详情的换乘节点按方向显示（如换乘 6 号线建议下车门：2 号线 15 门/8 门；6 号线 5 门/28 门）；内/外环、4A/8A 编组按分支显示，同台换乘与暂无实测的站只显示提示、不编数字', '換乘最快車門：北京各線換乘站新增最快下車門提示，路線詳情的換乘節點按方向顯示（如換乘 6 號線建議下車門：2 號線 15 門/8 門；6 號線 5 門/28 門）；內/外環、4A/8A 編組按分支顯示，同台換乘與暫無實測的站只顯示提示、不編數字', 'Fastest transfer doors: Beijing interchanges now suggest the fastest exit doors on the route-detail transfer node, by direction (e.g. changing to Line 6: Line 2 doors 15/8, Line 6 doors 5/28). Inner/outer loop and 4A/8A formation branches are shown separately; same-platform interchanges and stations with no measured data show a tip only — no numbers are invented'],
+								['18 号线换乘指引：马连洼、天通苑、回龙观东大街、天通苑东 4 站新增换乘提示（马连洼 18↔16 车厢建议与扶梯方向、天通苑 2 门直梯与通道提示；回龙观东大街与天通苑东暂无实测车厢数据，只显示换乘方式提示）', '18 號線換乘指引：馬連窪、天通苑、回龍觀東大街、天通苑東 4 站新增換乘提示（馬連窪 18↔16 車廂建議與扶梯方向、天通苑 2 門直梯與通道提示；回龍觀東大街與天通苑東暫無實測車廂數據，只顯示換乘方式提示）', 'Line 18 transfer guidance: Malianwa, Tiantongyuan, Huilongguan Dongdajie and Tiantongyuan East gain transfer tips (Malianwa 18↔16 car tips and escalator directions, Tiantongyuan door-2 lift and passage notes; Huilongguan Dongdajie and Tiantongyuan East have no measured car data yet, so they show a passage tip only)'],
+								['修复路线详情页被换乘搜索卡片盖住的问题：打开详情页时，原生搜索卡片、排序页签与快捷按钮会隐藏，返回后恢复；详情页顶部不再顶到状态栏，底部留出底部栏空间', '修復路線詳情頁被換乘搜尋卡片蓋住的問題：打開詳情頁時，原生搜尋卡片、排序頁籤與快捷按鈕會隱藏，返回後恢復；詳情頁頂部不再頂到狀態欄，底部留出底部欄空間', 'Fixed the route-detail page being covered by the transfer search card: opening the detail now hides the native search card, sort tabs and quick-action buttons (restored on back). The detail page also clears the status bar at the top and leaves room for the bottom bar'],
+								['开屏后默认进入换乘页，不再直接进入线路图；线路图仍可从底部栏点开', '開屏後預設進入換乘頁，不再直接進入線路圖；線路圖仍可從底部欄點開', 'The app now opens on the Trip Planner tab after the splash, instead of the line map; the map is still one tap away on the tab bar'],
+								['修复退出设置子页后残留上一页文字与返回箭头的问题：退出 Siri 子页及任意设置子页后，设置页不再出现上一页的页脚文字、标题重影与底部栏下的残留行', '修復退出設定子頁後殘留上一頁文字與返回箭頭的問題：退出 Siri 子頁及任意設定子頁後，設定頁不再出現上一頁的頁腳文字、標題重影與底部欄下的殘留行', 'Fixed ghosting when leaving a Settings subpage: after exiting the Siri subpage or any other Settings subpage, the Settings page no longer shows the previous page’s footer text, doubled title or leftover rows below the tab bar'],
+								['修复 Siri 快捷指令点按无反应：点任意一条可正常添加到 Siri；Siri 页顶部的说明不再串入定位功能的文字', '修復 Siri 快捷指令點按無反應：點任意一條可正常加入 Siri；Siri 頁頂部的說明不再串入定位功能的文字', 'Fixed Siri Shortcuts not responding to taps: tapping any row now adds it to Siri, and the Siri page header no longer shows the location feature’s description'],
+								['设置里的 Siri 行换成绳结图标，名称改为「Siri快捷指令」，深浅色模式自动适配', '設定裡的 Siri 行換成繩結圖示，名稱改為「Siri快捷指令」，深淺色模式自動適配', 'The Siri row in Settings now uses the knotted-ring icon and is renamed Siri Shortcuts, adapting to light and dark mode'],
+								['15 城线路图改为现用现下：不再随安装包内置，首次打开某城线路图时下载、之后离线可用，设置里可下载全部线路图并查看下载进度与已下载状态；切换城市只列出已下载的城市，未下载的城市可先下载再切换', '15 城線路圖改為現用現下：不再隨安裝包內建，首次打開某城線路圖時下載、之後離線可用，設定裡可下載全部線路圖並查看下載進度與已下載狀態；切換城市只列出已下載的城市，未下載的城市可先下載再切換', 'Line maps are now download-on-use: the 15 cities’ maps are no longer bundled in the app — each downloads on first use and works offline afterwards, and Settings can download all maps with progress and downloaded state shown. The city switcher lists only downloaded cities; an undownloaded city can be downloaded first, then switched to'],
+								['设置卡片里的「关于」移到最下面一行', '設定卡片裡的「關於」移到最下面一行', 'About now sits at the bottom of the Settings card'],
+								['车型检索图标提亮，与其他设置图标亮度一致', '車型檢索圖示提亮，與其他設定圖示亮度一致', 'The train-model search icon is brightened to match the other Settings icons'],
+								['换乘页智能显示区块统一左对齐：标题、两行暂无车站提示与搜索记录卡片对齐到同一内容边，「2 公里内暂无车站」不再居中', '換乘頁智能顯示區塊統一左對齊：標題、兩行暫無車站提示與搜尋記錄卡片對齊到同一內容邊，「2 公里內暫無車站」不再置中', 'The Trip Planner’s smart-display block is now left-aligned throughout: the header, both no-station lines and the search-history card share one content edge, and “no stations within 2 km” is no longer centred'],
+								['永安里快速换乘说明改为「换乘通道直梯，可以跨过17号线站厅」', '永安里快速換乘說明改為「換乘通道直梯，可以跨過17號線站廳」', 'Yong’anli’s Fast Transfer note now reads “transfer-passage lift, crossing over the Line 17 concourse”'],
+								['快速换乘只标注用户点名过的站，不从车厢、车门或 18 号线数据推导；新增北土城 8 / 10 号线（通过直梯快速到达各自线路站台）', '快速換乘只標註使用者點名過的站，不從車廂、車門或 18 號線數據推導；新增北土城 8 / 10 號線（通過直梯快速到達各自線路月台）', 'Fast Transfer is tagged only at stations the user named — never derived from car, door or Line 18 data. Beitucheng (Lines 8 / 10) is added: “reach each line’s platform quickly by lift”'],
+								['复兴门、建国门、东四十条新增潮汐换乘提示：工作日 7:20–9:20 与 16:30–20:00 禁止通行，在此时段规划路线经过这三处换乘时会提示禁止通行（只提示，不改路线、不改票价与时间）', '復興門、建國門、東四十條新增潮汐換乘提示：工作日 7:20–9:20 與 16:30–20:00 禁止通行，在此時段規劃路線經過這三處換乘時會提示禁止通行（只提示，不改路線、不改票價與時間）', 'Fuxingmen, Jianguomen and Dongsishitiao gain a tidal-transfer notice: closed on weekdays 7:20–9:20 and 16:30–20:00. Routes planned through them in those windows show a no-passage notice — a warning only, with no rerouting and no fare or time change'],
+								['通用子页的外观图标换成太极图，深浅色模式自动适配', '通用子頁的外觀圖示換成太極圖，深淺色模式自動適配', 'The Appearance icon in the General subpage is now the taiji symbol, adapting to light and dark mode'],
+								['iPad 子页顶上安全区去掉，内容顶到屏幕顶边；顶部按钮滑动时隐藏、上滑时回来（仅 iPad）', 'iPad 子頁頂上安全區去掉，內容頂到螢幕頂邊；頂部按鈕滑動時隱藏、上滑時回來（僅 iPad）', 'On iPad, subpages no longer leave a safe-area gap at the top — content starts at the screen’s top edge — and the top buttons hide while scrolling and return when you scroll back up (iPad only)'],
+							] },
 							{ v: '1.1.0 (26E125)', date: '2026-11-24', lines: [
 							['修复更新页挡住入口的问题：更新页改为开屏后全屏展示，确认按钮固定在底部，点「知道了」即可进入 App（此前确认按钮会被底部栏盖住导致进不去）', '修復更新頁擋住入口的問題：更新頁改為開屏後全螢幕展示，確認按鈕固定在底部，點「知道了」即可進入 App（此前確認按鈕會被底部欄蓋住導致進不去）', 'Fixed the What’s New page blocking entry: it now shows full-screen right after the splash, with the confirm button pinned at the bottom — tap Got It to enter the app (the button used to hide behind the bottom bar, leaving no way in)'],
 							['路线详情改为独立页面：点任意路线整页进入详情（顶部带列表卡摘要，下面是完整时间线），返回时列表停在原滚动位置；新增「开始行程」——按站手动点「到站」推进，高亮当前乘坐段并显示下一站、剩余站数与预计剩余时间；新增「编辑换乘」——每个换乘站可改选同两条线的其他换乘站并按新换乘站重新规划', '路線詳情改為獨立頁面：點任意路線整頁進入詳情（頂部帶列表卡摘要，下面是完整時間線），返回時列表停在原捲動位置；新增「開始行程」——按站手動點「到站」推進，高亮當前乘坐段並顯示下一站、剩餘站數與預計剩餘時間；新增「編輯換乘」——每個換乘站可改選同兩條線的其他換乘站並按新換乘站重新規劃', 'Route details are now a full page: tap any route to open it (list-card summary on top, the full timeline below); going back keeps the list where you left it. New Start Trip: advance station by station with the Arrived button — the current segment is highlighted with next stop, stops left and estimated time left. New Edit Transfer: at each interchange you can pick another station shared by the same two lines and the route replans through it'],
@@ -3872,7 +4021,7 @@ function titlePy(py) {
 					showTrainSub: false, trainQuery: '', trainItems: [],
 					showAppearanceSub: false,
 					showGeneralSub: false, cacheCleared: false,
-						lastTab: 'map',
+						lastTab: 'transfer',
 
 						sideMenu: [{
 								text: "重置缩放",
@@ -4047,9 +4196,24 @@ function titlePy(py) {
 						// Beijing row expands to its two map types instead
 						// of switching; other cities switch at once.
 						if (key === 'bj') { this.bjMapExpanded = !this.bjMapExpanded; return; }
+						// 26E126 J: not downloaded yet — download first,
+						// then switch (never a dead end). The sub-page
+						// hides at once; the switch lands when the map
+						// arrives (or the row retries on failure).
+						if (this.mapState[key] !== 'ready') {
+							this.bjMapExpanded = false;
+							this.showCitySub = false;
+							this.downloadCityMap(key);
+							return;
+						}
 						this.bjMapExpanded = false;
-						this.switchCityKeepSettings(key);
+						// 26E126: hide the sub-page BEFORE switching
+						// city — the old order switched first, so the
+						// close watcher saw tab !== 'more' and skipped
+						// the sheet scroll reset, leaving the city list
+						// peeking below the main page.
 						this.showCitySub = false;
+						this.switchCityKeepSettings(key);
 					},
 					closeCitySub() { this.bjMapExpanded = false; this.showCitySub = false; },
 					pickBjMapType(t) {
@@ -4057,17 +4221,22 @@ function titlePy(py) {
 						// Persisted; re-applies at once when already on Beijing,
 						// otherwise switches to Beijing with the new type.
 						if (t !== 'line') t = 'track';
-						if (t === 'line' && !this.bjLineMap) t = 'track';
+						// 26E126 J: no fallback to 'track' when the line map
+						// is not downloaded yet — switchCity kicks off the
+						// download and the pane fills in when it lands.
 						var changed = (this.bjMapType !== t);
 						this.bjMapType = t;
 						try { window.localStorage.setItem('metro-bj-maptype', t); } catch (e) {}
+						// 26E126: hide first (same ordering fix as
+						// onCityRowTap — switch-then-hide skipped the
+						// sheet scroll reset).
+						this.showCitySub = false;
 						if (this.city === 'bj') {
 							if (changed) this.switchCity('bj', true);
 						} else {
 							this.switchCityKeepSettings('bj');
 						}
 						this.bjMapExpanded = false;
-						this.showCitySub = false;
 					},
 					showSoonCity(c) { this.soonNote = c; if (this._soonTimer) clearTimeout(this._soonTimer); this._soonTimer = setTimeout(() => { this.soonNote = ''; }, 2500); },
 					setTab(t) {
@@ -4151,6 +4320,161 @@ function titlePy(py) {
 						this.toggleCity();
 					},
 					toggleCity() { this.switchCity(this.city === 'bj' ? 'sy' : 'bj'); },
+					// 26E126 J: maps on demand. The 15 line maps are no
+					// longer bundled in the IPA; the first use of a city
+					// downloads its map from jsDelivr (same branch ref as
+					// the service-alerts feed) and caches it in
+					// IndexedDB 'metro-maps' for offline use. Beijing's
+					// default (track) map keeps its own loadProd path;
+					// 'bj' here is the LINE schematic (map-line.svg).
+					mapFieldFor(c) {
+						return { bj: 'bjLineMap', sy: 'syMap', sh: 'shMap', hb: 'hbMap', dl: 'dlMap', jh: 'jhMap', cz: 'czMap', cq: 'cqMap', cc: 'ccMap', sz: 'szMap', cd: 'cdMap', qd: 'qdMap', sjz: 'sjzMap', tj: 'tjMap', wx: 'wxMap' }[c] || '';
+					},
+					mapUrlFor(c) {
+						var base = 'https://cdn.jsdelivr.net/gh/Andy-transport/Subway-Tools@test/structure/web/';
+						if (c === 'bj') return base + 'beijing/map-line.svg';
+						var dir = { sy: 'shenyang', sh: 'shanghai', hb: 'harbin', dl: 'dalian', jh: 'jinhua', cz: 'changzhou', cq: 'chongqing', cc: 'changchun', sz: 'shenzhen', cd: 'chengdu', qd: 'qingdao', sjz: 'shijiazhuang', tj: 'tianjin', wx: 'wuxi' }[c];
+						return dir ? base + dir + '/map.svg' : '';
+					},
+					// Cache-first map load: Vue field (in memory) ->
+					// in-memory mirror -> IndexedDB -> jsDelivr fetch.
+					// Resolves the SVG string or null; never throws.
+					// In-flight downloads are shared, so a switch and a
+					// bulk download racing on one city fetch it once.
+					ensureMap(c) {
+						var self = this;
+						var field = this.mapFieldFor(c);
+						if (field && this[field]) return Promise.resolve(this[field]);
+						if (this._mapMem && this._mapMem[c]) {
+							if (field) this[field] = this._mapMem[c];
+							return Promise.resolve(this._mapMem[c]);
+						}
+						if (!this._mapInflight) this._mapInflight = {};
+						if (this._mapInflight[c]) return this._mapInflight[c];
+						var url = this.mapUrlFor(c);
+						if (!url) return Promise.resolve(null);
+						this.mapState[c] = 'loading';
+						var p = mapIdbGet('map:' + c).then(function(cached) {
+							if (cached) {
+								if (!self._mapMem) self._mapMem = {};
+								self._mapMem[c] = cached;
+								if (field) self[field] = cached;
+								self.mapState[c] = 'ready';
+								self.reportMapState();
+								return cached;
+							}
+							var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+							var timer = null;
+							if (ctrl) timer = setTimeout(function() { try { ctrl.abort(); } catch (e) {} }, 30000);
+							return fetch(url, { cache: 'no-cache', signal: ctrl ? ctrl.signal : undefined }).then(function(r) {
+								if (timer) clearTimeout(timer);
+								if (!r.ok) throw new Error('http ' + r.status);
+								return r.text();
+							}).then(function(svg) {
+								var dom = svg.slice(svg.indexOf('<svg'));
+								if (dom.indexOf('<svg') !== 0) throw new Error('no svg');
+								if (!self._mapMem) self._mapMem = {};
+								self._mapMem[c] = dom;
+								if (field) self[field] = dom;
+								self.mapState[c] = 'ready';
+								self.reportMapState();
+								mapIdbPut('map:' + c, dom);
+								return dom;
+							});
+						}).catch(function() {
+							self.mapState[c] = 'error';
+							self.reportMapState();
+							return null;
+							});
+						// Clear the in-flight slot once settled so a later
+						// retry (after an error) can fetch again.
+						p.then(function() { if (self._mapInflight) delete self._mapInflight[c]; });
+						this._mapInflight[c] = p;
+						return p;
+					},
+					// Called from the city list / native city menu for an
+					// undownloaded city: download first, then switch —
+					// never a dead end. When already on that city (retry
+					// from the list), fill the map pane in place instead.
+					downloadCityMap(key) {
+						var self = this;
+						return this.ensureMap(key).then(function(svg) {
+							if (!svg) return false;
+							if (self.city === key) { if (self.curr) self.curr.svgDom = svg; }
+							else self.switchCityKeepSettings(key);
+							return true;
+						});
+					},
+					// Download every missing line map, one at a time,
+					// posting progress for the native progress view.
+					downloadAllMaps() {
+						var self = this;
+						var keys = ['bj', 'sy', 'sh', 'hb', 'dl', 'jh', 'cz', 'cq', 'cc', 'sz', 'cd', 'qd', 'sjz', 'tj', 'wx'];
+						var missing = keys.filter(function(k) { return self.mapState[k] !== 'ready'; });
+						if (!missing.length || this.mapDownloadingAll) return Promise.resolve(0);
+						this.mapDownloadingAll = true;
+						var done = 0, total = missing.length;
+						this.mapDownloadProgress = { done: 0, total: total, city: '' };
+						self.reportMapProgress(0, total, '');
+						var chain = Promise.resolve();
+						missing.forEach(function(k) {
+							chain = chain.then(function() {
+								self.mapDownloadProgress = { done: done, total: total, city: k };
+								self.reportMapProgress(done, total, k);
+								return self.ensureMap(k).then(function() {
+									done++;
+									self.mapDownloadProgress = { done: done, total: total, city: k };
+									self.reportMapProgress(done, total, k);
+								});
+							});
+						});
+						return chain.then(function() {
+							self.mapDownloadingAll = false;
+							self.mapDownloadProgress = null;
+							self.reportMapProgress(done, total, '');
+							return done;
+						});
+					},
+					downloadedMapCount() {
+						var n = 0, self = this;
+						Object.keys(this.mapState).forEach(function(k) { if (self.mapState[k] === 'ready') n++; });
+						return n;
+					},
+					// Tell native which cities have a downloaded line map
+					// (the city menu marks the rest for download).
+					// Beijing's default (track) map is always available
+					// via loadProd, so 'bj' is always in the list.
+					reportMapState() {
+						try {
+							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.mapState);
+							if (!h) return;
+							var done = ['bj'], self = this, lineMaps = 0;
+							Object.keys(this.mapState).forEach(function(k) { if (self.mapState[k] === 'ready') lineMaps++; if (k !== 'bj' && self.mapState[k] === 'ready') done.push(k); });
+							h.postMessage({ downloaded: done, lineMaps: lineMaps });
+						} catch (e) {}
+					},
+					reportMapProgress(done, total, city) {
+						try {
+							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.mapProgress);
+							if (h) h.postMessage({ done: done, total: total, city: city || '' });
+						} catch (e) {}
+					},
+					// Native "download all" button slot (city sub-page):
+					// same layout-position reporting as reportSwitchFrame
+					// (26E124: offset chain, transform-independent).
+					reportMapsDownloadFrame() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.mapsDownloadFrame;
+						if (!h) return;
+						var el = document.getElementById('mapsDownloadSlot');
+						if (!this.showCitySub || !el) { h.postMessage({ x: 0, y: 0, width: 0, height: 0 }); return; }
+						var x = 0, y = 0, n = el;
+						while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
+						n = el.parentNode;
+						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
+						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+						if (!w || y + hh < 0 || y > window.innerHeight) { h.postMessage({ x: 0, y: 0, width: 0, height: 0 }); return; }
+						h.postMessage({ x: x, y: y, width: w, height: hh });
+					},
 					switchCity(c, force) {
 						// force (build 63): relaunch restore passes true so
 						// the saved city's map/stations/routes are applied
@@ -4158,20 +4482,20 @@ function titlePy(py) {
 						// the city name). Normal user switches pass nothing
 						// and keep the early return.
 						if (c === this.city && !force) return;
-						if (c === 'sy' && (!this.syStations.length || !this.syMap)) return;
-						if (c === 'sh' && (!this.shStations.length || !this.shMap)) return;
-						if (c === 'hb' && (!this.hbStations.length || !this.hbMap)) return;
-						if (c === 'dl' && (!this.dlStations.length || !this.dlMap)) return;
-						if (c === 'jh' && (!this.jhStations.length || !this.jhMap)) return;
-						if (c === 'cz' && (!this.czStations.length || !this.czMap)) return;
-						if (c === 'cq' && (!this.cqStations.length || !this.cqMap)) return;
-						if (c === 'cc' && (!this.ccStations.length || !this.ccMap)) return;
-						if (c === 'sz' && (!this.szStations.length || !this.szMap)) return;
-						if (c === 'cd' && (!this.cdStations.length || !this.cdMap)) return;
-						if (c === 'qd' && (!this.qdStations.length || !this.qdMap)) return;
-						if (c === 'sjz' && (!this.sjzStations.length || !this.sjzMap)) return;
-						if (c === 'tj' && (!this.tjStations.length || !this.tjMap)) return;
-						if (c === 'wx' && (!this.wxStations.length || !this.wxMap)) return;
+						if (c === 'sy' && !this.syStations.length) return;
+						if (c === 'sh' && !this.shStations.length) return;
+						if (c === 'hb' && !this.hbStations.length) return;
+						if (c === 'dl' && !this.dlStations.length) return;
+						if (c === 'jh' && !this.jhStations.length) return;
+						if (c === 'cz' && !this.czStations.length) return;
+						if (c === 'cq' && !this.cqStations.length) return;
+						if (c === 'cc' && !this.ccStations.length) return;
+						if (c === 'sz' && !this.szStations.length) return;
+						if (c === 'cd' && !this.cdStations.length) return;
+						if (c === 'qd' && !this.qdStations.length) return;
+						if (c === 'sjz' && !this.sjzStations.length) return;
+						if (c === 'tj' && !this.tjStations.length) return;
+						if (c === 'wx' && !this.wxStations.length) return;
 						// Atomic switch (build 65 flash fix): clear the old
 						// city's transfer/search state AND hide the panels
 						// FIRST, before the city changes, so no render can
@@ -4276,7 +4600,7 @@ function titlePy(py) {
 							// Beijing: two map types (build 78). 'line' = RMP
 							// schematic 线路图 (bjLineMap/bjLineStations);
 							// default 'track' = 配线图 (env.prod).
-							if (this.bjMapType === 'line' && this.bjLineMap && this.bjLineStations.length) {
+							if (this.bjMapType === 'line' && this.bjLineStations.length) {
 								this.stations = this.bjLineStations;
 								this.routes = (window.METRO_ROUTES || null);
 								this.transfers = (window.METRO_TRANSFERS || {});
@@ -4287,6 +4611,18 @@ function titlePy(py) {
 								this.transfers = (window.METRO_TRANSFERS || {});
 								this.curr = env.prod;
 							}
+						}
+						// 26E126 J: the map for the new city downloads on
+						// demand; when it lands, fill the map pane in place
+						// (updated() re-inits panzoom when svgDom appears).
+						// Transfer and timetable never wait for the map.
+						// Beijing 'track' keeps its own loadProd path.
+						var _mc = this;
+						if (!(c === 'bj' && this.bjMapType !== 'line')) {
+							this.ensureMap(c).then(function(svg) {
+								if (!svg || _mc.city !== c) return;
+								if (_mc.curr) _mc.curr.svgDom = svg;
+							});
 						}
 						// Merge this city's verified lat/lng into its station
 						// objects (exact name match; unmatched stations keep
@@ -4648,7 +4984,7 @@ function titlePy(py) {
 					},
 					closeMore() {
 						this.showMore = false;
-						this.setTab(this.lastTab && this.lastTab !== 'more' ? this.lastTab : 'map');
+						this.setTab(this.lastTab && this.lastTab !== 'more' ? this.lastTab : 'transfer');
 					},
 					goBack() {
 						try {
@@ -4703,7 +5039,17 @@ function titlePy(py) {
 								else if (this.showLangSub) expT = this.t('more.lang');
 							} catch (e) {}
 							var expStatic = !!(this.showAboutSub || this.showGeneralSub || this.showAppearanceSub || this.showLangSub || this.showProfileSub);
+							// 26E126: the open post is deferred a tick (the
+							// back-button centre is scraped after render),
+							// but the close post is synchronous — a fast
+							// open+close let the deferred open land AFTER
+							// the close and re-show the native chrome over
+							// the Settings root (user screenshot: the back
+							// arrow stuck over the title). Skip the post
+							// when no sub-view is open any more.
+							var self = this;
 							this.$nextTick(function() {
+								if (!self.anySubViewOpen) return;
 								var msg = { open: true };
 								if (expStatic) msg.static = true;
 								try {
@@ -4769,6 +5115,27 @@ function titlePy(py) {
 						try {
 							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.subView);
 							if (h) h.postMessage({ scroll: scrolled });
+						} catch (e) {}
+					},
+					// 26E126 R: iPad only — hide the floating top chrome
+					// (tab pill + sub-view strip) while the Settings
+					// sheet scrolls down, bring it back on scroll-up or
+					// near the top. Posts {hide} to the native topChrome
+					// handler only when the state changes. iPhone never
+					// posts (window._metroIsPad is false there).
+					reportTopChrome(top) {
+						if (!window._metroIsPad) return;
+						if (this._topChromeHidden === undefined) this._topChromeHidden = false;
+						var last = (this._topChromeLast == null ? top : this._topChromeLast);
+						var hide = this._topChromeHidden;
+						if (top > last + 6 && top > 24) hide = true;
+						else if (top < last - 6 || top <= 24) hide = false;
+						this._topChromeLast = top;
+						if (hide === this._topChromeHidden) return;
+						this._topChromeHidden = hide;
+						try {
+							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.topChrome);
+							if (h) h.postMessage({ hide: hide });
 						} catch (e) {}
 					},
 					// Clear cache only: drop the cached briefing (the one
@@ -5962,7 +6329,8 @@ function titlePy(py) {
 							{ city: 'bj', st: '首经贸', lines: ['10', 'FS'], noteKey: 'tr.fastNote.shoujingmao', typeKey: 'tr.fastType.timed' },
 							{ city: 'bj', st: '珠市口', lines: ['7', '8'], noteKey: 'tr.fastNote.zhushikou', typeKey: 'tr.fastType.timed' },
 							{ city: 'bj', st: '蓟门桥', lines: ['12', 'CP'], noteKey: 'tr.fastNote.jimenqiao', typeKey: 'tr.fastType.timed' },
-							{ city: 'bj', st: '东四十条', lines: ['2', '3'], noteKey: 'tr.fastNote.dongsishitiao', typeKey: 'tr.fastType.dualNode' }
+							{ city: 'bj', st: '东四十条', lines: ['2', '3'], noteKey: 'tr.fastNote.dongsishitiao', typeKey: 'tr.fastType.dualNode' },
+							{ city: 'bj', st: '北土城', lines: ['8', '10'], noteKey: 'tr.fastNote.beitucheng' }
 						];
 					},
 					// 26E122: the popup body for a fast-transfer entry —
@@ -5990,6 +6358,50 @@ function titlePy(py) {
 						return null;
 					},
 					fastTransferAt(r, i) { return !!this.fastTransferEntry(r, i); },
+					// 26E126: tidal transfers (user 2026-11-24) — a
+					// SEPARATE table from fastTransferTable (a different
+					// kind of information, never a fast tag): 复兴门 1<->2,
+					// 建国门 1<->2, 东四十条 3<->2. Weekdays 07:20-09:20
+					// and 16:30-20:00 the transfer is closed — warn only
+					// (a tag on the route card / detail node); never
+					// reroute, never change fare or time. 调休/节假日
+					// calendars are not in the app: Mon-Fri counts as
+					// 工作日. 东四十条 keeps its fast-transfer tag too.
+					tidalTransferTable() {
+						return [
+							{ city: 'bj', st: '复兴门', lines: ['1', '2'] },
+							{ city: 'bj', st: '建国门', lines: ['1', '2'] },
+							{ city: 'bj', st: '东四十条', lines: ['3', '2'] },
+						];
+					},
+					tidalTransferEntry(r, i) {
+						if (!i || !r || !r.segments || i >= r.segments.length) return null;
+						var segs = r.segments;
+						if (segs[i].virtual || segs[i - 1].virtual) return null;
+						var st = segs[i].from, a = segs[i - 1].line, b = segs[i].line;
+						var table = this.tidalTransferTable();
+						for (var k = 0; k < table.length; k++) {
+							var e = table[k];
+							if (e.city !== this.city || e.st !== st) continue;
+							if ((e.lines[0] === a && e.lines[1] === b) || (e.lines[0] === b && e.lines[1] === a)) return e;
+						}
+						return null;
+					},
+					// Is `when` inside a tidal no-passage window?
+					// Weekdays (Mon-Fri) 07:20-09:20 or 16:30-20:00.
+					// Defaults to the planned departure moment
+					// (departBase: today at departTime, or right now).
+					tidalBlockedAt(when) {
+						var d = when || this.departBase();
+						if (!d || isNaN(d.getTime())) return false;
+						var day = d.getDay();
+						if (day === 0 || day === 6) return false;
+						var mins = d.getHours() * 60 + d.getMinutes();
+						return (mins >= 7 * 60 + 20 && mins < 9 * 60 + 20) || (mins >= 16 * 60 + 30 && mins < 20 * 60);
+					},
+					tidalBlockedAtRoute(r, i, when) {
+						return !!this.tidalTransferEntry(r, i) && this.tidalBlockedAt(when);
+					},
 					showFastTransfer(r, i) {
 						var e = this.fastTransferEntry(r, i);
 						if (!e) return;
@@ -6254,6 +6666,189 @@ function titlePy(py) {
 								return e.entrance + '口出 → ' + e.exit + '口进';
 						}
 						return '';
+					},
+					// Line 1 transfer-carriage tips (26E126, user
+					// 2026-11-24): which car to ride on Line 1 when
+					// transferring off it at one of its 11 interchanges,
+					// from transfer-carriage-bj.json (the user's
+					// verbatim data). Returns the display lines for
+					// the boundary at segment i, or []. The direction
+					// is the Line 1 segment's direction of travel
+					// (towards 古城 / 环球度假区）; 公主坟 splits by the
+					// Line 10 ring taken after the transfer (the
+					// chain order is clockwise = 内环， verified
+					// 2026-11-24 against 京港地铁 / visitbeijing);
+					// 建国门 lists off-peak and peak side by side
+					// (no time judgement — both lines always show).
+					// Route-detail timeline transfer node at segment
+					// boundary i: {prev, next, station}, or null.
+					// In-station node: prev = segments[i-1], next =
+					// segments[i], station = segments[i].from.
+					// Virtual (walk) node: prev = segments[i-1], next
+					// = segments[i+1], station = segments[i].from.
+					transferNodeSegs(r, i) {
+						if (!r || !r.segments) return null;
+						var segs = r.segments, prev, next;
+						if (segs[i] && segs[i].virtual) {
+							if (!i || i + 1 >= segs.length) return null;
+							prev = segs[i - 1]; next = segs[i + 1];
+							if (!prev || prev.virtual || !next || next.virtual) return null;
+							return { prev: prev, next: next, station: segs[i].from };
+						}
+						if (!i || i >= segs.length) return null;
+						prev = segs[i - 1]; next = segs[i];
+						if (!prev || prev.virtual || next.virtual) return null;
+						return { prev: prev, next: next, station: segs[i].from };
+					},
+					// Travel direction on a non-loop line between two
+					// stations: the chain-end terminus towards which
+					// the rider travels (e.g. Line 1 westbound =
+					// '苹果园', eastbound = '环球度假区'). null for
+					// loop lines, unknown stations, or same station.
+					lineDirection(lineKey, from, to) {
+						var R = this.routes;
+						var L = (R && R.lines && R.lines[lineKey]) || null;
+						if (!L || L.loop || !L.stations) return null;
+						var ch = L.stations;
+						var a = ch.indexOf(from), b = ch.indexOf(to);
+						if (a < 0 || b < 0 || a === b) return null;
+						return b > a ? ch[ch.length - 1] : ch[0];
+					},
+					// Direction of travel on Line 1 from station `from`
+					// towards station `to` ('苹果园' westbound /
+					// '环球度假区' eastbound), from the Line 1 chain
+					// order in routes.json. null when either station
+					// is not on Line 1.
+					line1Direction(from, to) {
+						return this.lineDirection('1', from, to);
+					},
+					carriageLines(r, i) {
+						if (this.city !== 'bj') return [];
+						var n = this.transferNodeSegs(r, i);
+						if (!n) return [];
+						var data = this.bjTransferCarriage && this.bjTransferCarriage[n.station];
+						if (!data) return [];
+						var entry = data[n.next.line];
+						if (!entry) return [];
+						// Direction key: the source line's travel
+						// direction first (Line 1 entries); if the
+						// entry has no such key, try the TARGET
+						// line's travel direction (马连洼 18->16 is
+						// keyed by Line 16's 宛平城/北安河， not by
+						// Line 18's 马连洼/天通苑东）. A truthy
+						// source direction must NOT short-circuit
+						// the fallback — it is a valid terminus
+						// name that simply isn't a key here.
+						var d = null;
+						var dir = this.lineDirection(n.prev.line, n.prev.from, n.station);
+						if (dir) d = entry[dir];
+						if (!d) {
+							dir = this.lineDirection(n.next.line, n.next.from, n.next.to);
+							if (dir) d = entry[dir];
+						}
+						if (!d) return [];
+						var self = this;
+						function noteStr(e) {
+							if (!e || !e.note) return '';
+							var n2 = self.li(e.note);
+							return n2 ? (self.lang === 'en' ? ' (' + n2 + ')' : '（' + n2 + '）') : '';
+						}
+						function carLine(e) {
+							// Numeric car: "建议乘N号车厢"; a text car
+							// (e.g. 马连洼北行 "大号") uses the
+							// no-号 template: "建议乘大号车厢".
+							if (typeof e.car === 'number') return self.t('tr.carriage', { line: n.next.line, car: e.car, note: noteStr(e) });
+							return self.t('tr.carriageText', { line: n.next.line, car: e.car, note: noteStr(e) });
+						}
+						// Ring split (公主坟 -> Line 10): which ring the
+						// rider takes after the transfer decides the car.
+						if (d['内环'] || d['外环']) {
+							var ring = this.loopRing(n.next.line, n.next.from, n.next.to);
+							if (!ring) return [];
+							var re = d[ring];
+							if (!re) return [];
+							return [this.t('tr.carriageRing', { line: n.next.line, ring: this.t(ring === '内环' ? 'tr.carriageRingInner' : 'tr.carriageRingOuter'), car: re.car, note: noteStr(re) })];
+						}
+						// Peak split (建国门）: both lines, side by side.
+						if (d['非高峰'] || d['高峰']) {
+							var out = [];
+							if (d['非高峰']) out.push(this.t('tr.carriageOffpeak', { line: n.next.line, car: d['非高峰'].car, note: noteStr(d['非高峰']) }));
+							if (d['高峰']) out.push(this.t('tr.carriagePeak', { line: n.next.line, car: d['高峰'].car, note: noteStr(d['高峰']) }));
+							return out;
+						}
+						return [carLine(d)];
+					},
+					// Fastest exit doors (26E126, user 2026-11-24 CSVs)
+					// and transfer tips on the same timeline node.
+					// doorLines: "换乘X号线建议下车门：<原文>"; tipLines:
+					// the verbatim tip text, no numbers. Both are
+					// Beijing-only and show only when the entry's
+					// (station, source line, target line) matches and
+					// its branch (ring / terminus / formation) matches.
+					doorLines(r, i) { return this.transferGuideLines(r, i, 'doors'); },
+					tipLines(r, i) { return this.transferGuideLines(r, i, 'tip'); },
+					transferGuideLines(r, i, kind) {
+						if (this.city !== 'bj') return [];
+						var n = this.transferNodeSegs(r, i);
+						if (!n) return [];
+						var data = this.bjTransferDoors && this.bjTransferDoors[n.station];
+						if (!data) return [];
+						var list = data[n.prev.line] || [];
+						var out = [];
+						for (var k = 0; k < list.length; k++) {
+							var en = list[k];
+							if (!en || en.to.indexOf(n.next.line) < 0) continue;
+							var val = kind === 'doors' ? en.doors : en.tip;
+							if (!val) continue;
+							// Doors name the trains they cover: the
+							// rider's alighting line must be among
+							// them (a value naming only the other
+							// line's doors never shows). Tips describe
+							// the passage and skip this check.
+							if (kind === 'doors' && en.lines && en.lines.indexOf(n.prev.line) < 0) continue;
+							if (en.dir) {
+								if (en.dir === '4A' || en.dir === '8A') {
+									// Formation is unknowable in-app:
+									// show both variants, labelled.
+									out.push(this.t('tr.doorsBranch', { line: n.next.line, branch: this.t(en.dir === '4A' ? 'tr.doorsForm4A' : 'tr.doorsForm8A'), doors: val }));
+									continue;
+								}
+								if (en.tag) {
+									if (!this.guideDirMatches(en, n)) continue;
+									out.push(this.t('tr.doorsBranch', { line: n.next.line, branch: en.tag, doors: val }));
+									continue;
+								}
+								if (!this.guideDirMatches(en, n)) continue;
+							}
+							out.push(kind === 'doors' ? this.t('tr.doors', { line: n.next.line, doors: val }) : val);
+						}
+						return out;
+					},
+					// Does a guide entry's branch match this transfer?
+					// Ring branches resolve on the loop line's travel;
+					// terminus branches resolve on dirLine's travel
+					// (the segment riding that line, prev or next).
+					guideDirMatches(en, n) {
+						var seg = en.dirLine === n.prev.line ? n.prev : (en.dirLine === n.next.line ? n.next : null);
+						if (!seg) return false;
+						if (en.dir === '内环' || en.dir === '外环') return this.loopRing(en.dirLine, seg.from, seg.to) === en.dir;
+						return this.lineDirection(en.dirLine, seg.from, seg.to) === en.dir;
+					},
+					// Which way a loop line runs between two adjacent
+					// stations: chain order is clockwise = 内环,
+					// reverse = 外环 (Beijing Line 10: 内环顺时针 /
+					// 外环逆时针）. null for non-loops or non-adjacent
+					// stations.
+					loopRing(lineKey, from, to) {
+						var R = this.routes;
+						var L = (R && R.lines && R.lines[lineKey]) || null;
+						if (!L || !L.loop || !L.stations) return null;
+						var ch = L.stations, n = ch.length;
+						var a = ch.indexOf(from), b = ch.indexOf(to);
+						if (a < 0 || b < 0 || a === b) return null;
+						if ((a + 1) % n === b) return '内环';
+						if ((a - 1 + n) % n === b) return '外环';
+						return null;
 					},
 					// Beijing transfer estimate (user 2026-11-20): look up
 					// the metroman-derived estimate for the boundary
@@ -6897,12 +7492,12 @@ function titlePy(py) {
 						// there — measure the invisible .tr-tabs-slot instead
 						// (falls back to .tr-tabs for a plain browser).
 						var el = document.querySelector('.tr-tabs-slot') || document.querySelector('.tr-tabs');
-						if (!el) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, tab: this.routeTab }); return; }
+						if (!el) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, tab: this.routeTab, detailOpen: !!this.routeDetailOpen }); return; }
 						var r = el.getBoundingClientRect();
 						// The panel scrolls: once the slot has scrolled fully
 						// above the viewport, hide the native control.
-						if (r.bottom < 0) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, tab: this.routeTab }); return; }
-						h.postMessage({ x: r.left, y: r.top, width: r.width, height: r.height, tab: this.routeTab });
+						if (r.bottom < 0) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, tab: this.routeTab, detailOpen: !!this.routeDetailOpen }); return; }
+						h.postMessage({ x: r.left, y: r.top, width: r.width, height: r.height, tab: this.routeTab, detailOpen: !!this.routeDetailOpen });
 					},
 					// Native app (build 37): report the from/to fields card
 					// and the search button frames so the native shell can
@@ -6928,6 +7523,7 @@ function titlePy(py) {
 						var sr = s ? s.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
 						var ar = a ? a.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
 						var msg = {
+							detailOpen: !!this.routeDetailOpen,
 							fields: { x: fr.left, y: fr.top, width: fr.width, height: fr.height },
 							search: { x: sr.left, y: sr.top, width: sr.width, height: sr.height },
 							actions: { x: ar.left, y: ar.top, width: ar.width, height: ar.height },
@@ -7033,6 +7629,10 @@ function titlePy(py) {
 						// list stays mounted underneath (scroll position
 						// preserved), the page slides over it.
 						this.routeDetailOpen = true;
+						// 26E126: tell the native shell at once — the
+						// transfer chrome (card / search / sort tabs /
+						// action pills) hides while the detail is open.
+						this.reportTransferFrame(); this.reportTabsFrame();
 						this.pageTrip = null;
 						this.editAltFor = -1;
 						this.editMsg = '';
@@ -7051,7 +7651,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26E125') return;
+						if (seen === '26E126') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -7062,6 +7662,7 @@ function titlePy(py) {
 					},
 					closeRouteDetail() {
 						this.routeDetailOpen = false;
+						this.reportTransferFrame(); this.reportTabsFrame();
 						this.pageTrip = null;
 						this.editAltFor = -1;
 					},
@@ -8288,7 +8889,7 @@ function titlePy(py) {
 				},
 				watch: {
 					showProfileSub(open) { if (open) this.resetProfileFit(); },
-					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (this.tab === 'more') { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); },
+					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (!open && !window._metroIsPad) { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); },
 					mapCard() { this.reportMapCard(); },
 					structStation() { this.ensureStructImg(); },
 					structKind() { this.ensureStructImg(); },
@@ -8310,9 +8911,9 @@ function titlePy(py) {
 					}
 					if (this.nativeApp) {
 						var self = this;
-						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); });
+						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); self.reportMapsDownloadFrame(); });
 						clearTimeout(window._metroTabsTimer);
-						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); }, 300);
+						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); self.reportMapsDownloadFrame(); }, 300);
 					}
 				},
 				mounted: function() {
@@ -8359,6 +8960,7 @@ function titlePy(py) {
 								_moreTicking = false;
 								self.reportThemeFrame();
 								self.reportSwitchFrame();
+								self.reportTopChrome(_more.scrollTop);
 							});
 						}, { passive: true });
 						// 26E121 C: when a sub-view's slide-in transition
@@ -8425,6 +9027,16 @@ function titlePy(py) {
 					// (keeps pills/tint in sync if the stores ever diverge).
 					var _ch0 = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityChanged);
 					if (_ch0) { _ch0.postMessage({ city: this.city }); }
+					// 26E126 J: mark already-cached maps as downloaded
+					// (IndexedDB scan at launch) so the switcher shows
+					// the true state; the current city's map is already
+					// being fetched by the switchCity restore above.
+					var _ms = this;
+					Promise.all(['bj', 'sy', 'sh', 'hb', 'dl', 'jh', 'cz', 'cq', 'cc', 'sz', 'cd', 'qd', 'sjz', 'tj', 'wx'].map(function(k) {
+						return mapIdbGet('map:' + k).then(function(v) {
+							if (v) { var f = _ms.mapFieldFor(k); if (f) _ms[f] = v; _ms.mapState[k] = 'ready'; }
+						});
+					})).then(function() { _ms.reportMapState(); });
 					var _lh0 = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.langChanged);
 					if (_lh0) { _lh0.postMessage({ lang: this.lang, explicit: false }); }
 					// Sub-view scroll state for the native header
