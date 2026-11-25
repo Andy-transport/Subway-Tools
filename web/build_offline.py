@@ -268,6 +268,15 @@ siri_icon_dark_b64 = (BASE.parent / "app" / "siri-icon-dark.b64").read_text(enco
 html = sub_once(r'/\*__SIRI_ICON__\*/', lambda _: siri_icon_b64, html, "siri icon")
 html = sub_once(r'/\*__SIRI_ICON_DARK__\*/', lambda _: siri_icon_dark_b64, html, "siri icon dark")
 
+# Depart-time button icon (26E127 fix 11): the user's walking-person
+# artwork as a luminance→alpha template pair (app/depart-icon.b64
+# black figure for light mode / depart-icon-dark.b64 white figure for
+# dark mode), swapped by theme in the page.
+depart_icon_b64 = (BASE.parent / "app" / "depart-icon.b64").read_text(encoding="utf-8").strip()
+depart_icon_dark_b64 = (BASE.parent / "app" / "depart-icon-dark.b64").read_text(encoding="utf-8").strip()
+html = sub_once(r'/\*__DEPART_ICON__\*/', lambda _: depart_icon_b64, html, "depart icon")
+html = sub_once(r'/\*__DEPART_ICON_DARK__\*/', lambda _: depart_icon_dark_b64, html, "depart icon dark")
+
 # Appearance settings-row icon (26D103): the user's contrast-glyph
 # black tile (app/appearance-icon.b64); a single variant used in
 # both light and dark themes.
@@ -642,6 +651,44 @@ if wx_splash_dark_path.exists():
 else:
     print("WARNING: web/wuxi/splash-dark.b64 missing; Wuxi dark splash will be empty")
 
+# S12. inline the Luoyang Metro data (2 operating lines, 33 stations,
+# 26E127). Same pattern: precomputed stations/routes from the RMP
+# Gallery map, station order triple-cross-checked against the two
+# zh-Wikipedia line articles. NOT in the data files: 青年宫 (renamed
+# 洛邑古城 on 2024-03-04 — the current name is used). Line 1
+# 红山—杨湾 19 stations, Line 2 二乔路—八里堂 15 stations, one
+# interchange 解放路 (1/2, in-station). Map follows the 26E126 J
+# on-demand route: the repo file stays for jsDelivr, nothing is
+# inlined into the IPA. No splash file exists yet — the native
+# splash is universal (SplashST), so the splash placeholders stay
+# empty like Shenzhen's. No structure diagrams exist for Luoyang
+# yet — all 33 stations show 正在整理, not a launch blocker.
+ly_stations = (BASE / "luoyang" / "stations.json").read_text(encoding="utf-8")
+ly_routes = (BASE / "luoyang" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in ly_stations, "ly stations json must not contain </script"
+assert "</script" not in ly_routes, "ly routes json must not contain </script"
+html = sub_once(r'/\*__LY_STATIONS__\*/\[\]', lambda _: ly_stations, html, "ly stations json")
+html = sub_once(r'/\*__LY_ROUTES__\*/null', lambda _: ly_routes, html, "ly routes json")
+html = sub_once(r'/\*__LY_MAP__\*/""', lambda _: '""', html, "ly map svg (26E126 J: on-demand, no longer bundled)")
+ly_logo_path = BASE / "luoyang" / "logo.b64"
+if ly_logo_path.exists():
+    ly_logo_b64 = ly_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__LY_LOGO__\*/''", lambda _: "'data:image/png;base64," + ly_logo_b64 + "'", html, "ly logo")
+else:
+    print("WARNING: web/luoyang/logo.b64 missing; Luoyang logo will be empty")
+ly_splash_path = BASE / "luoyang" / "splash.b64"
+if ly_splash_path.exists():
+    ly_splash_b64 = ly_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__LY_SPLASH__\*/', lambda _: ly_splash_b64, html, "ly splash")
+else:
+    print("WARNING: web/luoyang/splash.b64 missing; Luoyang splash will be empty")
+ly_splash_dark_path = BASE / "luoyang" / "splash-dark.b64"
+if ly_splash_dark_path.exists():
+    ly_splash_dark_b64 = ly_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__LY_SPLASH_DARK__\*/', lambda _: ly_splash_dark_b64, html, "ly splash dark")
+else:
+    print("WARNING: web/luoyang/splash-dark.b64 missing; Luoyang dark splash will be empty")
+
 # S3. inline the Chongqing Rail Transit data (14 lines, 282 stations).
 # Same pattern as Jinhua/Changzhou: precomputed stations/routes from the
 # user's system-plan map (see chongqing/NOTES.md); the logo is cropped
@@ -700,6 +747,8 @@ tj_tt_path = BASE / "timetable" / "tj.json"
 tj_tt = tj_tt_path.read_text(encoding="utf-8") if tj_tt_path.exists() else "{}"
 wx_tt_path = BASE / "timetable" / "wx.json"
 wx_tt = wx_tt_path.read_text(encoding="utf-8") if wx_tt_path.exists() else "{}"
+ly_tt_path = BASE / "timetable" / "ly.json"
+ly_tt = ly_tt_path.read_text(encoding="utf-8") if ly_tt_path.exists() else "{}"
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
@@ -716,6 +765,7 @@ assert "</script" not in qd_tt, "qd timetable json must not contain </script"
 assert "</script" not in sjz_tt, "sjz timetable json must not contain </script"
 assert "</script" not in tj_tt, "tj timetable json must not contain </script"
 assert "</script" not in wx_tt, "wx timetable json must not contain </script"
+assert "</script" not in ly_tt, "ly timetable json must not contain </script"
 html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
 html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
 html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
@@ -731,6 +781,7 @@ html = sub_once(r'/\*__QD_TIMETABLE__\*/\{\}', lambda _: qd_tt, html, "qd timeta
 html = sub_once(r'/\*__SJZ_TIMETABLE__\*/\{\}', lambda _: sjz_tt, html, "sjz timetable json")
 html = sub_once(r'/\*__TJ_TIMETABLE__\*/\{\}', lambda _: tj_tt, html, "tj timetable json")
 html = sub_once(r'/\*__WX_TIMETABLE__\*/\{\}', lambda _: wx_tt, html, "wx timetable json")
+html = sub_once(r'/\*__LY_TIMETABLE__\*/\{\}', lambda _: ly_tt, html, "ly timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 # U. inline verified station lat/lng (web/latlng/latlng-{city}.json,
@@ -754,6 +805,7 @@ qd_ll = (BASE / "latlng" / "latlng-qd.json").read_text(encoding="utf-8")
 sjz_ll = (BASE / "latlng" / "latlng-sjz.json").read_text(encoding="utf-8")
 tj_ll = (BASE / "latlng" / "latlng-tj.json").read_text(encoding="utf-8")
 wx_ll = (BASE / "latlng" / "latlng-wx.json").read_text(encoding="utf-8")
+ly_ll = (BASE / "latlng" / "latlng-ly.json").read_text(encoding="utf-8")
 assert "</script" not in bj_ll, "bj latlng json must not contain </script"
 assert "</script" not in sy_ll, "sy latlng json must not contain </script"
 assert "</script" not in sh_ll, "sh latlng json must not contain </script"
@@ -769,6 +821,7 @@ assert "</script" not in qd_ll, "qd latlng json must not contain </script"
 assert "</script" not in sjz_ll, "sjz latlng json must not contain </script"
 assert "</script" not in tj_ll, "tj latlng json must not contain </script"
 assert "</script" not in wx_ll, "wx latlng json must not contain </script"
+assert "</script" not in ly_ll, "ly latlng json must not contain </script"
 html = sub_once(r'/\*__BJ_LATLNG__\*/\{\}', lambda _: bj_ll, html, "bj latlng json")
 html = sub_once(r'/\*__SY_LATLNG__\*/\{\}', lambda _: sy_ll, html, "sy latlng json")
 html = sub_once(r'/\*__SH_LATLNG__\*/\{\}', lambda _: sh_ll, html, "sh latlng json")
@@ -784,6 +837,7 @@ html = sub_once(r'/\*__QD_LATLNG__\*/\{\}', lambda _: qd_ll, html, "qd latlng js
 html = sub_once(r'/\*__SJZ_LATLNG__\*/\{\}', lambda _: sjz_ll, html, "sjz latlng json")
 html = sub_once(r'/\*__TJ_LATLNG__\*/\{\}', lambda _: tj_ll, html, "tj latlng json")
 html = sub_once(r'/\*__WX_LATLNG__\*/\{\}', lambda _: wx_ll, html, "wx latlng json")
+html = sub_once(r'/\*__LY_LATLNG__\*/\{\}', lambda _: ly_ll, html, "ly latlng json")
 
 # S8. inline the verified official metro logos for the not-yet-
 # supported cities (web/upcoming-logos/, see its MANIFEST.md): the

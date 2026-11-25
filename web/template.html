@@ -66,12 +66,16 @@
 			window.WX_STATIONS = /*__WX_STATIONS__*/[];
 			window.WX_ROUTES = /*__WX_ROUTES__*/null;
 			window.WX_MAP = /*__WX_MAP__*/"";
+			window.LY_STATIONS = /*__LY_STATIONS__*/[];
+			window.LY_ROUTES = /*__LY_ROUTES__*/null;
+			window.LY_MAP = /*__LY_MAP__*/"";
 			window.CD_LOGO = "data:image/png;base64,/*__CD_LOGO__*/";
 			window.QD_LOGO = "data:image/png;base64,/*__QD_LOGO__*/";
 			window.SJZ_LOGO = /*__SJZ_LOGO__*/'';
 			window.TJ_LOGO = /*__TJ_LOGO__*/'';
 			window.WX_LOGO = /*__WX_LOGO__*/'';
 			window.WX_MARK = /*__WX_MARK__*/'';
+			window.LY_LOGO = /*__LY_LOGO__*/'';
 			window.CDM_ICON = "data:image/png;base64,/*__CDM_ICON__*/";
 			window.SZM_ICON = "data:image/png;base64,/*__SZM_ICON__*/";
 			window.QDM_ICON = "data:image/png;base64,/*__QDM_ICON__*/";
@@ -121,6 +125,7 @@
 			window.SJZ_SPLASH = "data:image/png;base64,/*__SJZ_SPLASH__*/";
 			window.TJ_SPLASH = "data:image/png;base64,/*__TJ_SPLASH__*/";
 			window.WX_SPLASH = "data:image/png;base64,/*__WX_SPLASH__*/";
+			window.LY_SPLASH = /*__LY_SPLASH__*/'';
 			window.BJ_SPLASH_DARK = "data:image/jpeg;base64,/*__BJ_SPLASH_DARK__*/";
 			window.SY_SPLASH_DARK = "data:image/jpeg;base64,/*__SY_SPLASH_DARK__*/";
 			window.SH_SPLASH_DARK = "data:image/jpeg;base64,/*__SH_SPLASH_DARK__*/";
@@ -136,10 +141,13 @@
 			window.SJZ_SPLASH_DARK = "data:image/jpeg;base64,/*__SJZ_SPLASH_DARK__*/";
 			window.TJ_SPLASH_DARK = "data:image/jpeg;base64,/*__TJ_SPLASH_DARK__*/";
 			window.WX_SPLASH_DARK = "data:image/jpeg;base64,/*__WX_SPLASH_DARK__*/";
+			window.LY_SPLASH_DARK = /*__LY_SPLASH_DARK__*/'';
 			window.ST_SPLASH = "data:image/jpeg;base64,/*__ST_SPLASH__*/";
 			window.ST_SPLASH_DARK = "data:image/jpeg;base64,/*__ST_SPLASH_DARK__*/";
 		window.SIRI_ICON = "data:image/png;base64,/*__SIRI_ICON__*/";
 		window.SIRI_ICON_DARK = "data:image/png;base64,/*__SIRI_ICON_DARK__*/";
+		window.DEPART_ICON = "data:image/png;base64,/*__DEPART_ICON__*/";
+		window.DEPART_ICON_DARK = "data:image/png;base64,/*__DEPART_ICON_DARK__*/";
 		window.APPEARANCE_ICON = "data:image/png;base64,/*__APPEARANCE_ICON__*/";
 			window.BJ_TIMETABLE = /*__BJ_TIMETABLE__*/{};
 			window.SY_TIMETABLE = /*__SY_TIMETABLE__*/{};
@@ -156,6 +164,7 @@
 			window.SJZ_TIMETABLE = /*__SJZ_TIMETABLE__*/{};
 			window.TJ_TIMETABLE = /*__TJ_TIMETABLE__*/{};
 			window.WX_TIMETABLE = /*__WX_TIMETABLE__*/{};
+			window.LY_TIMETABLE = /*__LY_TIMETABLE__*/{};
 			window.BJ_LATLNG = /*__BJ_LATLNG__*/{};
 			window.SY_LATLNG = /*__SY_LATLNG__*/{};
 			window.SH_LATLNG = /*__SH_LATLNG__*/{};
@@ -171,6 +180,7 @@
 			window.SJZ_LATLNG = /*__SJZ_LATLNG__*/{};
 			window.TJ_LATLNG = /*__TJ_LATLNG__*/{};
 			window.WX_LATLNG = /*__WX_LATLNG__*/{};
+			window.LY_LATLNG = /*__LY_LATLNG__*/{};
 			window.SOON_LOGOS = /*__SOON_LOGOS__*/{};
 			window.BRIEFING_SEED = /*__BRIEFING_SEED__*/{};
 			window.TRAINS_SEED = /*__TRAINS_SEED__*/{};
@@ -634,6 +644,11 @@
 		.wx-theme .sp-row .sp-line { background: #ee2737; }
 		.wx-theme .tr-swap { color: #EE2737; border-color: rgba(238,39,55,0.35); }
 		.wx-theme .tr-tabs button.on { background: #ee2737; color: #fff; }
+		.ly-theme .tr-search { background: linear-gradient(180deg, rgba(196, 96, 140, 0.9), rgba(154, 75, 110, 0.9)) !important; }
+		.ly-theme .tr-pref button.on { background: #c4608c; }
+		.ly-theme .sp-row .sp-line { background: #c4608c; }
+		.ly-theme .tr-swap { color: #C4608C; border-color: rgba(196,96,140,0.35); }
+		.ly-theme .tr-tabs button.on { background: #c4608c; color: #fff; }
 
 		/* Chengdu theme: Line 1 #0F0F96 (official line colour, Chengdu
 		   DB510100/T 083-2012 wayfinding standard; no single official system
@@ -1154,6 +1169,7 @@
 		   fixed 24px and give the slack to the label span. */
 		.more-city-dl { font-size: 13px; color: #007aff; margin-left: 8px; white-space: nowrap; }
 		html.dark .more-city-dl { color: #0a84ff; }
+		.more-city-dl-slot { display: inline-block; width: 64px; height: 30px; flex: none; margin-left: 8px; }
 		.more-maps-head { font-size: 13px; font-weight: 700; color: #888; padding: 10px 0 6px; }
 		html.dark .more-maps-head { color: #aaa; }
 		.more-maps-row { padding: 4px 0 10px; }
@@ -1162,7 +1178,8 @@
 		.more-maps-slot { display: block; height: 96px; }
 		.more-maps-status { font-size: 13px; color: #888; padding: 2px 0 8px; }
 		html.dark .more-maps-status { color: #aaa; }
-		.map-state { text-align: center; padding: 48px 16px 12px; }
+		/* 26E127 fix 9: the downloading / failed state is centred on the screen (was a small grey line pinned to the top). These divs are direct children of #app, so top:50% is the screen centre; the retry button centres with the text. */
+		.map-state { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; padding: 0 16px 12px; }
 		.map-state-text { font-size: 14px; color: #888; margin-bottom: 12px; }
 		html.dark .map-state-text { color: #aaa; }
 		.map-state-btn { padding: 8px 20px; border: 1px solid #007aff; border-radius: 20px; background: none; color: #007aff; font-size: 15px; cursor: pointer; }
@@ -1440,6 +1457,8 @@
 		.tr-city img { width: 26px; height: 26px; border-radius: 50%; display: block; }
 		.tr-city svg { width: 14px; height: 14px; opacity: 0.7; }
 		.tr-time { font-size: 14px; color: #888; cursor: pointer; }
+		/* 26E127 fix 11: slot for the native depart-time button — fixed size so native has a stable rect; the button's content right-aligns like the web control. */
+		.tr-time-slot { display: inline-block; width: 150px; height: 30px; flex: none; }
 		.tr-fields { position: relative; margin: 10px 16px 0; border-radius: 20px; padding: 6px 56px 6px 6px; }
 		.tr-field { display: flex; align-items: center; gap: 10px; padding: 13px 10px; }
 		.tr-field + .tr-field { border-top: 1px solid rgba(0, 0, 0, 0.06); }
@@ -1494,7 +1513,18 @@
 		.trd-back { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(120,120,128,0.24); color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; padding: 0; }
 		html.dark .trd-back { background: rgba(255,255,255,0.16); color: #fff; }
 		.trd-page-title { font-size: 17px; font-weight: 700; }
-		.trd-page-scroll { flex: 1; overflow-y: auto; padding: 4px 16px calc(104px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; }
+		/* 26E127 fix 3: in the native app the back control is the native
+		   SDK 27.2 glass button (subViewBackButton) and the title rides
+		   in the native sub-header strip, so the web head is collapsed
+		   and the page clears the strip (44pt + 8pt margin; iPad the
+		   strip sits below the top tab bar: 10 + 49 + 44 + 8 = 111,
+		   rounded to 112px). */
+		html.native-app .trd-page-head { height: 0; padding: 0; overflow: hidden; visibility: hidden; }
+		html.native-app .trd-page { padding-top: 52px; }
+		html.is-pad.native-app .trd-page { padding-top: 112px; }
+		/* 26E127 fix 13: the detail page is one colour — the timeline scroll area carries the same page background as .trd-page (it was transparent, so the timeline showed the white document background under the grey header/summary). Cards keep their own white. */
+		.trd-page-scroll { flex: 1; overflow-y: auto; padding: 4px 16px calc(104px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; background: var(--bg, #f2f2f7); }
+		html.dark .trd-page-scroll { background: #101420; }
 		.trd-summary { background: var(--card, #ffffff); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
 		html.dark .trd-summary { background: #1c1c1e; }
 		.trd-summary .ropt-time { font-size: 17px; font-weight: 700; }
@@ -1908,7 +1938,7 @@
 			try {
 				var p = JSON.parse(window.localStorage.getItem('metro-profile') || 'null');
 				var c = p && p.commonCity;
-				return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'sjz' || c === 'tj' || c === 'wx' || c === 'bj') ? c : null;
+				return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'sjz' || c === 'tj' || c === 'wx' || c === 'ly' || c === 'bj') ? c : null;
 			} catch (e) { return null; }
 		};
 		try {
@@ -1925,7 +1955,7 @@
 		} catch (e) {}
 		</script>
 		<div id="app" :class="{ 'sy-theme': city === 'sy',
-			</div> 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'cc-theme': city === 'cc', 'sz-theme': city === 'sz', 'cd-theme': city === 'cd', 'qd-theme': city === 'qd', 'sjz-theme': city === 'sjz', 'tj-theme': city === 'tj', 'wx-theme': city === 'wx', 'native-app': nativeApp, ['lang-' + lang]: true }">
+			</div> 'sh-theme': city === 'sh', 'hb-theme': city === 'hb', 'dl-theme': city === 'dl', 'jh-theme': city === 'jh', 'cz-theme': city === 'cz', 'cq-theme': city === 'cq', 'cc-theme': city === 'cc', 'sz-theme': city === 'sz', 'cd-theme': city === 'cd', 'qd-theme': city === 'qd', 'sjz-theme': city === 'sjz', 'tj-theme': city === 'tj', 'wx-theme': city === 'wx', 'ly-theme': city === 'ly', 'native-app': nativeApp, ['lang-' + lang]: true }">
 			<div id="splashOverlay" :class="{ hidden: !showSplash }"><img :src="splashImg" alt=""></div>
 			<div id="mapLoadingOverlay" :class="{ hidden: !mapLoading }"><div class="map-loading-box"><div class="map-loading-spin"></div><div class="map-loading-city">{{ cityName }}</div></div></div>
 			<div id="sideMenuDiv">
@@ -2111,7 +2141,9 @@
 						<span>{{ cityName }}</span>
 						<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
 					</div>
-					<div class="tr-time" @click="showTimePicker">{{ departTime ? t('tr.departAt', {t: departTime}) : t('tr.departNow') }} ▾</div>
+					<div class="tr-time" v-if="!nativeApp" @click="showTimePicker">{{ departTime ? t('tr.departAt', {t: departTime}) : t('tr.departNow') }} ▾</div>
+					<!-- 26E127 fix 11: slot for the native depart-time button (SDK 27.2, walking-person icon); the web .tr-time above is the pure-browser fallback. -->
+					<span class="tr-time-slot" v-if="nativeApp"></span>
 				</div>
 				<div class="tr-fields glass">
 					<div class="tr-field">
@@ -2206,7 +2238,7 @@
 							<div class="ropt-chain"><template v-for="(seg, si) in routeResult.segments" :key="seg.line + seg.from"><span v-if="seg.virtual" class="ropt-walkseg"><img :src="walkIconThemed" alt=""><span v-if="si === 0" class="ropt-virtual">{{ t('tr.virtualTag') }}</span></span><span v-else class="ropt-line ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span v-if="si < routeResult.segments.length - 1" class="ropt-arrow">▸ <span class="ropt-transfer" @click.stop="showTransferAt(routeResult, si)">{{ stNameStr(seg.to) }}</span><span v-if="isVirtualAt(routeResult, si+1)" class="ropt-virtual">{{ t('tr.virtualTag') }}</span><span v-if="fastTransferAt(routeResult, si+1)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, si+1)">{{ t('tr.fastTag') }}</span><span v-if="tidalBlockedAtRoute(routeResult, si+1)" class="ropt-tidal">{{ t('tr.tidalBan') }}</span><span v-if="virtualDistFor(routeResult, si+1)" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: virtualDistFor(routeResult, si+1)}) }}</span><span v-else-if="transferEstFor(routeResult, si+1) && transferEstFor(routeResult, si+1).out" class="ropt-walk"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, si+1)) }}</span></span></template></div>
 							<div class="ropt-badges trd-summary-badges"><span class="ropt-badge early" v-if="routeResult.isEarly">{{ t('tr.badge.early') }}</span><span class="ropt-badge few" v-if="routeResult.isShortest">{{ t('tr.badge.few') }}</span><span class="ropt-badge cheap" v-if="routeResult.isCheap">{{ t('tr.badge.cheap') }}</span></div>
 						</div>
-						<button class="trd-trip-start" v-if="!pageTrip" @click="startPageTrip()">▶ {{ t('trip.start') }}</button>
+						<button class="trd-trip-start" v-if="!pageTrip" @click="startPageTrip()">{{ t('trip.start') }}</button>
 						<div class="trd-tripbar" v-if="pageTrip && tripInfo">
 							<div class="trd-trip-info" v-if="!tripInfo.arrived"><div class="trd-trip-next">{{ t('trip.next') }} {{ stNameStr(tripInfo.next) }}</div><div class="trd-trip-left">{{ t('trip.remain', {n: tripInfo.remainStops}) }} · {{ t('trip.eta', {n: tripInfo.remainMin}) }}</div></div>
 							<div class="trd-trip-info" v-else><div class="trd-trip-next">{{ t('trip.arrived') }}</div></div>
@@ -2273,18 +2305,19 @@
 						<span class="more-chev">›</span>
 					</div>
 					<div class="more-loc-hint" v-if="locPermHint">{{ t('more.loc.hint') }}</div>
-					<!-- 26E126: the 附近车站智能显示 switch lived on the Siri
-						 sub-page until 26E125, where its location copy read as a
-						 Siri description (user report). It belongs with the
-						 定位 row on the Settings home. -->
-					<div class="more-card">
+					<!-- 26E127 fix 1: the 智能显示 row is a plain row in
+						 the main card (same height as the 定位 row). The
+						 nested card made it a tall box, and
+						 reportSwitchFrame was gated on showSiriSub, so the
+						 native switch reported a zero rect on the home and
+						 never appeared. Description is now a small hint
+						 under the row, like the 定位 hint. -->
 					<div class="more-row more-row-switch">
 					<span>{{ t('siri.nearbySmart') }}</span>
 					<button v-if="!nativeApp" class="more-switch" :class="{ on: nearbySmart }" @click="toggleNearbySmart" role="switch" :aria-checked="nearbySmart ? 'true' : 'false'"><span class="more-switch-knob"></span></button>
 					<span v-else id="nearbySmartSlot" class="more-switch-slot"></span>
 					</div>
-					</div>
-					<div class="more-up-note">{{ t('siri.nearbySmart.desc') }}</div>
+					<div class="more-loc-hint">{{ t('siri.nearbySmart.desc') }}</div>
 					<div class="more-row" @click="relSel = -1; showWhatsNewSub = true"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showUpcomingSub = true"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="showRankingSub = true"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAHIklEQVR42u2cW6gVVRjHf3P2Pp5Tal4qL4UpgWREN6MMy6jAyAfLQEpLsrAgkpCIiAiKiuylC0H40D0IFbtJN7o8ZBSV4YM9mIqWplYUGpqlnnP2nulhfYv9Oc4+zuwz4+yZvf6wmHP2rJlZ893Xt75Z4ODg4ODg4ODg4ODg4ODg0J7okuN44F5gJxAAPrALeAI4W/X1HMnSgyXmpcCPQviotheYH2KYQ0rEnwr8JoTuF8nXxB+Q4xFgXuhahyGiCmwVAtcU0evS9P8B8Jdc49CixHcDw4AeOc5RBLaS/xgwQto9QJ/yCQFwv1zbK8dupxGt43UhrJX+lRF9nlSmyAc+K5J9zeN5QcS5QJznEuBc1W8RME4YUAVmA1/KOXvPc4BNwoBu4G/gDblfAOwB3gT2yW9+grGVIoTsOg5j7PnnBolyrI1/MIJwi5WPqDe5fhVwcuh5xwt7C4+K+nsccAXwqJiRD4Dz1fnLgYMinYcl2umLiHj+k+uso50SmhfYY5+6h/URN6vnTQJeAt4VE3YVcGbI+Zdi8jQRWAb8ERE6XqP6LxwkzAxCBA7EpLwA/BtxLtyOyPFu9bxpMonT/fqBp8WkhQWokJI/C9gQETpaKb9WXXNTRLQTxGBEEKO/1YAl6nlTJbz1RRi06dqhhKOStYRmgQCYDLwMXKIIYNMEnry4H2JaENMJekKwWsgZJ33/ivIJlh79Ytbek7H7RWQAwMOiyv0S03uhKGNAmsUwFQ15MbWsmoD44fs2Cw6GybhGizkaUUQGnAfcJtLT3STk65WoxGKvstX145iUVponGmMxXFoUuqXvbOCiIjLgapGcZtJcE60Yo6RuPbBRXr6iTFUarQf4XeYP9t6nAmMHGaOdQyzIMseSFW4chMmeMkMzgbfl7wPAXRKmXiYaEvYb9YQmp1uc/XrgWeBXYXZdtLSqJm/NBHQBsLRoM+E9oZi6mT0+JI5ui0hpnxBoVGh8XouzVMvsA3Jv+4xJwNfAWTFpUbg8UhwbbkPH74AJcl1PRmFfRe4NcBLwTgJf41NAxHWMlgkbgBtOwLiuB9a24MALl4xLMmhf7G0N+ETM1z6RToYQ51uf0SWz8QnAdaIB9YSa5pWZAbRAkKGg1kIAUnoGoGxynGxlUlhTVxmCNpWeAe2MTGjlKgdyhmOAY4BjgEOOaJcltyCUavBOkGPPPb3QDlGQH0MTg4zG6iewAqUOQ7cCr2ASZrdiUtlRxNktkygv4TsGEfcbRSMVXghtaYUBgzW7lLiOYxdF3ufoPNFh4AEhWJVGpVuc1ksj1Wyr7Xoxhb4/ET8hR5kY4GOWKQNgrvTvobFGO5lGsW0AvJqytlvfN1eeU8uLAXk6YWsO7OqXfsldHJ2vWa/G67dI+EA90y7w7Ab2A6cl9AelMEFWAx6JuPaOUN/NmKKutIXvcTE//XRgOtpGNkeA+4AvMCtVFwJvYdZr9Ti3Ay+2SAxfSbhdprwYuD1vWrVTMm4TpsJtRsK5QVrzj45mgLb3daK/8bKRU5o+yC3IKNRDDrLd4NLRZUQ7aEDQxNx4TaKqNN/dy5tW7WKC6sDHEpPPx5QrtltcXjoGWAJvB26RtIAvk6LPMVVrvpLUNcDyIUh6TTndLkzl3TOSBonD7NLlgsL1+poAM0P5mY8yGuMimYQN9kFIKVMRgXr2XhUSWkn8VojSK33WqugoDWJUhMGbZe4xRmlbLvmYPOypzemMlr/r6vdZmMylxVzVx0+h2U9ZLwBOEfPUlRch8vYBuzAfYm+R34djUtTTQ1K5CliBSU13JdAE+xGGfV5dpSKeEgGIMyMudRTkY0rU/8Hs83C6i4Lacx7gZTBGlwtSWtDKBMlpQEoM6MisQbuUpdiNOGyIWKFDUCQfUG/RDzS7v2V2R/sAS5wdmJ1N9mM23ZjufED2DLALLz8Ad8qsFMymfGswG2do6V2OKVfRDjvJOwahyed4zFf8Ezs1F2QXwhdL/x41+53G0WUpr2U0xvkyjlon5oKsxB2kUW4yIHb5F9EQO77vpX81JWJUhejbMFvfjM4rF5SnBths6DLlEC1T5qm8TYD5njcLPMSxGwF2VFlKAPyJ2Yh1rfw+A1iN2a0kUONcB3woEps0F6R3V6xitlCYgilLGRmTFqWvitgp4zkD8xlps1Cy1ZREMMT37vhcUNrJOT8UFXV8KiJo83Cv1KmIQsbZacDVBTkGOAY4OAYUYlLpGFDGACFLBmzMWnpOIA4VkQGrKfB2X0p4AjLcCj9LBnxVgtjeFoutLOLgh2MqnnXuv0jNZki3YRZtCum4ZijiF4kJ/TQWhOYUVX1tmmMhZtHFblcfZ2f0PJqtPdUrcUuLniaxPuZK4NMCacA3mG8WCk38sCaMFEY8D/xMY0WsHdoAZkvjFZjK7LGhsTs4ODg4ODg4ODg4ODg4ODiUAf8DNWic2pChUOgAAAAASUVORK5CYII=')"></span><span>{{ t('more.ranking') }}</span><span class="more-chev">›</span></div>
@@ -2308,13 +2341,13 @@
 							<button class="more-maps-btn" @click="downloadAllMaps" :disabled="mapDownloadingAll">{{ mapDownloadingAll ? t('map.downloadingShort') : t('map.downloadAll') }}</button>
 						</div>
 						<span v-else id="mapsDownloadSlot" class="more-maps-slot"></span>
-						<div class="more-maps-status" v-if="mapDownloadProgress">{{ t('map.downloadingCount', {done: mapDownloadProgress.done, total: mapDownloadProgress.total}) }}</div>
-						<div class="more-maps-status">{{ t('map.downloadedCount', {n: downloadedMapCount()}) }}</div>
+						<div class="more-maps-status" v-if="mapDownloadProgress && !nativeApp">{{ t('map.downloadingCount', {done: mapDownloadProgress.done, total: mapDownloadProgress.total}) }}</div>
+						<div class="more-maps-status" v-if="!nativeApp">{{ t('map.downloadedCount', {n: downloadedMapCount()}) }}</div>
 					</div>
 					<div class="more-section">{{ t('more.switchCity') }}</div>
 					<div class="more-card">
 						<div v-for="c in cityList" :key="c.key">
-							<div class="more-city-row" @click="onCityRowTap(c.key)"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-check" v-if="city === c.key">✓</span><span class="more-city-dl" v-if="c.key !== 'bj' && mapState[c.key] !== 'ready'">{{ mapState[c.key] === 'loading' ? t('map.downloadingShort') : (mapState[c.key] === 'error' ? t('map.retry') : t('map.download')) }}</span><span class="more-chev" v-if="c.key === 'bj'">{{ bjMapExpanded ? '⌄' : '›' }}</span></div>
+							<div class="more-city-row" @click="onCityRowTap(c.key)"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-check" v-if="city === c.key">✓</span><span class="more-city-dl" v-if="c.key !== 'bj' && mapState[c.key] !== 'ready'">{{ mapState[c.key] === 'loading' ? t('map.downloadingShort') : (mapState[c.key] === 'error' ? t('map.retry') : t('map.download')) }}</span><span class="more-city-dl-slot" v-if="nativeApp && c.key !== 'bj' && mapState[c.key] !== 'ready'" :data-city="c.key"></span><span class="more-chev" v-if="c.key === 'bj'">{{ bjMapExpanded ? '⌄' : '›' }}</span></div>
 							<div v-if="c.key === 'bj' && bjMapExpanded">
 								<div class="more-city-row more-bj-type" @click="pickBjMapType('track')"><span class="more-city-name"><span>{{ t('map.type.track') }}</span></span><span class="more-check" v-if="city === 'bj' && bjMapType === 'track'">✓</span></div>
 								<div class="more-city-row more-bj-type" @click="pickBjMapType('line')"><span class="more-city-name"><span>{{ t('map.type.line') }}</span></span><span class="more-check" v-if="city === 'bj' && bjMapType === 'line'">✓</span></div>
@@ -2469,10 +2502,10 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E126)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26E127)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
-						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(data:image/png;base64,' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
+						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
 						<div class="more-row" @click="openLanguage"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAQLElEQVR42u2daZBcVRWAv+5ZE0IIYQtLAkhCBDLsEHbQskRAYoRCS7FQWUWrQC0RlEVERUCwlMWttBRlEVMKqIhsKoKFLELYTZAQEoYlCZCBDMnMdPfzxzun+syZ+5aemZ4l9Kl61T1v3r3v3rOfc++5DQ1oQAMa0IAGNKABDWhAAxrQgAa8m6AwhsYRBe61Ak1y7QLMAWYCGwKTgQnAWuBVYAXwCvBv+YyAPrlCc44axB/IABOBTYAO4BvAM4KowVxrgduA04FZwMZAyxhlwBGHokPCNGAucHMAkZWEK+sZ388a4DLgvcDUdyshLOLbgB2AM4CVBlElucoJiKzlqkg/JdfXg8CRwHQznqb1mRAFmaBCB3A50G0Q1SfIiup0VYQQvebeUuAUYIYjxHrH9cpZ2wIniX6OBOF9jjtLAY4d6uWJW3aEeBQ4XIw7AVsxbqHZfD8C+FcK4vsE8Xm4OO/9de7vXvdcGegxf/8S2MtIQnE8I79VPjcFzjOT7Akgvs/8/R/gdqDLIFeRlaWiep3uXyNu6c3A6hRClAyxlgPHjneV1CafexrPxiO65LjvNuAi8YbOBl43hrjs1MVah/huQbTlelVjD0ufHwZ+KAROYgarli4U5hl3KqldPg82frxXNxbxNwNnmskeZRBsVcvrwDnAYfLdSkenBGi/cUToM0TbXPrfHfgqsNCpQ8sY+vfvxG5ZiR4Xamc+8IJDgte5jwGnOZ98J+BZgxRVO28AJ8gzs4w6UQK8bDj1GkcE/fyLczs7gIsTuL9ixn2fSPKYJ4IO7mjj13vk6/ergZ1N2wkSjC0IcPBa4FSjjw8J2IdO+V+zfP7YRMNl6a9iiNhu3n008PeAZFrpWwjsNpbVUYtRO6+lIP9N4HhDrBbjaRxpkGWRcZk8ox7VPgEJ6HSI3RC4R8bQawK7F0RVKcOoezwDuCSBCCoZ9wDbjEXDrMg/AFhm9KhH/hJgf+ddaIywrehpa6xLwF2SG7LvmS0qKUSAZkOoI8ULKjtEfkckTnNRzWY8nwlIq1VHvwe2NgnCUQdF4hzg6RTOXyS6WxFZcDmYec4r0et4g1iVlL1TJKDZILUV+J5RaUqEt8TW2NRI0Xw/IhBXWCJcFEirjGqEOxH4ScCQWSK8I25dwRBOOWga8IBzTSvAdaJSCg5BByTYABv46ee+InllF/2eYSTABlxbijscBWIOJeA74mT4QHPU1hJOkIGty0gflAVRX3P9zHXcrxM/2akefd8uYkvSCIBZS/i2k4KKEGUbN47bZU0hyphDJBI4dzTtQdEg4+WA3k+7SqLDfwDsCvws4H/fIpJlEV80BOvKQQBrC1YZ4qoUfFQ8qgcMQfNc2v4qE3AWRoPzm4wf3esQ0iUGMJSz95PxaYkIuCCFu2YHJOCljPFeH1CRPjIPjTEpx7RG/vfB0ZAC5cT9Am6bfr9YnvmuSTmnESJyCH1Y0hEfkYBpY+IlyA2BAwMSsAyYBEwBNhJPZV/gc0LMRzOkNIT4TkHwViZ9UXKqaDGw/Uga5YLxs//guFY/7we2M22mAXe4ZFi98v3DkbZeAXzTcfbhYkNKBvnKbKeOpEdUMMGQHURFvr8DfNK5m9pmDvArMYDvZHCivcruqmSsftnnspYp9Xob+B/wFWN7im783wrMuSLZ061H0hZMlIDEpodVt/48IY/udeSpLiuZZrDtEmUaAfSZkruyPJrrgY85Jis6Y14E9pA8lVVFSoz5buGprtw/06kcnXQXcJw815LQvtn87wzTvmLSyi8G0s1Dvd4Wb21dwOBPdm5rISXaPydh3eEJsT81S0EtgUQkz8+TF+uLyjLA24Fb5X4pob3e38AkxnRPUAG4W/z2g4XQM4Sz2sS4tkvaenM30RLwlCBwjRBSU+BLJUpfRLzV5RAZs43CbxSkJkFF+v6rqNgO6aNJ3t0hamj1SKif5U6vliS8P7mGlO0GYgesbu4FvpzSZirxLooTjYurbV8VY/8e45uH4DoGrhFfm5MRVQoucRKkqu/ykciUdjgdqKJ4p7iKzTlFcHJA/SwDDhWObxdCtsn3FqcCk5JxBaMC26V9qxC8SXJD3pYsluRcHgIUgGPMglDZjONNo85q9unz2oD58rKia/+wDKCJfFv+djZqpyL3OoHH5V6PELfHuH9q3DdJGHfRcGCftNN+egVZj4i0Fo0t2C6nBJSk3R3iaisBVA1PAbaoJwHagU8ZLlO9uELC+YIZUBYcGJCUN0WHtgSIaKVlXQKRrToL/Q/gv5KWsP225GQafbYbeM55S0rQebUa4VoDiB3dgBARvs9NNAumJUywUIMqqAWUWRaLvfDv2zFnPyVp86CooSbjkBSI17Ob60WA7QIIjmQFrEsQU8mpynYPjGGp0adZOahaQbl3rbikHvapgZCIGlrkCBlJP631IsDB5vnIBB7LCe90TnvnLIfYHjehJCRCvN5cHiQRCgkE3qwGArSIHVkRGO+kBBd8WAiwl+PEgnDT484g5QG/O7lbJCmNAPreLYawEBIJ8nzANG0QC1FrAv1Ekq2tSyC2S4CbVgBPUt2NkPedkwK69e2MfooZhrY5Yz66a2K1M5xIRjOvMS5KXy+afiNDjIMlMh52AswM3Osi3nxVqkH0SgF1tQZ4Pmc/qwKIquRoq/9b5lxp9fD6ahg/kstabVIQ1lbWRQI2DaiuDsluVgiXGaWpEvt9hnhSfSn96P1WSUvY9ltKHFHIUGGRSF/RtT+I6spenvFHQrTJ7h61RsO1EKApwSWsRX+mjWOzIbRvIl44GSy0ChGHI1m5Tb0IQIZ3MpjBDraf0W6f1k/LSBNguHLghXHeflCEHCoByhLcVJwnQIoeJ5C0ioizo33G20ni0laqO9usEe5ykWmSHz+B/ntDrXsapby34L63yeWf76kXAd6mWsKjXsQS4sXzV0xmsMUEVwUXpGmm8j43mdeBc4GHiFPe3YEYpSgEOog49TvBtF8l+aXNhZCFhLmuBr5IvFhfNO2fI87zl1MI0GzyXU3Eq2inE2daLfN11osAz1Hdpq3QKxnG5UMU9V5xZxfmNLg99E8hl4jXdJ9PUQHNJt7wxH1W3Mq8Br8s/n4o7bC4XpHwkoQQfg+qqeBijqs5IKZtEuEWZVJJ7bLczLQxqGRuH0gcvkr/LZBpl45vjsl/FTLwNCwEeCGgD6dK6B2ZSeW5VgYIMCVHO/W/iwlqIk/7DQM2amXO9hXz3EYBQkYihXUhwJ1O16le3MEk5/J6Ca+5exOpVq9keSPlIbqMobYra8BXn6i/yQmB5Uv1IsBj7mWafNtBxLKU05WLTB7FZlZnZYwpMl7GYAigK1rtgf89XQO+ysS77ma78RaIU+p1W5DpFm/Ft50pmdJyzv4il6xSEd6EgXtyQhw8YRA+e1EIsJVLqeiy5FM1GOAi8dr11oEUzALSd1cMiQB98gLLtRVRHR+gf7VJFjye4KVEOZJivYOQAJ3nHJPysJzbXYMUVYT7i0YLqH24hfyrgjUToAzcQP9FDfWJ56RkOkPwiOE+Bd1WoqpCiyd0M1erXM0J0tHmntEiEBuH7OwkoEB1fSCv+7mPqCCbH1PJfY5BckZeeMYESZEZwP7EG54q5FsXeN0gX8cwXfpoMz6+7rrTXQ69VNPJnjl0b6otylO1OFH6VdexbLy5f+ZUG7beYKbpW9XQXVQXaeqWilhDvB463+nW6cD7gHup7hbL8kg6pZ26dZPFEPfItQHxItAMkY4thXtnGVfSusO/kHavCZGWi3fzuKQpcJG8MspDOdSe7vabQnVlMDLEbybe0beW/Gn5Qbtxe9N/U5atpe0gvYJQ1coE4EoGbs5aSlxQ/YD0t0ykJWk3ddKm27ckPfKCqLt7hUNXMLDobm+RiqaMdDXAZ4UJbWFHRbTCFsOc1EskwCSZlEWcVrqcZySrEEC8vXc+4WK4PAcwDUd9gCJxltMIxcC8i5Jn+rNjPt1/ei4jWLBXJN6eZ7dnlwwHz3XqzSJ9CvH2wOepVrnk2edfJnuff1pNQdpJK68Q73Q7zc2x4PL7J1ItRvRSNLve3O+lYBuqm3R9jcCPzKBtrHAT1WK5aAxePcTLkmcluK++DlrnewkjXCOmbt1xDKwY0T2YxxrdeWNAh2dVrNhiv2eA30oK+kLigoqewHNnElcuXit2pJN8lZuVgA1ZQfV8ijbg+wysC1BPa9dBepRDloLNxCMKFa89C1wqmcFaCvS0/fnCVW1GHegEdyW7TrhgYoF2kb6kQvK0sd0pRPUFfsoAZ2ek2esG1v8vMfA8oCxO0xWsxWIPdPI6sSvdeyxsT/i8IP+8ImQW8V5Ou5c/Ek+rk3AVZ9ocVAU9nSN/VXcpaBNO9+WqaS7iS8AVVA/hOMW0V2O7hPhIAsvVtjw2T6G2uo5nOY+lRwihyNsX+CPZVfJWza4FPjTIWGpYvaGCBFP3MvCgDu/yLRGDZdtrFvQtQ0D1Mi6leuiGJcCepB/WYSVhS+BvhnN1fDcQF5RYidlaCPESyYfD6nEKFzh7OGqgE55LtWqlL6DXu6iWcra5mKCF/sVvmn540UlB0XBslgRoYPUlJ13rZHz7Oyay/Z9MuKhb53W3MN2YOrIG4BPE661lBp5IqBy9uQvUrJu3muoOC5WCawzB9D1Zh3XoczuJntZ6MDXAN4kDUQikv/cjrvbxtkDnsEyeGVXVk5ReQFxBrVAMHdp0k8kkWkJsQHyQkg/uuoGPu4BojxQCqNfUCvyU/qewrJV29pQTi8R5VE9dD51fsYp4Id7aF8YSEXQyF9K/yNqfMrJSIumiWWApEp+atYj+xdZag9thkJZ2ZJlWSH6BcEH1FZKQazPjnUFcvho6206R/4aJbcbsEZa6c2ES8VkLqv/7AhNS9XKgU2XHGy/Dunz3Ut37eRjVTVQVk05oNZy80qge6zbOdirnWOKz4ELHG2u711xgOabBTu7zgTRF5GzEUuDrolaUu37t2ij33kF8cuEsBpapLpX2JxHvD4rcmsAa4pNXFI6SWKOP9ANclxMfYTYukG+JoDbheKpbPuzZQBVHlIXER9wcJupsQYIKeYL4eDQfPK0mPgCqm/6n5upxaSfKuD4tqYpVCVJpjfV9skBkVdu4AWsTDgX+Qb7Ds5cRn6B1lUTINovZV8N6gJWOJ4mPLF5A/0Okekk+tvga4uXRccX5IVCDta3xcqxfHjouWA9cXZngDpZSItRQGuFN0o+yt2dYL5VFl/ax5moOR7Cm2znuT+HCckbCbKiHMVVSpO9q+tfBrVc/5FB0If8xVA95tRFw3nR1rSdpVUj+FY3bJTKeEFiMWa/A/4zJDOIdBs9Q31/PSPodmT9JXmlqAqOst+C5a1PiyvlbSV9mrJXjQ+3ekhhlR6o7JNZrrq+FEBOEGO8XT2jlMEnA08RbRvT0xRY3hsJYQsJojSEKGO5m4i3gu0mgtrsgcToDS5x0P9CrxDs2FouxX0T1BPUoMO93/a/pNaABDWhAAxrQgAY0oAENaEADGtCAdxX8H+w9Db8WMQycAAAAAElFTkSuQmCC')"></span><span>{{ t('more.lang') }}</span><span class="more-row-value">{{ langDisplayName }}</span><span class="more-chev">›</span></div>
 					</div>
 					<div class="more-section">{{ t('more.general') }}</div>
@@ -2505,7 +2538,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E126)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E127)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -2688,7 +2721,7 @@ var I18N = {
   'map.downloading': ['正在下载线路图…', '正在下載線路圖…', 'Downloading line map…'],
   'map.downloadingShort': ['下载中…', '下載中…', 'Downloading…'],
   'map.downloadingCount': ['正在下载 {done}/{total}', '正在下載 {done}/{total}', 'Downloading {done}/{total}'],
-  'map.downloadedCount': ['已下载 {n}/15 张线路图', '已下載 {n}/15 張線路圖', 'Downloaded {n}/15 line maps'],
+  'map.downloadedCount': ['已下载 {n}/16 张线路图', '已下載 {n}/16 張線路圖', 'Downloaded {n}/16 line maps'],
   'map.downloadFailed': ['线路图下载失败，请检查网络后重试', '線路圖下載失敗，請檢查網絡後重試', 'Line map download failed — check the network and retry'],
   'map.retry': ['重试', '重試', 'Retry'],  'tr.applepay': ['Apple Pay', 'Apple Pay', 'Apple Pay'],
   'tt.phLine': ['输入线路名', '輸入線路名', 'Enter line name'],
@@ -2847,6 +2880,7 @@ var I18N = {
   'transit.sjz': ['石慧行', '石慧行', 'Shihuihang'],
   'transit.tj': ['天津地铁', '天津地鐵', 'Tianjin Metro'],
   'transit.wx': ['码上行', '碼上行', 'Mashangxing'],
+  'transit.ly': ['洛易行', '洛易行', 'Luoyixing'],
   'more.reset': ['重置缩放', '重置縮放', 'Reset zoom'],
   'more.repo': ['项目主页', '項目主頁', 'Project home'],
   'more.pdf': ['下载PDF', '下載PDF', 'Download PDF'],
@@ -2963,7 +2997,7 @@ var I18N = {
   'more.briefing.empty': ['暂无该城市简报', '暫無該城市簡報', 'No briefing for this city'],
   'more.siri': ['Siri快捷指令', 'Siri快捷指令', 'Siri Shortcuts'],
   'more.siri.note': ['在 Siri 里说出下面的口令即可使用。点按一条会在「快捷指令」App 里打开新建编辑器，搜索「城轨通」即可添加。', '在 Siri 裡說出下面的口令即可使用。點按一條會在「捷徑」App 裡打開新建編輯器，搜尋「城軌通」即可添加。', 'Say the phrase below to Siri to use it. Tap a row to open the Shortcuts editor, then search \u201cSubway Tools\u201d to add the action.'],
-  'siri.nearbySmart': ['附近车站智能显示', '附近車站智能顯示', 'Smart Nearby Stations'],
+  'siri.nearbySmart': ['智能显示', '智能顯示', 'Smart display'],
   'siri.nearbySmart.desc': ['开启后，换乘页会根据定位智能显示 1.5 公里内的最近车站；关闭后只显示普通附近车站列表。', '開啟後，換乘頁會根據定位智能顯示 1.5 公里內的最近車站；關閉後只顯示普通附近車站列表。', 'When on, the Transfer tab smartly shows the nearest stations within 1.5 km based on your location; when off, only the regular nearby list is shown.'],
   'siri.openApp': ['打开城轨通', '打開城軌通', 'Open Subway tools'],
   'siri.openApp.desc': ['打开 App，查看线路图', '打開 App，查看線路圖', 'Open the app and view the map'],
@@ -3045,6 +3079,7 @@ var I18N = {
   'city.sjz': ['石家庄', '石家莊', 'Shijiazhuang'],
   'city.tj': ['天津', '天津', 'Tianjin'],
   'city.wx': ['无锡', '無錫', 'Wuxi'],
+  'city.ly': ['洛阳', '洛陽', 'Luoyang'],
   'city.metro': ['{c}地铁', '{c}地鐵', '{c} Metro'],
   'native.now': ['现在出发', '現在出發', 'Depart now'],
   'native.done': ['确定', '確定', 'Done'],
@@ -3475,7 +3510,7 @@ function titlePy(py) {
 				cc: 'https://www.ccqg.com', dl: 'https://www.dltransgrp.com',
 				wx: 'http://www.wxmetro.net', hb: 'http://www.harbin-metro.com',
 				sjz: 'https://www.sjzmetro.cn', cz: 'http://www.czmetro.net.cn',
-				jh: 'http://www.jhmtr.net'
+				jh: 'http://www.jhmtr.net', ly: 'https://www.lysubway.com.cn'
 			};
 			const App = Vue.createApp({
 				data() {
@@ -3515,7 +3550,7 @@ function titlePy(py) {
 						ttLine: null,
 						showMore: false,
 						query: '',
-						city: (function() { try { var cc = window._metroCommonCity ? window._metroCommonCity() : null; if (cc) return cc; var ic = window._metroInitCity; if (ic === 'sy' || ic === 'sh' || ic === 'hb' || ic === 'dl' || ic === 'jh' || ic === 'cz' || ic === 'cq' || ic === 'cc' || ic === 'sz' || ic === 'cd' || ic === 'qd' || ic === 'sjz' || ic === 'tj' || ic === 'wx' || ic === 'bj') return ic; var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'sjz' || c === 'tj' || c === 'wx' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
+						city: (function() { try { var cc = window._metroCommonCity ? window._metroCommonCity() : null; if (cc) return cc; var ic = window._metroInitCity; if (ic === 'sy' || ic === 'sh' || ic === 'hb' || ic === 'dl' || ic === 'jh' || ic === 'cz' || ic === 'cq' || ic === 'cc' || ic === 'sz' || ic === 'cd' || ic === 'qd' || ic === 'sjz' || ic === 'tj' || ic === 'wx' || ic === 'ly' || ic === 'bj') return ic; var c = window.localStorage.getItem('metro-city'); return (c === 'sy' || c === 'sh' || c === 'hb' || c === 'dl' || c === 'jh' || c === 'cz' || c === 'cq' || c === 'cc' || c === 'sz' || c === 'cd' || c === 'qd' || c === 'sjz' || c === 'tj' || c === 'wx' || c === 'ly' || c === 'bj') ? c : 'bj'; } catch (e) { return 'bj'; } })(),
 						lang: savedLang(),
 					langPref: savedLangPref(),
 					nativeApp: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityMenu),
@@ -3551,6 +3586,8 @@ function titlePy(py) {
 						bjTransferDoors: (window.BJ_TRANSFER_DOORS || {}),
 						walkIcon: (window.WALK_ICON || ''),
 						walkIconInk: (window.WALK_ICON_INK || ''),
+						departIcon: (window.DEPART_ICON || ''),
+						departIconDark: (window.DEPART_ICON_DARK || ''),
 						pinIcon: (window.PIN_ICON || ''),
 						pinIconInk: (window.PIN_ICON_INK || ''),
 						fareIcon: (window.FARE_ICON || ''),
@@ -3672,18 +3709,26 @@ function titlePy(py) {
 						wxLogo: (window.WX_LOGO || ''),
 						wxMark: (window.WX_MARK || ''),
 						wxMap: (window.WX_MAP || ''),
-						// 26E126 J: maps on demand — the 15 line maps are no
+						lyStations: (window.LY_STATIONS || []),
+						lyRoutes: (window.LY_ROUTES || null),
+						lyLogo: (window.LY_LOGO || ''),
+						lyMap: (window.LY_MAP || ''),
+						// 26E126 J: maps on demand — the 16 line maps are no
 						// longer bundled. mapState tracks each city's download
 						// ('' = not downloaded, 'loading', 'ready', 'error').
 						// Beijing's default (track) map still comes from its
 						// own loadProd path; 'bj' here is the LINE map.
-						mapState: { bj: '', sy: '', sh: '', hb: '', dl: '', jh: '', cz: '', cq: '', cc: '', sz: '', cd: '', qd: '', sjz: '', tj: '', wx: '' },
+						mapState: { bj: '', sy: '', sh: '', hb: '', dl: '', jh: '', cz: '', cq: '', cc: '', sz: '', cd: '', qd: '', sjz: '', tj: '', wx: '', ly: '' },
 						mapDownloadingAll: false,
 						mapDownloadProgress: null,
 						wxTimetable: (window.WX_TIMETABLE || {}),
 						wxLatLng: (window.WX_LATLNG || {}),
 						wxSplash: (window.WX_SPLASH || ''),
 						wxSplashDark: (window.WX_SPLASH_DARK || ''),
+						lyTimetable: (window.LY_TIMETABLE || {}),
+						lyLatLng: (window.LY_LATLNG || {}),
+						lySplash: (window.LY_SPLASH || ''),
+						lySplashDark: (window.LY_SPLASH_DARK || ''),
 						tjmIcon: (window.TJM_ICON || ''),
 						msxIcon: (window.MSX_ICON || ''),
 					soonLogos: (window.SOON_LOGOS || {}),
@@ -3779,7 +3824,7 @@ function titlePy(py) {
 							{ r: 38, n: '太原', km: '52.4', src: '中文维基', date: '2025-02-22' },
 							{ r: 39, n: '呼和浩特', km: '49.0', src: '中文维基', date: '2020-10-01 起' },
 							{ r: 41, n: '乌鲁木齐', km: '45.5', src: '中文维基', date: '2026-11-15' },
-							{ r: 42, n: '洛阳', km: '43.6', src: '中文维基', date: '2021-12-26' },
+							{ r: 42, n: '洛阳', km: '43.6', k: 'ly', c: 'c4608c', src: '中文维基', date: '2021-12-26' },
 							{ r: 43, n: '兰州', km: '35.0', src: '兰州市轨道交通有限公司官网', date: '2026-06' },
 						],
 						// Transit briefing (build 70): seeded from the inlined
@@ -3863,6 +3908,22 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26E127)', date: '2026-11-25', lines: [
+								['新增洛阳地铁：2 条线 33 站（1 号线红山—杨湾、2 号线二乔路—八里堂），解放路站内换乘；票价按洛阳官方分段计价，全网最高 5 元；首末班时刻按官网当前秋冬季表', '新增洛陽地鐵：2 條線 33 站（1 號線紅山—楊灣、2 號線二喬路—八里堂），解放路站內換乘；票價按洛陽官方分段計價，全網最高 5 元；首末班時刻按官網當前秋冬季表', 'Luoyang Metro joins the app: 2 lines, 33 stations (Line 1 Hongshan–Yangwan, Line 2 Erqiaolu–Balitang), with an in-station transfer at Jiefanglu. Fares follow Luoyang\u2019s official distance bands (network maximum ¥5); first/last trains follow the operator\u2019s current autumn/winter timetable'],
+								['智能显示改成设置里的一行普通行：名称改为「智能显示」，开关恢复可点（之前开关报的是零尺寸位置，点不到）；说明文字改成小灰提示，不再撑大卡片', '智能顯示改成設定裡的一行普通行：名稱改為「智能顯示」，開關恢復可點（之前開關報的是零尺寸位置，點不到）；說明文字改成小灰提示，不再撐大卡片', 'Smart display is now a normal row in Settings, renamed “Smart display”, and its switch works again (it used to report a zero-size frame and could not be tapped). The description is now a small grey hint that no longer inflates the card'],
+								['通用子页的外观图标恢复显示：之前图标地址拼了两次前缀，显示为空白', '通用子頁的外觀圖示恢復顯示：之前圖示地址拼了兩次前綴，顯示為空白', 'The Appearance icon in the General subpage is back: its image URL used to carry the data prefix twice, which rendered as a blank slot'],
+								['路线详情页左上角返回按钮改成原生 Apple UI 按钮；「开始行程」按钮去掉前面的表情符号，文字与样式不变', '路線詳情頁左上角返回按鈕改成原生 Apple UI 按鈕；「開始行程」按鈕去掉前面的表情符號，文字與樣式不變', 'The route-detail page’s top-left back button is now a native Apple UI button, and the emoji is gone from the “Start trip” button (text and style unchanged)'],
+								['切换城市里未下载城市的「下载」改成原生 Apple UI 按钮（下载中显示下载中，失败显示重试）；「已下载」计数不再重复显示', '切換城市裡未下載城市的「下載」改成原生 Apple UI 按鈕（下載中顯示下載中，失敗顯示重試）；「已下載」計數不再重複顯示', 'Per-city “Download” in the Switch City page is now a native Apple UI button (shows Downloading while it downloads, Retry on failure), and the downloaded-count line no longer appears twice'],
+								['切换城市等设置子页滚动时顶栏不再压住列表：下滑时顶栏隐藏，上滑时回来；滚动到顶时首行完整可见', '切換城市等設定子頁滾動時頂欄不再壓住列表：下滑時頂欄隱藏，上滑時回來；滾動到頂時首行完整可見', 'Settings subpages no longer slide under the top bar while scrolling: the bar hides on scroll-down and returns on scroll-up, and the first row is fully visible at the top'],
+								['线路图与换乘页的切换城市浮层只列已下载的城市（北京始终在列）；未下载的城市不在浮层里出现，去设置 → 切换城市里下载', '線路圖與換乘頁的切換城市浮層只列已下載的城市（北京始終在列）；未下載的城市不在浮層裡出現，去設定 → 切換城市裡下載', 'The city-switch popover on the map and Trip Planner pages now lists only downloaded cities (Beijing is always there). Undownloaded cities no longer appear there — download them in Settings → Switch City'],
+								['蜂窝网络也可以下载线路图与车站结构图：首次用蜂窝网络下载时会先提示将消耗流量，确认后下载，同一时段内不再重复提示', '蜂窩網路也可以下載線路圖與車站結構圖：首次用蜂窩網路下載時會先提示將消耗流量，確認後下載，同一時段內不再重複提示', 'Line maps and station diagrams can now download over cellular data: the first cellular download in a session asks first (it will use mobile data), and later downloads in the same session proceed without asking again'],
+								['首次打开 App 时，在开屏页之后、进入主界面之前弹出系统位置许可请求；只在未决定时弹一次，设置里的定位行按实际授权状态显示', '首次打開 App 時，在開屏頁之後、進入主介面之前彈出系統位置許可請求；只在未決定時彈一次，設定裡的定位行按實際授權狀態顯示', 'On first launch, the system location permission request now appears after the splash page and before the main interface — only once, and only while authorization is still undecided. The location row in Settings reflects the actual authorization state'],
+								['「正在下载线路图…」提示改到屏幕中间（之前贴在顶部）', '「正在下載線路圖…」提示改到螢幕中間（之前貼在頂部）', 'The “Downloading line map…” notice now sits in the centre of the screen (it used to sit at the top)'],
+								['修复下载完线路图、切到该城市后换乘页一片空白的问题：下载完成、切城市后，地图正常出现，换乘页的出发/到达卡片、搜索按钮与快捷按钮正常显示', '修復下載完線路圖、切到該城市後換乘頁一片空白的問題：下載完成、切城市後，地圖正常出現，換乘頁的出發/到達卡片、搜尋按鈕與快捷按鈕正常顯示', 'Fixed the blank Trip Planner page after downloading a line map and switching to that city: the map now appears when the download lands, and the planner’s origin/destination card, search button and quick-action buttons show again'],
+								['换乘页右上角「现在出发」改成原生 Apple UI 按钮，图标换成行走小人（深浅色模式自动适配），点按仍打开出发时间选择器', '換乘頁右上角「現在出發」改成原生 Apple UI 按鈕，圖示換成行走小人（深淺色模式自動適配），點按仍打開出發時間選擇器', 'The “Depart now” control at the top-right of the Trip Planner is now a native Apple UI button with a walking-person icon (adapting to light and dark mode). Tapping it still opens the departure-time picker'],
+								['修复退出设置子页后左上角返回箭头残影：退出任意设置子页（切换城市、通用、Siri、功能介绍等）后，设置首页标题区不再残留返回箭头', '修復退出設定子頁後左上角返回箭頭殘影：退出任意設定子頁（切換城市、通用、Siri、功能介紹等）後，設定首頁標題區不再殘留返回箭頭', 'Fixed the leftover back arrow after leaving a Settings subpage: after exiting any Settings subpage (Switch City, General, Siri, About and the rest), the Settings home title no longer keeps a stray back arrow'],
+								['路线详情页上下背景统一成一个颜色（浅色模式用页面标准浅灰，深色模式用对应深色），摘要卡片与站名灰条样式不变', '路線詳情頁上下背景統一成一個顏色（淺色模式用頁面標準淺灰，深色模式用對應深色），摘要卡片與站名灰條樣式不變', 'The route-detail page now has one background colour top to bottom (the standard light grey in light mode, the matching dark colour in dark mode). The summary card and station bars keep their own styles'],
+							] },
 							{ v: '1.1.0 (26E126)', date: '2026-11-24', lines: [
 								['1 号线换乘车厢建议：11 个换乘站新增上车车厢提示，在 1 号线换乘其他线路时，路线详情的换乘节点会提示建议乘坐的车厢号（如换乘 10 号线内环建议乘 6 号车厢；建国门同时列出高峰与非高峰建议）；1 号线西行方向改称往苹果园方向（上行终点站是苹果园）', '1 號線換乘車廂建議：11 個換乘站新增上車車廂提示，在 1 號線換乘其他線路時，路線詳情的換乘節點會提示建議乘坐的車廂號（如換乘 10 號線內環建議乘 6 號車廂；建國門同時列出高峰與非高峰建議）；1 號線西行方向改稱往蘋果園方向（上行終點站是蘋果園）', 'Line 1 transfer car tips: all 11 Line 1 interchanges now suggest which car to ride — the route-detail transfer node shows the recommended car when you change off Line 1 (e.g. car 6 for the Line 10 inner loop; Jianguomen lists peak and off-peak side by side). The Line 1 westbound direction is now named toward Pingguoyuan (the up-direction terminus)'],
 								['换乘最快车门：北京各线换乘站新增最快下车门提示，路线详情的换乘节点按方向显示（如换乘 6 号线建议下车门：2 号线 15 门/8 门；6 号线 5 门/28 门）；内/外环、4A/8A 编组按分支显示，同台换乘与暂无实测的站只显示提示、不编数字', '換乘最快車門：北京各線換乘站新增最快下車門提示，路線詳情的換乘節點按方向顯示（如換乘 6 號線建議下車門：2 號線 15 門/8 門；6 號線 5 門/28 門）；內/外環、4A/8A 編組按分支顯示，同台換乘與暫無實測的站只顯示提示、不編數字', 'Fastest transfer doors: Beijing interchanges now suggest the fastest exit doors on the route-detail transfer node, by direction (e.g. changing to Line 6: Line 2 doors 15/8, Line 6 doors 5/28). Inner/outer loop and 4A/8A formation branches are shown separately; same-platform interchanges and stations with no measured data show a tip only — no numbers are invented'],
@@ -4320,7 +4381,7 @@ function titlePy(py) {
 						this.toggleCity();
 					},
 					toggleCity() { this.switchCity(this.city === 'bj' ? 'sy' : 'bj'); },
-					// 26E126 J: maps on demand. The 15 line maps are no
+					// 26E126 J: maps on demand. The 16 line maps are no
 					// longer bundled in the IPA; the first use of a city
 					// downloads its map from jsDelivr (same branch ref as
 					// the service-alerts feed) and caches it in
@@ -4328,13 +4389,28 @@ function titlePy(py) {
 					// default (track) map keeps its own loadProd path;
 					// 'bj' here is the LINE schematic (map-line.svg).
 					mapFieldFor(c) {
-						return { bj: 'bjLineMap', sy: 'syMap', sh: 'shMap', hb: 'hbMap', dl: 'dlMap', jh: 'jhMap', cz: 'czMap', cq: 'cqMap', cc: 'ccMap', sz: 'szMap', cd: 'cdMap', qd: 'qdMap', sjz: 'sjzMap', tj: 'tjMap', wx: 'wxMap' }[c] || '';
+						return { bj: 'bjLineMap', sy: 'syMap', sh: 'shMap', hb: 'hbMap', dl: 'dlMap', jh: 'jhMap', cz: 'czMap', cq: 'cqMap', cc: 'ccMap', sz: 'szMap', cd: 'cdMap', qd: 'qdMap', sjz: 'sjzMap', tj: 'tjMap', wx: 'wxMap', ly: 'lyMap' }[c] || '';
 					},
 					mapUrlFor(c) {
 						var base = 'https://cdn.jsdelivr.net/gh/Andy-transport/Subway-Tools@test/structure/web/';
 						if (c === 'bj') return base + 'beijing/map-line.svg';
-						var dir = { sy: 'shenyang', sh: 'shanghai', hb: 'harbin', dl: 'dalian', jh: 'jinhua', cz: 'changzhou', cq: 'chongqing', cc: 'changchun', sz: 'shenzhen', cd: 'chengdu', qd: 'qingdao', sjz: 'shijiazhuang', tj: 'tianjin', wx: 'wuxi' }[c];
+						var dir = { sy: 'shenyang', sh: 'shanghai', hb: 'harbin', dl: 'dalian', jh: 'jinhua', cz: 'changzhou', cq: 'chongqing', cc: 'changchun', sz: 'shenzhen', cd: 'chengdu', qd: 'qingdao', sjz: 'shijiazhuang', tj: 'tianjin', wx: 'wuxi', ly: 'luoyang' }[c];
 						return dir ? base + dir + '/map.svg' : '';
+					},
+					// 26E127 fix 7: cellular downloads are allowed, but the first cellular download in a session asks first (native prompt: continue / cancel). The native side sets window._metroIsCellular from NWPathMonitor. Cache hits never reach this gate (it runs only right before a network fetch). Concurrent callers queue behind one prompt; a confirm sets the session flag so later cellular downloads proceed silently, a cancel re-asks next time.
+					cellularGate() {
+						if (!window._metroIsCellular) return Promise.resolve(true);
+						if (window._metroCellularOK) return Promise.resolve(true);
+						var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cellularPrompt);
+						if (!h) { window._metroCellularOK = true; return Promise.resolve(true); }
+						if (window._metroCellularWaiters) {
+							return new Promise(function(resolve) { window._metroCellularWaiters.push(resolve); });
+						}
+						window._metroCellularWaiters = [];
+						return new Promise(function(resolve) {
+							window._metroCellularWaiters.push(resolve);
+							h.postMessage({});
+						});
 					},
 					// Cache-first map load: Vue field (in memory) ->
 					// in-memory mirror -> IndexedDB -> jsDelivr fetch.
@@ -4363,23 +4439,27 @@ function titlePy(py) {
 								self.reportMapState();
 								return cached;
 							}
-							var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-							var timer = null;
-							if (ctrl) timer = setTimeout(function() { try { ctrl.abort(); } catch (e) {} }, 30000);
-							return fetch(url, { cache: 'no-cache', signal: ctrl ? ctrl.signal : undefined }).then(function(r) {
-								if (timer) clearTimeout(timer);
-								if (!r.ok) throw new Error('http ' + r.status);
-								return r.text();
-							}).then(function(svg) {
-								var dom = svg.slice(svg.indexOf('<svg'));
-								if (dom.indexOf('<svg') !== 0) throw new Error('no svg');
-								if (!self._mapMem) self._mapMem = {};
-								self._mapMem[c] = dom;
-								if (field) self[field] = dom;
-								self.mapState[c] = 'ready';
-								self.reportMapState();
-								mapIdbPut('map:' + c, dom);
-								return dom;
+							// 26E127 fix 7: cellular gate — runs after the cache check above, so cached maps never prompt. A cancel throws into the .catch below (error state, retry available).
+							return self.cellularGate().then(function(ok) {
+								if (!ok) throw new Error('cellular cancelled');
+								var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+								var timer = null;
+								if (ctrl) timer = setTimeout(function() { try { ctrl.abort(); } catch (e) {} }, 30000);
+								return fetch(url, { cache: 'no-cache', signal: ctrl ? ctrl.signal : undefined }).then(function(r) {
+									if (timer) clearTimeout(timer);
+									if (!r.ok) throw new Error('http ' + r.status);
+									return r.text();
+								}).then(function(svg) {
+									var dom = svg.slice(svg.indexOf('<svg'));
+									if (dom.indexOf('<svg') !== 0) throw new Error('no svg');
+									if (!self._mapMem) self._mapMem = {};
+									self._mapMem[c] = dom;
+									if (field) self[field] = dom;
+									self.mapState[c] = 'ready';
+									self.reportMapState();
+									mapIdbPut('map:' + c, dom);
+									return dom;
+								});
 							});
 						}).catch(function() {
 							self.mapState[c] = 'error';
@@ -4409,7 +4489,7 @@ function titlePy(py) {
 					// posting progress for the native progress view.
 					downloadAllMaps() {
 						var self = this;
-						var keys = ['bj', 'sy', 'sh', 'hb', 'dl', 'jh', 'cz', 'cq', 'cc', 'sz', 'cd', 'qd', 'sjz', 'tj', 'wx'];
+						var keys = ['bj', 'sy', 'sh', 'hb', 'dl', 'jh', 'cz', 'cq', 'cc', 'sz', 'cd', 'qd', 'sjz', 'tj', 'wx', 'ly'];
 						var missing = keys.filter(function(k) { return self.mapState[k] !== 'ready'; });
 						if (!missing.length || this.mapDownloadingAll) return Promise.resolve(0);
 						this.mapDownloadingAll = true;
@@ -4475,6 +4555,52 @@ function titlePy(py) {
 						if (!w || y + hh < 0 || y > window.innerHeight) { h.postMessage({ x: 0, y: 0, width: 0, height: 0 }); return; }
 						h.postMessage({ x: x, y: y, width: w, height: hh });
 					},
+					// Native per-city download buttons (26E127 fix 4):
+					// same layout-position reporting as
+					// reportMapsDownloadFrame (26E124: offset chain,
+					// transform-independent). One entry per un-downloaded
+					// city with a slot on the city sub-page; entries
+					// scrolled out of view carry a zero rect so the
+					// native button hides. Empty list when the sub-page
+					// is closed, so all buttons hide.
+					reportCityDownloadFrames() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cityDownloadFrame;
+						if (!h) return;
+						if (!this.showCitySub) { h.postMessage({ cities: [] }); return; }
+						var slots = document.querySelectorAll('.more-city-dl-slot');
+						var out = [], self = this;
+						for (var i = 0; i < slots.length; i++) {
+							var el = slots[i], key = el.getAttribute('data-city');
+							if (!key) continue;
+							var x = 0, y = 0, n = el;
+							while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
+							n = el.parentNode;
+							while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
+							var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+							var state = (self.mapState[key] === 'loading') ? 'loading' : ((self.mapState[key] === 'error') ? 'error' : 'download');
+							if (!w || y + hh < 0 || y > window.innerHeight) { out.push({ key: key, x: 0, y: 0, width: 0, height: 0, state: state }); continue; }
+							out.push({ key: key, x: x, y: y, width: w, height: hh, state: state });
+						}
+						h.postMessage({ cities: out });
+					},
+					// 26E127 fix 11: depart-time button frame (same layout-position reporting as reportSwitchFrame — never getBoundingClientRect). Posts the slot rect + the current title text + the theme-correct walking icon (sent only when it changes; native caches it). Zero rect while the transfer tab is hidden, so native hides the button.
+					reportDepartFrame() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.departFrame;
+						if (!h) return;
+						var el = document.querySelector('.tr-time-slot');
+						if (!this.showTransfer || !el) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, title: '', icon: '' }); return; }
+						var x = 0, y = 0, n = el;
+						while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
+						n = el.parentNode;
+						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
+						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+						if (!w || y + hh < 0 || y > window.innerHeight) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, title: '', icon: '' }); return; }
+						var title = (this.departTime ? this.t('tr.departAt', { t: this.departTime }) : this.t('tr.departNow')) + ' ▾';
+						var icon = this.departIconThemed || '';
+						if (window._lastDepartIcon === icon) icon = '';
+						else window._lastDepartIcon = icon;
+						h.postMessage({ x: x, y: y, width: w, height: hh, title: title, icon: icon });
+					},
 					switchCity(c, force) {
 						// force (build 63): relaunch restore passes true so
 						// the saved city's map/stations/routes are applied
@@ -4496,6 +4622,7 @@ function titlePy(py) {
 						if (c === 'sjz' && !this.sjzStations.length) return;
 						if (c === 'tj' && !this.tjStations.length) return;
 						if (c === 'wx' && !this.wxStations.length) return;
+						if (c === 'ly' && !this.lyStations.length) return;
 						// Atomic switch (build 65 flash fix): clear the old
 						// city's transfer/search state AND hide the panels
 						// FIRST, before the city changes, so no render can
@@ -4509,6 +4636,8 @@ function titlePy(py) {
 						this.fromQuery = ''; this.toQuery = '';
 						this.fromLine = null; this.toLine = null;
 						this.routeList = []; this.routeResult = null; this.routeError = '';
+						// 26E127 fix 10: a city switch closes any open route detail — routeResult is cleared above so the page unmounts, but the flag must follow, or transferFrame keeps posting detailOpen:true and the native card stays hidden forever.
+						this.routeDetailOpen = false;
 						this.departTime = null; this.routeTab = 'rec';
 						this.nearbyList = []; this.nearbyMsg = ''; this.nearbyLoading = false; this.nearbyNote = '';
 						this.ttLine = null; this.ttQuery = '';
@@ -4596,6 +4725,11 @@ function titlePy(py) {
 							this.routes = this.wxRoutes;
 							this.transfers = (window.WX_TRANSFERS || {});
 							this.curr = { svgUrl: "", svgDom: this.wxMap, pdfUrl: "", success: true, json: null, verName: "WX", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.wx'), d: '2026-11', l: 5, s: 89}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
+						} else if (c === 'ly') {
+							this.stations = this.lyStations;
+							this.routes = this.lyRoutes;
+							this.transfers = (window.LY_TRANSFERS || {});
+							this.curr = { svgUrl: "", svgDom: this.lyMap, pdfUrl: "", success: true, json: null, verName: "LY", verInfo: "{ " + this.t('map.verInfo', {c: this.t('city.ly'), d: '2026-11', l: 2, s: 33}) + " }", showCmitInfo: false, cmitFixed: "", cmitVar: "" };
 						} else {
 							// Beijing: two map types (build 78). 'line' = RMP
 							// schematic 线路图 (bjLineMap/bjLineStations);
@@ -4622,6 +4756,8 @@ function titlePy(py) {
 							this.ensureMap(c).then(function(svg) {
 								if (!svg || _mc.city !== c) return;
 								if (_mc.curr) _mc.curr.svgDom = svg;
+								// 26E127 fix 10: the map landing is a state change, but re-assert the transfer frame explicitly — the native card must come back the moment the new city is in, not whenever the next update happens to fire.
+								_mc.reportTransferFrame();
 							});
 						}
 						// Merge this city's verified lat/lng into its station
@@ -4770,17 +4906,21 @@ function titlePy(py) {
 						structIdbGet(f).then(function(uri) {
 							if (uri) { done(uri); return; }
 							if (typeof window.fetch !== 'function') { done(null); return; }
-							window.fetch(url).then(function(r) {
-								if (!r.ok) throw new Error('http ' + r.status);
-								return r.text();
-							}).then(function(txt) {
-								var b64 = (txt || '').replace(/\s+/g, '');
-								if (!b64) { done(null); return; }
-								var mime = f.toLowerCase().slice(-4) === '.png' ? 'image/png' : 'image/jpeg';
-								var dataUri = 'data:' + mime + ';base64,' + b64;
-								structIdbPut(f, dataUri);
-								done(dataUri);
-							}).catch(function() { done(null); });
+							// 26E127 fix 7: structure images share the cellular gate (same once-per-session prompt as line maps). A cancel calls done(null) — error state, retry available.
+							self.cellularGate().then(function(ok) {
+								if (!ok) { done(null); return; }
+								window.fetch(url).then(function(r) {
+									if (!r.ok) throw new Error('http ' + r.status);
+									return r.text();
+								}).then(function(txt) {
+									var b64 = (txt || '').replace(/\s+/g, '');
+									if (!b64) { done(null); return; }
+									var mime = f.toLowerCase().slice(-4) === '.png' ? 'image/png' : 'image/jpeg';
+									var dataUri = 'data:' + mime + ';base64,' + b64;
+									structIdbPut(f, dataUri);
+									done(dataUri);
+								}).catch(function() { done(null); });
+							});
 						});
 					},
 					// Native chrome entry points (26E107): the native
@@ -4987,6 +5127,11 @@ function titlePy(py) {
 						this.setTab(this.lastTab && this.lastTab !== 'more' ? this.lastTab : 'transfer');
 					},
 					goBack() {
+						// 26E127 fix 3: the route detail is the topmost
+						// layer when open — the native back button
+						// (subViewBackButton) calls goBack(), so close
+						// the detail first.
+						if (this.routeDetailOpen) { this.closeRouteDetail(); return true; }
 						try {
 							// Structure sub-page first (26E112): it is
 							// the topmost layer — detail collapses to
@@ -5037,6 +5182,9 @@ function titlePy(py) {
 								else if (this.showRankingSub) expT = this.t('more.ranking');
 								else if (this.showAppearanceSub) expT = this.t('more.appearance');
 								else if (this.showLangSub) expT = this.t('more.lang');
+								// 26E127 fix 3: route detail page (transfer tab) —
+								// its title rides in the same native strip.
+								else if (this.routeDetailOpen) expT = this.t('trd.title');
 							} catch (e) {}
 							var expStatic = !!(this.showAboutSub || this.showGeneralSub || this.showAppearanceSub || this.showLangSub || this.showProfileSub);
 							// 26E126: the open post is deferred a tick (the
@@ -5117,14 +5265,17 @@ function titlePy(py) {
 							if (h) h.postMessage({ scroll: scrolled });
 						} catch (e) {}
 					},
-					// 26E126 R: iPad only — hide the floating top chrome
-					// (tab pill + sub-view strip) while the Settings
-					// sheet scrolls down, bring it back on scroll-up or
-					// near the top. Posts {hide} to the native topChrome
-					// handler only when the state changes. iPhone never
-					// posts (window._metroIsPad is false there).
+					// 26E126 R + 26E127 fix 5: hide the floating top
+					// chrome while the Settings sheet scrolls down, bring
+					// it back on scroll-up or near the top. Posts {hide}
+					// to the native topChrome handler only when the state
+					// changes. iPad hides the tab pill + strip + back
+					// button; iPhone hides the strip + back button only
+					// (the bottom tab bar is not top chrome — native
+					// setTopChromeHidden branches on idiom). Applies to
+					// every .more-sub sub-page: they share #moreSheet
+					// and the same native strip.
 					reportTopChrome(top) {
-						if (!window._metroIsPad) return;
 						if (this._topChromeHidden === undefined) this._topChromeHidden = false;
 						var last = (this._topChromeLast == null ? top : this._topChromeLast);
 						var hide = this._topChromeHidden;
@@ -5770,6 +5921,15 @@ function titlePy(py) {
 							var WX = { '1': 42.23, '2': 55.13, '3': 52.22, '4': 47.22, 'S1': 14.80 };
 							return WX[lineKey] || 47.22;
 						}
+						if (this.city === 'ly') {
+							// Luoyang px/km (26E127) = pixel path length along
+							// the line / OFFICIAL line length (fare data
+							// package): L1 25.342 km, L2 18.216 km. Fares
+							// from the schematic are estimates, as in every
+							// calibrated city.
+							var LY = { '1': 41.244, '2': 45.907 };
+							return LY[lineKey] || 43.58;
+						}
 						if (this.city !== 'sh') return 44;
 						var SH_SUB = {
 							'1': 8.60, '2': 11.92, '3': 8.86, '5': 19.23, '5B': 19.23,
@@ -6207,6 +6367,27 @@ function titlePy(py) {
 							else if (kmWx <= 29) fWx = 4 + Math.ceil((kmWx - 15) / 7);
 							else fWx = 6 + Math.ceil((kmWx - 29) / 9);
 							return Math.min(fWx, 10);
+						}
+						// Luoyang: mileage-stepped fare (verified,
+						// 洛发改〔2021〕1号 + Wikipedia + 本地宝, three
+						// sources agree): <=6 km Y2; 6-14 km Y3; 14-22
+						// km Y4; beyond 22 km +Y1 per 9 km; network
+						// maximum Y5 (longest OD 红山—杨湾 25.342 km).
+						// Distance from the map (segKm with the
+						// per-line calibration, approx — see shScaleFor).
+						if (this.city === 'ly') {
+							var kmLy = 0;
+							for (var lyi = 0; lyi < r.segments.length; lyi++) {
+								var ly2 = self.segKm(r.segments[lyi]);
+								if (ly2 == null || ly2 < 0) return null;
+								kmLy += ly2;
+							}
+							var fLy;
+							if (kmLy <= 6) fLy = 2;
+							else if (kmLy <= 14) fLy = 3;
+							else if (kmLy <= 22) fLy = 4;
+							else fLy = 4 + Math.ceil((kmLy - 22) / 9);
+							return Math.min(fLy, 5);
 						}
 						var total = 0, legKm = 0;
 						function closeLeg() { if (legKm > 0) { total += (self.city === 'sh' ? fareForKmSh(legKm) : fareForKm(legKm)); legKm = 0; } }
@@ -6891,7 +7072,7 @@ function titlePy(py) {
 					openTransitApp() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openTransitApp;
 						if (h) { h.postMessage({}); return; }
-						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : (this.city === 'dl' ? '1383655806' : (this.city === 'jh' ? '6503238645' : (this.city === 'cz' ? '1474201266' : (this.city === 'cq' ? '1491110313' : (this.city === 'cc' ? '1481796811' : (this.city === 'sz' ? '848926994' : (this.city === 'cd' ? '1303414976' : (this.city === 'qd' ? '1373547573' : (this.city === 'sjz' ? '6444716093' : (this.city === 'tj' ? '1445111714' : (this.city === 'wx' ? '1213366120' : '1071038870')))))))))))));
+						var id = this.city === 'sy' ? '1441271928' : (this.city === 'sh' ? '1202750238' : (this.city === 'hb' ? '1448467024' : (this.city === 'dl' ? '1383655806' : (this.city === 'jh' ? '6503238645' : (this.city === 'cz' ? '1474201266' : (this.city === 'cq' ? '1491110313' : (this.city === 'cc' ? '1481796811' : (this.city === 'sz' ? '848926994' : (this.city === 'cd' ? '1303414976' : (this.city === 'qd' ? '1373547573' : (this.city === 'sjz' ? '6444716093' : (this.city === 'tj' ? '1445111714' : (this.city === 'wx' ? '1213366120' : (this.city === 'ly' ? '1533912596' : '1071038870'))))))))))))));
 						window.open('https://apps.apple.com/cn/app/id' + id, '_blank');
 					},
 					openApplePay() {
@@ -6911,17 +7092,20 @@ function titlePy(py) {
 					// (window.__setNearbySmart) and any future caller all
 					// land here, so state + persistence can never diverge.
 					setNearbySmart(v) { this.nearbySmart = !!v; try { window.localStorage.setItem('metro-nearby-smart', this.nearbySmart ? '1' : '0'); } catch (e) {} },
-					// Native UISwitch overlay (26C101): report the Siri
-					// page switch slot's frame + current value so the
-					// shell can place its real UISwitch exactly over the
-					// slot (same frame-report pattern as the theme
-					// buttons). A zero rect hides the switch — posted
-					// whenever the Siri page is not the visible sub-view.
+					// Native UISwitch overlay (26C101): report the
+					// Settings-home switch slot's frame + current value
+					// so the shell can place its real UISwitch exactly
+					// over the slot (same frame-report pattern as the
+					// theme buttons). A zero rect hides the switch —
+					// posted whenever the Settings home is not visible.
+					// (26E127 fix 1: the slot lives on the Settings home;
+					// the old showSiriSub gate posted a zero rect there
+					// forever and the switch never appeared.)
 					reportSwitchFrame() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.switchFrame;
 						if (!h) return;
 						var el = document.getElementById('nearbySmartSlot');
-						if (!this.showSiriSub || !el) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
+						if (!this.showMore || this.anySubViewOpen || !el) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
 						// 26E124: report the slot's LAYOUT position, not
 						// getBoundingClientRect. Root cause pinned by the
 						// 26E123 on-device diagnostic readout (r:363,189.6,51,31):
@@ -7048,6 +7232,7 @@ function titlePy(py) {
 						if (c === 'sjz') return this.sjzLatLng;
 						if (c === 'tj') return this.tjLatLng;
 						if (c === 'wx') return this.wxLatLng;
+						if (c === 'ly') return this.lyLatLng;
 						return this.bjLatLng;
 					},
 					// Location permission (Settings row): on tap, ask the native
@@ -7190,7 +7375,7 @@ function titlePy(py) {
 					// Logo for the city switcher rows (build 65): the official
 					// metro logo already inlined for the city pill, shown
 					// circular via CSS. Jinhua joins when its wiring lands.
-					cityLogoFor(k) { return k === 'sy' ? this.syLogo : (k === 'sh' ? this.shLogo : (k === 'hb' ? this.hbLogo : (k === 'dl' ? this.dlLogo : (k === 'jh' ? this.jhLogo : (k === 'cz' ? this.czLogo : (k === 'cq' ? this.cqLogo : (k === 'cc' ? this.ccLogo : (k === 'sz' ? this.szLogo : (k === 'cd' ? this.cdLogo : (k === 'qd' ? this.qdLogo : (k === 'sjz' ? this.sjzLogo : (k === 'tj' ? this.tjLogo : (k === 'wx' ? (this.wxMark || this.wxLogo) : this.bjLogo))))))))))))); },
+					cityLogoFor(k) { return k === 'sy' ? this.syLogo : (k === 'sh' ? this.shLogo : (k === 'hb' ? this.hbLogo : (k === 'dl' ? this.dlLogo : (k === 'jh' ? this.jhLogo : (k === 'cz' ? this.czLogo : (k === 'cq' ? this.cqLogo : (k === 'cc' ? this.ccLogo : (k === 'sz' ? this.szLogo : (k === 'cd' ? this.cdLogo : (k === 'qd' ? this.qdLogo : (k === 'sjz' ? this.sjzLogo : (k === 'tj' ? this.tjLogo : (k === 'wx' ? (this.wxMark || this.wxLogo) : (k === 'ly' ? this.lyLogo : this.bjLogo)))))))))))))); },
 					// Operating-hours prompt (build 63). Timetable data is NOT changed
 					// here — this only reads first/last times and says whether the line
 					// is running at a given moment. A last train after midnight (00:00)
@@ -7651,7 +7836,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26E126') return;
+						if (seen === '26E127') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -8355,7 +8540,7 @@ function titlePy(py) {
 					// the confirm carries the approximate distance and
 					// the user decides.
 					locFixForCommonCity(lat, lng) {
-						var keys = ['bj', 'sy', 'sh', 'hb', 'dl', 'jh', 'cz', 'cq', 'cc', 'sz', 'cd', 'qd', 'sjz', 'tj', 'wx'];
+						var keys = ['bj', 'sy', 'sh', 'hb', 'dl', 'jh', 'cz', 'cq', 'cc', 'sz', 'cd', 'qd', 'sjz', 'tj', 'wx', 'ly'];
 						var best = null;
 						for (var k = 0; k < keys.length; k++) {
 							var table = this.latLngFor(keys[k]);
@@ -8616,6 +8801,7 @@ function titlePy(py) {
 						var settingsSub = this.showCitySub || this.showLangSub || this.showWhatsNewSub || this.showUpcomingSub || this.showAppearanceSub || this.showSiriSub || this.showTrainSub || this.showGeneralSub || this.showBriefingSub || this.showAboutSub || this.showProfileSub || this.showStructSub || this.showRankingSub;
 						if (this.tab === 'more' && settingsSub) return true;
 						if (this.tab === 'timetable' && this.ttLine != null) return true;
+						if (this.tab === 'transfer' && this.routeDetailOpen) return true;
 						return false;
 					},
 					langDisplayName() { return this.lang === 'zh-Hant' ? this.t('more.lang.hant') : (this.lang === 'en' ? this.t('more.lang.en') : this.t('more.lang.hans')); },
@@ -8637,7 +8823,7 @@ function titlePy(py) {
 					// Changzhou ('cz') and Chongqing ('cq') joined when their
 					// wiring landed.
 					cityList() {
-						return [{ key: 'bj', name: this.t('city.bj') }, { key: 'sy', name: this.t('city.sy') }, { key: 'sh', name: this.t('city.sh') }, { key: 'hb', name: this.t('city.hb') }, { key: 'dl', name: this.t('city.dl') }, { key: 'jh', name: this.t('city.jh') }, { key: 'cz', name: this.t('city.cz') }, { key: 'cq', name: this.t('city.cq') }, { key: 'cc', name: this.t('city.cc') }, { key: 'sz', name: this.t('city.sz') }, { key: 'cd', name: this.t('city.cd') }, { key: 'qd', name: this.t('city.qd') }, { key: 'sjz', name: this.t('city.sjz') }, { key: 'tj', name: this.t('city.tj') }, { key: 'wx', name: this.t('city.wx') }];
+						return [{ key: 'bj', name: this.t('city.bj') }, { key: 'sy', name: this.t('city.sy') }, { key: 'sh', name: this.t('city.sh') }, { key: 'hb', name: this.t('city.hb') }, { key: 'dl', name: this.t('city.dl') }, { key: 'jh', name: this.t('city.jh') }, { key: 'cz', name: this.t('city.cz') }, { key: 'cq', name: this.t('city.cq') }, { key: 'cc', name: this.t('city.cc') }, { key: 'sz', name: this.t('city.sz') }, { key: 'cd', name: this.t('city.cd') }, { key: 'qd', name: this.t('city.qd') }, { key: 'sjz', name: this.t('city.sjz') }, { key: 'tj', name: this.t('city.tj') }, { key: 'wx', name: this.t('city.wx') }, { key: 'ly', name: this.t('city.ly') }];
 					},
 					// 'More cities' directory (build 65): every other mainland city
 					// with operating urban rail transit, per CAMET 2026-Q3 (58 cities
@@ -8646,11 +8832,11 @@ function titlePy(py) {
 					// (26E116: Tianjin and Wuxi left this list when they became
 					// supported, leaving 44 entries incl. 雄安).
 					soonCityList() {
-						return ['广州', '武汉', '南京', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '南昌', '兰州', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '贵阳', '厦门', '温州', '济南', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '洛阳', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌', '雄安'];
+						return ['广州', '武汉', '南京', '西安', '苏州', '郑州', '昆明', '杭州', '佛山', '长沙', '宁波', '南昌', '兰州', '淮安', '福州', '东莞', '南宁', '合肥', '乌鲁木齐', '贵阳', '厦门', '温州', '济南', '呼和浩特', '徐州', '天水', '三亚', '太原', '株洲', '宜宾', '嘉兴', '绍兴', '文山州', '芜湖', '南平', '南通', '台州', '黄石', '盐城', '红河州', '滁州', '许昌', '雄安'];
 					},
-					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : (this.city === 'sz' ? this.szLogo : (this.city === 'cd' ? this.cdLogo : (this.city === 'qd' ? this.qdLogo : (this.city === 'sjz' ? this.sjzLogo : (this.city === 'tj' ? this.tjLogo : (this.city === 'wx' ? (this.wxMark || this.wxLogo) : this.bjLogo))))))))))))); },
+					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : (this.city === 'sz' ? this.szLogo : (this.city === 'cd' ? this.cdLogo : (this.city === 'qd' ? this.qdLogo : (this.city === 'sjz' ? this.sjzLogo : (this.city === 'tj' ? this.tjLogo : (this.city === 'wx' ? (this.wxMark || this.wxLogo) : (this.city === 'ly' ? this.lyLogo : this.bjLogo)))))))))))))); },
 					transitLabel() { return this.t('transit.' + this.city); },
-					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? this.szmIcon : (this.city === 'qd' ? this.qdmIcon : (this.city === 'sjz' ? ((this.sjzmIcon && this.sjzmIcon.indexOf('SJZM_ICON') === -1) ? this.sjzmIcon : '') : (this.city === 'tj' ? ((this.tjmIcon && this.tjmIcon.indexOf('TJM_ICON') === -1) ? this.tjmIcon : '') : (this.city === 'wx' ? ((this.msxIcon && this.msxIcon.indexOf('MSX_ICON') === -1) ? this.msxIcon : '') : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : this.yktIcon))))))))))))); },
+					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? this.szmIcon : (this.city === 'qd' ? this.qdmIcon : (this.city === 'sjz' ? ((this.sjzmIcon && this.sjzmIcon.indexOf('SJZM_ICON') === -1) ? this.sjzmIcon : '') : (this.city === 'tj' ? ((this.tjmIcon && this.tjmIcon.indexOf('TJM_ICON') === -1) ? this.tjmIcon : '') : (this.city === 'wx' ? ((this.msxIcon && this.msxIcon.indexOf('MSX_ICON') === -1) ? this.msxIcon : '') : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : (this.city === 'ly' ? '' : this.yktIcon)))))))))))))); },
 					splashImg() {
 						// Universal splash (26D100): ONE pair for the whole
 						// app, picked by dark/light only — the per-city
@@ -8669,6 +8855,8 @@ function titlePy(py) {
 					siriRowIcon() { return this.darkNow ? (this.siriOrbDark || this.aiIcon) : (this.siriOrb || this.aiIcon); },
 					appIconNow() { return this.darkNow ? (this.appIconDark || this.appIcon) : this.appIcon; },
 					walkIconThemed() { return this.darkNow ? this.walkIcon : this.walkIconInk; },
+					// 26E127 fix 11: walking-person icon for the native depart-time button — dark figure in light mode, light figure in dark mode (never a fixed grey).
+					departIconThemed() { return this.darkNow ? this.departIconDark : this.departIcon; },
 					pinIconThemed() { return this.darkNow ? this.pinIcon : this.pinIconInk; },
 					historyForCity() { var c = this.city; return (this.searchHistory || []).filter(function (h) { return h.city === c; }); },
 					filteredStations() {
@@ -8789,6 +8977,7 @@ function titlePy(py) {
 						if (this.city === 'sjz') return this.sjzTimetable;
 						if (this.city === 'tj') return this.tjTimetable;
 						if (this.city === 'wx') return this.wxTimetable;
+						if (this.city === 'ly') return this.lyTimetable;
 						return this.bjTimetable;
 					},
 					// All lines for the current city, in routes order, plus the
@@ -8896,13 +9085,13 @@ function titlePy(py) {
 					structSetIdx() { this.ensureStructImg(); }
 				},
 				updated: function() {
-					this.syncHtmlClasses();
-					this.checkHomeFit();
+					// 26E127 fix 10: nothing in this hook may throw — a map-init failure used to abort the whole hook (setPanZoom on a freshly swapped SVG), so the native frame reports below never ran and the transfer tab stayed blank after a download + city switch. Each step is guarded; the frame batch always runs.
+					try { this.syncHtmlClasses(); } catch (e) {}
+					try { this.checkHomeFit(); } catch (e) {}
 					var el = document.getElementById('svg8');
 					if (el && window._metroSvgEl !== el) {
 						window._metroSvgEl = el;
-						setPanZoom();
-						svgZoomTo(coord.curr);
+						try { setPanZoom(); svgZoomTo(coord.curr); } catch (e) {}
 						if (this.mapLoading) {
 							if (this._mapLoadingTimer) { clearTimeout(this._mapLoadingTimer); this._mapLoadingTimer = null; }
 							var _mu = this;
@@ -8911,9 +9100,9 @@ function titlePy(py) {
 					}
 					if (this.nativeApp) {
 						var self = this;
-						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); self.reportMapsDownloadFrame(); });
+						window.requestAnimationFrame(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportDepartFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); self.reportMapsDownloadFrame(); self.reportCityDownloadFrames(); });
 						clearTimeout(window._metroTabsTimer);
-						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); self.reportMapsDownloadFrame(); }, 300);
+						window._metroTabsTimer = setTimeout(function() { self.reportTabsFrame(); self.reportTransferFrame(); self.reportDepartFrame(); self.reportProfileFrame(); self.reportThemeFrame(); self.reportSwitchFrame(); self.reportStructFrame(); self.reportProfileFrame(); self.reportMapsDownloadFrame(); self.reportCityDownloadFrames(); }, 300);
 					}
 				},
 				mounted: function() {
@@ -8960,6 +9149,7 @@ function titlePy(py) {
 								_moreTicking = false;
 								self.reportThemeFrame();
 								self.reportSwitchFrame();
+								self.reportCityDownloadFrames();
 								self.reportTopChrome(_more.scrollTop);
 							});
 						}, { passive: true });
@@ -8974,6 +9164,7 @@ function titlePy(py) {
 							self.reportTransferFrame(); self.reportProfileFrame();
 							self.reportThemeFrame();
 							self.reportTimeFrame();
+						self.reportCityDownloadFrames();
 							self.reportSwitchFrame();
 						});
 					}
@@ -9019,7 +9210,7 @@ function titlePy(py) {
 						// switch for any valid non-Beijing city so its map,
 						// stations and routes are actually applied; for
 						// 'bj' the Beijing defaults are already correct.
-						if (_savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb' || _savedCity === 'dl' || _savedCity === 'jh' || _savedCity === 'cz' || _savedCity === 'cq' || _savedCity === 'cc' || _savedCity === 'sz' || _savedCity === 'cd' || _savedCity === 'qd' || _savedCity === 'sjz' || _savedCity === 'tj' || _savedCity === 'wx') {
+						if (_savedCity === 'sy' || _savedCity === 'sh' || _savedCity === 'hb' || _savedCity === 'dl' || _savedCity === 'jh' || _savedCity === 'cz' || _savedCity === 'cq' || _savedCity === 'cc' || _savedCity === 'sz' || _savedCity === 'cd' || _savedCity === 'qd' || _savedCity === 'sjz' || _savedCity === 'tj' || _savedCity === 'wx' || _savedCity === 'ly') {
 							this.switchCity(_savedCity, true);
 						}
 					} catch (e) {}
@@ -9032,7 +9223,7 @@ function titlePy(py) {
 					// the true state; the current city's map is already
 					// being fetched by the switchCity restore above.
 					var _ms = this;
-					Promise.all(['bj', 'sy', 'sh', 'hb', 'dl', 'jh', 'cz', 'cq', 'cc', 'sz', 'cd', 'qd', 'sjz', 'tj', 'wx'].map(function(k) {
+					Promise.all(['bj', 'sy', 'sh', 'hb', 'dl', 'jh', 'cz', 'cq', 'cc', 'sz', 'cd', 'qd', 'sjz', 'tj', 'wx', 'ly'].map(function(k) {
 						return mapIdbGet('map:' + k).then(function(v) {
 							if (v) { var f = _ms.mapFieldFor(k); if (f) _ms[f] = v; _ms.mapState[k] = 'ready'; }
 						});
@@ -9142,6 +9333,16 @@ function titlePy(py) {
 			// here so the Vue state + localStorage update exactly as
 			// the old CSS switch's tap did (setNearbySmart).
 			window.__setNearbySmart = function(v) { if (window.metroApp) window.metroApp.setNearbySmart(v); };
+			// 26E127 fix 7: cellular-prompt answers from native — resolve every queued cellularGate() caller together. Confirm also sets the session flag so later cellular downloads proceed silently.
+			window.__cellularConfirmed = function() {
+				window._metroCellularOK = true;
+				var w = window._metroCellularWaiters || []; window._metroCellularWaiters = null;
+				for (var i = 0; i < w.length; i++) w[i](true);
+			};
+			window.__cellularCancelled = function() {
+				var w = window._metroCellularWaiters || []; window._metroCellularWaiters = null;
+				for (var i = 0; i < w.length; i++) w[i](false);
+			};
 		// 26E122: the native redeem alert hands the entered code back
 		// here (null when the user cancelled).
 		window.__redeemEntered = function(text) { if (window.metroApp) window.metroApp.redeemEntered(text); };
@@ -9397,9 +9598,11 @@ function titlePy(py) {
 					if (window.metroApp && window.metroApp.reportTabsFrame) window.metroApp.reportTabsFrame();
 					if (window.metroApp && window.metroApp.reportStructFrame) window.metroApp.reportStructFrame();
 					if (window.metroApp && window.metroApp.reportTransferFrame) window.metroApp.reportTransferFrame();
+					if (window.metroApp && window.metroApp.reportDepartFrame) window.metroApp.reportDepartFrame();
 					if (window.metroApp && window.metroApp.reportProfileFrame) window.metroApp.reportProfileFrame();
 					if (window.metroApp && window.metroApp.reportThemeFrame) window.metroApp.reportThemeFrame();
 					if (window.metroApp && window.metroApp.reportSwitchFrame) window.metroApp.reportSwitchFrame();
+					if (window.metroApp && window.metroApp.reportCityDownloadFrames) window.metroApp.reportCityDownloadFrames();
 					// 26E117: rotation/resize changes the home-lock box —
 					// re-run the fit guard at the new geometry.
 					if (window.metroApp && window.metroApp.resetHomeFit) window.metroApp.resetHomeFit();

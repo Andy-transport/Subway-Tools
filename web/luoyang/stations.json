@@ -1,0 +1,233 @@
+[
+ {
+  "n": "八里堂",
+  "py": "balitang",
+  "ini": "blt",
+  "x": 1035,
+  "y": 630
+ },
+ {
+  "n": "长安路",
+  "py": "changanlu",
+  "ini": "cal",
+  "x": 725,
+  "y": 200
+ },
+ {
+  "n": "二乔路",
+  "py": "erqiaolu",
+  "ini": "eql",
+  "x": 925,
+  "y": -45
+ },
+ {
+  "n": "国花路",
+  "py": "guohualu",
+  "ini": "ghl",
+  "x": 1015,
+  "y": 15
+ },
+ {
+  "n": "谷水",
+  "py": "gushui",
+  "ini": "gs",
+  "x": 570,
+  "y": 155
+ },
+ {
+  "n": "红山",
+  "py": "hongshan",
+  "ini": "hs",
+  "x": 530,
+  "y": 120
+ },
+ {
+  "n": "夹马营",
+  "py": "jiamaying",
+  "ini": "jmy",
+  "x": 1310,
+  "y": 200
+ },
+ {
+  "n": "解放路",
+  "py": "jiefanglu",
+  "ini": "jfl",
+  "x": 1015,
+  "y": 200
+ },
+ {
+  "n": "开元湖",
+  "py": "kaiyuanhu",
+  "ini": "kyh",
+  "x": 935,
+  "y": 515
+ },
+ {
+  "n": "丽景门",
+  "py": "lijingmen",
+  "ini": "ljm",
+  "x": 1195,
+  "y": 200
+ },
+ {
+  "n": "龙门高铁站",
+  "py": "longmengaotiezhan",
+  "ini": "lmgtz",
+  "x": 985,
+  "y": 630
+ },
+ {
+  "n": "洛阳火车站",
+  "py": "luoyanghuochezhan",
+  "ini": "lyhcz",
+  "x": 1015,
+  "y": 70
+ },
+ {
+  "n": "洛邑古城",
+  "py": "luoyigucheng",
+  "ini": "lygc",
+  "x": 1255,
+  "y": 200
+ },
+ {
+  "n": "邙岭",
+  "py": "mangling",
+  "ini": "ml",
+  "x": 980,
+  "y": -45
+ },
+ {
+  "n": "牡丹广场",
+  "py": "mudanguangchang",
+  "ini": "mdgc",
+  "x": 840,
+  "y": 200
+ },
+ {
+  "n": "牡丹桥",
+  "py": "mudanqiao",
+  "ini": "mdq",
+  "x": 1015,
+  "y": 255
+ },
+ {
+  "n": "七里河",
+  "py": "qilihe",
+  "ini": "qlh",
+  "x": 900,
+  "y": 200
+ },
+ {
+  "n": "启明南路",
+  "py": "qimingnanlu",
+  "ini": "qmnl",
+  "x": 1365,
+  "y": 200
+ },
+ {
+  "n": "秦岭路",
+  "py": "qinlinglu",
+  "ini": "qll",
+  "x": 630,
+  "y": 155
+ },
+ {
+  "n": "纱厂路",
+  "py": "shachanglu",
+  "ini": "scl",
+  "x": 1015,
+  "y": 125
+ },
+ {
+  "n": "上海市场",
+  "py": "shanghaishichang",
+  "ini": "shsc",
+  "x": 780,
+  "y": 200
+ },
+ {
+  "n": "史家湾",
+  "py": "shijiawan",
+  "ini": "sjw",
+  "x": 1490,
+  "y": 200
+ },
+ {
+  "n": "市民之家",
+  "py": "shiminzhijia",
+  "ini": "smzj",
+  "x": 935,
+  "y": 465
+ },
+ {
+  "n": "隋唐园",
+  "py": "suitangyuan",
+  "ini": "sty",
+  "x": 960,
+  "y": 350
+ },
+ {
+  "n": "塔湾",
+  "py": "tawan",
+  "ini": "tw",
+  "x": 1425,
+  "y": 200
+ },
+ {
+  "n": "体育中心",
+  "py": "tiyuzhongxin",
+  "ini": "tyzx",
+  "x": 935,
+  "y": 410
+ },
+ {
+  "n": "王城公园",
+  "py": "wangchenggongyuan",
+  "ini": "wcgy",
+  "x": 955,
+  "y": 200
+ },
+ {
+  "n": "文博园",
+  "py": "wenboyuan",
+  "ini": "wby",
+  "x": 995,
+  "y": 315
+ },
+ {
+  "n": "武汉路",
+  "py": "wuhanlu",
+  "ini": "whl",
+  "x": 660,
+  "y": 180
+ },
+ {
+  "n": "兴洛湖",
+  "py": "xingluohu",
+  "ini": "xlh",
+  "x": 935,
+  "y": 590
+ },
+ {
+  "n": "杨湾",
+  "py": "yangwan",
+  "ini": "yw",
+  "x": 1550,
+  "y": 200
+ },
+ {
+  "n": "应天门",
+  "py": "yingtianmen",
+  "ini": "ytm",
+  "x": 1135,
+  "y": 200
+ },
+ {
+  "n": "周王城广场",
+  "py": "zhouwangchengguangchang",
+  "ini": "zwcgc",
+  "x": 1080,
+  "y": 200
+ }
+]

@@ -1,6 +1,7 @@
 import UIKit
 import WebKit
 import CoreLocation
+import Network // 26E127 fix 7: NWPathMonitor for the cellular-download prompt
 import ActivityKit
 import UserNotifications
 import AppIntents
@@ -658,6 +659,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // (x0.79), not an official published value.
     let wuxiRed = UIColor(red: 238.0 / 255.0, green: 39.0 / 255.0, blue: 55.0 / 255.0, alpha: 1)
     let wuxiRedDark = UIColor(red: 188.0 / 255.0, green: 31.0 / 255.0, blue: 43.0 / 255.0, alpha: 1)
+    let luoyangPink = UIColor(red: 196.0 / 255.0, green: 96.0 / 255.0, blue: 140.0 / 255.0, alpha: 1)
+    let luoyangPinkDark = UIColor(red: 154.0 / 255.0, green: 75.0 / 255.0, blue: 110.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "transfer"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -747,6 +750,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "city.sjz": ["石家庄", "石家莊", "Shijiazhuang"],
         "city.tj": ["天津", "天津", "Tianjin"],
         "city.wx": ["无锡", "無錫", "Wuxi"],
+        "city.ly": ["洛阳", "洛陽", "Luoyang"],
         "native.cancel": ["取消", "取消", "Cancel"],
         "tr.tab.rec": ["推荐", "推薦", "Recommended"],
         "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
@@ -769,8 +773,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "siri.openFailed.message": ["没有打开「快捷指令」App。请手动打开「快捷指令」，点 + 新建快捷指令，添加操作并搜索「城轨通」，选择对应操作即可添加。", "沒有打開「捷徑」App。請手動打開「捷徑」，點 + 新增捷徑，添加操作並搜尋「城軌通」，選擇對應操作即可添加。", "Shortcuts could not be opened. Open the Shortcuts app manually, tap + for a new shortcut, add an action and search for \u{201c}Subway Tools\u{201d} to add it."],
         "map.downloadAll": ["下载全部线路图", "下載全部線路圖", "Download all line maps"],
         "map.downloading": ["正在下载…", "正在下載…", "Downloading…"],
-        "map.downloaded": ["已下载 {n}/15 张线路图", "已下載 {n}/15 張線路圖", "Downloaded {n}/15 line maps"],
-        "map.downloadingCount": ["正在下载 {done}/{total}", "正在下載 {done}/{total}", "Downloading {done}/{total}"],        "common.ok": ["知道了", "知道了", "OK"],
+        "map.downloaded": ["已下载 {n}/16 张线路图", "已下載 {n}/16 張線路圖", "Downloaded {n}/16 line maps"],
+        "map.downloadingCount": ["正在下载 {done}/{total}", "正在下載 {done}/{total}", "Downloading {done}/{total}"],
+        "map.download": ["下载", "下載", "Download"],
+        "map.retry": ["重试", "重試", "Retry"],
+        "map.downloadingShort": ["下载中", "下載中", "Downloading…"],
+        "cellular.title": ["使用蜂窝网络下载", "使用蜂窩網路下載", "Download over cellular data"],
+        "cellular.message": ["当前正在使用蜂窝网络，下载线路图会消耗流量。是否继续？", "目前正在使用蜂窩網路，下載線路圖會消耗流量。是否繼續？", "You are on cellular data. Downloading the line map will use mobile data. Continue?"],
+        "cellular.continue": ["继续下载", "繼續下載", "Continue"],
+        "cellular.cancel": ["取消", "取消", "Cancel"],
+        "common.ok": ["知道了", "知道了", "OK"],
         "siri.add.message.nodonate": ["未能自动准备「{name}」，但仍可手动添加：在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可。", "未能自動準備「{name}」，但仍可手動添加：在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可。", "“{name}” could not be prepared automatically, but you can still add it manually: in the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”."],
         "tr.nearby": ["附近车站", "附近車站", "Nearby Stations"],
         "tr.nearby.locating": ["定位中…", "定位中…", "Locating…"],
@@ -790,6 +802,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "transit.sjz": ["石慧行", "石慧行", "Shihuihang"],
         "transit.tj": ["天津地铁", "天津地鐵", "Tianjin Metro"],
         "transit.wx": ["码上行", "碼上行", "Mashangxing"],
+        "transit.ly": ["洛易行", "洛易行", "Luoyixing"],
         "tr.search": ["搜索", "搜索", "Search"],
         "tr.departNow": ["现在出发", "現在出發", "Depart now"],
         "time.confirm": ["确定", "確定", "Done"],
@@ -909,7 +922,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = rootBackgroundColor() // Tab- and theme-matched page background: on the unfolded Duo the area beside the sidebar blends with the page instead of showing as an edge (users 2026-11-21, 2026-11-22).
@@ -950,6 +963,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "topChrome")
         config.userContentController.add(self, name: "mapState")
         config.userContentController.add(self, name: "mapsDownloadFrame")
+        config.userContentController.add(self, name: "cityDownloadFrame")
+        config.userContentController.add(self, name: "cellularPrompt") // 26E127 fix 7
+        config.userContentController.add(self, name: "departFrame") // 26E127 fix 11
         config.userContentController.add(self, name: "mapProgress")
         config.userContentController.add(self, name: "openAppearance")
         config.userContentController.add(self, name: "openLanguage")
@@ -969,13 +985,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let _initCity = currentCity
         let _initTheme = UserDefaults.standard.string(forKey: "metro-theme") ?? "system"
         let _initDark = splashDarkResolved()
-        let _langScript = WKUserScript(source: "window._metroSystemLang = '\(Self.systemLang())'; window._metroIsPad = \(_isPadStr); window._metroInitCity = '\(_initCity)'; window._metroInitTheme = '\(_initTheme)'; window._metroInitDark = \(_initDark);", injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        let _langScript = WKUserScript(source: "window._metroSystemLang = '\(Self.systemLang())'; window._metroIsPad = \(_isPadStr); window._metroInitCity = '\(_initCity)'; window._metroInitTheme = '\(_initTheme)'; window._metroInitDark = \(_initDark); window._metroIsCellular = false;", injectionTime: .atDocumentStart, forMainFrameOnly: true)
         config.userContentController.addUserScript(_langScript)
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         webView.allowsBackForwardNavigationGestures = true
         view.addSubview(webView)
+
+        // 26E127 fix 7: start the cellular path monitor before the page loads, so window._metroIsCellular is set before any download can ask the gate.
+        startNetworkMonitor()
 
         // Native tab bar (UITabBar). The web page hides its own
         // tab bar; this bar is the only one the user sees.
@@ -1640,6 +1659,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // cancels it (subChromeClosing flag + removing the animations).
     func setSubChromeVisible(_ visible: Bool) {
         guard let glass = subHeaderGlass, let button = subViewBackButton else { return }
+        // 26E127 fix 12: the ghost "<" — the latch topChromeHidSubChrome is one-way: set when the top chrome hides while a subview is open, never cleared on close. Worse, the close branch below early-returns when the chrome is already hidden (a scroll-down hid it), so the latch survived the close — and the subView handler's setTopChromeHidden(false) right after re-showed the back button with no subview open. Reset the latch here (before the early-return guard) and track the real subview-open state for the re-show branch.
+        subChromeOpen = visible
+        if !visible { topChromeHidSubChrome = false }
         subViewEdgePan?.isEnabled = visible
         if visible {
             subChromeClosing = false
@@ -1693,34 +1715,37 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
     }
 
-    // 26E126 R: iPad top chrome hides on scroll-down, returns on
+    // 26E126 R + 26E127 fix 5: top chrome hides on scroll-down, returns on
     // scroll-up (user 2026-11-24). The web posts topChrome {hide}
-    // from the #moreSheet scroll listener. iPad only; the splash /
-    // whatsnew gate owns visibility while either page is up, so
-    // posts are ignored then. The sub-view strip is only hidden
-    // when it was actually up (topChromeHidSubChrome) — on the
-    // Settings root page there is no strip to hide, only the pill.
-    // Force-shown again on sub-view open/close and on every tab
-    // switch (setWebTab).
+    // from the #moreSheet scroll listener. 26E127 extends it from iPad
+    // to iPhone: on iPad the pill + strip + back button hide; on iPhone
+    // only the strip + back button hide — the bottom tab bar is not top
+    // chrome. The splash / whatsnew gate owns visibility while either
+    // page is up, so posts are ignored then. The sub-view strip is only
+    // hidden when it was actually up (topChromeHidSubChrome) — on the
+    // Settings root page there is no strip to hide, only the pill (iPad)
+    // or nothing (iPhone). Force-shown again on sub-view open/close and
+    // on every tab switch (setWebTab).
     var topChromeHidden = false
     var topChromeHidSubChrome = false
+    var subChromeOpen = false // 26E127 fix 12: whether a native subview is actually open (the back-button latch above is one-way, so this is the real source of truth)
     func setTopChromeHidden(_ hidden: Bool) {
-        guard UIDevice.current.userInterfaceIdiom == .pad else { return }
         guard !splashShowing && !whatsNewShowing else { return }
         if hidden == topChromeHidden { return }
         topChromeHidden = hidden
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
         if hidden {
             topChromeHidSubChrome = !(subHeaderGlass?.isHidden ?? true)
             UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut], animations: {
-                self.tabBar.alpha = 0
+                if isPad { self.tabBar.alpha = 0 }
                 self.subHeaderGlass?.alpha = 0
                 self.subViewBackButton?.alpha = 0
                 self.subTopCover?.alpha = 0
-                self.tabBar.transform = CGAffineTransform(translationX: 0, y: -12)
+                if isPad { self.tabBar.transform = CGAffineTransform(translationX: 0, y: -12) }
                 self.subHeaderGlass?.transform = CGAffineTransform(translationX: 0, y: -12)
                 self.subViewBackButton?.transform = CGAffineTransform(translationX: 0, y: -12)
             }, completion: { _ in
-                self.tabBar.isHidden = true
+                if isPad { self.tabBar.isHidden = true }
                 if self.topChromeHidSubChrome {
                     self.subHeaderGlass?.isHidden = true
                     self.subViewBackButton?.isHidden = true
@@ -1728,18 +1753,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 }
             })
         } else {
-            tabBar.isHidden = false
-            if topChromeHidSubChrome {
+            if isPad { tabBar.isHidden = false }
+            if topChromeHidSubChrome && subChromeOpen {
                 subHeaderGlass?.isHidden = false
                 subViewBackButton?.isHidden = false
                 subTopCover?.isHidden = false
+            } else if topChromeHidSubChrome {
+                // 26E127 fix 12: stale latch (subview closed while the chrome was hidden) — drop it instead of re-showing a back button with no subview open.
+                topChromeHidSubChrome = false
             }
             UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut], animations: {
-                self.tabBar.alpha = 1
+                if isPad { self.tabBar.alpha = 1 }
                 self.subHeaderGlass?.alpha = 1
                 self.subViewBackButton?.alpha = 1
                 self.subTopCover?.alpha = 1
-                self.tabBar.transform = .identity
+                if isPad { self.tabBar.transform = .identity }
                 self.subHeaderGlass?.transform = .identity
                 self.subViewBackButton?.transform = .identity
             })
@@ -1995,6 +2023,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sjz" { return shijiazhuangRed }
         if currentCity == "tj" { return tianjinRed }
         if currentCity == "wx" { return wuxiRed }
+        if currentCity == "ly" { return luoyangPink }
         return subwayBlue
     }
 
@@ -2015,6 +2044,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sjz" { return shijiazhuangRedDark }
         if currentCity == "tj" { return tianjinRedDark }
         if currentCity == "wx" { return wuxiRedDark }
+        if currentCity == "ly" { return luoyangPinkDark }
         return subwayBlue
     }
 
@@ -2038,6 +2068,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "sjz" { return shijiazhuangRed }
         if currentCity == "tj" { return tianjinRed }
         if currentCity == "wx" { return wuxiRed }
+        if currentCity == "ly" { return luoyangPink }
         return accentColor()
     }
 
@@ -2066,6 +2097,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "sjz": name = "ShijiazhuangLogo"
         case "tj": name = "TianjinLogo"
         case "wx": name = "WuxiLogo"
+        case "ly": name = "LuoyangLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -2139,7 +2171,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         searchPill.tintColor = accentColor()
     }
 
-    // 26E126 J: maps on demand. The city pill menu lists all 15
+    // 26E126 J: maps on demand. The city pill menu lists all 16
     // cities; a downloaded city switches at once, an undownloaded
     // one shows a "↓" affordance and downloads first, then
     // switches (never a dead end). Beijing's default (track) map
@@ -2150,14 +2182,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // Line maps actually downloaded (bj counts only when its LINE
     // map is ready) — same number the web status line shows.
     var downloadedLineMapCount: Int = 0
+    // 26E127 fix 6: the popover lists ONLY downloaded cities (bj always counts as downloaded) — undownloaded cities no longer appear here; download them in Settings → Switch City. (26E126 J showed all with a ↓ mark; the user changed this.)
     func cityMenu() -> UIMenu {
-        let keys = ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"]
+        let keys = ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"].filter { $0 == "bj" || downloadedMapCities.contains($0) }
         var actions: [UIAction] = []
         for key in keys {
-            let ready = downloadedMapCities.contains(key)
-            let title = ready ? L("city." + key) : "↓ " + L("city." + key)
-            let a = UIAction(title: title, image: cityLogoImage(for: key)?.withRenderingMode(.alwaysOriginal)) { [weak self] _ in
-                if ready { self?.pickCity(key) } else { self?.downloadCityMap(key) }
+            let a = UIAction(title: L("city." + key), image: cityLogoImage(for: key)?.withRenderingMode(.alwaysOriginal)) { [weak self] _ in
+                self?.pickCity(key)
             }
             actions.append(a)
         }
@@ -2245,6 +2276,208 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
     }
 
+    // MARK: - Per-city native download buttons (26E127 fix 4)
+
+    // One small Liquid Glass button per un-downloaded city row in the
+    // city sub-page (web .more-city-dl-slot), placed over the slot rect
+    // the web reports via "cityDownloadFrame" (same frame pattern as
+    // placeMapsDownload: dict + webOffset, zero rect hides). Tapping a
+    // button runs the same download-then-switch flow as tapping the row
+    // (window.metroApp.onCityRowTap); the web keeps its text span as
+    // the pure-browser fallback.
+    var cityDownloadButtons: [String: UIButton] = [:]
+    func makeCityDownloadButton(key: String) -> UIButton {
+        let btn = UIButton(type: .system)
+        btn.translatesAutoresizingMaskIntoConstraints = true
+        btn.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        btn.accessibilityIdentifier = key
+        if #available(iOS 26.0, *) {
+            var cfg = UIButton.Configuration.glass()
+            cfg.cornerStyle = .capsule
+            cfg.baseForegroundColor = .systemBlue
+            cfg.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
+            cfg.title = L("map.download")
+            btn.configuration = cfg
+        } else {
+            btn.tintColor = .systemBlue
+        }
+        btn.setTitle(L("map.download"), for: .normal)
+        btn.addTarget(self, action: #selector(cityDownloadTapped(_:)), for: .touchUpInside)
+        btn.isHidden = true
+        view.addSubview(btn)
+        cityDownloadButtons[key] = btn
+        return btn
+    }
+
+    // MARK: - Cellular download prompt (26E127 fix 7)
+
+    // NWPathMonitor watches the network path so the web's cellularGate()
+    // knows whether a download would use cellular data. The flag is
+    // injected at document start (false = Wi-Fi, the safe default) and
+    // re-asserted on every path change. The prompt itself is
+    // once-per-session: a confirm sets _metroCellularOK in the web
+    // (the web's cellularGate resolves and caches it), a cancel leaves
+    // it unset so the next download attempt asks again.
+    var networkMonitor: NWPathMonitor?
+    func startNetworkMonitor() {
+        let monitor = NWPathMonitor()
+        monitor.pathUpdateHandler = { [weak self] path in
+            let cellular = path.usesInterfaceType(.cellular)
+            DispatchQueue.main.async {
+                self?.webView?.evaluateJavaScript("window._metroIsCellular = \(cellular ? "true" : "false");", completionHandler: nil)
+            }
+        }
+        monitor.start(queue: DispatchQueue(label: "metro.networkMonitor"))
+        networkMonitor = monitor
+    }
+
+    func presentCellularPrompt() {
+        // If a prompt is already up, do nothing — the web's gate queues
+        // its callers, and this prompt's answer resolves all of them.
+        // If some other VC is already presented (e.g. the search
+        // conditions sheet), answer cancel so the download does not
+        // hang waiting for a prompt the user cannot see.
+        if presentedViewController != nil {
+            webView?.evaluateJavaScript("window.__cellularCancelled && window.__cellularCancelled();", completionHandler: nil)
+            return
+        }
+        let alert = UIAlertController(title: L("cellular.title"), message: L("cellular.message"), preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: L("cellular.continue"), style: .default) { [weak self] _ in
+            self?.webView?.evaluateJavaScript("window.__cellularConfirmed && window.__cellularConfirmed();", completionHandler: nil)
+        })
+        alert.addAction(UIAlertAction(title: L("cellular.cancel"), style: .cancel) { [weak self] _ in
+            self?.webView?.evaluateJavaScript("window.__cellularCancelled && window.__cellularCancelled();", completionHandler: nil)
+        })
+        present(alert, animated: true)
+    }
+
+    // MARK: - Native depart-time button (26E127 fix 11)
+
+    // The web reports the .tr-time-slot rect + the current title +
+    // the theme-correct walking-person icon (only when it changes).
+    // The button is Liquid Glass on iOS 26+, icon left of the title
+    // (the title already carries the ▾), content right-aligned like
+    // the web control. Tap opens the same departure-time picker as
+    // the web control (web showTimePicker → native timePicker).
+    var departButton: UIButton?
+    var departButtonIcon: UIImage?
+    var departButtonIconURL = ""
+    func placeDepartButton(frame dict: [String: Any]) {
+        let x = ((dict["x"] as? Double) ?? 0) + webOffset.x
+        let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
+        let w = (dict["width"] as? Double) ?? 0
+        let h = (dict["height"] as? Double) ?? 0
+        let title = (dict["title"] as? String) ?? ""
+        guard w > 0 && h > 0 && currentTab == "transfer" && !splashShowing && !whatsNewShowing else {
+            departButton?.isHidden = true
+            return
+        }
+        let btn = departButton ?? makeDepartButton()
+        if let icon = dict["icon"] as? String, !icon.isEmpty, icon != departButtonIconURL {
+            departButtonIconURL = icon
+            departButtonIcon = decodeDepartIcon(icon)
+        }
+        if #available(iOS 26.0, *) {
+            var cfg = btn.configuration ?? UIButton.Configuration.glass()
+            cfg.cornerStyle = .capsule
+            cfg.title = title
+            cfg.image = departButtonIcon
+            cfg.imagePlacement = .leading
+            cfg.imagePadding = 4
+            cfg.baseForegroundColor = .label
+            cfg.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0)
+            btn.configuration = cfg
+        } else {
+            btn.setTitle(title, for: .normal)
+            btn.setImage(departButtonIcon, for: .normal)
+        }
+        btn.contentHorizontalAlignment = .right
+        btn.frame = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
+        btn.isHidden = false
+        view.bringSubviewToFront(btn)
+    }
+    func makeDepartButton() -> UIButton {
+        let btn = UIButton(type: .system)
+        btn.translatesAutoresizingMaskIntoConstraints = true
+        btn.titleLabel?.font = .systemFont(ofSize: 14)
+        btn.accessibilityIdentifier = "departButton"
+        if #available(iOS 26.0, *) {
+            var cfg = UIButton.Configuration.glass()
+            cfg.cornerStyle = .capsule
+            cfg.baseForegroundColor = .label
+            cfg.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0)
+            btn.configuration = cfg
+        }
+        btn.addTarget(self, action: #selector(departButtonTapped), for: .touchUpInside)
+        btn.isHidden = true
+        view.addSubview(btn)
+        departButton = btn
+        return btn
+    }
+    @objc func departButtonTapped() {
+        // Same entry as the web control's tap: ask the web to open the departure-time picker (native SearchConditions sheet via the timePicker handler).
+        webView?.evaluateJavaScript("window.metroApp && window.metroApp.showTimePicker()", completionHandler: nil)
+    }
+    func decodeDepartIcon(_ dataURL: String) -> UIImage? {
+        // The web posts the themed walking-person template
+        // (luminance→alpha: dark figure in light mode, light figure
+        // in dark mode). Decode it as-is (alwaysOriginal — the web
+        // already themed it to the app appearance, not the system
+        // one) and scale it to the button height; fall back to nil
+        // (title only) if the data URL is malformed.
+        guard let comma = dataURL.firstIndex(of: ",") else { return nil }
+        let b64 = String(dataURL[dataURL.index(after: comma)...])
+        guard let data = Data(base64Encoded: b64, options: .ignoreUnknownCharacters),
+              let img = UIImage(data: data) else { return nil }
+        let target = CGSize(width: 18, height: 18)
+        let scaled = UIGraphicsImageRenderer(size: target).image { _ in
+            img.draw(in: CGRect(origin: .zero, size: target))
+        }
+        return scaled.withRenderingMode(.alwaysOriginal)
+    }
+    @objc func cityDownloadTapped(_ sender: UIButton) {
+        guard let key = sender.accessibilityIdentifier, !key.isEmpty else { return }
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.onCityRowTap('\(key)')", completionHandler: nil)
+    }
+    func placeCityDownloadButtons(frames: [[String: Any]]) {
+        let keys = Set(frames.compactMap { $0["key"] as? String })
+        for (k, b) in cityDownloadButtons where !keys.contains(k) { b.isHidden = true }
+        guard currentTab == "more" && !splashShowing && !whatsNewShowing else {
+            for b in cityDownloadButtons.values { b.isHidden = true }
+            return
+        }
+        for f in frames {
+            guard let key = f["key"] as? String else { continue }
+            let x = ((f["x"] as? Double) ?? 0) + webOffset.x
+            let y = ((f["y"] as? Double) ?? 0) + webOffset.y
+            let w = (f["width"] as? Double) ?? 0
+            let h = (f["height"] as? Double) ?? 0
+            let state = (f["state"] as? String) ?? "download"
+            let btn = cityDownloadButtons[key] ?? makeCityDownloadButton(key: key)
+            let title: String
+            switch state {
+            case "loading":
+                title = L("map.downloadingShort")
+                btn.isEnabled = false
+            case "error":
+                title = L("map.retry")
+                btn.isEnabled = true
+            default:
+                title = L("map.download")
+                btn.isEnabled = true
+            }
+            btn.configuration?.title = title
+            btn.setTitle(title, for: .normal)
+            if w > 0 && h > 0 {
+                btn.frame = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
+                btn.isHidden = false
+                view.bringSubviewToFront(btn)
+            } else {
+                btn.isHidden = true
+            }
+        }
+    }
+
     // The transfer panel's city row (web) also asks for the city menu:
     // show it as a native action sheet in a popover anchored to the
     // city pill (top-left), never in the middle of the screen.
@@ -2254,10 +2487,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // so the logo is attached with setValue(forKey: "image") — the
         // long-established way to put an image on an alert action.
         func cityAction(_ city: String) -> UIAlertAction {
-            // 26E126 J: undownloaded cities show the "↓" mark;
-            // tapping still switches (the web downloads the map in
-            // the background and fills the pane when it lands).
-            let a = UIAlertAction(title: (currentCity == city ? "✓ " : "") + (downloadedMapCities.contains(city) ? "" : "↓ ") + L("city." + city), style: .default) { [weak self] _ in
+            // 26E127 fix 6: only downloaded cities appear here (same rule as cityMenu) — no ↓ mark anymore; download in Settings → Switch City.
+            let a = UIAlertAction(title: (currentCity == city ? "✓ " : "") + L("city." + city), style: .default) { [weak self] _ in
                 self?.pickCity(city)
             }
             if let img = cityLogoImage(for: city)?.withRenderingMode(.alwaysOriginal) {
@@ -2265,21 +2496,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             }
             return a
         }
-        sheet.addAction(cityAction("bj"))
-        sheet.addAction(cityAction("sy"))
-        sheet.addAction(cityAction("sh"))
-        sheet.addAction(cityAction("hb"))
-        sheet.addAction(cityAction("dl"))
-        sheet.addAction(cityAction("jh"))
-        sheet.addAction(cityAction("cz"))
-        sheet.addAction(cityAction("cq"))
-        sheet.addAction(cityAction("cc"))
-        sheet.addAction(cityAction("sz"))
-        sheet.addAction(cityAction("cd"))
-        sheet.addAction(cityAction("qd"))
-        sheet.addAction(cityAction("sjz"))
-        sheet.addAction(cityAction("tj"))
-        sheet.addAction(cityAction("wx"))
+        // 26E127 fix 6: same rule as cityMenu — downloaded cities only (bj always counts), so the popover never offers a city whose map is not on the device.
+        for city in ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"] where city == "bj" || downloadedMapCities.contains(city) {
+            sheet.addAction(cityAction(city))
+        }
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
         sheet.modalPresentationStyle = .popover
         if let pop = sheet.popoverPresentationController {
@@ -3547,7 +3767,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // the transfer tab) hides the controls. Field text is only copied
     // from the web while the user is NOT typing in that field, so the
     // caret never jumps.
+    // 26E127 fix 10: last good transfer frame, re-applied when the transfer tab is (re-)entered (setWebTab / tabChanged). The web's post can be lost or delayed when a city switch swaps #svg8 mid-update, leaving the native card hidden on a blank page; the cache is the device-side backstop.
+    var lastTransferFrame: [String: Any]?
     func placeTransfer(frame dict: [String: Any]) {
+        lastTransferFrame = dict
         // 26E126: the route-detail page covers the transfer panel —
         // the native card / search button / action pills must hide
         // while the detail is open (user screenshot, 26E125: the
@@ -3670,6 +3893,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             transferCard.isHidden = true
             transferSearchButton.isHidden = true
             hideActionButtons()
+            departButton?.isHidden = true // 26E127 fix 11: the native depart button lives on the transfer tab only.
             view.endEditing(true)
         }
         // Dark-mode picker only lives on the settings tab.
@@ -4164,6 +4388,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // layout uses (build 63).
         updateSideBarLayout()
         updatePillVisibility()
+        // 26E127 fix 8: first launch asks for location permission once, after the splash (and the What's New page, if any — that path returns above) and before the main interface is used.
+        requestFirstLaunchLocation()
     }
 
     // MARK: - First-launch What's New, native full-screen page (26E125)
@@ -4238,11 +4464,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26E126')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26E127')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
         updatePillVisibility()
+        // 26E127 fix 8: the What's New page was in front of the splash — the first-launch location ask goes here, after it is dismissed.
+        requestFirstLaunchLocation()
     }
 
     // MARK: - Search Conditions screen (build 65; wired in place
@@ -4361,6 +4589,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "sjz": id = "6444716093"
         case "tj": id = "1445111714"
         case "wx": id = "1213366120"
+        case "ly": id = "1533912596"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
@@ -4456,6 +4685,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // Called after the user answers the permission prompt.
         if locPermPending {
             locPermPending = false
+            UserDefaults.standard.set(true, forKey: "metro-locAsked") // 26E127 fix 8: the first-launch ask is spent once the user answers.
             reportLocationPermission()
         }
         guard locationPending else { return }
@@ -4488,6 +4718,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func notifyLocationError(_ message: String) {
         let escaped = message.replacingOccurrences(of: "'", with: "\\'")
         webView.evaluateJavaScript("window.metroApp && window.metroApp.nearbyError('\(escaped)')", completionHandler: nil)
+    }
+
+    // 26E127 fix 8: first launch asks for location permission once, after the splash (and the What's New page, if any) and before the main interface is used. The flag is set only once the authorization actually leaves .notDetermined (in locationManagerDidChangeAuthorization), so killing the app mid-prompt does not burn the one ask. iOS itself only shows the system prompt while .notDetermined, so it can only fire once per install; the Settings location row already reports the real state.
+    func requestFirstLaunchLocation() {
+        guard UserDefaults.standard.object(forKey: "metro-locAsked") == nil else { return }
+        requestLocationPermission()
     }
 
     // Location permission (Settings row): report the current state to
@@ -4540,6 +4776,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         view.backgroundColor = rootBackgroundColor() // Sidebar strip follows the tab's page background.
         updatePillVisibility()
         updateTransferVisibility()
+        // 26E127 fix 10: re-apply the last transfer frame when entering the transfer tab (see lastTransferFrame).
+        if key == "transfer", let f = lastTransferFrame { placeTransfer(frame: f) }
         updateSideBarSelection()
         if key != "transfer" { sortTabs.isHidden = true }
         // The structure panel lives under "more" since 26E112:
@@ -4969,6 +5207,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             view.backgroundColor = rootBackgroundColor() // Sidebar strip follows the tab's page background.
             updatePillVisibility()
             updateTransferVisibility()
+            // 26E127 fix 10: same re-apply as setWebTab — the web-driven tab change can also land on transfer with a lost frame post.
+            if tab == "transfer", let f = lastTransferFrame { placeTransfer(frame: f) }
             tabBar.selectedItem = tabBar.items?[idx]
             updateSideBarSelection()
             // The native Siri-page switch only exists on the
@@ -4998,7 +5238,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // write; the poster re-picks immediately.
             if let dict = message.body as? [String: Any] {
                 if let city = dict["city"] as? String,
-                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"].contains(city) {
+                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"].contains(city) {
                     UserDefaults.standard.set(city, forKey: "metro-city")
                     currentCity = city
                 }
@@ -5032,7 +5272,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
-                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx"].contains(city) {
+                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"].contains(city) {
             // The web switched cities (user switch or the startup
             // restore). Mirror it natively; the web already switched,
             // so do NOT call switchCity here (that would loop).
@@ -5289,6 +5529,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "mapsDownloadFrame",
                   let dict = message.body as? [String: Any] {
             placeMapsDownload(frame: dict)
+        } else if message.name == "cityDownloadFrame",
+                  let dict = message.body as? [String: Any],
+                  let cities = dict["cities"] as? [[String: Any]] {
+            placeCityDownloadButtons(frames: cities)
+        } else if message.name == "cellularPrompt" {
+            // 26E127 fix 7: the web asks before the first cellular download in a session (cellularGate). Show the native prompt; Continue resolves the queued gate(s) and sets the session flag, Cancel rejects them (the web re-asks on the next download attempt).
+            presentCellularPrompt()
+        } else if message.name == "departFrame",
+                  let dict = message.body as? [String: Any] {
+            placeDepartButton(frame: dict)
         } else if message.name == "mapProgress",
                   let dict = message.body as? [String: Any],
                   let done = dict["done"] as? Int,
