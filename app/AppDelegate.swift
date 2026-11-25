@@ -2417,7 +2417,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var structRouteTitle = ""
     var structRouteCancel = "Cancel"
     var structRouteIcon: UIImage?
-    var structRouteIconURL = 
+    var structRouteIconURL = ""
     func placeDepartButton(frame dict: [String: Any]) {
         let x = ((dict["x"] as? Double) ?? 0) + webOffset.x
         let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
