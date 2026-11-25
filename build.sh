@@ -160,6 +160,9 @@ CITIES = [
     ("sjz", "石家庄", "web/shijiazhuang"),
     ("tj", "天津", "web/tianjin"), ("wx", "无锡", "web/wuxi"),
     ("ly", "洛阳", "web/luoyang"), ("gz", "广州", "web/guangzhou"),
+    ("nj", "南京", "web/nanjing"),
+    ("wh", "武汉", "web/wuhan"), ("hz", "杭州", "web/hangzhou"),
+    ("zz", "郑州", "web/zhengzhou"),
 ]
 def load(p):
     with open(p, encoding="utf-8") as f:
@@ -192,6 +195,10 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/TianjinLogo.png'
 python3 -c "import base64; open('build/Payload/Subway Tools.app/WuxiLogo.png','wb').write(base64.b64decode(open('web/wuxi/logo-mark.b64').read()))" # 26E117: the native pill/menu slot is 26pt — use the cropped red symbol, not the full lockup (see web/build_offline.py)
 python3 -c "import base64; open('build/Payload/Subway Tools.app/LuoyangLogo.png','wb').write(base64.b64decode(open('web/luoyang/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/GuangzhouLogo.png','wb').write(base64.b64decode(open('web/guangzhou/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/NanjingLogo.png','wb').write(base64.b64decode(open('web/nanjing/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/WuhanLogo.png','wb').write(base64.b64decode(open('web/wuhan/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/HangzhouLogo.png','wb').write(base64.b64decode(open('web/hangzhou/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/ZhengzhouLogo.png','wb').write(base64.b64decode(open('web/zhengzhou/logo.b64').read()))"
 python3 -c "import base64; [open('build/Payload/Subway Tools.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 
 echo "== 3a. app icon asset catalog (Assets.car, dark home-screen icon) =="

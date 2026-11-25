@@ -1,0 +1,1633 @@
+[
+ {
+  "n": "安宁路",
+  "py": "anninglu",
+  "ini": "anl",
+  "x": -95,
+  "y": 450
+ },
+ {
+  "n": "奥体中心",
+  "py": "aotizhongxin",
+  "ini": "atzx",
+  "x": -15,
+  "y": 315
+ },
+ {
+  "n": "奥体中心西",
+  "py": "aotizhongxinxi",
+  "ini": "atzxx",
+  "x": -65,
+  "y": 315
+ },
+ {
+  "n": "翱翔路",
+  "py": "aoxianglu",
+  "ini": "axl",
+  "x": 730,
+  "y": 835
+ },
+ {
+  "n": "白庙",
+  "py": "baimiao",
+  "ini": "bm",
+  "x": 350,
+  "y": 20
+ },
+ {
+  "n": "八千",
+  "py": "baqian",
+  "ini": "bq",
+  "x": 630,
+  "y": 1335
+ },
+ {
+  "n": "北大学城",
+  "py": "beidaxuecheng",
+  "ini": "bdxc",
+  "x": 350,
+  "y": -135
+ },
+ {
+  "n": "北二十里铺",
+  "py": "beiershilipu",
+  "ini": "beslp",
+  "x": 280,
+  "y": -75
+ },
+ {
+  "n": "北三环",
+  "py": "beisanhuan",
+  "ini": "bsh",
+  "x": 425,
+  "y": -20
+ },
+ {
+  "n": "滨河新城",
+  "py": "binhexincheng",
+  "ini": "bhxc",
+  "x": 770,
+  "y": 335
+ },
+ {
+  "n": "滨河新城南",
+  "py": "binhexinchengnan",
+  "ini": "bhxcn",
+  "x": 770,
+  "y": 395
+ },
+ {
+  "n": "碧沙岗",
+  "py": "bishagang",
+  "ini": "bsg",
+  "x": 195,
+  "y": 175
+ },
+ {
+  "n": "博览中心",
+  "py": "bolanzhongxin",
+  "ini": "blzx",
+  "x": 500,
+  "y": 215
+ },
+ {
+  "n": "博学路",
+  "py": "boxuelu",
+  "ini": "bxl",
+  "x": 780,
+  "y": 155
+ },
+ {
+  "n": "长安路北",
+  "py": "changanlubei",
+  "ini": "calb",
+  "x": 730,
+  "y": 635
+ },
+ {
+  "n": "长安路南",
+  "py": "changanlunan",
+  "ini": "caln",
+  "x": 730,
+  "y": 859
+ },
+ {
+  "n": "畅和街",
+  "py": "changhejie",
+  "ini": "chj",
+  "x": 735,
+  "y": 105
+ },
+ {
+  "n": "常庄",
+  "py": "changzhuang",
+  "ini": "cz",
+  "x": 20,
+  "y": 315
+ },
+ {
+  "n": "潮河",
+  "py": "chaohe",
+  "ini": "ch",
+  "x": 770,
+  "y": 305
+ },
+ {
+  "n": "城东南路",
+  "py": "chengdongnanlu",
+  "ini": "cdnl",
+  "x": 495,
+  "y": 350
+ },
+ {
+  "n": "陈砦",
+  "py": "chenzhai",
+  "ini": "cz",
+  "x": 350,
+  "y": -20
+ },
+ {
+  "n": "陈寨东",
+  "py": "chenzhaidong",
+  "ini": "czd",
+  "x": 385,
+  "y": -55
+ },
+ {
+  "n": "大石桥",
+  "py": "dashiqiao",
+  "ini": "dsq",
+  "x": 310,
+  "y": 150
+ },
+ {
+  "n": "大学科技园",
+  "py": "daxuekejiyuan",
+  "ini": "dxkjy",
+  "x": 155,
+  "y": -5
+ },
+ {
+  "n": "大学中路",
+  "py": "daxuezhonglu",
+  "ini": "dxzl",
+  "x": 265,
+  "y": 315
+ },
+ {
+  "n": "大周",
+  "py": "dazhou",
+  "ini": "dz",
+  "x": 630,
+  "y": 1435
+ },
+ {
+  "n": "电气谷",
+  "py": "dianqigu",
+  "ini": "dqg",
+  "x": 630,
+  "y": 1735
+ },
+ {
+  "n": "东大街",
+  "py": "dongdajie",
+  "ini": "ddj",
+  "x": 425,
+  "y": 215
+ },
+ {
+  "n": "东风东路",
+  "py": "dongfengdonglu",
+  "ini": "dfdl",
+  "x": 665,
+  "y": 55
+ },
+ {
+  "n": "东风路",
+  "py": "dongfenglu",
+  "ini": "dfl",
+  "x": 425,
+  "y": 20
+ },
+ {
+  "n": "东风南路",
+  "py": "dongfengnanlu",
+  "ini": "dfnl",
+  "x": 685,
+  "y": 155
+ },
+ {
+  "n": "洞林湖",
+  "py": "donglinhu",
+  "ini": "dlh",
+  "x": -170,
+  "y": 485
+ },
+ {
+  "n": "洞林寺",
+  "py": "donglinsi",
+  "ini": "dls",
+  "x": -130,
+  "y": 485
+ },
+ {
+  "n": "冬青街",
+  "py": "dongqingjie",
+  "ini": "dqj",
+  "x": 75,
+  "y": -5
+ },
+ {
+  "n": "东十里铺",
+  "py": "dongshilipu",
+  "ini": "dslp",
+  "x": 575,
+  "y": 215
+ },
+ {
+  "n": "东赵",
+  "py": "dongzhao",
+  "ini": "dz",
+  "x": 350,
+  "y": -205
+ },
+ {
+  "n": "东周",
+  "py": "dongzhou",
+  "ini": "dz",
+  "x": 690,
+  "y": 215
+ },
+ {
+  "n": "恩平湖",
+  "py": "enpinghu",
+  "ini": "eph",
+  "x": 825,
+  "y": 765
+ },
+ {
+  "n": "二里岗",
+  "py": "erligang",
+  "ini": "elg",
+  "x": 425,
+  "y": 315
+ },
+ {
+  "n": "二里岗东",
+  "py": "erligangdong",
+  "ini": "elgd",
+  "x": 460,
+  "y": 315
+ },
+ {
+  "n": "二七广场",
+  "py": "erqiguangchang",
+  "ini": "eqgc",
+  "x": 345,
+  "y": 215
+ },
+ {
+  "n": "二砂",
+  "py": "ersha",
+  "ini": "es",
+  "x": 115,
+  "y": 240
+ },
+ {
+  "n": "儿童医院",
+  "py": "ertongyiyuan",
+  "ini": "etyy",
+  "x": 630,
+  "y": 100
+ },
+ {
+  "n": "凤凰台",
+  "py": "fenghuangtai",
+  "ini": "fht",
+  "x": 535,
+  "y": 215
+ },
+ {
+  "n": "凤凰台南",
+  "py": "fenghuangtainan",
+  "ini": "fhtn",
+  "x": 500,
+  "y": 265
+ },
+ {
+  "n": "丰庆路",
+  "py": "fengqinglu",
+  "ini": "fql",
+  "x": 315,
+  "y": -75
+ },
+ {
+  "n": "冯湾",
+  "py": "fengwan",
+  "ini": "fw",
+  "x": 65,
+  "y": 315
+ },
+ {
+  "n": "冯庄",
+  "py": "fengzhuang",
+  "ini": "fz",
+  "x": 395,
+  "y": 350
+ },
+ {
+  "n": "芙蓉湖",
+  "py": "furonghu",
+  "ini": "frh",
+  "x": 630,
+  "y": 1785
+ },
+ {
+  "n": "福塔东",
+  "py": "futadong",
+  "ini": "ftd",
+  "x": 655,
+  "y": 350
+ },
+ {
+  "n": "福泽路",
+  "py": "fuzelu",
+  "ini": "fzl",
+  "x": 890,
+  "y": 180
+ },
+ {
+  "n": "港区北",
+  "py": "gangqubei",
+  "ini": "gqb",
+  "x": 730,
+  "y": 685
+ },
+ {
+  "n": "港区会展",
+  "py": "gangquhuizhan",
+  "ini": "gqhz",
+  "x": 965,
+  "y": 840
+ },
+ {
+  "n": "高铁公园",
+  "py": "gaotiegongyuan",
+  "ini": "gtgy",
+  "x": 705,
+  "y": 55
+ },
+ {
+  "n": "葛天源",
+  "py": "getianyuan",
+  "ini": "gty",
+  "x": 630,
+  "y": 1535
+ },
+ {
+  "n": "关虎屯",
+  "py": "guanhutun",
+  "ini": "ght",
+  "x": 425,
+  "y": 55
+ },
+ {
+  "n": "果树所",
+  "py": "guoshusuo",
+  "ini": "gss",
+  "x": 575,
+  "y": 390
+ },
+ {
+  "n": "海滩寺",
+  "py": "haitansi",
+  "ini": "hts",
+  "x": 290,
+  "y": 100
+ },
+ {
+  "n": "航海广场",
+  "py": "hanghaiguangchang",
+  "ini": "hhgc",
+  "x": 535,
+  "y": 350
+ },
+ {
+  "n": "河南大学新区",
+  "py": "henandaxuexinqu",
+  "ini": "hndxxq",
+  "x": 805,
+  "y": -50
+ },
+ {
+  "n": "河南工业大学",
+  "py": "henangongyedaxue",
+  "ini": "hngydx",
+  "x": -10,
+  "y": -95
+ },
+ {
+  "n": "河南建院",
+  "py": "henanjianyuan",
+  "ini": "hnjy",
+  "x": -95,
+  "y": 380
+ },
+ {
+  "n": "后河芦",
+  "py": "houhelu",
+  "ini": "hhl",
+  "x": 185,
+  "y": 350
+ },
+ {
+  "n": "华南城",
+  "py": "huanancheng",
+  "ini": "hnc",
+  "x": 545,
+  "y": 685
+ },
+ {
+  "n": "华南城东",
+  "py": "huananchengdong",
+  "ini": "hncd",
+  "x": 610,
+  "y": 685
+ },
+ {
+  "n": "华南城西",
+  "py": "huananchengxi",
+  "ini": "hncx",
+  "x": 480,
+  "y": 685
+ },
+ {
+  "n": "黄河路",
+  "py": "huanghelu",
+  "ini": "hhl",
+  "x": 425,
+  "y": 100
+ },
+ {
+  "n": "黄河南路",
+  "py": "huanghenanlu",
+  "ini": "hhnl",
+  "x": 630,
+  "y": 155
+ },
+ {
+  "n": "黄河迎宾馆",
+  "py": "huangheyingbinguan",
+  "ini": "hhybg",
+  "x": 350,
+  "y": -170
+ },
+ {
+  "n": "花寨",
+  "py": "huazhai",
+  "ini": "hz",
+  "x": 425,
+  "y": 390
+ },
+ {
+  "n": "惠济区政府",
+  "py": "huijiquzhengfu",
+  "ini": "hjqzf",
+  "x": 250,
+  "y": -170
+ },
+ {
+  "n": "会展中心",
+  "py": "huizhanzhongxin",
+  "ini": "hzzx",
+  "x": 575,
+  "y": 155
+ },
+ {
+  "n": "火车头体育场",
+  "py": "huochetoutiyuchang",
+  "ini": "hcttyc",
+  "x": 335,
+  "y": 315
+ },
+ {
+  "n": "货站街",
+  "py": "huozhanjie",
+  "ini": "hzj",
+  "x": 575,
+  "y": 255
+ },
+ {
+  "n": "贾河",
+  "py": "jiahe",
+  "ini": "jh",
+  "x": 215,
+  "y": -170
+ },
+ {
+  "n": "贾峪",
+  "py": "jiayu",
+  "ini": "jy",
+  "x": -210,
+  "y": 485
+ },
+ {
+  "n": "机场东",
+  "py": "jichangdong",
+  "ini": "jcd",
+  "x": 930,
+  "y": 840
+ },
+ {
+  "n": "祭城",
+  "py": "jicheng",
+  "ini": "jc",
+  "x": 670,
+  "y": 100
+ },
+ {
+  "n": "金岱",
+  "py": "jindai",
+  "ini": "jd",
+  "x": 575,
+  "y": 425
+ },
+ {
+  "n": "金达路",
+  "py": "jindalu",
+  "ini": "jdl",
+  "x": 425,
+  "y": -145
+ },
+ {
+  "n": "经北二路",
+  "py": "jingbeierlu",
+  "ini": "jbel",
+  "x": 730,
+  "y": 275
+ },
+ {
+  "n": "经北五路",
+  "py": "jingbeiwulu",
+  "ini": "jbwl",
+  "x": 655,
+  "y": 280
+ },
+ {
+  "n": "京广南路",
+  "py": "jingguangnanlu",
+  "ini": "jgnl",
+  "x": 365,
+  "y": 350
+ },
+ {
+  "n": "荆胡",
+  "py": "jinghu",
+  "ini": "jh",
+  "x": 265,
+  "y": 470
+ },
+ {
+  "n": "经开中心广场",
+  "py": "jingkaizhongxinguangchang",
+  "ini": "jkzxgc",
+  "x": 700,
+  "y": 350
+ },
+ {
+  "n": "金汇桥",
+  "py": "jinhuiqiao",
+  "ini": "jhq",
+  "x": 500,
+  "y": 55
+ },
+ {
+  "n": "金融岛北",
+  "py": "jinrongdaobei",
+  "ini": "jrdb",
+  "x": 575,
+  "y": -40
+ },
+ {
+  "n": "金融岛南",
+  "py": "jinrongdaonan",
+  "ini": "jrdn",
+  "x": 575,
+  "y": -20
+ },
+ {
+  "n": "金融岛西",
+  "py": "jinrongdaoxi",
+  "ini": "jrdx",
+  "x": 500,
+  "y": -25
+ },
+ {
+  "n": "金水东路",
+  "py": "jinshuidonglu",
+  "ini": "jsdl",
+  "x": 705,
+  "y": 115
+ },
+ {
+  "n": "金洼",
+  "py": "jinwa",
+  "ini": "jw",
+  "x": 400,
+  "y": -170
+ },
+ {
+  "n": "金桢路",
+  "py": "jinzhenlu",
+  "ini": "jzl",
+  "x": -95,
+  "y": 345
+ },
+ {
+  "n": "康宁街",
+  "py": "kangningjie",
+  "ini": "knj",
+  "x": 730,
+  "y": 185
+ },
+ {
+  "n": "康平湖",
+  "py": "kangpinghu",
+  "ini": "kph",
+  "x": 785,
+  "y": 685
+ },
+ {
+  "n": "郎庄",
+  "py": "langzhuang",
+  "ini": "lz",
+  "x": 575,
+  "y": 495
+ },
+ {
+  "n": "兰河公园",
+  "py": "lanhegongyuan",
+  "ini": "lhgy",
+  "x": 825,
+  "y": 725
+ },
+ {
+  "n": "兰寨",
+  "py": "lanzhai",
+  "ini": "lz",
+  "x": -10,
+  "y": 85
+ },
+ {
+  "n": "老鸦陈",
+  "py": "laoyachen",
+  "ini": "lyc",
+  "x": 210,
+  "y": -75
+ },
+ {
+  "n": "梁湖",
+  "py": "lianghu",
+  "ini": "lh",
+  "x": 655,
+  "y": 410
+ },
+ {
+  "n": "莲湖",
+  "py": "lianhu",
+  "ini": "lh",
+  "x": -15,
+  "y": 365
+ },
+ {
+  "n": "李湖桥",
+  "py": "lihuqiao",
+  "ini": "lhq",
+  "x": 935,
+  "y": 180
+ },
+ {
+  "n": "李江沟",
+  "py": "lijianggou",
+  "ini": "ljg",
+  "x": 95,
+  "y": 315
+ },
+ {
+  "n": "漓江路",
+  "py": "lijianglu",
+  "ini": "ljl",
+  "x": 265,
+  "y": 430
+ },
+ {
+  "n": "李商隐公园",
+  "py": "lishangyingongyuan",
+  "ini": "lsygy",
+  "x": -150,
+  "y": 240
+ },
+ {
+  "n": "柳湖",
+  "py": "liuhu",
+  "ini": "lh",
+  "x": -60,
+  "y": 240
+ },
+ {
+  "n": "柳林",
+  "py": "liulin",
+  "ini": "ll",
+  "x": 425,
+  "y": -85
+ },
+ {
+  "n": "琉璃寺",
+  "py": "liulisi",
+  "ini": "lls",
+  "x": 350,
+  "y": -100
+ },
+ {
+  "n": "刘庄",
+  "py": "liuzhuang",
+  "ini": "lz",
+  "x": 425,
+  "y": -115
+ },
+ {
+  "n": "陇海东路",
+  "py": "longhaidonglu",
+  "ini": "lhdl",
+  "x": 425,
+  "y": 265
+ },
+ {
+  "n": "陇海西路",
+  "py": "longhaixilu",
+  "ini": "lhxl",
+  "x": 160,
+  "y": 280
+ },
+ {
+  "n": "龙湖北",
+  "py": "longhubei",
+  "ini": "lhb",
+  "x": 575,
+  "y": -60
+ },
+ {
+  "n": "龙湖南",
+  "py": "longhunan",
+  "ini": "lhn",
+  "x": 575,
+  "y": 0
+ },
+ {
+  "n": "龙湖中环北",
+  "py": "longhuzhonghuanbei",
+  "ini": "lhzhb",
+  "x": 555,
+  "y": -75
+ },
+ {
+  "n": "龙湖中环南",
+  "py": "longhuzhonghuannan",
+  "ini": "lhzhn",
+  "x": 575,
+  "y": 20
+ },
+ {
+  "n": "龙王",
+  "py": "longwang",
+  "ini": "lw",
+  "x": 630,
+  "y": 1085
+ },
+ {
+  "n": "龙王庙",
+  "py": "longwangmiao",
+  "ini": "lwm",
+  "x": 980,
+  "y": 180
+ },
+ {
+  "n": "龙王南",
+  "py": "longwangnan",
+  "ini": "lwn",
+  "x": 630,
+  "y": 1135
+ },
+ {
+  "n": "陇秀公园",
+  "py": "longxiugongyuan",
+  "ini": "lxgy",
+  "x": 385,
+  "y": 315
+ },
+ {
+  "n": "龙子湖",
+  "py": "longzihu",
+  "ini": "lzh",
+  "x": 805,
+  "y": 55
+ },
+ {
+  "n": "龙子湖东",
+  "py": "longzihudong",
+  "ini": "lzhd",
+  "x": 855,
+  "y": 55
+ },
+ {
+  "n": "龙子湖西",
+  "py": "longzihuxi",
+  "ini": "lzhx",
+  "x": 745,
+  "y": 55
+ },
+ {
+  "n": "鲁庙",
+  "py": "lumiao",
+  "ini": "lm",
+  "x": 1070,
+  "y": 180
+ },
+ {
+  "n": "鹿鸣湖",
+  "py": "luminghu",
+  "ini": "lmh",
+  "x": 630,
+  "y": 1835
+ },
+ {
+  "n": "绿博园",
+  "py": "lvboyuan",
+  "ini": "lby",
+  "x": 1025,
+  "y": 180
+ },
+ {
+  "n": "绿城广场",
+  "py": "lvchengguangchang",
+  "ini": "lcgc",
+  "x": 230,
+  "y": 237.5
+ },
+ {
+  "n": "毛庄",
+  "py": "maozhuang",
+  "ini": "mz",
+  "x": 285,
+  "y": -170
+ },
+ {
+  "n": "马寨",
+  "py": "mazhai",
+  "ini": "mz",
+  "x": -95,
+  "y": 415
+ },
+ {
+  "n": "孟庄",
+  "py": "mengzhuang",
+  "ini": "mz",
+  "x": 675,
+  "y": 685
+ },
+ {
+  "n": "庙王",
+  "py": "miaowang",
+  "ini": "mw",
+  "x": -105,
+  "y": 240
+ },
+ {
+  "n": "民航路",
+  "py": "minhanglu",
+  "ini": "mhl",
+  "x": 530,
+  "y": 155
+ },
+ {
+  "n": "南岗刘",
+  "py": "nangangliu",
+  "ini": "ngl",
+  "x": 265,
+  "y": 550
+ },
+ {
+  "n": "南环公园",
+  "py": "nanhuangongyuan",
+  "ini": "nhgy",
+  "x": 265,
+  "y": 510
+ },
+ {
+  "n": "南流",
+  "py": "nanliu",
+  "ini": "nl",
+  "x": 115,
+  "y": -5
+ },
+ {
+  "n": "南三环",
+  "py": "nansanhuan",
+  "ini": "nsh",
+  "x": 425,
+  "y": 425
+ },
+ {
+  "n": "南四环",
+  "py": "nansihuan",
+  "ini": "nsh",
+  "x": 425,
+  "y": 485
+ },
+ {
+  "n": "南五里堡",
+  "py": "nanwulibao",
+  "ini": "nwlb",
+  "x": 425,
+  "y": 350
+ },
+ {
+  "n": "南阳新村",
+  "py": "nanyangxincun",
+  "ini": "nyxc",
+  "x": 260,
+  "y": 70
+ },
+ {
+  "n": "农大路",
+  "py": "nongdalu",
+  "ini": "ndl",
+  "x": 630,
+  "y": 1635
+ },
+ {
+  "n": "农业大学",
+  "py": "nongyedaxue",
+  "ini": "nydx",
+  "x": 350,
+  "y": 55
+ },
+ {
+  "n": "农业东路",
+  "py": "nongyedonglu",
+  "ini": "nydl",
+  "x": 575,
+  "y": 50
+ },
+ {
+  "n": "农业南路",
+  "py": "nongyenanlu",
+  "ini": "nynl",
+  "x": 660,
+  "y": 155
+ },
+ {
+  "n": "圃田",
+  "py": "putian",
+  "ini": "pt",
+  "x": 815,
+  "y": 225
+ },
+ {
+  "n": "圃田西",
+  "py": "putianxi",
+  "ini": "ptx",
+  "x": 760,
+  "y": 225
+ },
+ {
+  "n": "七里河",
+  "py": "qilihe",
+  "ini": "qlh",
+  "x": 575,
+  "y": 350
+ },
+ {
+  "n": "齐礼阎",
+  "py": "qiliyan",
+  "ini": "qly",
+  "x": 225,
+  "y": 350
+ },
+ {
+  "n": "轻工业大学",
+  "py": "qinggongyedaxue",
+  "ini": "qgydx",
+  "x": -95,
+  "y": -5
+ },
+ {
+  "n": "清华附中",
+  "py": "qinghuafuzhong",
+  "ini": "qhfz",
+  "x": 500,
+  "y": -75
+ },
+ {
+  "n": "秦岭路",
+  "py": "qinlinglu",
+  "ini": "qll",
+  "x": 125,
+  "y": 175
+ },
+ {
+  "n": "人民公园",
+  "py": "renmingongyuan",
+  "ini": "rmgy",
+  "x": 310,
+  "y": 175
+ },
+ {
+  "n": "人民路",
+  "py": "renminlu",
+  "ini": "rml",
+  "x": 390,
+  "y": 170
+ },
+ {
+  "n": "森林公园北",
+  "py": "senlingongyuanbei",
+  "ini": "slgyb",
+  "x": 480,
+  "y": -75
+ },
+ {
+  "n": "沙口路",
+  "py": "shakoulu",
+  "ini": "skl",
+  "x": 205,
+  "y": 100
+ },
+ {
+  "n": "沙门",
+  "py": "shamen",
+  "ini": "sm",
+  "x": 425,
+  "y": -55
+ },
+ {
+  "n": "商鼎路",
+  "py": "shangdinglu",
+  "ini": "sdl",
+  "x": 575,
+  "y": 195
+ },
+ {
+  "n": "沙窝李",
+  "py": "shawoli",
+  "ini": "swl",
+  "x": 425,
+  "y": 565
+ },
+ {
+  "n": "省骨科医院",
+  "py": "shenggukeyiyuan",
+  "ini": "sgkyy",
+  "x": 730,
+  "y": 215
+ },
+ {
+  "n": "省人民医院",
+  "py": "shengrenminyiyuan",
+  "ini": "srmyy",
+  "x": 460,
+  "y": 100
+ },
+ {
+  "n": "省社科院",
+  "py": "shengshekeyuan",
+  "ini": "ssky",
+  "x": 845,
+  "y": 195
+ },
+ {
+  "n": "省体育中心",
+  "py": "shengtiyuzhongxin",
+  "ini": "styzx",
+  "x": 250,
+  "y": -75
+ },
+ {
+  "n": "省中医院",
+  "py": "shengzhongyiyuan",
+  "ini": "szyy",
+  "x": 300,
+  "y": 20
+ },
+ {
+  "n": "十八里河",
+  "py": "shibalihe",
+  "ini": "sblh",
+  "x": 425,
+  "y": 525
+ },
+ {
+  "n": "市第二人民医院",
+  "py": "shidierrenminyiyuan",
+  "ini": "sdermyy",
+  "x": 265,
+  "y": 350
+ },
+ {
+  "n": "市骨科医院",
+  "py": "shigukeyiyuan",
+  "ini": "sgkyy",
+  "x": 265,
+  "y": 275
+ },
+ {
+  "n": "市民大道",
+  "py": "shimindadao",
+  "ini": "smdd",
+  "x": -15,
+  "y": 200
+ },
+ {
+  "n": "市民中心",
+  "py": "shiminzhongxin",
+  "ini": "smzx",
+  "x": 20,
+  "y": 175
+ },
+ {
+  "n": "市体育中心",
+  "py": "shitiyuzhongxin",
+  "ini": "styzx",
+  "x": 805,
+  "y": 105
+ },
+ {
+  "n": "市委党校",
+  "py": "shiweidangxiao",
+  "ini": "swdx",
+  "x": -15,
+  "y": 240
+ },
+ {
+  "n": "市中心医院",
+  "py": "shizhongxinyiyuan",
+  "ini": "szxyy",
+  "x": 160,
+  "y": 240
+ },
+ {
+  "n": "双鹤湖",
+  "py": "shuanghehu",
+  "ini": "shh",
+  "x": 630,
+  "y": 1235
+ },
+ {
+  "n": "双鹤湖北",
+  "py": "shuanghehubei",
+  "ini": "shhb",
+  "x": 630,
+  "y": 1185
+ },
+ {
+  "n": "双鹤湖南",
+  "py": "shuanghehunan",
+  "ini": "shhn",
+  "x": 630,
+  "y": 1285
+ },
+ {
+  "n": "双湖大道",
+  "py": "shuanghudadao",
+  "ini": "shdd",
+  "x": 425,
+  "y": 605
+ },
+ {
+  "n": "双庙李",
+  "py": "shuangmiaoli",
+  "ini": "sml",
+  "x": 630,
+  "y": 1385
+ },
+ {
+  "n": "司赵",
+  "py": "sizhao",
+  "ini": "sz",
+  "x": 770,
+  "y": 365
+ },
+ {
+  "n": "嵩淮",
+  "py": "songhuai",
+  "ini": "sh",
+  "x": 225,
+  "y": 315
+ },
+ {
+  "n": "天健湖",
+  "py": "tianjianhu",
+  "ini": "tjh",
+  "x": -135,
+  "y": -5
+ },
+ {
+  "n": "铁炉",
+  "py": "tielu",
+  "ini": "tl",
+  "x": -12.5,
+  "y": 130
+ },
+ {
+  "n": "体育中心",
+  "py": "tiyuzhongxin",
+  "ini": "tyzx",
+  "x": 630,
+  "y": 1685
+ },
+ {
+  "n": "桐淮",
+  "py": "tonghuai",
+  "ini": "th",
+  "x": 160,
+  "y": 315
+ },
+ {
+  "n": "同乐",
+  "py": "tongle",
+  "ini": "tl",
+  "x": 250,
+  "y": 20
+ },
+ {
+  "n": "通泰路",
+  "py": "tongtailu",
+  "ini": "ttl",
+  "x": 610,
+  "y": 215
+ },
+ {
+  "n": "王胡砦",
+  "py": "wanghuzhai",
+  "ini": "whz",
+  "x": 265,
+  "y": 390
+ },
+ {
+  "n": "王砦",
+  "py": "wangzhai",
+  "ini": "wz",
+  "x": 250,
+  "y": -40
+ },
+ {
+  "n": "文体中心",
+  "py": "wentizhongxin",
+  "ini": "wtzx",
+  "x": 730,
+  "y": 735
+ },
+ {
+  "n": "文苑北路",
+  "py": "wenyuanbeilu",
+  "ini": "wybl",
+  "x": 805,
+  "y": 5
+ },
+ {
+  "n": "卧龙岗",
+  "py": "wolonggang",
+  "ini": "wlg",
+  "x": 125,
+  "y": 315
+ },
+ {
+  "n": "五龙口",
+  "py": "wulongkou",
+  "ini": "wlk",
+  "x": 195,
+  "y": -5
+ },
+ {
+  "n": "梧桐街",
+  "py": "wutongjie",
+  "ini": "wtj",
+  "x": -10,
+  "y": 40
+ },
+ {
+  "n": "五一公园",
+  "py": "wuyigongyuan",
+  "ini": "wygy",
+  "x": 160,
+  "y": 175
+ },
+ {
+  "n": "祥营",
+  "py": "xiangying",
+  "ini": "xy",
+  "x": -55,
+  "y": -5
+ },
+ {
+  "n": "小乔",
+  "py": "xiaoqiao",
+  "ini": "xq",
+  "x": 425,
+  "y": 645
+ },
+ {
+  "n": "小营",
+  "py": "xiaoying",
+  "ini": "xy",
+  "x": 500,
+  "y": 20
+ },
+ {
+  "n": "西大街",
+  "py": "xidajie",
+  "ini": "xdj",
+  "x": 380,
+  "y": 215
+ },
+ {
+  "n": "西流湖",
+  "py": "xiliuhu",
+  "ini": "xlh",
+  "x": 55,
+  "y": 175
+ },
+ {
+  "n": "西流湖公园南",
+  "py": "xiliuhugongyuannan",
+  "ini": "xlhgyn",
+  "x": 72.5,
+  "y": 240
+ },
+ {
+  "n": "兴隆铺",
+  "py": "xinglongpu",
+  "ini": "xlp",
+  "x": 250,
+  "y": -10
+ },
+ {
+  "n": "新郑机场",
+  "py": "xinzhengjichang",
+  "ini": "xzjc",
+  "x": 860,
+  "y": 840
+ },
+ {
+  "n": "西三环",
+  "py": "xisanhuan",
+  "ini": "xsh",
+  "x": 90,
+  "y": 175
+ },
+ {
+  "n": "西周",
+  "py": "xizhou",
+  "ini": "xz",
+  "x": 640,
+  "y": 215
+ },
+ {
+  "n": "许昌东站",
+  "py": "xuchangdongzhan",
+  "ini": "xcdz",
+  "x": 630,
+  "y": 1885
+ },
+ {
+  "n": "洵美路",
+  "py": "xunmeilu",
+  "ini": "xml",
+  "x": 630,
+  "y": 1035
+ },
+ {
+  "n": "杨君刘",
+  "py": "yangjunliu",
+  "ini": "yjl",
+  "x": 450,
+  "y": -55
+ },
+ {
+  "n": "燕庄",
+  "py": "yanzhuang",
+  "ini": "yz",
+  "x": 500,
+  "y": 155
+ },
+ {
+  "n": "姚砦",
+  "py": "yaozhai",
+  "ini": "yz",
+  "x": 500,
+  "y": 100
+ },
+ {
+  "n": "姚庄",
+  "py": "yaozhuang",
+  "ini": "yz",
+  "x": 575,
+  "y": 460
+ },
+ {
+  "n": "颍川路",
+  "py": "yingchuanlu",
+  "ini": "ycl",
+  "x": 630,
+  "y": 1485
+ },
+ {
+  "n": "营岗",
+  "py": "yinggang",
+  "ini": "yg",
+  "x": 770,
+  "y": 275
+ },
+ {
+  "n": "银屏路",
+  "py": "yinpinglu",
+  "ini": "ypl",
+  "x": 35,
+  "y": -5
+ },
+ {
+  "n": "医学院",
+  "py": "yixueyuan",
+  "ini": "yxy",
+  "x": 265,
+  "y": 237.5
+ },
+ {
+  "n": "永和路",
+  "py": "yonghelu",
+  "ini": "yhl",
+  "x": 630,
+  "y": 1585
+ },
+ {
+  "n": "苑陵故城西",
+  "py": "yuanlingguchengxi",
+  "ini": "ylgcx",
+  "x": 630,
+  "y": 985
+ },
+ {
+  "n": "月季公园",
+  "py": "yuejigongyuan",
+  "ini": "yjgy",
+  "x": 160,
+  "y": 130
+ },
+ {
+  "n": "枣园",
+  "py": "zaoyuan",
+  "ini": "zy",
+  "x": 730,
+  "y": 785
+ },
+ {
+  "n": "枣庄",
+  "py": "zaozhuang",
+  "ini": "zz",
+  "x": 465,
+  "y": 20
+ },
+ {
+  "n": "张家村",
+  "py": "zhangjiacun",
+  "ini": "zjc",
+  "x": 350,
+  "y": -65
+ },
+ {
+  "n": "站马屯",
+  "py": "zhanmatun",
+  "ini": "zmt",
+  "x": 425,
+  "y": 460
+ },
+ {
+  "n": "郑大科技园",
+  "py": "zhengdakejiyuan",
+  "ini": "zdkjy",
+  "x": -10,
+  "y": -50
+ },
+ {
+  "n": "郑大一附院",
+  "py": "zhengdayifuyuan",
+  "ini": "zdyfy",
+  "x": 285,
+  "y": 175
+ },
+ {
+  "n": "郑大一附院东区",
+  "py": "zhengdayifuyuandongqu",
+  "ini": "zdyfydq",
+  "x": 655,
+  "y": 20
+ },
+ {
+  "n": "郑州大学",
+  "py": "zhengzhoudaxue",
+  "ini": "zzdx",
+  "x": -10,
+  "y": -5
+ },
+ {
+  "n": "郑州东站",
+  "py": "zhengzhoudongzhan",
+  "ini": "zzdz",
+  "x": 732.5,
+  "y": 155
+ },
+ {
+  "n": "郑州航空港站",
+  "py": "zhengzhouhangkonggangzhan",
+  "ini": "zzhkgz",
+  "x": 1000,
+  "y": 840
+ },
+ {
+  "n": "郑州火车站",
+  "py": "zhengzhouhuochezhan",
+  "ini": "zzhcz",
+  "x": 300,
+  "y": 237.5
+ },
+ {
+  "n": "郑州人民医院",
+  "py": "zhengzhourenminyiyuan",
+  "ini": "zzrmyy",
+  "x": 350,
+  "y": 100
+ },
+ {
+  "n": "郑州文庙",
+  "py": "zhengzhouwenmiao",
+  "ini": "zzwm",
+  "x": 460,
+  "y": 215
+ },
+ {
+  "n": "郑州西站",
+  "py": "zhengzhouxizhan",
+  "ini": "zzxz",
+  "x": -195,
+  "y": 240
+ },
+ {
+  "n": "郑州一中",
+  "py": "zhengzhouyizhong",
+  "ini": "zzyz",
+  "x": 30,
+  "y": 240
+ },
+ {
+  "n": "中央商务区",
+  "py": "zhongyangshangwuqu",
+  "ini": "zyswq",
+  "x": 575,
+  "y": 100
+ },
+ {
+  "n": "众意西路",
+  "py": "zhongyixilu",
+  "ini": "zyxl",
+  "x": 540,
+  "y": 100
+ },
+ {
+  "n": "中原福塔",
+  "py": "zhongyuanfuta",
+  "ini": "zyft",
+  "x": 615,
+  "y": 350
+ },
+ {
+  "n": "紫荆山",
+  "py": "zijingshan",
+  "ini": "zjs",
+  "x": 425,
+  "y": 155
+ },
+ {
+  "n": "综合保税区",
+  "py": "zonghebaoshuiqu",
+  "ini": "zhbsq",
+  "x": 825,
+  "y": 805
+ },
+ {
+  "n": "遵大路",
+  "py": "zundalu",
+  "ini": "zdl",
+  "x": 680,
+  "y": 935
+ }
+]

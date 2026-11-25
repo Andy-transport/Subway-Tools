@@ -261,6 +261,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // buttons. nearbySmartApplying guards the programmatic state sync
     // so it can never be mistaken for a user toggle.
     var nearbySmartSwitch: UISwitch!
+    var cellularSwitch: UISwitch!
+    var cellularApplying = false
     var nearbySmartApplying = false
     // 26E122: the last Home City picker payload, kept so the
     // location-unavailable alert can hand the user straight back
@@ -682,6 +684,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     let luoyangPinkDark = UIColor(red: 154.0 / 255.0, green: 75.0 / 255.0, blue: 110.0 / 255.0, alpha: 1)
     let guangzhouYellow = UIColor(red: 237.0 / 255.0, green: 207.0 / 255.0, blue: 59.0 / 255.0, alpha: 1)
     let guangzhouYellowDark = UIColor(red: 187.0 / 255.0, green: 163.0 / 255.0, blue: 46.0 / 255.0, alpha: 1)
+    let nanjingBlue = UIColor(red: 0.0 / 255.0, green: 154.0 / 255.0, blue: 206.0 / 255.0, alpha: 1)
+    let nanjingBlueDark = UIColor(red: 0.0 / 255.0, green: 121.0 / 255.0, blue: 162.0 / 255.0, alpha: 1)
+    let wuhanBlue = UIColor(red: 0.0 / 255.0, green: 103.0 / 255.0, blue: 164.0 / 255.0, alpha: 1)
+    let wuhanBlueDark = UIColor(red: 0.0 / 255.0, green: 81.0 / 255.0, blue: 129.0 / 255.0, alpha: 1)
+    let hangzhouRed = UIColor(red: 223.0 / 255.0, green: 70.0 / 255.0, blue: 97.0 / 255.0, alpha: 1)
+    let hangzhouRedDark = UIColor(red: 176.0 / 255.0, green: 55.0 / 255.0, blue: 77.0 / 255.0, alpha: 1)
+    let zhengzhouRed = UIColor(red: 230.0 / 255.0, green: 0.0 / 255.0, blue: 18.0 / 255.0, alpha: 1)
+    let zhengzhouRedDark = UIColor(red: 181.0 / 255.0, green: 0.0 / 255.0, blue: 14.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "transfer"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -773,6 +783,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "city.wx": ["无锡", "無錫", "Wuxi"],
         "city.ly": ["洛阳", "洛陽", "Luoyang"],
         "city.gz": ["广州", "廣州", "Guangzhou"],
+        "city.nj": ["南京", "南京", "Nanjing"],
+        "city.wh": ["武汉", "武漢", "Wuhan"],
+        "city.hz": ["杭州", "杭州", "Hangzhou"],
+        "city.zz": ["郑州", "鄭州", "Zhengzhou"],
         "native.cancel": ["取消", "取消", "Cancel"],
         "tr.tab.rec": ["推荐", "推薦", "Recommended"],
         "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
@@ -790,7 +804,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "more.lang.en": ["English", "English", "English"],
         "map.downloadAll": ["下载全部线路图", "下載全部線路圖", "Download all line maps"],
         "map.downloading": ["正在下载…", "正在下載…", "Downloading…"],
-        "map.downloaded": ["已下载 {n}/17 张线路图", "已下載 {n}/17 張線路圖", "Downloaded {n}/17 line maps"],
+        "map.downloaded": ["已下载 {n}/21 张线路图", "已下載 {n}/21 張線路圖", "Downloaded {n}/21 line maps"],
         "map.downloadingCount": ["正在下载 {done}/{total}", "正在下載 {done}/{total}", "Downloading {done}/{total}"],
         "map.download": ["下载", "下載", "Download"],
         "map.retry": ["重试", "重試", "Retry"],
@@ -816,6 +830,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "transit.wx": ["码上行", "碼上行", "Mashangxing"],
         "transit.ly": ["洛易行", "洛易行", "Luoyixing"],
         "transit.gz": ["广州地铁官方APP", "廣州地鐵官方APP", "Guangzhou Metro"],
+        "transit.nj": ["与宁同行", "與寧同行", "Nanjing Metro"],
+        "transit.wh": ["Metro新时代", "Metro新時代", "Wuhan Metro"],
+        "transit.hz": ["杭州地铁-官方APP", "杭州地鐵-官方APP", "Hangzhou Metro"],
+        "transit.zz": ["郑州地铁·商易行", "鄭州地鐵·商易行", "Zhengzhou Metro"],
         "tr.search": ["搜索", "搜索", "Search"],
         "tr.departNow": ["现在出发", "現在出發", "Depart now"],
         "time.confirm": ["确定", "確定", "Done"],
@@ -935,7 +953,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz", "nj", "wh", "hz", "zz"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = rootBackgroundColor() // Tab- and theme-matched page background: on the unfolded Duo the area beside the sidebar blends with the page instead of showing as an edge (users 2026-11-21, 2026-11-22).
@@ -977,6 +995,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "mapsDownloadFrame")
         config.userContentController.add(self, name: "cityDownloadFrame")
         config.userContentController.add(self, name: "departFrame") // 26E127 fix 11
+        config.userContentController.add(self, name: "structBtnFrame") // 26F129 J
         config.userContentController.add(self, name: "mapProgress")
         config.userContentController.add(self, name: "openAppearance")
         config.userContentController.add(self, name: "openLanguage")
@@ -1384,6 +1403,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         setupStructChrome()
         setupThemeButtons()
         setupNearbySmartSwitch()
+        setupCellularSwitch()
         setupTransferControls()
         setupActionButtons()
         setupProfileControls()
@@ -1742,6 +1762,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var topChromeHidden = false
     var topChromeHidSubChrome = false
     var subChromeOpen = false // 26E127 fix 12: whether a native subview is actually open (the back-button latch above is one-way, so this is the real source of truth)
+
+    // 26F129 D: bottom edge of the native sub-header strip.
+    // The city page's native download buttons must never cover
+    // the strip (title + back button) at any scroll position —
+    // when their web slot scrolls up into the strip's zone the
+    // buttons hide instead of riding over it.
+    var subHeaderBottomY: CGFloat {
+        guard subChromeOpen, let g = subHeaderGlass else { return 0 }
+        return g.frame.maxY
+    }
     func setTopChromeHidden(_ hidden: Bool) {
         guard !splashShowing && !whatsNewShowing else { return }
         if hidden == topChromeHidden { return }
@@ -2039,6 +2069,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "wx" { return wuxiRed }
         if currentCity == "ly" { return luoyangPink }
         if currentCity == "gz" { return guangzhouYellow }
+        if currentCity == "nj" { return nanjingBlue }
+        if currentCity == "wh" { return wuhanBlue }
+        if currentCity == "hz" { return hangzhouRed }
+        if currentCity == "zz" { return zhengzhouRed }
         return subwayBlue
     }
 
@@ -2061,6 +2095,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "wx" { return wuxiRedDark }
         if currentCity == "ly" { return luoyangPinkDark }
         if currentCity == "gz" { return guangzhouYellowDark }
+        if currentCity == "nj" { return nanjingBlueDark }
+        if currentCity == "wh" { return wuhanBlueDark }
+        if currentCity == "hz" { return hangzhouRedDark }
+        if currentCity == "zz" { return zhengzhouRedDark }
         return subwayBlue
     }
 
@@ -2086,6 +2124,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "wx" { return wuxiRed }
         if currentCity == "ly" { return luoyangPink }
         if currentCity == "gz" { return guangzhouYellowDark }
+        if currentCity == "nj" { return nanjingBlue }
+        if currentCity == "wh" { return wuhanBlue }
+        if currentCity == "hz" { return hangzhouRed }
+        if currentCity == "zz" { return zhengzhouRed }
         return accentColor()
     }
 
@@ -2116,6 +2158,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "wx": name = "WuxiLogo"
         case "ly": name = "LuoyangLogo"
         case "gz": name = "GuangzhouLogo"
+        case "nj": name = "NanjingLogo"
+        case "wh": name = "WuhanLogo"
+        case "hz": name = "HangzhouLogo"
+        case "zz": name = "ZhengzhouLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -2202,7 +2248,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var downloadedLineMapCount: Int = 0
     // 26E127 fix 6: the popover lists ONLY downloaded cities (bj always counts as downloaded) — undownloaded cities no longer appear here; download them in Settings → Switch City. (26E126 J showed all with a ↓ mark; the user changed this.)
     func cityMenu() -> UIMenu {
-        let keys = ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"].filter { $0 == "bj" || downloadedMapCities.contains($0) }
+        let keys = ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz", "nj", "wh", "hz", "zz"].filter { $0 == "bj" || downloadedMapCities.contains($0) }
         var actions: [UIAction] = []
         for key in keys {
             let a = UIAction(title: L("city." + key), image: cityLogoImage(for: key)?.withRenderingMode(.alwaysOriginal)) { [weak self] _ in
@@ -2233,7 +2279,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
         let w = (dict["width"] as? Double) ?? 0
         let h = (dict["height"] as? Double) ?? 0
-        guard w > 0 && h > 0 && currentTab == "more" && !splashShowing && !whatsNewShowing else {
+        // 26F129 D+: also hide once the slot has scrolled fully below
+        // the screen — a stale frame must never render off-row.
+        guard w > 0 && h > 0 && CGFloat(y) >= subHeaderBottomY && CGFloat(y) < view.bounds.height && currentTab == "more" && !splashShowing && !whatsNewShowing else {
             mapsDownloadContainer?.isHidden = true
             return
         }
@@ -2362,6 +2410,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var departButton: UIButton?
     var departButtonIcon: UIImage?
     var departButtonIconURL = ""
+    // 26F129 J: route-detail 查看结构图 button (solid, cube
+    // template icon tinted per appearance).
+    var structRouteButton: UIButton?
+    var structRouteStations: [String] = []
+    var structRouteTitle = ""
+    var structRouteCancel = "Cancel"
+    var structRouteIcon: UIImage?
+    var structRouteIconURL = 
     func placeDepartButton(frame dict: [String: Any]) {
         let x = ((dict["x"] as? Double) ?? 0) + webOffset.x
         let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
@@ -2396,6 +2452,85 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         view.addSubview(btn)
         departButton = btn
         return btn
+    }
+    func structRouteTintColor() -> UIColor {
+        return splashDarkResolved() ? .white : UIColor(red: 28.0 / 255.0, green: 28.0 / 255.0, blue: 30.0 / 255.0, alpha: 1)
+    }
+    func placeStructBtn(frame dict: [String: Any]) {
+        let x = ((dict["x"] as? Double) ?? 0) + webOffset.x
+        let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
+        let w = (dict["width"] as? Double) ?? 0
+        let h = (dict["height"] as? Double) ?? 0
+        let stations = (dict["stations"] as? [String]) ?? []
+        guard w > 0 && h > 0 && !stations.isEmpty && currentTab == "transfer" && !splashShowing && !whatsNewShowing else {
+            structRouteButton?.isHidden = true
+            return
+        }
+        let btn = structRouteButton ?? makeStructRouteButton()
+        structRouteStations = stations
+        if let t = dict["title"] as? String, !t.isEmpty { structRouteTitle = t }
+        if let c = dict["cancel"] as? String, !c.isEmpty { structRouteCancel = c }
+        if let icon = dict["icon"] as? String, !icon.isEmpty, icon != structRouteIconURL {
+            structRouteIconURL = icon
+            structRouteIcon = decodeStructIcon(icon)
+        }
+        btn.setImage(structRouteIcon, for: .normal)
+        btn.tintColor = structRouteTintColor()
+        btn.accessibilityLabel = structRouteTitle
+        btn.backgroundColor = solidCardColor()
+        btn.frame = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
+        btn.layer.cornerRadius = 10
+        btn.isHidden = false
+        view.bringSubviewToFront(btn)
+    }
+    func makeStructRouteButton() -> UIButton {
+        let btn = UIButton(type: .custom)
+        btn.translatesAutoresizingMaskIntoConstraints = true
+        btn.accessibilityIdentifier = "structRouteButton"
+        btn.clipsToBounds = true
+        btn.backgroundColor = solidCardColor()
+        btn.tintColor = structRouteTintColor()
+        btn.addTarget(self, action: #selector(structRouteTapped), for: .touchUpInside)
+        btn.isHidden = true
+        view.addSubview(btn)
+        structRouteButton = btn
+        return btn
+    }
+    func decodeStructIcon(_ dataURL: String) -> UIImage? {
+        // The web posts the user's cube artwork as an alpha
+        // template (luminance->alpha); decode as a template
+        // image and tint natively per appearance.
+        guard let comma = dataURL.firstIndex(of: ",") else { return nil }
+        let b64 = String(dataURL[dataURL.index(after: comma)...])
+        guard let data = Data(base64Encoded: b64, options: .ignoreUnknownCharacters),
+              let img = UIImage(data: data) else { return nil }
+        let target = CGSize(width: 22, height: 22)
+        let scaled = UIGraphicsImageRenderer(size: target).image { _ in
+            img.draw(in: CGRect(origin: .zero, size: target))
+        }
+        return scaled.withRenderingMode(.alwaysTemplate)
+    }
+    @objc func structRouteTapped() {
+        let stations = structRouteStations
+        guard !stations.isEmpty else { return }
+        if stations.count == 1 {
+            openStructFromRoute(stations[0])
+            return
+        }
+        let sheet = UIAlertController(title: structRouteTitle.isEmpty ? nil : structRouteTitle, message: nil, preferredStyle: .actionSheet)
+        for name in stations {
+            sheet.addAction(UIAlertAction(title: name, style: .default) { [weak self] _ in self?.openStructFromRoute(name) })
+        }
+        sheet.addAction(UIAlertAction(title: structRouteCancel, style: .cancel))
+        if let pop = sheet.popoverPresentationController, let btn = structRouteButton {
+            pop.sourceView = btn
+            pop.sourceRect = btn.bounds
+        }
+        present(sheet, animated: true)
+    }
+    func openStructFromRoute(_ name: String) {
+        let esc = name.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "'", with: "\\'")
+        webView?.evaluateJavaScript("window.__openStructFromRoute && window.__openStructFromRoute('\(esc)')", completionHandler: nil)
     }
     @objc func departButtonTapped() {
         // Same entry as the web control's tap: ask the web to open the departure-time picker (native SearchConditions sheet via the timePicker handler).
@@ -2451,7 +2586,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             }
             btn.configuration?.title = title
             btn.setTitle(title, for: .normal)
-            if w > 0 && h > 0 {
+            // 26F129 D+: hide below-screen slots too (stale-frame safety).
+            if w > 0 && h > 0 && CGFloat(y) >= subHeaderBottomY && CGFloat(y) < view.bounds.height {
                 btn.frame = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
                 btn.isHidden = false
                 view.bringSubviewToFront(btn)
@@ -2480,7 +2616,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             return a
         }
         // 26E127 fix 6: same rule as cityMenu — downloaded cities only (bj always counts), so the popover never offers a city whose map is not on the device.
-        for city in ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"] where city == "bj" || downloadedMapCities.contains(city) {
+        for city in ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz", "nj", "wh", "hz", "zz"] where city == "bj" || downloadedMapCities.contains(city) {
             sheet.addAction(cityAction(city))
         }
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
@@ -2947,12 +3083,47 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         webView?.scrollView.isScrollEnabled = true // 26F128 B: never leave the page frozen if the switch hid mid-touch.
     }
 
+    // 26F129 C: the 通用 sub-page's 允许使用蜂窝数据下载 switch
+    // gets the same native NoScrollSwitch overlay as 智能显示
+    // (web keeps the state in localStorage 'metro-allow-cellular'
+    // and reports toggles back through window.__setAllowCellular).
+    func setupCellularSwitch() {
+        let sw = NoScrollSwitch()
+        sw.scrollViewToFreeze = webView?.scrollView
+        cellularSwitch = sw
+        cellularSwitch.onTintColor = .systemGreen
+        cellularSwitch.translatesAutoresizingMaskIntoConstraints = true
+        cellularSwitch.isHidden = true
+        cellularSwitch.addTarget(self, action: #selector(cellularSwitchChanged(_:)), for: .valueChanged)
+        view.addSubview(cellularSwitch)
+    }
+
+    @objc func cellularSwitchChanged(_ sender: UISwitch) {
+        guard !cellularApplying else { return }
+        webView.evaluateJavaScript("window.__setAllowCellular && window.__setAllowCellular(\(sender.isOn))", completionHandler: nil)
+    }
+
+    func hideCellularSwitch() {
+        cellularSwitch?.isHidden = true
+        webView?.scrollView.isScrollEnabled = true // same unfreeze as hideNearbySmartSwitch.
+    }
+
     // Place the switch over the web slot's reported frame: trailing
     // aligned inside the slot, vertically centred. A zero-size rect
     // (Siri page not visible) hides it. The posted value is applied
     // WITHOUT firing the change handler.
     func placeSwitch(frame dict: [String: Any]) {
-        guard (dict["id"] as? String) == "nearbySmart", let sw = nearbySmartSwitch else { return }
+        // 26F129 C: two switches share the bridge (智能显示 in
+        // the location sub-page, 蜂窝数据 in 通用）.
+        switch dict["id"] as? String {
+        case "nearbySmart": placeOneSwitch(nearbySmartSwitch, frame: dict, applying: &nearbySmartApplying)
+        case "cellular": placeOneSwitch(cellularSwitch, frame: dict, applying: &cellularApplying)
+        default: break
+        }
+    }
+
+    func placeOneSwitch(_ sw: UISwitch?, frame dict: [String: Any], applying: inout Bool) {
+        guard let sw = sw else { return }
         let x = ((dict["x"] as? Double) ?? 0) + webOffset.x
         let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
         let w = (dict["width"] as? Double) ?? 0
@@ -2974,9 +3145,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                               y: CGFloat(y) + (CGFloat(h) - size.height) / 2,
                               width: size.width, height: size.height)
             if let on = dict["on"] as? Bool, on != sw.isOn {
-                nearbySmartApplying = true
+                applying = true
                 sw.setOn(on, animated: false)
-                nearbySmartApplying = false
+                applying = false
             }
             sw.isHidden = false
             view.bringSubviewToFront(sw)
@@ -3132,7 +3303,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         func rectOf(_ key: String) -> CGRect? {
             guard let r = dict[key] as? [String: Any],
                   let w = r["width"] as? Double, let h = r["height"] as? Double, w > 0, h > 0 else { return nil }
-            return CGRect(x: ((r["x"] as? Double) ?? 0) + webOffset.x,
+            // 26F129 F (native backstop, same idea as placeSwitch's
+            // 8pt clamp): a stale mid-transition rect must never
+            // push the card/rows off the right edge.
+            var fx = ((r["x"] as? Double) ?? 0) + webOffset.x
+            let maxX = view.bounds.width - 8
+            if fx + CGFloat(w) > maxX { fx = max(8, maxX - CGFloat(w)) }
+            return CGRect(x: fx,
                           y: ((r["y"] as? Double) ?? 0) + webOffset.y,
                           width: w, height: h)
         }
@@ -3280,10 +3457,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         mapCardView.layer.cornerRadius = 20
         mapCardView.clipsToBounds = true
         mapCardView.isHidden = true
-        let glass = makeClearGlassEffectView()
-        glass.translatesAutoresizingMaskIntoConstraints = false
-        glass.isUserInteractionEnabled = false
-        mapCardView.addSubview(glass)
+        // 26F129 B: solid card, no Liquid Glass — the clear
+        // glass read as a flat white card over the light map
+        // (user: 「不要液态玻璃效果 但是层级颜色要不一样」).
+        mapCardView.backgroundColor = solidCardColor()
         mapCardNameLabel = UILabel()
         mapCardNameLabel.font = .systemFont(ofSize: 17, weight: .bold)
         mapCardNameLabel.textColor = .label
@@ -3312,10 +3489,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         mapCardView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(mapCardView)
         NSLayoutConstraint.activate([
-            glass.leadingAnchor.constraint(equalTo: mapCardView.leadingAnchor),
-            glass.trailingAnchor.constraint(equalTo: mapCardView.trailingAnchor),
-            glass.topAnchor.constraint(equalTo: mapCardView.topAnchor),
-            glass.bottomAnchor.constraint(equalTo: mapCardView.bottomAnchor),
             stack.leadingAnchor.constraint(equalTo: mapCardView.leadingAnchor, constant: 16),
             stack.trailingAnchor.constraint(equalTo: mapCardView.trailingAnchor, constant: -16),
             stack.topAnchor.constraint(equalTo: mapCardView.topAnchor, constant: 14),
@@ -3328,12 +3501,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         ])
     }
 
-    // One line badge at 60% of the web .ln-badge (the map card's
-    // pills were the big suggestion-row badges: 54pt number,
-    // 20/11pt zh/en, 10/18 padding, radius 12 — here 32pt, 12/7pt,
-    // 6/11 padding, radius 7), same layout: big number left, the
-    // 号线 / Line stack right; a pinned line keeps its green
-    // check disc.
+    // One line badge (26F129, user reference image 2026-11-26):
+    // rectangular badge at the 26E124 native-card footprint
+    // (~51pt tall), big number left, 号线 / Line N stacked right,
+    // background = the line's official colour, system font
+    // unchanged. Internal proportions moved toward the reference
+    // (digit glyph ≈75% of badge height there vs ≈56% before):
+    // number 38pt, zh 14pt, en 9pt, vertical padding +6 — digit
+    // glyph now ≈67% of the badge height at the same footprint.
+    // Both map cards (line map + Beijing track map) share this
+    // one native card, so both badges follow the same spec.
+    // A pinned line keeps its green check disc.
     func makeMapBadge(_ line: [String: Any]) -> UIView {
         let badge = UIView()
         badge.backgroundColor = colorFromHex(line["color"] as? String ?? "") ?? .systemGray
@@ -3341,24 +3519,24 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let fg = colorFromHex(line["text"] as? String ?? "") ?? .white
         let num = UILabel()
         num.text = line["left"] as? String ?? ""
-        num.font = .systemFont(ofSize: 32, weight: .heavy)
+        num.font = .systemFont(ofSize: 38, weight: .heavy)
         num.textColor = fg
         num.sizeToFit()
         let top = line["top"] as? String ?? ""
         let zh = UILabel()
         zh.text = top
-        zh.font = .systemFont(ofSize: 12, weight: .bold)
+        zh.font = .systemFont(ofSize: 14, weight: .bold)
         zh.textColor = fg
         zh.sizeToFit()
         let en = UILabel()
         en.text = line["bottom"] as? String ?? ""
-        en.font = .systemFont(ofSize: 7, weight: .semibold)
+        en.font = .systemFont(ofSize: 9, weight: .semibold)
         en.textColor = fg.withAlphaComponent(0.92)
         en.sizeToFit()
         let txtW = top.isEmpty ? en.frame.width : max(zh.frame.width, en.frame.width)
         let txtH = top.isEmpty ? en.frame.height : zh.frame.height + en.frame.height + 1
         let w = 10 + num.frame.width + 6 + txtW + 11
-        let h = max(num.frame.height, txtH) + 12
+        let h = max(num.frame.height, txtH) + 6
         badge.frame = CGRect(x: 0, y: 0, width: w, height: h)
         num.frame.origin = CGPoint(x: 10, y: (h - num.frame.height) / 2)
         badge.addSubview(num)
@@ -4372,6 +4550,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard splashShowing else { return }
         splashShowing = false
         hideNearbySmartSwitch()
+        hideCellularSwitch()
         // Remove the native launch splash WITHOUT its own fade (flash
         // fix, user 2026-11-19): splashDone is posted at the moment the
         // web overlay — the identical poster, underneath this view —
@@ -4471,7 +4650,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F128')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F129')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
@@ -4598,6 +4777,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "wx": id = "1213366120"
         case "ly": id = "1533912596"
         case "gz": id = "580097761"
+        case "nj": id = "1600886078"
+        case "wh": id = "1121139634"
+        case "hz": id = "1131121104"
+        case "zz": id = "1451953437"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
@@ -4949,9 +5132,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // white in light mode, #1c1c1e in dark. Track/pill are the
     // classic segmented-control pair for sortTabs.
     func solidCardColor() -> UIColor {
+        // 26F129 A: light mode is light grey, not white — the
+        // white card/buttons vanished against the white page
+        // (user: 「不要液态玻璃效果 但是层级颜色要不一样」
+        // 「改成浅灰色」). #e9e9ea layers on both the white
+        // transfer page and the #f2f2f7 settings sheet.
         return splashDarkResolved()
             ? UIColor(red: 28.0 / 255.0, green: 28.0 / 255.0, blue: 30.0 / 255.0, alpha: 1) // #1c1c1e
-            : .white // #ffffff
+            : UIColor(red: 233.0 / 255.0, green: 233.0 / 255.0, blue: 234.0 / 255.0, alpha: 1) // #e9e9ea
     }
     func solidTrackColor() -> UIColor {
         return splashDarkResolved()
@@ -4974,6 +5162,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         profileRedeemRow?.backgroundColor = solidCardColor()
         profileLogoutRow?.backgroundColor = solidCardColor()
         departButton?.backgroundColor = solidCardColor()
+        mapCardView?.backgroundColor = solidCardColor()
+        structRouteButton?.backgroundColor = solidCardColor()
+        structRouteButton?.tintColor = structRouteTintColor()
         if let st = sortTabs {
             st.backgroundColor = solidTrackColor()
             st.selectedSegmentTintColor = solidPillColor()
@@ -5270,7 +5461,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             updateSideBarSelection()
             // The native Siri-page switch only exists on the
             // Settings tab (26C101).
-            if tab != "more" { hideNearbySmartSwitch() }
+            if tab != "more" { hideNearbySmartSwitch(); hideCellularSwitch() }
             if tab != "map" { hideMapCard() }
         } else if message.name == "cityMenu" {
             presentCityMenuPopover()
@@ -5295,7 +5486,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // write; the poster re-picks immediately.
             if let dict = message.body as? [String: Any] {
                 if let city = dict["city"] as? String,
-                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"].contains(city) {
+                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz", "nj", "wh", "hz", "zz"].contains(city) {
                     UserDefaults.standard.set(city, forKey: "metro-city")
                     currentCity = city
                 }
@@ -5330,7 +5521,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
-                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"].contains(city) {
+                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz", "nj", "wh", "hz", "zz"].contains(city) {
             // The web switched cities (user switch or the startup
             // restore). Mirror it natively; the web already switched,
             // so do NOT call switchCity here (that would loop).
@@ -5557,6 +5748,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                         // a DIFFERENT sub-view posts fresh zero frames
                         // from the web, which hide it the same way.
                         hideNearbySmartSwitch()
+                        hideCellularSwitch()
                     }
                 }
             }
@@ -5586,6 +5778,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else if message.name == "departFrame",
                   let dict = message.body as? [String: Any] {
             placeDepartButton(frame: dict)
+        } else if message.name == "structBtnFrame",
+                  let dict = message.body as? [String: Any] {
+            placeStructBtn(frame: dict)
         } else if message.name == "mapProgress",
                   let dict = message.body as? [String: Any],
                   let done = dict["done"] as? Int,
