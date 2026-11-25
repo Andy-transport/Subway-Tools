@@ -37,11 +37,11 @@ mkdir -p "build/Payload/Subway Tools.app/web"
 # deployment target), and every use is guarded `if #available(iOS 16.1, *)`.
 # TripAttributes.swift is compiled into the app too, so AppDelegate can
 # start/update the Live Activity.
-# AppIntents.swift is compiled into the app too, so the 6 Siri Shortcuts
-# (AppIntents.swift, user 2026-11-18) are in the binary and the
-# AppShortcutsProvider is discovered. AppIntents exists on iOS 16.0+,
-# so it is linked normally, not weak.
-# Compile strategy (Siri round 6, 2026-11-21): back to the single
+# AppIntents.swift stays in the source list as an empty stub (26F128:
+# Siri Shortcuts removed at the user's request — the intents, the
+# provider, the const-values harvest and the metadata processors are
+# all gone; nothing registers with Siri any more).
+# Compile strategy (Siri round 6, 2026-11-21): the single
 # compile+link invocation that built every shipped IPA (#84-#86).
 # The round-5 per-file -primary-file batch compiles failed three
 # runs in a row (#87 "cannot specify -o when generating multiple
@@ -51,139 +51,14 @@ mkdir -p "build/Payload/Subway Tools.app/web"
 # swift-frontend flag" — it forwards -primary-file to the frontend
 # instead of honouring it, so the batch semantics never engage.
 # Do not reintroduce -primary-file here.
-# Const values: the metadata processor below needs a
-# .swiftconstvalues for the App Intents declarations. Harvest one
-# best-effort by compiling AppIntents.swift ALONE (single input, so
-# -c -o is legal and no -primary-file is needed) into a throwaway
-# object that is never linked; the real binary is compiled from all
-# sources by the main invocation right after. Non-fatal on purpose:
-# if the solo compile ever fails (e.g. AppIntents.swift gains
-# references to other app types), the build continues without Siri
-# metadata, exactly like builds #84-#86.
 mkdir -p build/obj
-# Const-extraction protocols list (committed at the repo root as
-# Metro_const_extract_protocols.json): Xcode's build system passes
-# this list to swiftc via -const-gather-protocols-list whenever
-# SWIFT_EMIT_CONST_VALUE_PROTOCOLS is non-empty. Without it the
-# harvest below emits NO .swiftconstvalues at all (experiments 1-3,
-# 2026-11-21); with it plus the plain-AppIntent declarations the
-# harvest produces the real 57 KB file the metadata step consumes.
 SWIFT_SOURCES="app/AppDelegate.swift app/AppIntents.swift app/SearchConditionsViewController.swift app/AppearanceView.swift app/LanguageView.swift app/LiveActivity/TripAttributes.swift"
-xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
-  -const-gather-protocols-list Metro_const_extract_protocols.json \
-  -module-name Metro -c \
-  -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
-  app/AppIntents.swift -o build/obj/AppIntents-harvest.o \
-  || echo "WARNING: AppIntents const-values harvest failed; continuing without Siri metadata"
-ls -la build/obj/*.swiftconstvalues || echo "WARNING: no .swiftconstvalues produced"
 xcrun -sdk iphoneos swiftc -target arm64-apple-ios16.0 -O -parse-as-library -emit-const-values \
   -module-name Metro \
   -framework UIKit -framework WebKit -framework AppIntents -framework UserNotifications -Xlinker -weak_framework -Xlinker ActivityKit \
   $SWIFT_SOURCES -o "build/Payload/Subway Tools.app/Subway Tools"
-# The metadata processor locates the module's const values beside the
-# binary (Xcode leaves them in the products dir during its run); copy
-# any harvested file in for the extraction step; it is removed again
-# before packaging (see the rm after the processors below).
-find build/obj "build/Payload/Subway Tools.app" -name "*.swiftconstvalues" -exec cp {} "build/Payload/Subway Tools.app/" \; 2>/dev/null || true
-ls "build/Payload/Subway Tools.app"/*.swiftconstvalues 2>/dev/null || echo "WARNING: no swiftconstvalues beside the binary"
-
-echo "== 2a. App Intents metadata (Siri Shortcuts discovery) =="
-# A raw swiftc build skips Xcode's AppIntents metadata extraction, so
-# without this step iOS never registers SubwayToolsShortcuts and the
-# Siri shortcuts do not exist on device (user 2026-11-19: still cannot
-# use them). Non-fatal on purpose: failures show in the build log and
-# the app still builds; the delivered IPA is checked for
-# Metadata.appintents.
-# Interface (proven 2026-11-21, experiment run #109: the processor
-# printed 'Writing Metadata.appintents' and the bundle gained
-# Metadata.appintents with version.json + extract.actionsdata):
-# Xcode 27.2's appintentsmetadataprocessor does NOT scan directories
-# and does NOT take --binary-file/--source-files; its USAGE takes two
-# LIST FILES -- --source-file-list and --swift-const-vals-list -- plus
-# --toolchain-dir/--sdk-root/--xcode-version. Assemble both lists with
-# ABSOLUTE paths (one path per line): the source list is exactly
-# SWIFT_SOURCES; the const-vals list is the solo harvest output first,
-# plus any other .swiftconstvalues in build/obj, deduped.
-ROOT="$PWD"
-: > build/obj/e8-sources.txt
-for src in $SWIFT_SOURCES; do echo "$ROOT/$src" >> build/obj/e8-sources.txt; done
-: > build/obj/e8-constvals.txt
-for f in build/obj/*harvest*.swiftconstvalues; do if [ -f "$f" ]; then echo "$ROOT/$f" >> build/obj/e8-constvals.txt; fi; done
-for f in build/obj/*.swiftconstvalues; do if [ -f "$f" ]; then grep -qxF "$ROOT/$f" build/obj/e8-constvals.txt || echo "$ROOT/$f" >> build/obj/e8-constvals.txt; fi; done
-echo "-- source-file-list (build/obj/e8-sources.txt) --"
-cat build/obj/e8-sources.txt
-echo "-- swift-const-vals-list (build/obj/e8-constvals.txt) --"
-cat build/obj/e8-constvals.txt
-# Toolchain dir = two levels up from the tool's bin dir
-# (.../XcodeDefault.xctoolchain/usr/bin/<tool> -> .../XcodeDefault.xctoolchain).
-TOOL_PATH=$(xcrun -f appintentsmetadataprocessor || true)
-TOOLCHAIN_DIR=$(cd "$(dirname "$TOOL_PATH")/../.." 2>/dev/null && pwd || true)
-SDK_ROOT=$(xcrun --sdk iphoneos --show-sdk-path)
-XCODE_VERSION=$(xcodebuild -version | tail -1 | awk '{print $NF}')
-echo "TOOLCHAIN_DIR: $TOOLCHAIN_DIR"
-echo "SDK_ROOT: $SDK_ROOT"
-echo "XCODE_VERSION: $XCODE_VERSION"
-xcrun appintentsmetadataprocessor \
-  --output "$ROOT/build/Payload/Subway Tools.app/Metadata.appintents" \
-  --toolchain-dir "$TOOLCHAIN_DIR" \
-  --module-name Metro \
-  --sdk-root "$SDK_ROOT" \
-  --xcode-version "$XCODE_VERSION" \
-  --platform-family iOS \
-  --deployment-target 16.0 \
-  --target-triple arm64-apple-ios16.0 \
-  --source-file-list "$ROOT/build/obj/e8-sources.txt" \
-  --swift-const-vals-list "$ROOT/build/obj/e8-constvals.txt" \
-  --force \
-  || echo "WARNING: appintentsmetadataprocessor failed - Siri shortcuts will not register"
-# CANONICAL LAYOUT FIX (26E113, root cause of the dead Siri rows):
-# the processor treats --output as a PARENT directory and writes its
-# own Metadata.appintents folder inside it, so the bundle shipped
-# Metadata.appintents/Metadata.appintents/extract.actionsdata — one
-# level deeper than the path iOS reads
-# (<App>.app/Metadata.appintents/extract.actionsdata). Verified by
-# unzipping the shipped 26E112 IPA: the actionsdata content was
-# complete (all 6 intents + provider), only the path was wrong, so
-# the AppShortcutsProvider never registered and the Shortcuts app
-# showed no actions for this app. Flatten any nesting NOW (so the NL
-# processor below reads the canonical layout) and again after it.
-META_DIR="build/Payload/Subway Tools.app/Metadata.appintents"
-if [ -d "$META_DIR/Metadata.appintents" ]; then
-  cp -R "$META_DIR/Metadata.appintents/." "$META_DIR/"
-  rm -rf "$META_DIR/Metadata.appintents"
-  echo "flattened nested Metadata.appintents into the canonical layout"
-fi
-# NL training only tunes phrase recognition; shortcut registration comes
-# from Metadata.appintents above. This processor requires
-# --extracted-metadata-path (run #81 log: the old --metadata-file /
-# --module-name / --bundle-identifier flags are unknown options to it).
-mkdir -p build/nl-training-temp
-xcrun appintentsnltrainingprocessor \
-  --extracted-metadata-path "build/Payload/Subway Tools.app/Metadata.appintents" \
-  --infoplist-path app/Info.plist \
-  --temp-dir-path build/nl-training-temp \
-  --output "build/Payload/Subway Tools.app/Metadata.appintents" \
-  || echo "WARNING: appintentsnltrainingprocessor failed - Siri phrases will not train"
-ls -la "build/Payload/Subway Tools.app/Metadata.appintents" || true
-# Flatten again (the NL processor may re-nest its output), then FAIL
-# THE BUILD if the canonical files or any intent are missing — never
-# ship silently-broken Siri again (the pre-26E113 flow only warned,
-# which is how the broken layout shipped for weeks).
-if [ -d "$META_DIR/Metadata.appintents" ]; then
-  cp -R "$META_DIR/Metadata.appintents/." "$META_DIR/"
-  rm -rf "$META_DIR/Metadata.appintents"
-  echo "flattened nested Metadata.appintents (post NL training)"
-fi
-if [ ! -f "$META_DIR/extract.actionsdata" ] || [ ! -f "$META_DIR/version.json" ]; then
-  echo "ERROR: App Intents metadata missing at canonical path $META_DIR (extract.actionsdata / version.json)" >&2
-  exit 1
-fi
-for t in OpenSubwayToolsIntent FirstTrainIntent LastTrainIntent PlanRouteIntent NearestStationIntent TimetableIntent SubwayToolsShortcuts; do
-  grep -q "$t" "$META_DIR/extract.actionsdata" || { echo "ERROR: $t missing from extract.actionsdata" >&2; exit 1; }
-done
-echo "App Intents metadata verified at canonical path (6 intents + provider)"
-# The const-values file was build-time input for the extraction step
-# only; it is not part of the app bundle Xcode would ship.
+# Any .swiftconstvalues the main compile emitted beside the binary
+# is build-time only (it fed the removed metadata step); never ship it.
 rm -f "build/Payload/Subway Tools.app"/*.swiftconstvalues
 
 echo "== 2b. Live Activity widget extension REMOVED (user 2026-11-18) =="
@@ -284,7 +159,7 @@ CITIES = [
     ("cd", "成都", "web/chengdu"), ("qd", "青岛", "web/qingdao"),
     ("sjz", "石家庄", "web/shijiazhuang"),
     ("tj", "天津", "web/tianjin"), ("wx", "无锡", "web/wuxi"),
-    ("ly", "洛阳", "web/luoyang"),
+    ("ly", "洛阳", "web/luoyang"), ("gz", "广州", "web/guangzhou"),
 ]
 def load(p):
     with open(p, encoding="utf-8") as f:
@@ -316,6 +191,7 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/ShijiazhuangLogo
 python3 -c "import base64; open('build/Payload/Subway Tools.app/TianjinLogo.png','wb').write(base64.b64decode(open('web/tianjin/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/WuxiLogo.png','wb').write(base64.b64decode(open('web/wuxi/logo-mark.b64').read()))" # 26E117: the native pill/menu slot is 26pt — use the cropped red symbol, not the full lockup (see web/build_offline.py)
 python3 -c "import base64; open('build/Payload/Subway Tools.app/LuoyangLogo.png','wb').write(base64.b64decode(open('web/luoyang/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/GuangzhouLogo.png','wb').write(base64.b64decode(open('web/guangzhou/logo.b64').read()))"
 python3 -c "import base64; [open('build/Payload/Subway Tools.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 
 echo "== 3a. app icon asset catalog (Assets.car, dark home-screen icon) =="

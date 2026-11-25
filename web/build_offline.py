@@ -224,7 +224,8 @@ jh_transfers = (BASE / "jinhua" / "transfers.json").read_text(encoding="utf-8")
 cz_transfers = (BASE / "changzhou" / "transfers.json").read_text(encoding="utf-8")
 cq_transfers = (BASE / "chongqing" / "transfers.json").read_text(encoding="utf-8")
 sz_transfers = (BASE / "shenzhen" / "transfers.json").read_text(encoding="utf-8")
-for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers, cq_transfers, sz_transfers):
+gz_transfers = (BASE / "guangzhou" / "transfers.json").read_text(encoding="utf-8")
+for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers, cq_transfers, sz_transfers, gz_transfers):
     assert "</script" not in _t, "per-city transfers json must not contain </script"
 html = sub_once(r'/\*__SY_TRANSFERS__\*/\{\}', lambda _: sy_transfers, html, "sy transfers json")
 html = sub_once(r'/\*__SH_TRANSFERS__\*/\{\}', lambda _: sh_transfers, html, "sh transfers json")
@@ -239,6 +240,13 @@ html = sub_once(r'/\*__CQ_TRANSFERS__\*/\{\}', lambda _: cq_transfers, html, "cq
 # source; the engine's standard transfer penalty applies). 湖贝 /
 # 红岭南 stay unbuilt — counterparts + distances unverified.
 html = sub_once(r'/\*__SZ_TRANSFERS__\*/\{\}', lambda _: sz_transfers, html, "sz transfers json")
+# Guangzhou virtual transfers (26F128): the operator's three official
+# out-of-gate transfers — 广州塔 3<->APM, 林和西 3<->APM, 五羊邨 5<->10 —
+# modelled in guangzhou/transfers.json like 福田口岸 (no dist/walkMin;
+# the engine's standard transfer penalty applies). 琶洲 8<->11 stays
+# in-station: two sources conflict, not decided (see guangzhou-city
+# SOURCES.md).
+html = sub_once(r'/\*__GZ_TRANSFERS__\*/\{\}', lambda _: gz_transfers, html, "gz transfers json")
 
 # M. inline the per-city splash (launch) images.
 # BJ splash = the native LaunchScreen image (app/splash.b64, Beijing 北京/配线查询);
@@ -260,13 +268,8 @@ st_splash_dark_b64 = (BASE.parent / "app" / "splash-st-dark.b64").read_text(enco
 html = sub_once(r'/\*__ST_SPLASH__\*/', lambda _: st_splash_b64, html, "st splash")
 html = sub_once(r'/\*__ST_SPLASH_DARK__\*/', lambda _: st_splash_dark_b64, html, "st splash dark")
 
-# Siri settings-row icon (26D100): the user's Siri-orb artwork as a
-# light tile / black tile pair (app/siri-icon.b64 / siri-icon-dark.b64),
-# swapped by theme in the page.
-siri_icon_b64 = (BASE.parent / "app" / "siri-icon.b64").read_text(encoding="utf-8").strip()
-siri_icon_dark_b64 = (BASE.parent / "app" / "siri-icon-dark.b64").read_text(encoding="utf-8").strip()
-html = sub_once(r'/\*__SIRI_ICON__\*/', lambda _: siri_icon_b64, html, "siri icon")
-html = sub_once(r'/\*__SIRI_ICON_DARK__\*/', lambda _: siri_icon_dark_b64, html, "siri icon dark")
+# 26F128: the Siri settings-row icon inline is gone with the Siri
+# Shortcuts feature (the placeholders left the template too).
 
 # Depart-time button icon (26E127 fix 11): the user's walking-person
 # artwork as a luminance→alpha template pair (app/depart-icon.b64
@@ -689,6 +692,43 @@ if ly_splash_dark_path.exists():
 else:
     print("WARNING: web/luoyang/splash-dark.b64 missing; Luoyang dark splash will be empty")
 
+# S-GZ. inline the Guangzhou data (19 lines, 317 stations, 26F128).
+# Same pattern as Luoyang: precomputed stations/routes from the RMP
+# Gallery map (see guangzhou-city SOURCES.md for the modelling:
+# Line 3 / Line 14 main+branch as single keys, Line 12 in two
+# unconnected sections, Line 11 loop, 机场南 closed since 2026-05-07
+# and not a rideable station). Map follows the 26E126 J on-demand
+# route: the repo file stays for jsDelivr, nothing is inlined into
+# the IPA. No splash file exists yet — the native splash is
+# universal (SplashST), so the splash placeholders stay empty like
+# Luoyang's. No structure diagrams exist for Guangzhou yet — all
+# 317 stations show 正在整理, not a launch blocker.
+gz_stations = (BASE / "guangzhou" / "stations.json").read_text(encoding="utf-8")
+gz_routes = (BASE / "guangzhou" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in gz_stations, "gz stations json must not contain </script"
+assert "</script" not in gz_routes, "gz routes json must not contain </script"
+html = sub_once(r'/\*__GZ_STATIONS__\*/\[\]', lambda _: gz_stations, html, "gz stations json")
+html = sub_once(r'/\*__GZ_ROUTES__\*/null', lambda _: gz_routes, html, "gz routes json")
+html = sub_once(r'/\*__GZ_MAP__\*/""', lambda _: '""', html, "gz map svg (26E126 J: on-demand, no longer bundled)")
+gz_logo_path = BASE / "guangzhou" / "logo.b64"
+if gz_logo_path.exists():
+    gz_logo_b64 = gz_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__GZ_LOGO__\*/''", lambda _: "'data:image/png;base64," + gz_logo_b64 + "'", html, "gz logo")
+else:
+    print("WARNING: web/guangzhou/logo.b64 missing; Guangzhou logo will be empty")
+gz_splash_path = BASE / "guangzhou" / "splash.b64"
+if gz_splash_path.exists():
+    gz_splash_b64 = gz_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__GZ_SPLASH__\*/', lambda _: gz_splash_b64, html, "gz splash")
+else:
+    print("WARNING: web/guangzhou/splash.b64 missing; Guangzhou splash will be empty")
+gz_splash_dark_path = BASE / "guangzhou" / "splash-dark.b64"
+if gz_splash_dark_path.exists():
+    gz_splash_dark_b64 = gz_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__GZ_SPLASH_DARK__\*/', lambda _: gz_splash_dark_b64, html, "gz splash dark")
+else:
+    print("WARNING: web/guangzhou/splash-dark.b64 missing; Guangzhou dark splash will be empty")
+
 # S3. inline the Chongqing Rail Transit data (14 lines, 282 stations).
 # Same pattern as Jinhua/Changzhou: precomputed stations/routes from the
 # user's system-plan map (see chongqing/NOTES.md); the logo is cropped
@@ -749,6 +789,8 @@ wx_tt_path = BASE / "timetable" / "wx.json"
 wx_tt = wx_tt_path.read_text(encoding="utf-8") if wx_tt_path.exists() else "{}"
 ly_tt_path = BASE / "timetable" / "ly.json"
 ly_tt = ly_tt_path.read_text(encoding="utf-8") if ly_tt_path.exists() else "{}"
+gz_tt_path = BASE / "timetable" / "gz.json"
+gz_tt = gz_tt_path.read_text(encoding="utf-8") if gz_tt_path.exists() else "{}"
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
@@ -766,6 +808,7 @@ assert "</script" not in sjz_tt, "sjz timetable json must not contain </script"
 assert "</script" not in tj_tt, "tj timetable json must not contain </script"
 assert "</script" not in wx_tt, "wx timetable json must not contain </script"
 assert "</script" not in ly_tt, "ly timetable json must not contain </script"
+assert "</script" not in gz_tt, "gz timetable json must not contain </script"
 html = sub_once(r'/\*__BJ_TIMETABLE__\*/\{\}', lambda _: bj_tt, html, "bj timetable json")
 html = sub_once(r'/\*__SY_TIMETABLE__\*/\{\}', lambda _: sy_tt, html, "sy timetable json")
 html = sub_once(r'/\*__SH_TIMETABLE__\*/\{\}', lambda _: sh_tt, html, "sh timetable json")
@@ -782,6 +825,7 @@ html = sub_once(r'/\*__SJZ_TIMETABLE__\*/\{\}', lambda _: sjz_tt, html, "sjz tim
 html = sub_once(r'/\*__TJ_TIMETABLE__\*/\{\}', lambda _: tj_tt, html, "tj timetable json")
 html = sub_once(r'/\*__WX_TIMETABLE__\*/\{\}', lambda _: wx_tt, html, "wx timetable json")
 html = sub_once(r'/\*__LY_TIMETABLE__\*/\{\}', lambda _: ly_tt, html, "ly timetable json")
+html = sub_once(r'/\*__GZ_TIMETABLE__\*/\{\}', lambda _: gz_tt, html, "gz timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 # U. inline verified station lat/lng (web/latlng/latlng-{city}.json,
@@ -806,6 +850,7 @@ sjz_ll = (BASE / "latlng" / "latlng-sjz.json").read_text(encoding="utf-8")
 tj_ll = (BASE / "latlng" / "latlng-tj.json").read_text(encoding="utf-8")
 wx_ll = (BASE / "latlng" / "latlng-wx.json").read_text(encoding="utf-8")
 ly_ll = (BASE / "latlng" / "latlng-ly.json").read_text(encoding="utf-8")
+gz_ll = (BASE / "latlng" / "latlng-gz.json").read_text(encoding="utf-8")
 assert "</script" not in bj_ll, "bj latlng json must not contain </script"
 assert "</script" not in sy_ll, "sy latlng json must not contain </script"
 assert "</script" not in sh_ll, "sh latlng json must not contain </script"
@@ -822,6 +867,7 @@ assert "</script" not in sjz_ll, "sjz latlng json must not contain </script"
 assert "</script" not in tj_ll, "tj latlng json must not contain </script"
 assert "</script" not in wx_ll, "wx latlng json must not contain </script"
 assert "</script" not in ly_ll, "ly latlng json must not contain </script"
+assert "</script" not in gz_ll, "gz latlng json must not contain </script"
 html = sub_once(r'/\*__BJ_LATLNG__\*/\{\}', lambda _: bj_ll, html, "bj latlng json")
 html = sub_once(r'/\*__SY_LATLNG__\*/\{\}', lambda _: sy_ll, html, "sy latlng json")
 html = sub_once(r'/\*__SH_LATLNG__\*/\{\}', lambda _: sh_ll, html, "sh latlng json")
@@ -838,6 +884,7 @@ html = sub_once(r'/\*__SJZ_LATLNG__\*/\{\}', lambda _: sjz_ll, html, "sjz latlng
 html = sub_once(r'/\*__TJ_LATLNG__\*/\{\}', lambda _: tj_ll, html, "tj latlng json")
 html = sub_once(r'/\*__WX_LATLNG__\*/\{\}', lambda _: wx_ll, html, "wx latlng json")
 html = sub_once(r'/\*__LY_LATLNG__\*/\{\}', lambda _: ly_ll, html, "ly latlng json")
+html = sub_once(r'/\*__GZ_LATLNG__\*/\{\}', lambda _: gz_ll, html, "gz latlng json")
 
 # S8. inline the verified official metro logos for the not-yet-
 # supported cities (web/upcoming-logos/, see its MANIFEST.md): the

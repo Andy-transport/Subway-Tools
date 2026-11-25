@@ -1,10 +1,35 @@
 import UIKit
 import WebKit
 import CoreLocation
-import Network // 26E127 fix 7: NWPathMonitor for the cellular-download prompt
+import Network // 26E127 fix 7: NWPathMonitor for the cellular-download gate
 import ActivityKit
 import UserNotifications
-import AppIntents
+
+// 26F128 B: a UISwitch whose touches never scroll the web page
+// underneath. The switch floats over the WKWebView; a drag starting
+// on it could be claimed by the web view's scroll-view pan gesture,
+// so the page slid while the user toggled (user report 2026-11-25).
+// Freezing the scroll view for the duration of the touch makes the
+// switch own the gesture end-to-end; the enlarged hit area keeps
+// the first touch on the switch instead of beside it.
+final class NoScrollSwitch: UISwitch {
+    weak var scrollViewToFreeze: UIScrollView?
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        return bounds.insetBy(dx: -14, dy: -10).contains(point)
+    }
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        scrollViewToFreeze?.isScrollEnabled = false
+        super.touchesBegan(touches, with: event)
+    }
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        scrollViewToFreeze?.isScrollEnabled = true
+    }
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        scrollViewToFreeze?.isScrollEnabled = true
+    }
+}
 
 // 北京市轨道交通线路配置图 (SierraQin/metro, CC0 1.0)
 // Shell: a full-screen WKWebView loading the bundled offline page,
@@ -21,17 +46,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // lifecycle, so the window must be created in
     // scene(_:willConnectTo:options:).
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Register the App Shortcuts on the launch path (26E114
-        // audit): until now the SubwayToolsShortcuts provider class
-        // merely EXISTED in AppIntents.swift — nothing in the app
-        // ever called the registration API, so whether the six
-        // phrases were live depended entirely on the system's
-        // implicit discovery. updateAppShortcutParameters() is the
-        // documented launch-path call; it is idempotent for static
-        // shortcuts. (The intents' metadata has shipped at the
-        // canonical app-root path since 26E113 — build.sh
-        // hard-fails the build otherwise.)
-        SubwayToolsShortcuts.updateAppShortcutParameters()
+        // 26F128: Siri Shortcuts removed (user: 砍掉快捷指令功能) —
+        // the App Intents, their launch-path registration call and
+        // the Settings row are all gone.
         return true
     }
 
@@ -143,6 +160,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var cityPillLeadingConstraint: NSLayoutConstraint?
     var subBackTopConstraint: NSLayoutConstraint?
     var subHeaderGlass: UIVisualEffectView!
+    var subHeaderSep: UIView!
+    var subHeaderEffect: UIVisualEffect?
     var subHeaderTitle: UILabel!
     var subHeaderHeightConstraint: NSLayoutConstraint?
     // iPad only (2026-11-22 fix): an opaque cover over the top chrome
@@ -661,6 +680,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     let wuxiRedDark = UIColor(red: 188.0 / 255.0, green: 31.0 / 255.0, blue: 43.0 / 255.0, alpha: 1)
     let luoyangPink = UIColor(red: 196.0 / 255.0, green: 96.0 / 255.0, blue: 140.0 / 255.0, alpha: 1)
     let luoyangPinkDark = UIColor(red: 154.0 / 255.0, green: 75.0 / 255.0, blue: 110.0 / 255.0, alpha: 1)
+    let guangzhouYellow = UIColor(red: 237.0 / 255.0, green: 207.0 / 255.0, blue: 59.0 / 255.0, alpha: 1)
+    let guangzhouYellowDark = UIColor(red: 187.0 / 255.0, green: 163.0 / 255.0, blue: 46.0 / 255.0, alpha: 1)
     var currentCity = "bj"
     var currentTab = "transfer"
     // Splash gate (user 2026-11-15): the native tab bar + top pills sit
@@ -751,6 +772,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "city.tj": ["天津", "天津", "Tianjin"],
         "city.wx": ["无锡", "無錫", "Wuxi"],
         "city.ly": ["洛阳", "洛陽", "Luoyang"],
+        "city.gz": ["广州", "廣州", "Guangzhou"],
         "native.cancel": ["取消", "取消", "Cancel"],
         "tr.tab.rec": ["推荐", "推薦", "Recommended"],
         "tr.tab.early": ["耗时最短", "耗時最短", "Fastest"],
@@ -766,24 +788,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "more.lang.hans": ["简体中文", "簡體中文", "Simplified Chinese"],
         "more.lang.hant": ["繁體中文", "繁體中文", "Traditional Chinese"],
         "more.lang.en": ["English", "English", "English"],
-        "siri.add.title": ["添加到 Siri 快捷指令", "添加到 Siri 快捷指令", "Add to Siri Shortcuts"],
-        "siri.add.open": ["打开快捷指令", "打開快捷指令", "Open Shortcuts"],
-        "siri.add.message": ["「{name}」已就绪。在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可添加。添加后可对 Siri 说出对应短语使用。", "「{name}」已就緒。在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可添加。添加後可對 Siri 說出對應短語使用。", "“{name}” is ready. In the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”. Once added, use it by speaking its phrase to Siri."],
-        "siri.openFailed.title": ["无法打开快捷指令", "無法打開捷徑", "Can\u{2019}t Open Shortcuts"],
-        "siri.openFailed.message": ["没有打开「快捷指令」App。请手动打开「快捷指令」，点 + 新建快捷指令，添加操作并搜索「城轨通」，选择对应操作即可添加。", "沒有打開「捷徑」App。請手動打開「捷徑」，點 + 新增捷徑，添加操作並搜尋「城軌通」，選擇對應操作即可添加。", "Shortcuts could not be opened. Open the Shortcuts app manually, tap + for a new shortcut, add an action and search for \u{201c}Subway Tools\u{201d} to add it."],
         "map.downloadAll": ["下载全部线路图", "下載全部線路圖", "Download all line maps"],
         "map.downloading": ["正在下载…", "正在下載…", "Downloading…"],
-        "map.downloaded": ["已下载 {n}/16 张线路图", "已下載 {n}/16 張線路圖", "Downloaded {n}/16 line maps"],
+        "map.downloaded": ["已下载 {n}/17 张线路图", "已下載 {n}/17 張線路圖", "Downloaded {n}/17 line maps"],
         "map.downloadingCount": ["正在下载 {done}/{total}", "正在下載 {done}/{total}", "Downloading {done}/{total}"],
         "map.download": ["下载", "下載", "Download"],
         "map.retry": ["重试", "重試", "Retry"],
         "map.downloadingShort": ["下载中", "下載中", "Downloading…"],
-        "cellular.title": ["使用蜂窝网络下载", "使用蜂窩網路下載", "Download over cellular data"],
-        "cellular.message": ["当前正在使用蜂窝网络，下载线路图会消耗流量。是否继续？", "目前正在使用蜂窩網路，下載線路圖會消耗流量。是否繼續？", "You are on cellular data. Downloading the line map will use mobile data. Continue?"],
-        "cellular.continue": ["继续下载", "繼續下載", "Continue"],
-        "cellular.cancel": ["取消", "取消", "Cancel"],
         "common.ok": ["知道了", "知道了", "OK"],
-        "siri.add.message.nodonate": ["未能自动准备「{name}」，但仍可手动添加：在「快捷指令」App 中新建快捷指令，添加操作并搜索「Subway Tools」，选择「{name}」即可。", "未能自動準備「{name}」，但仍可手動添加：在「快捷指令」App 中新建快捷指令，添加操作並搜索「Subway Tools」，選擇「{name}」即可。", "“{name}” could not be prepared automatically, but you can still add it manually: in the Shortcuts app, create a new shortcut, add an action, search for “Subway Tools” and choose “{name}”."],
         "tr.nearby": ["附近车站", "附近車站", "Nearby Stations"],
         "tr.nearby.locating": ["定位中…", "定位中…", "Locating…"],
         "tr.applepay": ["Apple Pay", "Apple Pay", "Apple Pay"],
@@ -803,6 +815,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "transit.tj": ["天津地铁", "天津地鐵", "Tianjin Metro"],
         "transit.wx": ["码上行", "碼上行", "Mashangxing"],
         "transit.ly": ["洛易行", "洛易行", "Luoyixing"],
+        "transit.gz": ["广州地铁官方APP", "廣州地鐵官方APP", "Guangzhou Metro"],
         "tr.search": ["搜索", "搜索", "Search"],
         "tr.departNow": ["现在出发", "現在出發", "Depart now"],
         "time.confirm": ["确定", "確定", "Done"],
@@ -922,7 +935,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // and by the web's cityChanged post; default Beijing).
         // Must run before any accentColor()/pill setup below.
         if let saved = UserDefaults.standard.string(forKey: "metro-city"),
-           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"].contains(saved) {
+           ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"].contains(saved) {
             currentCity = saved
         }
         view.backgroundColor = rootBackgroundColor() // Tab- and theme-matched page background: on the unfolded Duo the area beside the sidebar blends with the page instead of showing as an edge (users 2026-11-21, 2026-11-22).
@@ -958,13 +971,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "themeState")
         config.userContentController.add(self, name: "liveActivity")
         config.userContentController.add(self, name: "clearCache")
-        config.userContentController.add(self, name: "addShortcut")
         config.userContentController.add(self, name: "subView")
         config.userContentController.add(self, name: "topChrome")
         config.userContentController.add(self, name: "mapState")
         config.userContentController.add(self, name: "mapsDownloadFrame")
         config.userContentController.add(self, name: "cityDownloadFrame")
-        config.userContentController.add(self, name: "cellularPrompt") // 26E127 fix 7
         config.userContentController.add(self, name: "departFrame") // 26E127 fix 11
         config.userContentController.add(self, name: "mapProgress")
         config.userContentController.add(self, name: "openAppearance")
@@ -1310,10 +1321,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // (User 2026-11-20 22:53: the strip now shows for the whole
         // time a sub-view is open — see applySubScrollState.)
         subHeaderGlass = makeGlassEffectView()
+        subHeaderEffect = subHeaderGlass.effect // 26F128 H: kept so applySubScrollState can toggle the backdrop by scroll state.
         subHeaderGlass.translatesAutoresizingMaskIntoConstraints = false
         subHeaderGlass.isHidden = true
         view.addSubview(subHeaderGlass)
-        let subHeaderSep = UIView()
+        subHeaderSep = UIView()
         subHeaderSep.backgroundColor = .separator
         subHeaderSep.translatesAutoresizingMaskIntoConstraints = false
         subHeaderGlass.contentView.addSubview(subHeaderSep)
@@ -1445,6 +1457,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         view.backgroundColor = rootBackgroundColor()
+        refreshSolidChrome() // 26F128: de-glassed pieces follow the theme.
         subTopCover?.backgroundColor = rootBackgroundColor() // iPad sub-view top cover follows the page background (2026-11-22).
         updateSideBarLayout()
         // Appearance changed while running (26C101): re-pick the
@@ -1591,6 +1604,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // height and the docked button position.
         if showStrip {
             glass.isHidden = false
+            // 26F128 H (user: "再打开的时候不要显示安全区，滑动的时候
+            // 显示安全区"): the glass backdrop + hairline ARE the
+            // safe-area band — off while the page sits at its scroll
+            // top (content runs flush to the top), on once scrolled.
+            // The title (inside the strip) and the back button stay
+            // visible either way; only the material toggles.
+            glass.effect = subScrolled ? subHeaderEffect : nil
+            subHeaderSep?.isHidden = !subScrolled
             self.view.bringSubviewToFront(glass)
             if let button = self.subViewBackButton { self.view.bringSubviewToFront(button) }
             self.dockSubViewBackButton()
@@ -1758,6 +1779,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 subHeaderGlass?.isHidden = false
                 subViewBackButton?.isHidden = false
                 subTopCover?.isHidden = false
+                applySubScrollState(animated: false) // 26F128 H: re-assert the scroll-aware backdrop on re-show.
             } else if topChromeHidSubChrome {
                 // 26E127 fix 12: stale latch (subview closed while the chrome was hidden) — drop it instead of re-showing a back button with no subview open.
                 topChromeHidSubChrome = false
@@ -2024,6 +2046,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "tj" { return tianjinRed }
         if currentCity == "wx" { return wuxiRed }
         if currentCity == "ly" { return luoyangPink }
+        if currentCity == "gz" { return guangzhouYellow }
         return subwayBlue
     }
 
@@ -2045,6 +2068,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "tj" { return tianjinRedDark }
         if currentCity == "wx" { return wuxiRedDark }
         if currentCity == "ly" { return luoyangPinkDark }
+        if currentCity == "gz" { return guangzhouYellowDark }
         return subwayBlue
     }
 
@@ -2069,6 +2093,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if currentCity == "tj" { return tianjinRed }
         if currentCity == "wx" { return wuxiRed }
         if currentCity == "ly" { return luoyangPink }
+        if currentCity == "gz" { return guangzhouYellowDark }
         return accentColor()
     }
 
@@ -2098,6 +2123,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "tj": name = "TianjinLogo"
         case "wx": name = "WuxiLogo"
         case "ly": name = "LuoyangLogo"
+        case "gz": name = "GuangzhouLogo"
         default: name = "BeijingLogo"
         }
         guard let img = UIImage(named: name) else { return nil }
@@ -2184,7 +2210,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var downloadedLineMapCount: Int = 0
     // 26E127 fix 6: the popover lists ONLY downloaded cities (bj always counts as downloaded) — undownloaded cities no longer appear here; download them in Settings → Switch City. (26E126 J showed all with a ↓ mark; the user changed this.)
     func cityMenu() -> UIMenu {
-        let keys = ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"].filter { $0 == "bj" || downloadedMapCities.contains($0) }
+        let keys = ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"].filter { $0 == "bj" || downloadedMapCities.contains($0) }
         var actions: [UIAction] = []
         for key in keys {
             let a = UIAction(title: L("city." + key), image: cityLogoImage(for: key)?.withRenderingMode(.alwaysOriginal)) { [weak self] _ in
@@ -2309,15 +2335,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         return btn
     }
 
-    // MARK: - Cellular download prompt (26E127 fix 7)
+    // MARK: - Cellular path monitor (26E127 fix 7, 26F128 switch)
 
     // NWPathMonitor watches the network path so the web's cellularGate()
     // knows whether a download would use cellular data. The flag is
     // injected at document start (false = Wi-Fi, the safe default) and
-    // re-asserted on every path change. The prompt itself is
-    // once-per-session: a confirm sets _metroCellularOK in the web
-    // (the web's cellularGate resolves and caches it), a cancel leaves
-    // it unset so the next download attempt asks again.
+    // re-asserted on every path change. 26F128: the once-per-session
+    // prompt is gone — the web's Settings > General switch
+    // (metro-allow-cellular, default on) is the control now.
     var networkMonitor: NWPathMonitor?
     func startNetworkMonitor() {
         let monitor = NWPathMonitor()
@@ -2331,34 +2356,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         networkMonitor = monitor
     }
 
-    func presentCellularPrompt() {
-        // If a prompt is already up, do nothing — the web's gate queues
-        // its callers, and this prompt's answer resolves all of them.
-        // If some other VC is already presented (e.g. the search
-        // conditions sheet), answer cancel so the download does not
-        // hang waiting for a prompt the user cannot see.
-        if presentedViewController != nil {
-            webView?.evaluateJavaScript("window.__cellularCancelled && window.__cellularCancelled();", completionHandler: nil)
-            return
-        }
-        let alert = UIAlertController(title: L("cellular.title"), message: L("cellular.message"), preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: L("cellular.continue"), style: .default) { [weak self] _ in
-            self?.webView?.evaluateJavaScript("window.__cellularConfirmed && window.__cellularConfirmed();", completionHandler: nil)
-        })
-        alert.addAction(UIAlertAction(title: L("cellular.cancel"), style: .cancel) { [weak self] _ in
-            self?.webView?.evaluateJavaScript("window.__cellularCancelled && window.__cellularCancelled();", completionHandler: nil)
-        })
-        present(alert, animated: true)
-    }
-
-    // MARK: - Native depart-time button (26E127 fix 11)
+    // MARK: - Native depart-time button (26E127 fix 11, 26F128 round)
 
     // The web reports the .tr-time-slot rect + the current title +
     // the theme-correct walking-person icon (only when it changes).
-    // The button is Liquid Glass on iOS 26+, icon left of the title
-    // (the title already carries the ▾), content right-aligned like
-    // the web control. Tap opens the same departure-time picker as
-    // the web control (web showTimePicker → native timePicker).
+    // 26F128 (user 2026-11-25 "改成圆形按钮 就保留图标"): the button
+    // is a SOLID CIRCLE carrying only the walking-person glyph — no
+    // title, no ▾ (the posted title becomes the accessibility
+    // label), no glass. The web slot is square (40x40), so the
+    // circle is the slot frame with cornerRadius = half the side.
+    // Tap opens the same departure-time picker as the web control
+    // (web showTimePicker → native timePicker).
     var departButton: UIButton?
     var departButtonIcon: UIImage?
     var departButtonIconURL = ""
@@ -2377,37 +2385,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             departButtonIconURL = icon
             departButtonIcon = decodeDepartIcon(icon)
         }
-        if #available(iOS 26.0, *) {
-            var cfg = btn.configuration ?? UIButton.Configuration.glass()
-            cfg.cornerStyle = .capsule
-            cfg.title = title
-            cfg.image = departButtonIcon
-            cfg.imagePlacement = .leading
-            cfg.imagePadding = 4
-            cfg.baseForegroundColor = .label
-            cfg.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0)
-            btn.configuration = cfg
-        } else {
-            btn.setTitle(title, for: .normal)
-            btn.setImage(departButtonIcon, for: .normal)
-        }
-        btn.contentHorizontalAlignment = .right
+        btn.setImage(departButtonIcon, for: .normal)
+        btn.accessibilityLabel = title
+        btn.backgroundColor = solidCardColor()
         btn.frame = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
+        btn.layer.cornerRadius = min(btn.frame.width, btn.frame.height) / 2
         btn.isHidden = false
         view.bringSubviewToFront(btn)
     }
     func makeDepartButton() -> UIButton {
-        let btn = UIButton(type: .system)
+        let btn = UIButton(type: .custom)
         btn.translatesAutoresizingMaskIntoConstraints = true
-        btn.titleLabel?.font = .systemFont(ofSize: 14)
         btn.accessibilityIdentifier = "departButton"
-        if #available(iOS 26.0, *) {
-            var cfg = UIButton.Configuration.glass()
-            cfg.cornerStyle = .capsule
-            cfg.baseForegroundColor = .label
-            cfg.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0)
-            btn.configuration = cfg
-        }
+        btn.clipsToBounds = true
+        btn.backgroundColor = solidCardColor()
         btn.addTarget(self, action: #selector(departButtonTapped), for: .touchUpInside)
         btn.isHidden = true
         view.addSubview(btn)
@@ -2429,7 +2420,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let b64 = String(dataURL[dataURL.index(after: comma)...])
         guard let data = Data(base64Encoded: b64, options: .ignoreUnknownCharacters),
               let img = UIImage(data: data) else { return nil }
-        let target = CGSize(width: 18, height: 18)
+        let target = CGSize(width: 24, height: 24) // 26F128: ~60% of the 40pt circle's diameter.
         let scaled = UIGraphicsImageRenderer(size: target).image { _ in
             img.draw(in: CGRect(origin: .zero, size: target))
         }
@@ -2497,7 +2488,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             return a
         }
         // 26E127 fix 6: same rule as cityMenu — downloaded cities only (bj always counts), so the popover never offers a city whose map is not on the device.
-        for city in ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"] where city == "bj" || downloadedMapCities.contains(city) {
+        for city in ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"] where city == "bj" || downloadedMapCities.contains(city) {
             sheet.addAction(cityAction(city))
         }
         sheet.addAction(UIAlertAction(title: L("native.cancel"), style: .cancel))
@@ -2577,6 +2568,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         sortTabs.selectedSegmentIndex = 0
         sortTabs.translatesAutoresizingMaskIntoConstraints = true
         sortTabs.isHidden = true
+        // 26F128: solid segmented colours (user "取消玻璃效果") —
+        // classic track/pill pair instead of the glass rendering.
+        sortTabs.backgroundColor = solidTrackColor()
+        sortTabs.selectedSegmentTintColor = solidPillColor()
+        sortTabs.clipsToBounds = true
         sortTabs.addTarget(self, action: #selector(sortTabChanged(_:)), for: .valueChanged)
         let attrs: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 15, weight: .semibold)]
         sortTabs.setTitleTextAttributes(attrs, for: .normal)
@@ -2618,6 +2614,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         if w > 0 && h > 0 && currentTab == "transfer" {
             sortTabs.frame = CGRect(x: x + webOffset.x, y: y + webOffset.y, width: w, height: h)
+            sortTabs.layer.cornerRadius = CGFloat(h) / 2 // 26F128: round the solid track to the control's capsule.
             sortTabs.isHidden = false
             if let idx = sortTabKeys.firstIndex(of: tab) {
                 sortTabs.selectedSegmentIndex = idx
@@ -2936,7 +2933,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // the switch only renders it and reports user toggles back
     // through window.__setNearbySmart.
     func setupNearbySmartSwitch() {
-        nearbySmartSwitch = UISwitch()
+        let sw = NoScrollSwitch()
+        sw.scrollViewToFreeze = webView?.scrollView
+        nearbySmartSwitch = sw
         nearbySmartSwitch.onTintColor = .systemGreen
         nearbySmartSwitch.translatesAutoresizingMaskIntoConstraints = true
         nearbySmartSwitch.isHidden = true
@@ -2953,6 +2952,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     func hideNearbySmartSwitch() {
         nearbySmartSwitch?.isHidden = true
+        webView?.scrollView.isScrollEnabled = true // 26F128 B: never leave the page frozen if the switch hid mid-touch.
     }
 
     // Place the switch over the web slot's reported frame: trailing
@@ -2990,6 +2990,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             view.bringSubviewToFront(sw)
         } else {
             sw.isHidden = true
+            webView?.scrollView.isScrollEnabled = true // 26F128 B: same unfreeze as hideNearbySmartSwitch.
         }
     }
 
@@ -3009,6 +3010,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         row.clipsToBounds = true
         row.isHidden = true
         let glass = makeClearGlassEffectView()
+        // 26F128: solid row (user "取消玻璃效果") — no glass effect;
+        // the row's own background carries the solid colour.
+        glass.effect = nil
+        row.backgroundColor = solidCardColor()
         glass.translatesAutoresizingMaskIntoConstraints = false
         glass.isUserInteractionEnabled = false
         row.addSubview(glass)
@@ -3060,6 +3065,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         profileInfoCard.clipsToBounds = true
         profileInfoCard.isHidden = true
         let cardGlass = makeClearGlassEffectView()
+        // 26F128: solid card (user "取消玻璃效果") — no glass
+        // effect; the card's own background carries the colour.
+        cardGlass.effect = nil
+        profileInfoCard.backgroundColor = solidCardColor()
         cardGlass.translatesAutoresizingMaskIntoConstraints = false
         cardGlass.isUserInteractionEnabled = false
         profileInfoCard.addSubview(cardGlass)
@@ -3536,6 +3545,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         view.addSubview(transferCard)
 
         transferEffectView = makeClearGlassEffectView()
+        // 26F128: solid card (user "取消玻璃效果") — the effect view
+        // stays as the content container but renders no glass; the
+        // card's own background carries the solid colour.
+        transferEffectView.effect = nil
+        transferCard.backgroundColor = solidCardColor()
         transferEffectView.translatesAutoresizingMaskIntoConstraints = false
         transferCard.addSubview(transferEffectView)
         NSLayoutConstraint.activate([
@@ -3781,6 +3795,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             transferCard.isHidden = true
             transferSearchButton.isHidden = true
             hideActionButtons()
+            departButton?.isHidden = true // 26F128: the depart circle must not float over the detail page (it was missing from this list — the clipped-button screenshot).
             return
         }
         guard let f = dict["fields"] as? [String: Any],
@@ -3914,12 +3929,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // 6px icon gap; long app names truncate like the web row's
     // ellipsis.
     func actionButtonConfig() -> UIButton.Configuration {
-        var cfg: UIButton.Configuration
-        if #available(iOS 26.0, *) {
-            cfg = UIButton.Configuration.glass()
-        } else {
-            cfg = UIButton.Configuration.filled()
-        }
+        // 26F128: solid pills (user "取消玻璃效果") — a filled
+        // capsule in the web cards' colour instead of Liquid Glass.
+        var cfg = UIButton.Configuration.filled()
+        cfg.baseBackgroundColor = solidCardColor()
+        cfg.baseForegroundColor = .label
+        cfg.cornerStyle = .capsule
         cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
             var a = attrs
             a.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
@@ -4464,7 +4479,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26E127')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F128')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
@@ -4590,6 +4605,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         case "tj": id = "1445111714"
         case "wx": id = "1213366120"
         case "ly": id = "1533912596"
+        case "gz": id = "580097761"
         default: id = "1071038870"
         }
         guard let url = URL(string: "https://apps.apple.com/cn/app/id\(id)") else { return }
@@ -4773,6 +4789,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let key = tabKeys[index]
         currentTab = key
         setTopChromeHidden(false) // 26E126 R: a tab switch always re-shows the top chrome.
+        // 26F128 F: sub-view chrome (back button + strip) belongs to
+        // the more/timetable tabs only. The re-show above can unhide
+        // a latched back button before the web's subView post lands
+        // (the stray "<" beside the city pill on the map tab) — force
+        // it down on every other tab; the web re-asserts it when a
+        // sub-view is genuinely open on return.
+        if key != "more" && key != "timetable" { setSubChromeVisible(false) }
         view.backgroundColor = rootBackgroundColor() // Sidebar strip follows the tab's page background.
         updatePillVisibility()
         updateTransferVisibility()
@@ -4926,6 +4949,48 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             return UIColor(red: 242.0 / 255.0, green: 242.0 / 255.0, blue: 247.0 / 255.0, alpha: 1) // #f2f2f7
         }
         return .white // #ffffff
+    }
+
+    // 26F128: solid (non-glass) chrome colours for the transfer-page
+    // header + profile page (user 2026-11-25 "取消玻璃效果", scope
+    // confirmed "就这两页"). Card = the web cards' own colours:
+    // white in light mode, #1c1c1e in dark. Track/pill are the
+    // classic segmented-control pair for sortTabs.
+    func solidCardColor() -> UIColor {
+        return splashDarkResolved()
+            ? UIColor(red: 28.0 / 255.0, green: 28.0 / 255.0, blue: 30.0 / 255.0, alpha: 1) // #1c1c1e
+            : .white // #ffffff
+    }
+    func solidTrackColor() -> UIColor {
+        return splashDarkResolved()
+            ? UIColor(red: 44.0 / 255.0, green: 44.0 / 255.0, blue: 46.0 / 255.0, alpha: 1) // #2c2c2e
+            : UIColor(red: 233.0 / 255.0, green: 233.0 / 255.0, blue: 234.0 / 255.0, alpha: 1) // #e9e9ea
+    }
+    func solidPillColor() -> UIColor {
+        return splashDarkResolved()
+            ? UIColor(red: 99.0 / 255.0, green: 99.0 / 255.0, blue: 102.0 / 255.0, alpha: 1) // #636366
+            : .white // #ffffff
+    }
+
+    // Re-apply the solid colours after a theme change (the web's
+    // themeState post and trait changes both land here). Only the
+    // 26F128 de-glassed pieces; everything else keeps its glass.
+    func refreshSolidChrome() {
+        transferCard?.backgroundColor = solidCardColor()
+        profileInfoCard?.backgroundColor = solidCardColor()
+        profileSaveRow?.backgroundColor = solidCardColor()
+        profileRedeemRow?.backgroundColor = solidCardColor()
+        profileLogoutRow?.backgroundColor = solidCardColor()
+        departButton?.backgroundColor = solidCardColor()
+        if let st = sortTabs {
+            st.backgroundColor = solidTrackColor()
+            st.selectedSegmentTintColor = solidPillColor()
+        }
+        for b in [transitAppButton, nearbyStationsButton, applePayButton] {
+            guard let b = b, var cfg = b.configuration else { continue }
+            cfg.baseBackgroundColor = solidCardColor()
+            b.configuration = cfg
+        }
     }
 
     // Sidebar = iPhone Duo UNFOLDED only (user 2026-11-22: a regular
@@ -5238,7 +5303,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // write; the poster re-picks immediately.
             if let dict = message.body as? [String: Any] {
                 if let city = dict["city"] as? String,
-                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"].contains(city) {
+                   ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"].contains(city) {
                     UserDefaults.standard.set(city, forKey: "metro-city")
                     currentCity = city
                 }
@@ -5268,11 +5333,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 refreshSplashImage()
                 view.backgroundColor = rootBackgroundColor()
                 subTopCover?.backgroundColor = rootBackgroundColor() // iPad sub-view top cover follows the page background (2026-11-22).
+                refreshSolidChrome() // 26F128: de-glassed pieces follow the theme.
             }
         } else if message.name == "cityChanged",
                   let dict = message.body as? [String: Any],
                   let city = dict["city"] as? String,
-                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly"].contains(city) {
+                  ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz"].contains(city) {
             // The web switched cities (user switch or the startup
             // restore). Mirror it natively; the web already switched,
             // so do NOT call switchCity here (that would loop).
@@ -5441,14 +5507,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             handleLiveActivity(dict)
         } else if message.name == "clearCache" {
             clearWebCache()
-        } else if message.name == "addShortcut",
-                  let dict = message.body as? [String: Any],
-                  let sid = dict["id"] as? String,
-                  SubwayShortcutID(rawValue: sid) != nil {
-            // Siri Shortcuts (user 2026-11-18, Settings -> Siri 快捷指令):
-            // the web posts {id} when the user taps a shortcut row.
-            // An unknown id falls through here and is ignored.
-            presentShortcutSetup(for: sid)
         } else if message.name == "subView" {
             // Native sub-view back button (user 2026-11-18): the web posts
             // {open: Bool} whenever sub-view open-state changes — open is
@@ -5533,9 +5591,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                   let dict = message.body as? [String: Any],
                   let cities = dict["cities"] as? [[String: Any]] {
             placeCityDownloadButtons(frames: cities)
-        } else if message.name == "cellularPrompt" {
-            // 26E127 fix 7: the web asks before the first cellular download in a session (cellularGate). Show the native prompt; Continue resolves the queued gate(s) and sets the session flag, Cancel rejects them (the web re-asks on the next download attempt).
-            presentCellularPrompt()
         } else if message.name == "departFrame",
                   let dict = message.body as? [String: Any] {
             placeDepartButton(frame: dict)
@@ -5695,64 +5750,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             }
         default:
             break
-        }
-    }
-
-    // Siri Shortcuts setup (Settings -> Siri 快捷指令 -> tap a row).
-    // NOTE on the system Add-to-Siri sheet: INUIAddVoiceShortcut-
-    // ViewController (IntentsUI) only accepts an INShortcut built
-    // from an INIntent or an NSUserActivity — an AppIntent cannot be
-    // wrapped in one, so that sheet cannot present these shortcuts.
-    // The system flow for App Intents is the AppShortcuts mechanism:
-    // the provider's shortcuts are listed under the app in the
-    // Shortcuts app automatically. That registration was silently
-    // broken until 26E113 (Metadata.appintents nested one level too
-    // deep in the bundle — see AppIntents.swift and build.sh), which
-    // is why the previous flow's "「{name}」已就绪" alert described
-    // steps that could never work: the actions simply did not exist
-    // on device. The fake-readiness alert is gone. Now a tap donates
-    // the intent (best effort, feeds Siri suggestions) and opens the
-    // Shortcuts app's editor directly, where the app's actions are
-    // really listed. Unknown ids never reach here (the message
-    // branch validates the id first).
-    func presentShortcutSetup(for id: String) {
-        guard let shortcut = SubwayShortcutID(rawValue: id) else { return }
-        // The intents are plain AppIntents (26C101 rewrite, no
-        // OpenURLIntent), so they exist on every supported iOS
-        // version and can always be donated.
-        Task { try? await shortcut.makeIntent().donate() }
-        openShortcutsAppForAdding()
-    }
-
-    // Open the Shortcuts app at the new-shortcut editor, where the user
-    // taps Add Action, searches "Subway Tools" and picks the shortcut.
-    // Falls back to the Shortcuts home if the editor URL fails. If
-    // BOTH opens fail (Shortcuts unavailable or restricted), say so
-    // with the manual steps — the tap used to fail silently and the
-    // user reported "tap does nothing" (26E126).
-    func openShortcutsAppForAdding() {
-        guard let editorURL = URL(string: "shortcuts://create-shortcut") else { return }
-        UIApplication.shared.open(editorURL, options: [:]) { [weak self] success in
-            if success { return }
-            guard let homeURL = URL(string: "shortcuts://") else { return }
-            UIApplication.shared.open(homeURL, options: [:]) { [weak self] homeOK in
-                if homeOK { return }
-                self?.showShortcutOpenFailedAlert()
-            }
-        }
-    }
-
-    func showShortcutOpenFailedAlert() {
-        let alert = UIAlertController(
-            title: L("siri.openFailed.title"),
-            message: L("siri.openFailed.message"),
-            preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: L("common.ok"), style: .default))
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            var vc: UIViewController = self
-            while let p = vc.presentedViewController { vc = p }
-            vc.present(alert, animated: true)
         }
     }
 
