@@ -1419,14 +1419,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // "black bars top and bottom" the user reported.
         refreshSplashImage()
         webView.addObserver(self, forKeyPath: "canGoBack", options: .new, context: nil)
-        // App Intents in-process deep links (26C101): the rewritten
-        // intents no longer open subwaymotion:// URLs through the
-        // system (no OpenURLIntent); perform() posts this notification
-        // and stashes the URL in UserDefaults. The notification covers
-        // the running app; the didBecomeActive consume covers a cold
-        // start where perform() ran before this controller existed.
-        NotificationCenter.default.addObserver(self, selector: #selector(handleIntentDeepLink(_:)), name: SubwayDeepLink.notification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(consumePendingIntentDeepLink), name: UIApplication.didBecomeActiveNotification, object: nil)
         loadMap()
         // iPhone Duo sidebar (build 63): pick sidebar vs bottom tab
         // bar for the launch width; viewDidLayoutSubviews re-picks it
@@ -5638,12 +5630,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         webView.evaluateJavaScript("try{localStorage.removeItem('metro-briefing');}catch(e){}", completionHandler: nil)
     }
 
-    // MARK: - Siri Shortcuts + subwaymotion:// deep links
-    // (user 2026-11-18, Settings -> Siri 快捷指令). The 6 intents in
-    // AppIntents.swift open the app at a subwaymotion:// URL; the URLs
-    // arrive here from SceneDelegate (warm open) or from the cold-launch
-    // urlContexts (stashed until the page loads). Routing reuses the
-    // existing native/web entry points only — no new navigation path.
+    // MARK: - subwaymotion:// deep links
+    // URLs arrive here from SceneDelegate (warm open) or from the
+    // cold-launch urlContexts (stashed until the page loads). (The
+    // Siri Shortcuts intents that also used this path were removed
+    // in 26F128 at the user's request.) Routing reuses the existing
+    // native/web entry points only — no new navigation path.
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         webPageReady = true
@@ -5652,24 +5644,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         lastBarClearance = -1
         reportBarFrame()
         flushPendingDeepLink()
-    }
-
-    // App Intent deep link delivered in-process (26C101): route it
-    // through the exact same path as a subwaymotion:// URL open, and
-    // clear the UserDefaults stash so the didBecomeActive consume
-    // below cannot apply it a second time.
-    @objc func handleIntentDeepLink(_ note: Notification) {
-        guard let url = note.userInfo?["url"] as? URL else { return }
-        UserDefaults.standard.removeObject(forKey: SubwayDeepLink.pendingKey)
-        handleDeepLink(url)
-    }
-
-    // Cold-start fallback for intent deep links: perform() may have
-    // run before this controller registered its observer, leaving
-    // only the UserDefaults stash. Consume it once on activation.
-    @objc func consumePendingIntentDeepLink() {
-        guard let url = SubwayDeepLink.consumePending() else { return }
-        handleDeepLink(url)
     }
 
     func handleDeepLink(_ url: URL) {
