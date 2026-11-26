@@ -4,7 +4,7 @@
 # unpkg, then adapts template.html (upstream SierraQin/metro index.html)
 # into offline/index.html with everything inlined/local.
 # Output: offline/ (index.html + 3 JS libs + PDF)
-import re, shutil, urllib.request, pathlib
+import re, shutil, time, urllib.request, pathlib
 
 BASE = pathlib.Path(__file__).resolve().parent
 VENDOR = BASE / "vendor"
@@ -25,10 +25,38 @@ for name, url in URLS.items():
     if dest.exists():
         print("reuse", name, dest.stat().st_size)
         continue
+    # Vendored base64 copy in the repo (the PDF is binary, so it is
+    # committed as .b64 and decoded here — no network needed).
+    b64 = VENDOR / (name + ".b64")
+    if b64.exists():
+        import base64 as _b64
+        dest.write_bytes(_b64.b64decode(b64.read_text(encoding="utf-8")))
+        print("decode", name, dest.stat().st_size)
+        continue
     print("download", url)
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=120) as r, open(dest, "wb") as f:
-        shutil.copyfileobj(r, f)
+    # Retry with backoff: the Actions runner's egress to the COS /
+    # unpkg CDNs intermittently times out at the TLS handshake
+    # (builds #159/#161/#162/#163 all died here). Download to a
+    # .part file and rename on success so a failed attempt never
+    # leaves a partial file that later runs would "reuse".
+    part = dest.with_name(name + ".part")
+    last_err = None
+    for attempt in range(1, 9):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=120) as r, open(part, "wb") as f:
+                shutil.copyfileobj(r, f)
+            part.replace(dest)
+            last_err = None
+            break
+        except Exception as e:
+            last_err = e
+            print(f"  attempt {attempt} failed: {e!r}")
+            part.unlink(missing_ok=True)
+            if attempt < 8:
+                time.sleep(15)
+    if last_err is not None:
+        raise last_err
     print(" ->", name, dest.stat().st_size)
 
 html = (BASE / "template.html").read_text(encoding="utf-8")
