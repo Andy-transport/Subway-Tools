@@ -163,6 +163,10 @@ CITIES = [
     ("nj", "南京", "web/nanjing"),
     ("wh", "武汉", "web/wuhan"), ("hz", "杭州", "web/hangzhou"),
     ("zz", "郑州", "web/zhengzhou"),
+    ("xa", "西安", "web/xian"), ("su", "苏州", "web/suzhou"),
+    ("hf", "合肥", "web/hefei"), ("jn", "济南", "web/jinan"),
+    ("cs", "长沙", "web/changsha"), ("fz", "福州", "web/fuzhou"),
+    ("km", "昆明", "web/kunming"), ("nc", "南昌", "web/nanchang"),
 ]
 def load(p):
     with open(p, encoding="utf-8") as f:
@@ -199,6 +203,14 @@ python3 -c "import base64; open('build/Payload/Subway Tools.app/NanjingLogo.png'
 python3 -c "import base64; open('build/Payload/Subway Tools.app/WuhanLogo.png','wb').write(base64.b64decode(open('web/wuhan/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/HangzhouLogo.png','wb').write(base64.b64decode(open('web/hangzhou/logo.b64').read()))"
 python3 -c "import base64; open('build/Payload/Subway Tools.app/ZhengzhouLogo.png','wb').write(base64.b64decode(open('web/zhengzhou/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/XianLogo.png','wb').write(base64.b64decode(open('web/xian/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/SuzhouLogo.png','wb').write(base64.b64decode(open('web/suzhou/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/HefeiLogo.png','wb').write(base64.b64decode(open('web/hefei/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/JinanLogo.png','wb').write(base64.b64decode(open('web/jinan/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/ChangshaLogo.png','wb').write(base64.b64decode(open('web/changsha/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/FuzhouLogo.png','wb').write(base64.b64decode(open('web/fuzhou/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/KunmingLogo.png','wb').write(base64.b64decode(open('web/kunming/logo.b64').read()))"
+python3 -c "import base64; open('build/Payload/Subway Tools.app/NanchangLogo.png','wb').write(base64.b64decode(open('web/nanchang/logo.b64').read()))"
 python3 -c "import base64; [open('build/Payload/Subway Tools.app/TimetableIcon' + s + '.png','wb').write(base64.b64decode(open('web/timetable-icon' + s + '.b64').read())) for s in ['', '@2x', '@3x']]"
 
 echo "== 3a. app icon asset catalog (Assets.car, dark home-screen icon) =="

@@ -229,7 +229,15 @@ nj_transfers = (BASE / "nanjing" / "transfers.json").read_text(encoding="utf-8")
 wh_transfers = (BASE / "wuhan" / "transfers.json").read_text(encoding="utf-8")
 hz_transfers = (BASE / "hangzhou" / "transfers.json").read_text(encoding="utf-8")
 zz_transfers = (BASE / "zhengzhou" / "transfers.json").read_text(encoding="utf-8")
-for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers, cq_transfers, sz_transfers, gz_transfers, nj_transfers, wh_transfers, hz_transfers, zz_transfers):
+xa_transfers = (BASE / "xian" / "transfers.json").read_text(encoding="utf-8")
+su_transfers = (BASE / "suzhou" / "transfers.json").read_text(encoding="utf-8")
+hf_transfers = (BASE / "hefei" / "transfers.json").read_text(encoding="utf-8")
+jn_transfers = (BASE / "jinan" / "transfers.json").read_text(encoding="utf-8")
+cs_transfers = (BASE / "changsha" / "transfers.json").read_text(encoding="utf-8")
+fz_transfers = (BASE / "fuzhou" / "transfers.json").read_text(encoding="utf-8")
+km_transfers = (BASE / "kunming" / "transfers.json").read_text(encoding="utf-8")
+nc_transfers = (BASE / "nanchang" / "transfers.json").read_text(encoding="utf-8")
+for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers, cq_transfers, sz_transfers, gz_transfers, nj_transfers, wh_transfers, hz_transfers, zz_transfers, xa_transfers, su_transfers, hf_transfers, jn_transfers, cs_transfers, fz_transfers, km_transfers, nc_transfers):
     assert "</script" not in _t, "per-city transfers json must not contain </script"
 html = sub_once(r'/\*__SY_TRANSFERS__\*/\{\}', lambda _: sy_transfers, html, "sy transfers json")
 html = sub_once(r'/\*__SH_TRANSFERS__\*/\{\}', lambda _: sh_transfers, html, "sh transfers json")
@@ -273,6 +281,14 @@ html = sub_once(r'/\*__WH_TRANSFERS__\*/\{\}', lambda _: wh_transfers, html, "wh
 html = sub_once(r'/\*__HZ_TRANSFERS__\*/\{\}', lambda _: hz_transfers, html, "hz transfers json")
 # Zhengzhou has no virtual transfers — transfers.json is {}.
 html = sub_once(r'/\*__ZZ_TRANSFERS__\*/\{\}', lambda _: zz_transfers, html, "zz transfers json")
+html = sub_once(r'/\*__XA_TRANSFERS__\*/\{\}', lambda _: xa_transfers, html, "xa transfers json")
+html = sub_once(r'/\*__SU_TRANSFERS__\*/\{\}', lambda _: su_transfers, html, "su transfers json")
+html = sub_once(r'/\*__HF_TRANSFERS__\*/\{\}', lambda _: hf_transfers, html, "hf transfers json")
+html = sub_once(r'/\*__JN_TRANSFERS__\*/\{\}', lambda _: jn_transfers, html, "jn transfers json")
+html = sub_once(r'/\*__CS_TRANSFERS__\*/\{\}', lambda _: cs_transfers, html, "cs transfers json")
+html = sub_once(r'/\*__FZ_TRANSFERS__\*/\{\}', lambda _: fz_transfers, html, "fz transfers json")
+html = sub_once(r'/\*__KM_TRANSFERS__\*/\{\}', lambda _: km_transfers, html, "km transfers json")
+html = sub_once(r'/\*__NC_TRANSFERS__\*/\{\}', lambda _: nc_transfers, html, "nc transfers json")
 
 # M. inline the per-city splash (launch) images.
 # BJ splash = the native LaunchScreen image (app/splash.b64, Beijing 北京/配线查询);
@@ -906,6 +922,270 @@ if zz_splash_dark_path.exists():
 else:
     print("WARNING: web/zhengzhou/splash-dark.b64 missing; Zhengzhou dark splash will be empty")
 
+# 26F130: Xi'an (248 stations) — same pattern as Zhengzhou: precomputed
+# stations/routes from the RMP Gallery map (see xian-city SOURCES.md).
+# Map follows the 26E126 J on-demand route: the repo file stays for
+# jsDelivr, nothing is inlined into the IPA. No splash file exists —
+# the native splash is universal (SplashST), so the splash
+# placeholders stay empty like Zhengzhou's. No structure diagrams
+# exist for Xi'an yet — all stations show 正在整理， not a launch blocker.
+xa_stations = (BASE / "xian" / "stations.json").read_text(encoding="utf-8")
+xa_routes = (BASE / "xian" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in xa_stations, "xa stations json must not contain </script"
+assert "</script" not in xa_routes, "xa routes json must not contain </script"
+html = sub_once(r'/\*__XA_STATIONS__\*/\[\]', lambda _: xa_stations, html, "xa stations json")
+html = sub_once(r'/\*__XA_ROUTES__\*/null', lambda _: xa_routes, html, "xa routes json")
+html = sub_once(r'/\*__XA_MAP__\*/""', lambda _: '""', html, "xa map svg (26E126 J: on-demand, no longer bundled)")
+xa_logo_path = BASE / "xian" / "logo.b64"
+if xa_logo_path.exists():
+    xa_logo_b64 = xa_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__XA_LOGO__\*/''", lambda _: "'data:image/png;base64," + xa_logo_b64 + "'", html, "xa logo")
+else:
+    print("WARNING: web/xian/logo.b64 missing; Xi'an logo will be empty")
+xa_splash_path = BASE / "xian" / "splash.b64"
+if xa_splash_path.exists():
+    xa_splash_b64 = xa_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__XA_SPLASH__\*/', lambda _: xa_splash_b64, html, "xa splash")
+else:
+    print("WARNING: web/xian/splash.b64 missing; Xi'an splash will be empty")
+xa_splash_dark_path = BASE / "xian" / "splash-dark.b64"
+if xa_splash_dark_path.exists():
+    xa_splash_dark_b64 = xa_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__XA_SPLASH_DARK__\*/', lambda _: xa_splash_dark_b64, html, "xa splash dark")
+else:
+    print("WARNING: web/xian/splash-dark.b64 missing; Xi'an dark splash will be empty")
+
+# 26F130: Suzhou (235 stations) — same pattern as Zhengzhou: precomputed
+# stations/routes from the RMP Gallery map (see suzhou-city SOURCES.md).
+# Map follows the 26E126 J on-demand route: the repo file stays for
+# jsDelivr, nothing is inlined into the IPA. No splash file exists —
+# the native splash is universal (SplashST), so the splash
+# placeholders stay empty like Zhengzhou's. No structure diagrams
+# exist for Suzhou yet — all stations show 正在整理， not a launch blocker.
+su_stations = (BASE / "suzhou" / "stations.json").read_text(encoding="utf-8")
+su_routes = (BASE / "suzhou" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in su_stations, "su stations json must not contain </script"
+assert "</script" not in su_routes, "su routes json must not contain </script"
+html = sub_once(r'/\*__SU_STATIONS__\*/\[\]', lambda _: su_stations, html, "su stations json")
+html = sub_once(r'/\*__SU_ROUTES__\*/null', lambda _: su_routes, html, "su routes json")
+html = sub_once(r'/\*__SU_MAP__\*/""', lambda _: '""', html, "su map svg (26E126 J: on-demand, no longer bundled)")
+su_logo_path = BASE / "suzhou" / "logo.b64"
+if su_logo_path.exists():
+    su_logo_b64 = su_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__SU_LOGO__\*/''", lambda _: "'data:image/png;base64," + su_logo_b64 + "'", html, "su logo")
+else:
+    print("WARNING: web/suzhou/logo.b64 missing; Suzhou logo will be empty")
+su_splash_path = BASE / "suzhou" / "splash.b64"
+if su_splash_path.exists():
+    su_splash_b64 = su_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__SU_SPLASH__\*/', lambda _: su_splash_b64, html, "su splash")
+else:
+    print("WARNING: web/suzhou/splash.b64 missing; Suzhou splash will be empty")
+su_splash_dark_path = BASE / "suzhou" / "splash-dark.b64"
+if su_splash_dark_path.exists():
+    su_splash_dark_b64 = su_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__SU_SPLASH_DARK__\*/', lambda _: su_splash_dark_b64, html, "su splash dark")
+else:
+    print("WARNING: web/suzhou/splash-dark.b64 missing; Suzhou dark splash will be empty")
+
+# 26F130: Hefei (204 stations) — same pattern as Zhengzhou: precomputed
+# stations/routes from the RMP Gallery map (see hefei-city SOURCES.md).
+# Map follows the 26E126 J on-demand route: the repo file stays for
+# jsDelivr, nothing is inlined into the IPA. No splash file exists —
+# the native splash is universal (SplashST), so the splash
+# placeholders stay empty like Zhengzhou's. No structure diagrams
+# exist for Hefei yet — all stations show 正在整理， not a launch blocker.
+hf_stations = (BASE / "hefei" / "stations.json").read_text(encoding="utf-8")
+hf_routes = (BASE / "hefei" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in hf_stations, "hf stations json must not contain </script"
+assert "</script" not in hf_routes, "hf routes json must not contain </script"
+html = sub_once(r'/\*__HF_STATIONS__\*/\[\]', lambda _: hf_stations, html, "hf stations json")
+html = sub_once(r'/\*__HF_ROUTES__\*/null', lambda _: hf_routes, html, "hf routes json")
+html = sub_once(r'/\*__HF_MAP__\*/""', lambda _: '""', html, "hf map svg (26E126 J: on-demand, no longer bundled)")
+hf_logo_path = BASE / "hefei" / "logo.b64"
+if hf_logo_path.exists():
+    hf_logo_b64 = hf_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__HF_LOGO__\*/''", lambda _: "'data:image/png;base64," + hf_logo_b64 + "'", html, "hf logo")
+else:
+    print("WARNING: web/hefei/logo.b64 missing; Hefei logo will be empty")
+hf_splash_path = BASE / "hefei" / "splash.b64"
+if hf_splash_path.exists():
+    hf_splash_b64 = hf_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__HF_SPLASH__\*/', lambda _: hf_splash_b64, html, "hf splash")
+else:
+    print("WARNING: web/hefei/splash.b64 missing; Hefei splash will be empty")
+hf_splash_dark_path = BASE / "hefei" / "splash-dark.b64"
+if hf_splash_dark_path.exists():
+    hf_splash_dark_b64 = hf_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__HF_SPLASH_DARK__\*/', lambda _: hf_splash_dark_b64, html, "hf splash dark")
+else:
+    print("WARNING: web/hefei/splash-dark.b64 missing; Hefei dark splash will be empty")
+
+# 26F130: Jinan (102 stations) — same pattern as Zhengzhou: precomputed
+# stations/routes from the RMP Gallery map (see jinan-city SOURCES.md).
+# Map follows the 26E126 J on-demand route: the repo file stays for
+# jsDelivr, nothing is inlined into the IPA. No splash file exists —
+# the native splash is universal (SplashST), so the splash
+# placeholders stay empty like Zhengzhou's. No structure diagrams
+# exist for Jinan yet — all stations show 正在整理， not a launch blocker.
+jn_stations = (BASE / "jinan" / "stations.json").read_text(encoding="utf-8")
+jn_routes = (BASE / "jinan" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in jn_stations, "jn stations json must not contain </script"
+assert "</script" not in jn_routes, "jn routes json must not contain </script"
+html = sub_once(r'/\*__JN_STATIONS__\*/\[\]', lambda _: jn_stations, html, "jn stations json")
+html = sub_once(r'/\*__JN_ROUTES__\*/null', lambda _: jn_routes, html, "jn routes json")
+html = sub_once(r'/\*__JN_MAP__\*/""', lambda _: '""', html, "jn map svg (26E126 J: on-demand, no longer bundled)")
+jn_logo_path = BASE / "jinan" / "logo.b64"
+if jn_logo_path.exists():
+    jn_logo_b64 = jn_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__JN_LOGO__\*/''", lambda _: "'data:image/png;base64," + jn_logo_b64 + "'", html, "jn logo")
+else:
+    print("WARNING: web/jinan/logo.b64 missing; Jinan logo will be empty")
+jn_splash_path = BASE / "jinan" / "splash.b64"
+if jn_splash_path.exists():
+    jn_splash_b64 = jn_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__JN_SPLASH__\*/', lambda _: jn_splash_b64, html, "jn splash")
+else:
+    print("WARNING: web/jinan/splash.b64 missing; Jinan splash will be empty")
+jn_splash_dark_path = BASE / "jinan" / "splash-dark.b64"
+if jn_splash_dark_path.exists():
+    jn_splash_dark_b64 = jn_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__JN_SPLASH_DARK__\*/', lambda _: jn_splash_dark_b64, html, "jn splash dark")
+else:
+    print("WARNING: web/jinan/splash-dark.b64 missing; Jinan dark splash will be empty")
+
+# 26F130: Changsha (151 stations) — same pattern as Zhengzhou: precomputed
+# stations/routes from the RMP Gallery map (see changsha-city SOURCES.md).
+# Map follows the 26E126 J on-demand route: the repo file stays for
+# jsDelivr, nothing is inlined into the IPA. No splash file exists —
+# the native splash is universal (SplashST), so the splash
+# placeholders stay empty like Zhengzhou's. No structure diagrams
+# exist for Changsha yet — all stations show 正在整理， not a launch blocker.
+cs_stations = (BASE / "changsha" / "stations.json").read_text(encoding="utf-8")
+cs_routes = (BASE / "changsha" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in cs_stations, "cs stations json must not contain </script"
+assert "</script" not in cs_routes, "cs routes json must not contain </script"
+html = sub_once(r'/\*__CS_STATIONS__\*/\[\]', lambda _: cs_stations, html, "cs stations json")
+html = sub_once(r'/\*__CS_ROUTES__\*/null', lambda _: cs_routes, html, "cs routes json")
+html = sub_once(r'/\*__CS_MAP__\*/""', lambda _: '""', html, "cs map svg (26E126 J: on-demand, no longer bundled)")
+cs_logo_path = BASE / "changsha" / "logo.b64"
+if cs_logo_path.exists():
+    cs_logo_b64 = cs_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__CS_LOGO__\*/''", lambda _: "'data:image/png;base64," + cs_logo_b64 + "'", html, "cs logo")
+else:
+    print("WARNING: web/changsha/logo.b64 missing; Changsha logo will be empty")
+cs_splash_path = BASE / "changsha" / "splash.b64"
+if cs_splash_path.exists():
+    cs_splash_b64 = cs_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__CS_SPLASH__\*/', lambda _: cs_splash_b64, html, "cs splash")
+else:
+    print("WARNING: web/changsha/splash.b64 missing; Changsha splash will be empty")
+cs_splash_dark_path = BASE / "changsha" / "splash-dark.b64"
+if cs_splash_dark_path.exists():
+    cs_splash_dark_b64 = cs_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__CS_SPLASH_DARK__\*/', lambda _: cs_splash_dark_b64, html, "cs splash dark")
+else:
+    print("WARNING: web/changsha/splash-dark.b64 missing; Changsha dark splash will be empty")
+
+# 26F130: Fuzhou (102 stations) — same pattern as Zhengzhou: precomputed
+# stations/routes from the RMP Gallery map (see fuzhou-city SOURCES.md).
+# Map follows the 26E126 J on-demand route: the repo file stays for
+# jsDelivr, nothing is inlined into the IPA. No splash file exists —
+# the native splash is universal (SplashST), so the splash
+# placeholders stay empty like Zhengzhou's. No structure diagrams
+# exist for Fuzhou yet — all stations show 正在整理， not a launch blocker.
+fz_stations = (BASE / "fuzhou" / "stations.json").read_text(encoding="utf-8")
+fz_routes = (BASE / "fuzhou" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in fz_stations, "fz stations json must not contain </script"
+assert "</script" not in fz_routes, "fz routes json must not contain </script"
+html = sub_once(r'/\*__FZ_STATIONS__\*/\[\]', lambda _: fz_stations, html, "fz stations json")
+html = sub_once(r'/\*__FZ_ROUTES__\*/null', lambda _: fz_routes, html, "fz routes json")
+html = sub_once(r'/\*__FZ_MAP__\*/""', lambda _: '""', html, "fz map svg (26E126 J: on-demand, no longer bundled)")
+fz_logo_path = BASE / "fuzhou" / "logo.b64"
+if fz_logo_path.exists():
+    fz_logo_b64 = fz_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__FZ_LOGO__\*/''", lambda _: "'data:image/png;base64," + fz_logo_b64 + "'", html, "fz logo")
+else:
+    print("WARNING: web/fuzhou/logo.b64 missing; Fuzhou logo will be empty")
+fz_splash_path = BASE / "fuzhou" / "splash.b64"
+if fz_splash_path.exists():
+    fz_splash_b64 = fz_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__FZ_SPLASH__\*/', lambda _: fz_splash_b64, html, "fz splash")
+else:
+    print("WARNING: web/fuzhou/splash.b64 missing; Fuzhou splash will be empty")
+fz_splash_dark_path = BASE / "fuzhou" / "splash-dark.b64"
+if fz_splash_dark_path.exists():
+    fz_splash_dark_b64 = fz_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__FZ_SPLASH_DARK__\*/', lambda _: fz_splash_dark_b64, html, "fz splash dark")
+else:
+    print("WARNING: web/fuzhou/splash-dark.b64 missing; Fuzhou dark splash will be empty")
+
+# 26F130: Kunming (103 stations) — same pattern as Zhengzhou: precomputed
+# stations/routes from the RMP Gallery map (see kunming-city SOURCES.md).
+# Map follows the 26E126 J on-demand route: the repo file stays for
+# jsDelivr, nothing is inlined into the IPA. No splash file exists —
+# the native splash is universal (SplashST), so the splash
+# placeholders stay empty like Zhengzhou's. No structure diagrams
+# exist for Kunming yet — all stations show 正在整理， not a launch blocker.
+km_stations = (BASE / "kunming" / "stations.json").read_text(encoding="utf-8")
+km_routes = (BASE / "kunming" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in km_stations, "km stations json must not contain </script"
+assert "</script" not in km_routes, "km routes json must not contain </script"
+html = sub_once(r'/\*__KM_STATIONS__\*/\[\]', lambda _: km_stations, html, "km stations json")
+html = sub_once(r'/\*__KM_ROUTES__\*/null', lambda _: km_routes, html, "km routes json")
+html = sub_once(r'/\*__KM_MAP__\*/""', lambda _: '""', html, "km map svg (26E126 J: on-demand, no longer bundled)")
+km_logo_path = BASE / "kunming" / "logo.b64"
+if km_logo_path.exists():
+    km_logo_b64 = km_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__KM_LOGO__\*/''", lambda _: "'data:image/png;base64," + km_logo_b64 + "'", html, "km logo")
+else:
+    print("WARNING: web/kunming/logo.b64 missing; Kunming logo will be empty")
+km_splash_path = BASE / "kunming" / "splash.b64"
+if km_splash_path.exists():
+    km_splash_b64 = km_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__KM_SPLASH__\*/', lambda _: km_splash_b64, html, "km splash")
+else:
+    print("WARNING: web/kunming/splash.b64 missing; Kunming splash will be empty")
+km_splash_dark_path = BASE / "kunming" / "splash-dark.b64"
+if km_splash_dark_path.exists():
+    km_splash_dark_b64 = km_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__KM_SPLASH_DARK__\*/', lambda _: km_splash_dark_b64, html, "km splash dark")
+else:
+    print("WARNING: web/kunming/splash-dark.b64 missing; Kunming dark splash will be empty")
+
+# 26F130: Nanchang (113 stations) — same pattern as Zhengzhou: precomputed
+# stations/routes from the RMP Gallery map (see nanchang-city SOURCES.md).
+# Map follows the 26E126 J on-demand route: the repo file stays for
+# jsDelivr, nothing is inlined into the IPA. No splash file exists —
+# the native splash is universal (SplashST), so the splash
+# placeholders stay empty like Zhengzhou's. No structure diagrams
+# exist for Nanchang yet — all stations show 正在整理， not a launch blocker.
+nc_stations = (BASE / "nanchang" / "stations.json").read_text(encoding="utf-8")
+nc_routes = (BASE / "nanchang" / "routes.json").read_text(encoding="utf-8")
+assert "</script" not in nc_stations, "nc stations json must not contain </script"
+assert "</script" not in nc_routes, "nc routes json must not contain </script"
+html = sub_once(r'/\*__NC_STATIONS__\*/\[\]', lambda _: nc_stations, html, "nc stations json")
+html = sub_once(r'/\*__NC_ROUTES__\*/null', lambda _: nc_routes, html, "nc routes json")
+html = sub_once(r'/\*__NC_MAP__\*/""', lambda _: '""', html, "nc map svg (26E126 J: on-demand, no longer bundled)")
+nc_logo_path = BASE / "nanchang" / "logo.b64"
+if nc_logo_path.exists():
+    nc_logo_b64 = nc_logo_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r"/\*__NC_LOGO__\*/''", lambda _: "'data:image/png;base64," + nc_logo_b64 + "'", html, "nc logo")
+else:
+    print("WARNING: web/nanchang/logo.b64 missing; Nanchang logo will be empty")
+nc_splash_path = BASE / "nanchang" / "splash.b64"
+if nc_splash_path.exists():
+    nc_splash_b64 = nc_splash_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__NC_SPLASH__\*/', lambda _: nc_splash_b64, html, "nc splash")
+else:
+    print("WARNING: web/nanchang/splash.b64 missing; Nanchang splash will be empty")
+nc_splash_dark_path = BASE / "nanchang" / "splash-dark.b64"
+if nc_splash_dark_path.exists():
+    nc_splash_dark_b64 = nc_splash_dark_path.read_text(encoding="utf-8").strip()
+    html = sub_once(r'/\*__NC_SPLASH_DARK__\*/', lambda _: nc_splash_dark_b64, html, "nc splash dark")
+else:
+    print("WARNING: web/nanchang/splash-dark.b64 missing; Nanchang dark splash will be empty")
+
 # S3. inline the Chongqing Rail Transit data (14 lines, 282 stations).
 # Same pattern as Jinhua/Changzhou: precomputed stations/routes from the
 # user's system-plan map (see chongqing/NOTES.md); the logo is cropped
@@ -976,6 +1256,22 @@ hz_tt_path = BASE / "timetable" / "hz.json"
 hz_tt = hz_tt_path.read_text(encoding="utf-8") if hz_tt_path.exists() else "{}"
 zz_tt_path = BASE / "timetable" / "zz.json"
 zz_tt = zz_tt_path.read_text(encoding="utf-8") if zz_tt_path.exists() else "{}"
+xa_tt_path = BASE / "timetable" / "xa.json"
+xa_tt = xa_tt_path.read_text(encoding="utf-8") if xa_tt_path.exists() else "{}"
+su_tt_path = BASE / "timetable" / "su.json"
+su_tt = su_tt_path.read_text(encoding="utf-8") if su_tt_path.exists() else "{}"
+hf_tt_path = BASE / "timetable" / "hf.json"
+hf_tt = hf_tt_path.read_text(encoding="utf-8") if hf_tt_path.exists() else "{}"
+jn_tt_path = BASE / "timetable" / "jn.json"
+jn_tt = jn_tt_path.read_text(encoding="utf-8") if jn_tt_path.exists() else "{}"
+cs_tt_path = BASE / "timetable" / "cs.json"
+cs_tt = cs_tt_path.read_text(encoding="utf-8") if cs_tt_path.exists() else "{}"
+fz_tt_path = BASE / "timetable" / "fz.json"
+fz_tt = fz_tt_path.read_text(encoding="utf-8") if fz_tt_path.exists() else "{}"
+km_tt_path = BASE / "timetable" / "km.json"
+km_tt = km_tt_path.read_text(encoding="utf-8") if km_tt_path.exists() else "{}"
+nc_tt_path = BASE / "timetable" / "nc.json"
+nc_tt = nc_tt_path.read_text(encoding="utf-8") if nc_tt_path.exists() else "{}"
 tt_icon_b64 = (BASE / "timetable-icon.b64").read_text(encoding="utf-8").strip()
 assert "</script" not in bj_tt, "bj timetable json must not contain </script"
 assert "</script" not in sy_tt, "sy timetable json must not contain </script"
@@ -1019,6 +1315,14 @@ html = sub_once(r'/\*__NJ_TIMETABLE__\*/\{\}', lambda _: nj_tt, html, "nj timeta
 html = sub_once(r'/\*__WH_TIMETABLE__\*/\{\}', lambda _: wh_tt, html, "wh timetable json")
 html = sub_once(r'/\*__HZ_TIMETABLE__\*/\{\}', lambda _: hz_tt, html, "hz timetable json")
 html = sub_once(r'/\*__ZZ_TIMETABLE__\*/\{\}', lambda _: zz_tt, html, "zz timetable json")
+html = sub_once(r'/\*__XA_TIMETABLE__\*/\{\}', lambda _: xa_tt, html, "xa timetable json")
+html = sub_once(r'/\*__SU_TIMETABLE__\*/\{\}', lambda _: su_tt, html, "su timetable json")
+html = sub_once(r'/\*__HF_TIMETABLE__\*/\{\}', lambda _: hf_tt, html, "hf timetable json")
+html = sub_once(r'/\*__JN_TIMETABLE__\*/\{\}', lambda _: jn_tt, html, "jn timetable json")
+html = sub_once(r'/\*__CS_TIMETABLE__\*/\{\}', lambda _: cs_tt, html, "cs timetable json")
+html = sub_once(r'/\*__FZ_TIMETABLE__\*/\{\}', lambda _: fz_tt, html, "fz timetable json")
+html = sub_once(r'/\*__KM_TIMETABLE__\*/\{\}', lambda _: km_tt, html, "km timetable json")
+html = sub_once(r'/\*__NC_TIMETABLE__\*/\{\}', lambda _: nc_tt, html, "nc timetable json")
 html = sub_once(r'/\*__TT_ICON__\*/', lambda _: tt_icon_b64, html, "timetable icon")
 
 # U. inline verified station lat/lng (web/latlng/latlng-{city}.json,
@@ -1048,6 +1352,14 @@ nj_ll = (BASE / "latlng" / "latlng-nj.json").read_text(encoding="utf-8")
 wh_ll = (BASE / "latlng" / "latlng-wh.json").read_text(encoding="utf-8")
 hz_ll = (BASE / "latlng" / "latlng-hz.json").read_text(encoding="utf-8")
 zz_ll = (BASE / "latlng" / "latlng-zz.json").read_text(encoding="utf-8")
+xa_ll = (BASE / "latlng" / "latlng-xa.json").read_text(encoding="utf-8")
+su_ll = (BASE / "latlng" / "latlng-su.json").read_text(encoding="utf-8")
+hf_ll = (BASE / "latlng" / "latlng-hf.json").read_text(encoding="utf-8")
+jn_ll = (BASE / "latlng" / "latlng-jn.json").read_text(encoding="utf-8")
+cs_ll = (BASE / "latlng" / "latlng-cs.json").read_text(encoding="utf-8")
+fz_ll = (BASE / "latlng" / "latlng-fz.json").read_text(encoding="utf-8")
+km_ll = (BASE / "latlng" / "latlng-km.json").read_text(encoding="utf-8")
+nc_ll = (BASE / "latlng" / "latlng-nc.json").read_text(encoding="utf-8")
 assert "</script" not in bj_ll, "bj latlng json must not contain </script"
 assert "</script" not in sy_ll, "sy latlng json must not contain </script"
 assert "</script" not in sh_ll, "sh latlng json must not contain </script"
@@ -1090,6 +1402,14 @@ html = sub_once(r'/\*__NJ_LATLNG__\*/\{\}', lambda _: nj_ll, html, "nj latlng js
 html = sub_once(r'/\*__WH_LATLNG__\*/\{\}', lambda _: wh_ll, html, "wh latlng json")
 html = sub_once(r'/\*__HZ_LATLNG__\*/\{\}', lambda _: hz_ll, html, "hz latlng json")
 html = sub_once(r'/\*__ZZ_LATLNG__\*/\{\}', lambda _: zz_ll, html, "zz latlng json")
+html = sub_once(r'/\*__XA_LATLNG__\*/\{\}', lambda _: xa_ll, html, "xa latlng json")
+html = sub_once(r'/\*__SU_LATLNG__\*/\{\}', lambda _: su_ll, html, "su latlng json")
+html = sub_once(r'/\*__HF_LATLNG__\*/\{\}', lambda _: hf_ll, html, "hf latlng json")
+html = sub_once(r'/\*__JN_LATLNG__\*/\{\}', lambda _: jn_ll, html, "jn latlng json")
+html = sub_once(r'/\*__CS_LATLNG__\*/\{\}', lambda _: cs_ll, html, "cs latlng json")
+html = sub_once(r'/\*__FZ_LATLNG__\*/\{\}', lambda _: fz_ll, html, "fz latlng json")
+html = sub_once(r'/\*__KM_LATLNG__\*/\{\}', lambda _: km_ll, html, "km latlng json")
+html = sub_once(r'/\*__NC_LATLNG__\*/\{\}', lambda _: nc_ll, html, "nc latlng json")
 
 # S8. inline the verified official metro logos for the not-yet-
 # supported cities (web/upcoming-logos/, see its MANIFEST.md): the

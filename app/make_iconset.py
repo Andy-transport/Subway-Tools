@@ -58,6 +58,34 @@ for idiom, size, scale, light, dark in SLOTS:
         images.append(entry)
         print("wrote", iconset / filename, len(raw))
 
+# 26F130 (fold-in 4): the launch screen shows the SAME universal
+# 城轨通 poster the native splash uses (splash-st / splash-st-dark),
+# so the very first frame already matches the splash instead of a
+# blank white/black beat while the app starts. The poster is not
+# per-city, so this does not revive the build-45 problem (a static
+# Beijing splash flashing for other cities). Light + dark variants
+# ride the luminosity appearance like the app icon.
+splashset = OUT / "LaunchSplash.imageset"
+splashset.mkdir(parents=True, exist_ok=True)
+splash_images = []
+for src, filename, appearances in (
+        ("splash-st.b64", "LaunchSplash.jpg", None),
+        ("splash-st-dark.b64", "LaunchSplash~dark.jpg",
+         [{"appearance": "luminosity", "value": "dark"}])):
+    raw = base64.b64decode((pathlib.Path(__file__).resolve().parent / src).read_text(encoding="utf-8").strip())
+    if raw[:2] != b"\xff\xd8":
+        sys.exit("ERROR: %s is not a JPEG" % src)
+    (splashset / filename).write_bytes(raw)
+    entry = {"filename": filename, "idiom": "universal"}
+    if appearances:
+        entry["appearances"] = appearances
+    splash_images.append(entry)
+    print("wrote", splashset / filename, len(raw))
+(splashset / "Contents.json").write_text(
+    json.dumps({"images": splash_images, "info": {"author": "xcode", "version": 1}}, indent=2) + "\n",
+    encoding="utf-8")
+print("wrote", splashset / "Contents.json", "with", len(splash_images), "image entries")
+
 (iconset / "Contents.json").write_text(
     json.dumps({"images": images, "info": {"author": "xcode", "version": 1}}, indent=2) + "\n",
     encoding="utf-8")
