@@ -6,10 +6,10 @@
       "date": "预计2026年底",
       "date_en": "Expected end of 2026",
       "id": "bj22",
-      "source": "北京日报 / 河北日报",
-      "source_en": "Beijing Daily / Hebei Daily",
-      "summary": "22号线（平谷线）平谷段四站四区间建设已全部完成，其中马坊物流港站、马昌营站、平谷站已通过工程验收，站内装修和出入口建设均已完成，站前广场完成80%，区间铺轨、电力架设、信号安装全部完成，目前正在进行通车试运行。红庙至平谷段8月25日已进入空载试运行，全线20座车站主体结构封顶、附属结构完成96%、设备安装装修完成90%，年底基本具备开通条件。作为进入平谷的第一站，马坊物流港站周边正推进产城融合布局，平谷区已在地铁沿线布局人才住房1300余套；京平综合物流枢纽铁路北场区将于12月28日建成通车。11月24日，支持河北段建设的45.5亿元银团贷款成功落地，由建行廊坊分行牵头、7家银行组建，截至目前已累计投放13.66亿元，为河北段盾构掘进、车站封顶和空载试运行提供了资金保障。通车后平谷城区到红庙站约53分钟，燕郊至北京城市副中心最快9分钟，将大幅缓解跨省通勤压力。",
-      "summary_en": "Construction of the four stations and four sections on the Pinggu stretch of Line 22 (Pinggu Line) is complete: Mafang Logistics Port, Machangying and Pinggu stations have passed project acceptance, with station fitting-out and entrances finished, station squares 80% done, and track laying, power and signalling all complete; trial running ahead of opening is under way. The Hongmiao–Pinggu section entered no-load trial operation on 25 August, with all 20 station structures topped out, ancillary works 96% complete and equipment and finishing 90% complete; it should basically be ready to open by year-end. Mafang Logistics Port, the first station into Pinggu, is the focus of a new industry–city development push, with more than 1,300 talent-housing units planned along the line, and the Jingping logistics hub's north rail yard opens on 28 December. On 24 November, a ¥4.55 billion syndicated loan backing the Hebei section was finalised, led by CCB's Langfang branch with seven banks; ¥1.366 billion has been disbursed so far, funding shield tunnelling, station topping-out and trial running on the Hebei stretch. Once open, Pinggu to Hongmiao will take about 53 minutes, and Yanjiao to Beijing's sub-centre as little as 9 minutes, easing cross-province commuting.",
+      "source": "北京青年报 / 河北日报",
+      "source_en": "Beijing Youth Daily / Hebei Daily",
+      "summary": "22号线（平谷线）平谷段四站四区间建设已全部完成，其中马坊物流港站、马昌营站、平谷站已通过工程验收，站内装修和出入口建设均已完成，站前广场完成80%，区间铺轨、电力架设、信号安装全部完成，目前正在进行通车试运行。红庙至平谷段8月25日已进入空载试运行，全线20座车站主体结构封顶、附属结构完成96%、设备安装装修完成90%，年底基本具备开通条件。11月26日，北京青年报实地探访确认，位于平谷区的马坊物流港站、马昌营站、国农港站、平谷站四座车站已全部建成，线路正在进行通车试运行；马昌营站东侧约5.5万平方米的停车场地面铺设已完成、正在进行彩喷，沿线乡镇正同步推进站前环境整治与停车换乘等配套准备。11月24日，支持河北段建设的45.5亿元银团贷款成功落地，由建行廊坊分行牵头、7家银行组建，截至目前已累计投放13.66亿元，为河北段盾构掘进、车站封顶和空载试运行提供了资金保障。通车后平谷城区到红庙站约53分钟，燕郊至北京城市副中心最快9分钟，将大幅缓解跨省通勤压力；官方尚未公布具体开通日期。",
+      "summary_en": "Construction of the four stations and four sections on the Pinggu stretch of Line 22 (Pinggu Line) is complete: Mafang Logistics Port, Machangying and Pinggu stations have passed project acceptance, with station fitting-out and entrances finished, station squares 80% done, and track laying, power and signalling all complete; trial running ahead of opening is under way. The Hongmiao–Pinggu section entered no-load trial operation on 25 August, with all 20 station structures topped out, ancillary works 96% complete and equipment and finishing 90% complete; it should basically be ready to open by year-end. On 26 November, Beijing Youth Daily reported from the site that all four Pinggu District stations — Mafang Logistics Port, Machangying, Guononggang and Pinggu — are now fully built and the line is in trial running; the roughly 55,000 sq m car park east of Machangying station has been paved and is being colour-sprayed, while townships along the line are upgrading station surroundings and park-and-ride facilities. On 24 November, a ¥4.55 billion syndicated loan backing the Hebei section was finalised, led by CCB's Langfang branch with seven banks; ¥1.366 billion has been disbursed so far, funding shield tunnelling, station topping-out and trial running on the Hebei stretch. Once open, Pinggu to Hongmiao will take about 53 minutes, and Yanjiao to Beijing's sub-centre as little as 9 minutes, easing cross-province commuting; no exact opening date has been announced yet.",
       "title": "北京22号线预计2026年底开通",
       "title_en": "Beijing Line 22 expected to open by end of 2026"
     },
@@ -131,6 +131,19 @@
       "title_en": "Tianjin Line Z2 expected to open in 2027"
     },
     {
+      "city": "sy",
+      "color": "#888888",
+      "date": "2026年11月26日",
+      "date_en": "26 November 2026",
+      "id": "synm",
+      "source": "辽宁日报",
+      "source_en": "Liaoning Daily",
+      "summary": "沈阳市民政局近日发布公告，公布多座地铁站的正式站名：6号线文萃路站更名为自动化所机器人中心站，10号线的15座车站完成定名，其中8座与施工期使用的工程名不同。辽宁日报11月26日报道称，新站名突出沈阳的科创特色——自动化所机器人中心站呼应沈阳作为我国第一台工业机器人样机诞生地的产业历史，10号线自动化所鲁美学院站将科研机构与艺术院校并置；原丁香街站改名为大格站，既避免与既有丁香湖站混淆，也让传统聚落地名重新进入公众视野。沈阳地铁已逐字逐词解读此次站名取舍的缘由，乘客出行时请以最新站名和站内指引为准。",
+      "summary_en": "Shenyang's Civil Affairs Bureau has announced official names for a batch of metro stations: Line 6's Wencuilu station becomes Zidonghuasuo Jiqiren Zhongxin (Automation Institute Robot Centre), and 15 Line 10 stations have been formally named, eight of them differently from their construction-period names. Liaoning Daily reported on 26 November that the new names highlight the city's science-and-technology identity — the robot-centre name recalls Shenyang as the birthplace of China's first industrial-robot prototype, and Line 10's Zidonghuasuo Lumei Xueyuan pairs a research institute with an art academy; the former Dingxiangjie station is renamed Dage, avoiding confusion with the existing Dingxianghu station and reviving a traditional settlement name. Shenyang Metro has published a character-by-character explanation of the choices; passengers should follow the latest station names and signage.",
+      "title": "沈阳地铁公布新站名：6号线文萃路站更名为自动化所机器人中心站",
+      "title_en": "Shenyang Metro announces new station names: Line 6's Wencuilu becomes Automation Institute Robot Centre"
+    },
+    {
       "city": "hb",
       "color": "#888888",
       "date": "2026年11月24日",
@@ -175,10 +188,10 @@
       "date": "2026年11月23日",
       "date_en": "23 November 2026",
       "id": "shfare",
-      "source": "新华社 / 央视新闻",
-      "source_en": "Xinhua / CCTV News",
-      "summary": "11月23日，上海市发展改革委发布优化后的轨道交通票价机制，将于12月1日起全面实施，这是上海地铁时隔21年首次调价。起乘价保持3元不变，但起乘里程由0至6公里缩短为0至4公里，此后按4、4、4、7、7、10、10公里递加1元，50公里以上每15公里加1元；叠加配套优惠后，平均每人次票价提高约0.9元。配套推出4种计次票套餐（35次190元、45次210元、60次270元、90次390元，自11月26日起开售，可通过Metro大都会App、上海交通卡App、随申行App等渠道购买，自激活日起30个自然日内有效、仅限本人实名使用）和月满90元后9折优惠，一日票、三日票分别调整为24元、60元；全网还将同步启用纸质二维码单程票，并支持上海火车站、南京西路等5个虚拟换乘站。",
-      "summary_en": "On 23 November, Shanghai's Development and Reform Commission published a revised metro fare scheme taking effect on 1 December — the first fare adjustment in 21 years. The ¥3 base fare stays, but now covers only 0–4 km instead of 0–6 km, with ¥1 added per 4, 4, 4, 7, 7, 10 and 10 km thereafter and per 15 km beyond 50 km; after the accompanying discounts the average fare rises by about ¥0.9 per trip. New multi-ride passes (35 rides ¥190, 45 ¥210, 60 ¥270, 90 ¥390, on sale from 26 November via the Metro Daduhui, Shanghai Transport Card and Suishenxing apps, valid for 30 calendar days from activation for the named holder only) and a 10% discount once monthly spending passes ¥90 accompany the change; one-day and three-day passes move to ¥24 and ¥60, and paper QR single tickets and five virtual interchange stations go live network-wide.",
+      "source": "新华社 / 观点网",
+      "source_en": "Xinhua / Guandian",
+      "summary": "11月23日，上海市发展改革委发布优化后的轨道交通票价机制，将于12月1日起全面实施，这是上海地铁时隔21年首次调价。起乘价保持3元不变，但起乘里程由0至6公里缩短为0至4公里，此后按4、4、4、7、7、10、10公里递加1元，50公里以上每15公里加1元；叠加配套优惠后，平均每人次票价提高约0.9元。配套的4种计次票套餐已于11月26日起开售（35次190元、约5.43元/次；45次210元、约4.67元/次；60次270元、4.50元/次；90次390元、约4.33元/次，自激活日起30个自然日内有效、仅限本人实名使用），电子二维码形式可通过Metro大都会App、上海交通卡App、随申行App购买，实体银联卡形式可通过Metro大都会App、云闪付App购买；计次票与月满90元后9折优惠不同享，也不与公交换乘优惠同享。一日票、三日票分别调整为24元、60元；全网还将同步启用纸质二维码单程票，并支持上海火车站、南京西路等5个虚拟换乘站。",
+      "summary_en": "On 23 November, Shanghai's Development and Reform Commission published a revised metro fare scheme taking effect on 1 December — the first fare adjustment in 21 years. The ¥3 base fare stays, but now covers only 0–4 km instead of 0–6 km, with ¥1 added per 4, 4, 4, 7, 7, 10 and 10 km thereafter and per 15 km beyond 50 km; after the accompanying discounts the average fare rises by about ¥0.9 per trip. The four multi-ride passes went on sale on 26 November (35 rides ¥190, about ¥5.43 per ride; 45 ¥210, about ¥4.67; 60 ¥270, ¥4.50; 90 ¥390, about ¥4.33; valid for 30 calendar days from activation for the named holder only): the e-QR versions are sold via the Metro Daduhui, Shanghai Transport Card and Suishenxing apps, and physical UnionPay-card versions via Metro Daduhui and Yunshanfu; the passes cannot be combined with the 10% discount after ¥90 monthly spending or with bus-transfer discounts. One-day and three-day passes move to ¥24 and ¥60, and paper QR single tickets and five virtual interchange stations go live network-wide.",
       "title": "上海地铁12月1日起实施新票价，时隔21年首次调整",
       "title_en": "Shanghai metro fares change from 1 December, first adjustment in 21 years"
     },
@@ -196,17 +209,30 @@
       "title_en": "Shijiazhuang Line 1 extensions enter trial operation; first/last train times change from 23 November"
     },
     {
-      "city": "gz",
+      "city": "hf",
       "color": "#888888",
-      "date": "2026年11月20日",
-      "date_en": "20 November 2026",
-      "id": "gz4gq",
-      "source": "广州日报",
-      "source_en": "Guangzhou Daily",
-      "summary": "11月20日，广州地铁确认四号线官桥站已顺利完成临时“三权”移交，车站属地管理权、调度指挥权、设备使用权正式移交运营单位，标志着官桥站由建设阶段转入运营调试阶段，将在年底前开通运营。官桥站位于番禺区，北接新造站、南连石碁站，为高架侧式车站，开通后将与广东城际官桥北站实现换乘，进一步增强四号线对广州“南拓轴”沿线地区的带动作用。",
-      "summary_en": "On 20 November, Guangzhou Metro confirmed that Guanqiao station on Line 4 has completed its provisional handover of the three management rights — local management, dispatch command and equipment use — moving from construction into operational testing, with opening planned before year-end. The elevated side-platform station in Panyu District sits between Xinzao and Shiji stations and will interchange with Guangdong Intercity’s Guanqiaobei station, strengthening Line 4’s role along Guangzhou’s southern expansion corridor.",
-      "title": "广州4号线官桥站年底前开通运营",
-      "title_en": "Guangzhou Line 4’s Guanqiao station to open by year-end"
+      "date": "2026年11月19日",
+      "date_en": "19 November 2026",
+      "id": "hfS1",
+      "source": "合肥在线 / 大皖新闻",
+      "source_en": "Hefei Online / Dawan News",
+      "summary": "11月19日，合肥轨道交通S1线（合肥段）省中医院西区站至新桥2号航站楼站区段正式开通初期运营，全长31.3公里、设10座车站，采用GoA4全自动运行，首末班车为6:00至22:30，合肥西站至新桥2号航站楼站全程票价6元，合肥西站至机场约40余分钟。这是合肥十年间开通的第九条轨道交通线路，市区直达新桥机场的通勤通道就此成型；前往1号航站楼的旅客可在新桥2号航站楼站换乘机场免费接驳巴士。S1线全长47.5公里、共14座车站，五里墩站预计2027年开通，寿县段（寿县炎刘—新桥1号航站楼）预计2028年开通。",
+      "summary_en": "On 19 November, the Hefei section of Hefei Metro Line S1 (Shengzhongyiyuan Xiqu – Xinqiao Terminal 2) opened for initial operation: 31.3 km with 10 stations, running in GoA4 fully automatic mode from 06:00 to 22:30, with a ¥6 full fare from Hefei West to Xinqiao Terminal 2 and a journey of just over 40 minutes. It is Hefei's ninth rail line in ten years and creates a direct city-centre-to-Xinqiao-Airport link; passengers for Terminal 1 can take the airport's free shuttle bus from Xinqiao Terminal 2 station. The full S1 line will run 47.5 km with 14 stations: Wulidun station is expected in 2027 and the Shouxian section (Shouxian Yanliu – Xinqiao Terminal 1) in 2028.",
+      "title": "合肥S1线（合肥段）开通运营，市区直达新桥机场",
+      "title_en": "Hefei Line S1 (Hefei section) opens, linking the city centre to Xinqiao Airport"
+    },
+    {
+      "city": "wq",
+      "color": "#888888",
+      "date": "2026年11月15日",
+      "date_en": "15 November 2026",
+      "id": "wq2",
+      "source": "新浪网",
+      "source_en": "Sina.com",
+      "summary": "11月15日7时40分，乌鲁木齐城市轨道交通2号线一期工程北段开通初期运营，线路南起南门站、北至华山街站，全长约13.94公里、全部为地下线，共设10座车站（南门、中桥、碾子沟、南梁坡、农业大学、马料地、平川路、九家湾、乌鲁木齐站、华山街），其中南门站可与1号线换乘。线路运营时间为7:40至23:30，起步票价2元、全程票价4元，工作日早晚高峰约6分15秒一班、其余时段及周末约12分钟一班。2号线北段开通后，乌鲁木齐正式迈入双线换乘的“双地铁”时代，老城区与乌鲁木齐站之间的联系更加紧密。",
+      "summary_en": "At 07:40 on 15 November, the northern section of Ürümqi Metro Line 2 Phase 1 opened for initial operation, running from Nanmen in the south to Huashan Street in the north: about 13.94 km, fully underground, with 10 stations (Nanmen, Zhongqiao, Nianzigou, Nanliangpo, Agricultural University, Maliaodi, Pingchuanlu, Jiujiawan, Ürümqi Railway Station and Huashan Street), interchanging with Line 1 at Nanmen. Services run from 07:40 to 23:30 with fares from ¥2 to a ¥4 full fare, at about 6 minutes 15 seconds in weekday peaks and about 12 minutes at other times and weekends. With the opening, Ürümqi enters a two-line interchange era, tightening links between the old city and Ürümqi Railway Station.",
+      "title": "乌鲁木齐地铁2号线北段开通运营，迈入“双地铁”时代",
+      "title_en": "Ürümqi Metro Line 2 (north section) opens, ushering in a two-line era"
     },
     {
       "city": "cc",
@@ -220,46 +246,7 @@
       "summary_en": "According to the Jilin Provincial Development and Reform Commission, the south extension of Changchun Line 1 has entered no-load trial operation and will open in stages: the first four stations (Hongshi, Xingchuanglu, Xingbolu, Xingqilu) are planned to open by the end of 2026, with Liujia and Yongchunnan to follow by the end of 2027. The 7 km extension runs south along Renmin Avenue, widening Line 1's coverage and improving public transport in the city's south.",
       "title": "长春1号线南延进入空载试运行，先期段预计年底开通",
       "title_en": "Changchun Line 1 south extension enters trial operation; first section expected by year-end"
-    },
-    {
-      "city": "cq",
-      "color": "#888888",
-      "date": "2026年11月12日",
-      "date_en": "12 November 2026",
-      "id": "cq15",
-      "source": "中国新闻网",
-      "source_en": "China News Service",
-      "summary": "11月12日，重庆首条城轨快线、首条全自动运行线路——轨道交通15号线井口至两江影视城段开通初期运营，全长约48公里、设18座车站，其中换乘站7座，串联井口、礼嘉、照母山、江北机场T3航站楼等片区。列车采用6辆编组市域D型车，设计最高时速140公里，是目前重庆中心城区运行速度最快的线路，重光立交至两江影视城近40公里仅需约40分钟，复盛站换乘前往江北机场T3航站楼最快约13分钟；初期运营时间为7:30至20:30。15号线开通后，重庆轨道交通运营里程正式跨越600公里，建成全球规模最大的山地城市轨道交通网络；西段井口至曾家（约24公里、7座车站）预计明年开通。",
-      "summary_en": "On 12 November, Chongqing's first suburban express line and first fully automatic line — Line 15 from Jingkou to Liangjiang Movie City — opened for initial operation: about 48 km with 18 stations, seven of them interchanges, linking Jingkou, Lijia, Zhaomushan and Jiangbei Airport Terminal 3. Six-car Type D trains run at up to 140 km/h, the fastest in central Chongqing — about 40 minutes for the nearly 40 km from Chongguang Interchange to Liangjiang Movie City, and about 13 minutes from Fusheng (high-speed rail) to the airport's T3 terminal; initial hours are 07:30–20:30. With the opening, Chongqing's network passes 600 km, the world's largest mountain-city metro network; the western section (Jingkou–Zengjia, about 24 km, 7 stations) is expected next year.",
-      "title": "重庆15号线开通运营，轨道交通里程突破600公里",
-      "title_en": "Chongqing Line 15 opens; network passes 600 km"
-    },
-    {
-      "city": "bj",
-      "color": "#888888",
-      "date": "预计2026年底",
-      "date_en": "Expected end of 2026",
-      "id": "bj18",
-      "source": "首都之窗",
-      "source_en": "Beijing Municipal Government",
-      "summary": "10月25日起，北京18号线（马连洼—天通苑东）启动“跑图”，与17号线中段、6号线南延一道，3条年内计划开通的新线（段）已全部进入“跑图”阶段。跑图不少于30天，期间按开通后运行图全封闭模拟运营，检验列车正点率、设备故障率等关键指标并开展应急与客流疏导演练，达标并通过安全评估后具备开通条件。18号线全长约19.8公里、设11座车站，途经海淀、昌平两区，在马连洼站换乘16号线、回龙观东大街站换乘8号线、天通苑站换乘5号线、天通苑东站换乘17号线；车辆为国内最轻的6辆编组B型车，首次批量应用碳纤维电加热座椅。3条新线开通后，北京轨道交通运营里程将突破900公里。",
-      "summary_en": "On 25 October, Beijing Line 18 (Malianwa – Tiantongyuandong) began trial running, so all three lines/sections due to open this year — with the Line 17 middle section and the Line 6 southern extension — are now in the trial-running phase. The trial lasts at least 30 days under fully closed simulated operation on the final timetable, testing punctuality and equipment reliability and rehearsing emergency and crowd measures; once the indicators pass and safety assessment is complete, the line can open. Line 18 runs about 19.8 km with 11 stations through Haidian and Changping, interchanging with Line 16 at Malianwa, Line 8 at Huilongguan Dongdajie, Line 5 at Tiantongyuan and Line 17 at Tiantongyuandong; its trains are China's lightest six-car Type B sets, the first to use carbon-fibre heated seats in bulk. Once the three lines open, Beijing's network will pass 900 km.",
-      "title": "北京18号线启动“跑图”，年底前具备开通条件",
-      "title_en": "Beijing Line 18 begins trial running; ready to open by year-end"
-    },
-    {
-      "city": "dl",
-      "color": "#888888",
-      "date": "在建 · 延期",
-      "date_en": "Under construction · Delayed",
-      "id": "dl4",
-      "source": "大连轨道交通",
-      "source_en": "Dalian Metro",
-      "summary": "大连4号线一期全长23.01公里、设17座车站，西起营城子、东至梭鱼湾，串联甘井子辛寨子、金家街等片区，目前仍在建设中，开通时间未定。近期未见官方公布新的开通节点，乘客请以大连轨道交通后续公告为准。",
-      "summary_en": "Dalian Line 4 Phase 1 runs 23.01 km with 17 stations, from Yingchengzi in the west to Suoyuwan in the east via Xinzhaizi and Jinjiajie in Ganjingzi District, and remains under construction with no opening date announced. No new official opening milestone has been published recently; passengers should follow future announcements from Dalian Metro.",
-      "title": "大连4号线建设延期",
-      "title_en": "Dalian Line 4 construction delayed"
     }
   ],
-  "updated": "2026-11-26"
+  "updated": "2026-11-27"
 }
