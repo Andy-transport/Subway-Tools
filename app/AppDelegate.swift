@@ -218,6 +218,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // instantiated or shown.)
     var lastBarClearance: CGFloat = -1
     var cityPill: UIButton!
+    // 26F132: exit button for the route-detail → map jump mode
+    // (user 2026-11-27 "左上角加一个退出按钮 Apple UI SDK 27.2"):
+    // shown only while the map was opened from a route-detail
+    // segment tap; tapping it returns to the detail page.
+    var mapExitButton: UIButton!
+    var mapJumpMode = false
     // Map tools pill (top-right, build 74): a single Liquid Glass capsule
     // holding the my-location arrow + station search, matching the Apple
     // UI reference the user sent. The two icon buttons live inside it.
@@ -272,6 +278,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // tab entry.
     var stationsSearchField: UISearchTextField!
     var timetableSearchField: UISearchTextField!
+    // 26F132: 车型检索 sub-page search field (same bridge as the tabs).
+    var trainsSearchField: UISearchTextField!
     var cellularApplying = false
     var nearbySmartApplying = false
     // 26E122: the last Home City picker payload, kept so the
@@ -865,6 +873,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         "map.downloaded": ["已下载 {n}/29 张线路图", "已下載 {n}/29 張線路圖", "Downloaded {n}/29 line maps"],
         "map.downloadingCount": ["正在下载 {done}/{total}", "正在下載 {done}/{total}", "Downloading {done}/{total}"],
         "map.download": ["下载", "下載", "Download"],
+        "map.delete": ["删除", "刪除", "Delete"],
         "map.retry": ["重试", "重試", "Retry"],
         "map.downloadingShort": ["下载中", "下載中", "Downloading…"],
         "common.ok": ["知道了", "知道了", "OK"],
@@ -1026,6 +1035,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "tabChanged")
+        config.userContentController.add(self, name: "mapJumpMode")
         config.userContentController.add(self, name: "cityMenu")
         config.userContentController.add(self, name: "tabsFrame")
         config.userContentController.add(self, name: "structFrame")
@@ -1623,9 +1633,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func updateCityPillLeading() {
         guard let c = cityPillLeadingConstraint else { return }
         let backUp = subViewBackButton != nil && !subViewBackButton.isHidden
+        let exitUp = mapExitButton != nil && !mapExitButton.isHidden
         let pillUp = cityPill != nil && !cityPill.isHidden
         if backUp && pillUp {
             c.constant = (subBackLeadingConstraint?.constant ?? 22) + 40 + 8
+        } else if exitUp && pillUp {
+            // 26F132: the jump-mode exit button (36pt at leading
+            // 12) owns the corner; the pill sits right of it.
+            c.constant = 12 + 36 + 8
         } else {
             c.constant = 12
         }
@@ -1837,8 +1852,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 button.alpha = 1
                 subTopCover?.alpha = 1
             }
+            // 26F132: the button is up now — recompute the map
+            // top chrome against the REAL visibility (the dock
+            // call before this ran while the button was still
+            // hidden, so it could only ever pick the 12pt home).
+            refreshMapTopChrome()
         } else {
-            guard !glass.isHidden || !button.isHidden else { return }
+            // 26F132: both already hidden — still re-assert the
+            // map top chrome (cheap, and closes the stuck-
+            // offset path below for good).
+            guard !glass.isHidden || !button.isHidden else { refreshMapTopChrome(); return }
             subChromeClosing = true
             UIView.animate(withDuration: 0.45, delay: 0, options: [.curveEaseOut], animations: {
                 glass.alpha = 0
@@ -1855,6 +1878,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                     cover.isHidden = true
                     cover.alpha = 1
                 }
+                // 26F132 (user 2026-11-27: after jumping from route
+                // detail to the map, the 北京 pill stayed shifted
+                // right): the tab change showed the pill while this
+                // button was still fading (isHidden == false), so
+                // updateCityPillLeading picked the 70pt offset —
+                // and nothing recomputed it once the button
+                // actually hid. Do it here, at the moment the
+                // visibility flips.
+                self.refreshMapTopChrome()
             }
         }
     }
@@ -2116,6 +2148,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         cityPill.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(cityPill)
         view.addSubview(mapToolsPill)
+        // 26F132: jump-mode exit button (top-left corner; hidden
+        // unless the web reports the detail→map jump mode).
+        mapExitButton = UIButton(type: .system)
+        mapExitButton.translatesAutoresizingMaskIntoConstraints = false
+        mapExitButton.isHidden = true
+        mapExitButton.addTarget(self, action: #selector(mapExitTapped), for: .touchUpInside)
+        view.addSubview(mapExitButton)
         // Pills sit at the top safe area on iPhone. On iPad the tab bar
         // floats at the top (build 74), so the pills sit below it.
         cityPillLeadingConstraint = cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12)
@@ -2123,6 +2162,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         NSLayoutConstraint.activate([
             cityPillLeadingConstraint!,
             cityPill.topAnchor.constraint(equalTo: pillTopAnchor, constant: 10),
+            mapExitButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+            mapExitButton.topAnchor.constraint(equalTo: pillTopAnchor, constant: 10),
+            mapExitButton.widthAnchor.constraint(equalToConstant: 36),
+            mapExitButton.heightAnchor.constraint(equalToConstant: 36),
             mapToolsPill.trailingAnchor.constraint(equalTo: webView.trailingAnchor, constant: -12), // The content's right edge: with the Duo sidebar active this sits just left of the sidebar; otherwise it is the screen edge (the safe area inset left it floating mid-screen on the Duo).
             mapToolsPill.topAnchor.constraint(equalTo: pillTopAnchor, constant: 10),
             mapToolsPill.heightAnchor.constraint(equalToConstant: 36),
@@ -2347,14 +2390,29 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
 
     func updateSearchPill() {
-        // 26F130 (fold-in 3): the tools pill is a SOLID capsule (user
-        // 2026-11-25: no Liquid Glass, layered colours visibly
-        // distinct from the page) — the old glass effect view is
-        // gone; the pill's own background carries solidCardColor(),
-        // refreshed with the rest of the solid chrome. The three
-        // icon buttons inside take the city accent colour.
-        mapToolsPill.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
-        mapToolsPill.backgroundColor = solidCardColor()
+        // 26F132 (user 2026-11-27 "改成Apple UI SDK27.2 液态玻璃"):
+        // the tools pill is Liquid Glass on iOS 26+ (reversing
+        // 26F130 fold-in 3's solid capsule); below 26 it keeps the
+        // solid capsule. The three icon buttons inside take the
+        // city accent colour either way. Idempotent — this runs on
+        // every theme refresh, so the glass view is added once.
+        if #available(iOS 26.0, *) {
+            if !mapToolsPill.subviews.contains(where: { $0 is UIVisualEffectView }) {
+                let glass = makeGlassEffectView()
+                glass.translatesAutoresizingMaskIntoConstraints = false
+                mapToolsPill.insertSubview(glass, at: 0)
+                NSLayoutConstraint.activate([
+                    glass.leadingAnchor.constraint(equalTo: mapToolsPill.leadingAnchor),
+                    glass.trailingAnchor.constraint(equalTo: mapToolsPill.trailingAnchor),
+                    glass.topAnchor.constraint(equalTo: mapToolsPill.topAnchor),
+                    glass.bottomAnchor.constraint(equalTo: mapToolsPill.bottomAnchor),
+                ])
+            }
+            mapToolsPill.backgroundColor = .clear
+        } else {
+            mapToolsPill.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
+            mapToolsPill.backgroundColor = solidCardColor()
+        }
         mapToolsPill.applyAppleCorner(radius: 18)
         mapToolsPill.clipsToBounds = true
         locateButton.tintColor = accentColor()
@@ -2479,6 +2537,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // (window.metroApp.onCityRowTap); the web keeps its text span as
     // the pure-browser fallback.
     var cityDownloadButtons: [String: UIButton] = [:]
+    // 26F132: last reported state per city button, so the tap handler
+    // knows whether the pill currently means 下载 or 删除.
+    var cityButtonStates: [String: String] = [:]
     func makeCityDownloadButton(key: String) -> UIButton {
         let btn = UIButton(type: .system)
         btn.translatesAutoresizingMaskIntoConstraints = true
@@ -2755,7 +2816,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
     @objc func cityDownloadTapped(_ sender: UIButton) {
         guard let key = sender.accessibilityIdentifier, !key.isEmpty else { return }
-        webView.evaluateJavaScript("window.metroApp && window.metroApp.onCityRowTap('\(key)')", completionHandler: nil)
+        // 26F132: the same pill deletes the cached line map when the
+        // web reports state "delete" (city already downloaded).
+        if cityButtonStates[key] == "delete" {
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.deleteCityMap('\(key)')", completionHandler: nil)
+        } else {
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.onCityRowTap('\(key)')", completionHandler: nil)
+        }
     }
     func placeCityDownloadButtons(frames: [[String: Any]]) {
         let keys = Set(frames.compactMap { $0["key"] as? String })
@@ -2772,6 +2839,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             let h = (f["height"] as? Double) ?? 0
             let state = (f["state"] as? String) ?? "download"
             let btn = cityDownloadButtons[key] ?? makeCityDownloadButton(key: key)
+            cityButtonStates[key] = state
             let title: String
             switch state {
             case "loading":
@@ -2780,10 +2848,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             case "error":
                 title = L("map.retry")
                 btn.isEnabled = true
+            case "delete":
+                // 26F132: downloaded city — the pill deletes the
+                // cached line map (destructive red on the same
+                // glass capsule).
+                title = L("map.delete")
+                btn.isEnabled = true
             default:
                 title = L("map.download")
                 btn.isEnabled = true
             }
+            if #available(iOS 26.0, *) {
+                btn.configuration?.baseForegroundColor = (state == "delete") ? .systemRed : .systemBlue
+            }
+            btn.tintColor = (state == "delete") ? .systemRed : .systemBlue
             btn.configuration?.title = title
             btn.setTitle(title, for: .normal)
             // 26F129 D+: hide below-screen slots too (stale-frame safety).
@@ -3299,8 +3377,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func setupSearchFields() {
         stationsSearchField = makeSearchField()
         timetableSearchField = makeSearchField()
+        trainsSearchField = makeSearchField()
         view.addSubview(stationsSearchField)
         view.addSubview(timetableSearchField)
+        view.addSubview(trainsSearchField)
     }
 
     func makeSearchField() -> UISearchTextField {
@@ -3318,7 +3398,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     func placeSearchField(frame dict: [String: Any]) {
         guard let id = dict["id"] as? String else { return }
-        let field = (id == "stations") ? stationsSearchField : timetableSearchField
+        let field = (id == "stations") ? stationsSearchField : ((id == "trains") ? trainsSearchField : timetableSearchField)
         guard let f = field else { return }
         // 26F131 D: placement only — never becomeFirstResponder
         // here (no keyboard pop on tab entry; tapping the field
@@ -3344,6 +3424,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func searchFieldChanged(_ tf: UITextField) {
         let id: String
         if let sf = stationsSearchField, tf === sf { id = "stations" }
+        else if let trf = trainsSearchField, tf === trf { id = "trains" }
         else if let ttf = timetableSearchField, tf === ttf { id = "timetable" }
         else { return }
         let esc = (tf.text ?? "").replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "'", with: "\\'")
@@ -3720,10 +3801,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         mapCardView.layer.cornerRadius = 20
         mapCardView.clipsToBounds = true
         mapCardView.isHidden = true
-        // 26F129 B: solid card, no Liquid Glass — the clear
-        // glass read as a flat white card over the light map
-        // (user: 「不要液态玻璃效果 但是层级颜色要不一样」).
-        mapCardView.backgroundColor = solidCardColor()
+        // 26F132 (user 2026-11-27 "改成Apple UI SDK27.2 液态玻璃"):
+        // the station tap card is Liquid Glass on iOS 26+
+        // (reversing 26F129 B's solid card); below 26 it keeps
+        // solidCardColor(). The glass view is inserted first so
+        // the content stack (added below) rides above it; the
+        // card's own corner radius + clipsToBounds shape it.
+        if #available(iOS 26.0, *) {
+            let glass = makeGlassEffectView()
+            glass.translatesAutoresizingMaskIntoConstraints = false
+            mapCardView.addSubview(glass)
+            NSLayoutConstraint.activate([
+                glass.leadingAnchor.constraint(equalTo: mapCardView.leadingAnchor),
+                glass.trailingAnchor.constraint(equalTo: mapCardView.trailingAnchor),
+                glass.topAnchor.constraint(equalTo: mapCardView.topAnchor),
+                glass.bottomAnchor.constraint(equalTo: mapCardView.bottomAnchor),
+            ])
+            mapCardView.backgroundColor = .clear
+        } else {
+            mapCardView.backgroundColor = solidCardColor()
+        }
         mapCardNameLabel = UILabel()
         mapCardNameLabel.font = .systemFont(ofSize: 17, weight: .bold)
         mapCardNameLabel.textColor = .label
@@ -4332,15 +4429,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             let aw = (a["width"] as? Double) ?? 0
             let ah = (a["height"] as? Double) ?? 0
             if aw > 0 && ah > 0 && currentTab == "transfer" {
-                // Three equal pills with 8pt gaps — the web row's
-                // flex layout (same split as placeThemeButtons).
+                // 26F132: the transit pill sizes to its content
+                // (icon + full app name — "广州地铁官方APP" was
+                // truncating to "广州地铁官…" in an equal third);
+                // the other two split what remains. Clamped so a
+                // very long name can never starve the row.
                 let gap: CGFloat = 8
-                let bw = (CGFloat(aw) - gap * 2) / 3
+                let totalW = CGFloat(aw)
+                var transitW = transitAppButton.sizeThatFits(CGSize(width: totalW, height: CGFloat(ah))).width
+                transitW = min(max(transitW, 80), totalW * 0.55)
+                let otherW = (totalW - transitW - gap * 2) / 2
+                let widths: [CGFloat] = [transitW, otherW, otherW]
                 let row: [UIButton] = [transitAppButton, nearbyStationsButton, applePayButton]
+                var bx = CGFloat(ax) + webOffset.x
                 for (i, btn) in row.enumerated() {
-                    btn.frame = CGRect(x: CGFloat(ax) + webOffset.x + CGFloat(i) * (bw + gap),
-                                       y: CGFloat(ay) + webOffset.y, width: bw, height: CGFloat(ah))
+                    btn.frame = CGRect(x: bx, y: CGFloat(ay) + webOffset.y, width: widths[i], height: CGFloat(ah))
                     btn.isHidden = false
+                    bx += widths[i] + gap
                 }
             } else {
                 hideActionButtons()
@@ -4699,6 +4804,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // dismisses the keyboard — filtering is live on every edit.
         if let sf = stationsSearchField, textField === sf { textField.resignFirstResponder(); return true }
         if let tf = timetableSearchField, textField === tf { textField.resignFirstResponder(); return true }
+        if let trf = trainsSearchField, textField === trf { textField.resignFirstResponder(); return true }
         // 26E124: Done on the nickname field just resigns (the
         // transfer fields keep their search-on-return behaviour).
         if let pf = profileNameField, textField === pf {
@@ -4769,7 +4875,48 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let show = currentTab == "map" && !splashShowing && !whatsNewShowing
         cityPill.isHidden = !show
         mapToolsPill.isHidden = !show
+        refreshMapTopChrome()
+    }
+
+    // 26F132: route-detail → map jump mode (the web posts
+    // mapJumpMode when a detail segment tap jumps to the map).
+    // The exit button shows only in this mode on the map tab,
+    // and never while a sub-view back button owns the corner;
+    // tapping it asks the web to return to the detail page.
+    func setMapJumpMode(_ on: Bool) {
+        mapJumpMode = on
+        refreshMapTopChrome()
+    }
+    func refreshMapTopChrome() {
+        let backUp = subViewBackButton != nil && !subViewBackButton.isHidden
+        let show = mapJumpMode && currentTab == "map" && !splashShowing && !whatsNewShowing && !backUp
+        if let btn = mapExitButton {
+            btn.isHidden = !show
+            if show { view.bringSubviewToFront(btn) }
+        }
         updateCityPillLeading()
+    }
+    @objc func mapExitTapped() {
+        webView.evaluateJavaScript("window.metroApp && window.metroApp.exitMapJump()", completionHandler: nil)
+    }
+    // Styled like the neighbouring city pill (glass capsule on
+    // iOS 26+, solid capsule below); refreshed with the rest of
+    // the map chrome so the tint follows the city accent.
+    func updateMapExitButton() {
+        guard let btn = mapExitButton else { return }
+        let img = UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold))
+        if #available(iOS 26.0, *) {
+            var config = UIButton.Configuration.glass()
+            config.image = img
+            config.baseForegroundColor = accentColor()
+            config.cornerStyle = .capsule
+            btn.configuration = config
+        } else {
+            btn.setImage(img, for: .normal)
+            btn.tintColor = accentColor()
+            btn.backgroundColor = solidCardColor()
+            btn.applyAppleCorner(radius: 18)
+        }
     }
 
     // Called when the web splash finishes (or the fallback timer fires):
@@ -4947,7 +5094,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F131')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F132')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
@@ -5482,8 +5629,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if !departButtonUsesGlass {
             departButton?.backgroundColor = solidCardColor()
         }
-        mapToolsPill?.backgroundColor = solidCardColor() // 26F130 (fold-in 3)
-        mapCardView?.backgroundColor = solidCardColor()
+        // 26F132: the tools pill + station card are Liquid Glass
+        // on iOS 26+ (material self-adapts); only the pre-26 solid
+        // fallbacks need their fill refreshed here — forcing a
+        // solid fill on 26+ would flatten the glass.
+        if #available(iOS 26.0, *) {
+        } else {
+            mapToolsPill?.backgroundColor = solidCardColor()
+            mapCardView?.backgroundColor = solidCardColor()
+        }
         structRouteButton?.backgroundColor = solidCardColor()
         structRouteButton?.tintColor = structRouteTintColor()
         if let st = sortTabs {
@@ -5797,6 +5951,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // Settings tab (26C101).
             if tab != "more" { hideNearbySmartSwitch(); hideCellularSwitch() }
             if tab != "map" { hideMapCard() }
+        } else if message.name == "mapJumpMode" {
+            // 26F132: detail→map jump mode on/off (exit button).
+            if let dict = message.body as? [String: Any] {
+                setMapJumpMode(dict["on"] as? Bool == true)
+            }
         } else if message.name == "cityMenu" {
             presentCityMenuPopover()
         } else if message.name == "splashDone" {

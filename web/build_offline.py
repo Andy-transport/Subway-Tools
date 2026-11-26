@@ -404,6 +404,29 @@ msx_icon_path = BASE / "mashangxing-icon.b64"
 if msx_icon_path.exists():
     msx_b64 = msx_icon_path.read_text(encoding="utf-8").strip()
     html = sub_once(r'/\*__MSX_ICON__\*/', lambda _: msx_b64, html, "mashangxing app icon")
+# 26F132: transit-app icons for the 13 cities added after 26E127
+# (App Store artwork via iTunes Lookup, 120x120 PNG; same
+# conditional treatment — a missing file leaves the pill
+# label-only, guarded in the web's transitIcon()).
+for _tok, _file, _label in [
+    ("LYX_ICON", "luoyixing-icon.b64", "luoyixing app icon"),
+    ("GZM_ICON", "gzmetro-icon.b64", "guangzhou metro app icon"),
+    ("NJM_ICON", "njmetro-icon.b64", "nanjing metro app icon"),
+    ("WHM_ICON", "whmetro-icon.b64", "wuhan metro app icon"),
+    ("HZM_ICON", "hzmetro-icon.b64", "hangzhou metro app icon"),
+    ("ZZM_ICON", "zzmetro-icon.b64", "zhengzhou metro app icon"),
+    ("XAM_ICON", "xametro-icon.b64", "xian metro app icon"),
+    ("SUM_ICON", "sumetro-icon.b64", "suzhou metro app icon"),
+    ("HFM_ICON", "hfmetro-icon.b64", "hefei metro app icon"),
+    ("JNM_ICON", "jnmetro-icon.b64", "jinan metro app icon"),
+    ("CSM_ICON", "csmetro-icon.b64", "changsha metro app icon"),
+    ("KMM_ICON", "kmmetro-icon.b64", "kunming metro app icon"),
+    ("NCM_ICON", "ncmetro-icon.b64", "nanchang metro app icon"),
+]:
+    _p = BASE / _file
+    if _p.exists():
+        _b64 = _p.read_text(encoding="utf-8").strip()
+        html = sub_once(r'/\*__' + _tok + r'__\*/', lambda _m, _v=_b64: _v, html, _label)
 
 # O. inline the Shanghai Metro data (22 operating lines, 413 stations).
 # Same pattern as Shenyang (step K): precomputed stations/routes from

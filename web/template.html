@@ -134,6 +134,19 @@
 			window.SJZM_ICON = "data:image/png;base64,/*__SJZM_ICON__*/";
 			window.TJM_ICON = "data:image/png;base64,/*__TJM_ICON__*/";
 			window.MSX_ICON = "data:image/png;base64,/*__MSX_ICON__*/";
+			window.LYX_ICON = "data:image/png;base64,/*__LYX_ICON__*/";
+			window.GZM_ICON = "data:image/png;base64,/*__GZM_ICON__*/";
+			window.NJM_ICON = "data:image/png;base64,/*__NJM_ICON__*/";
+			window.WHM_ICON = "data:image/png;base64,/*__WHM_ICON__*/";
+			window.HZM_ICON = "data:image/png;base64,/*__HZM_ICON__*/";
+			window.ZZM_ICON = "data:image/png;base64,/*__ZZM_ICON__*/";
+			window.XAM_ICON = "data:image/png;base64,/*__XAM_ICON__*/";
+			window.SUM_ICON = "data:image/png;base64,/*__SUM_ICON__*/";
+			window.HFM_ICON = "data:image/png;base64,/*__HFM_ICON__*/";
+			window.JNM_ICON = "data:image/png;base64,/*__JNM_ICON__*/";
+			window.CSM_ICON = "data:image/png;base64,/*__CSM_ICON__*/";
+			window.KMM_ICON = "data:image/png;base64,/*__KMM_ICON__*/";
+			window.NCM_ICON = "data:image/png;base64,/*__NCM_ICON__*/";
 			window.METRO_TRANSFERS = /*__METRO_TRANSFERS__*/{};
 			window.BJ_TRANSFER_TIMES = /*__BJ_TRANSFER_TIMES__*/{};
 			window.BJ_TRANSFER_DIST = /*__BJ_TRANSFER_DIST__*/{};
@@ -867,6 +880,12 @@
 		   native field lands exactly on it. The 取消 button stays web. */
 		.native-app #stationPanel .sp-search, .native-app #timetablePanel .sp-search { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
 		.native-app #stationPanel .sp-search > *, .native-app #timetablePanel .sp-search > * { visibility: hidden !important; }
+		/* 26F132: the 车型检索 input is overlaid by the native
+		   UISearchTextField (same bridge as the tabs) — hide the web
+		   input's own rendering in native mode so it never
+		   double-renders under the native field; its layout box
+		   stays as the reported frame. */
+		.native-app .more-search-input { visibility: hidden !important; }
 		.native-app .tr-tabs { visibility: hidden !important; }
 		/* Native app: the quick-action row under the search button
 		   (transit app / nearby stations / Apple Pay) is native Liquid
@@ -1408,6 +1427,8 @@
 		.more-redeem-go { flex: none; margin-left: 10px; color: #007aff; font-weight: 600; cursor: pointer; }
 		.more-city-row .more-city-name { flex: 1; }
 		.more-city-row .more-check { margin-left: 8px; }
+		/* 26F132: current city = green dot (user: 选中哪个哪个就是绿色的点） */
+		.more-city-dot { width: 10px; height: 10px; border-radius: 50%; background: #34c759; flex: none; margin-left: 8px; }
 		.more-bj-type { padding-left: 36px; font-size: 15px; }
 		.more-bj-type .more-city-name { gap: 8px; }
 		.more-sub-head { display: flex; align-items: center; gap: 12px; padding: 4px 0 14px; }
@@ -1816,6 +1837,11 @@
 		   system font semibold, no coloured background, no drop shadow. */
 		.tr-actions { display: flex; gap: 8px; margin: 12px 16px 0; }
 		.tr-action-btn { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 6px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, 0.08); background: rgba(255, 255, 255, 0.6); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); color: #000; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', sans-serif; font-size: 15px; font-weight: 600; line-height: 1; white-space: nowrap; cursor: pointer; }
+		/* 26F132: the transit-app pill sizes to its content (icon +
+		   full app name) so long names （广州地铁官方APP) are not
+		   truncated into uselessness; the native row mirrors this
+		   split in placeTransfer. */
+		.tr-actions .tr-action-btn:first-child { flex: 0 1 auto; }
 		.tr-action-btn img { width: 22px; height: 22px; border-radius: 5px; flex: none; display: block; }
 		.tr-action-btn span { overflow: hidden; text-overflow: ellipsis; }
 		html.dark .tr-action-btn { border-color: rgba(255, 255, 255, 0.14); background: rgba(44, 44, 46, 0.6); color: #fff; }
@@ -2583,7 +2609,7 @@
 					<div class="more-section">{{ t('more.switchCity') }}</div>
 					<div class="more-card">
 						<div v-for="c in cityList" :key="c.key">
-							<div class="more-city-row" @click="onCityRowTap(c.key)"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-check" v-if="city === c.key">✓</span><span class="more-city-dl" v-if="!nativeApp && c.key !== 'bj' && mapState[c.key] !== 'ready'">{{ mapState[c.key] === 'loading' ? t('map.downloadingShort') : (mapState[c.key] === 'error' ? t('map.retry') : t('map.download')) }}</span><span class="more-city-dl-slot" v-if="nativeApp && c.key !== 'bj' && mapState[c.key] !== 'ready'" :data-city="c.key"></span><span class="more-chev" v-if="c.key === 'bj'">{{ bjMapExpanded ? '⌄' : '›' }}</span></div>
+							<div class="more-city-row" @click="onCityRowTap(c.key)"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-city-dot" v-if="city === c.key"></span><span class="more-city-dl" v-if="!nativeApp && mapState[c.key] === 'ready'" @click.stop="deleteCityMap(c.key)">{{ t('map.delete') }}</span><span class="more-city-dl" v-else-if="!nativeApp && c.key !== 'bj' && mapState[c.key] !== 'ready'">{{ mapState[c.key] === 'loading' ? t('map.downloadingShort') : (mapState[c.key] === 'error' ? t('map.retry') : t('map.download')) }}</span><span class="more-city-dl-slot" v-if="nativeApp && (c.key !== 'bj' || mapState[c.key] === 'ready')" :data-city="c.key"></span><span class="more-chev" v-if="c.key === 'bj'">{{ bjMapExpanded ? '⌄' : '›' }}</span></div>
 							<div v-if="c.key === 'bj' && bjMapExpanded">
 								<div class="more-city-row more-bj-type" @click="pickBjMapType('track')"><span class="more-city-name"><span>{{ t('map.type.track') }}</span></span><span class="more-check" v-if="city === 'bj' && bjMapType === 'track'">✓</span></div>
 								<div class="more-city-row more-bj-type" @click="pickBjMapType('line')"><span class="more-city-name"><span>{{ t('map.type.line') }}</span></span><span class="more-check" v-if="city === 'bj' && bjMapType === 'line'">✓</span></div>
@@ -2742,7 +2768,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26F131)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26F132)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2967,6 +2993,7 @@ var I18N = {
   'map.downloadTitle': ['线路图下载', '線路圖下載', 'Line maps'],
   'map.downloadAll': ['下载全部线路图', '下載全部線路圖', 'Download all line maps'],
   'map.download': ['下载', '下載', 'Download'],
+  'map.delete': ['删除', '刪除', 'Delete'],
   'map.downloading': ['正在下载线路图…', '正在下載線路圖…', 'Downloading line map…'],
   'map.downloadingShort': ['下载中…', '下載中…', 'Downloading…'],
   'map.downloadingCount': ['正在下载 {done}/{total}', '正在下載 {done}/{total}', 'Downloading {done}/{total}'],
@@ -3272,7 +3299,7 @@ var I18N = {
   'more.upcoming.count': ['{n}条线路', '{n}條線路', '{n} lines'],
   'more.upcoming.none': ['本市暂无已公布的即将开通线路', '本市暫無已公布的即將開通線路', 'No upcoming lines announced for this city'],
   'more.upcoming.other': ['其他城市', '其他城市', 'Other cities'],
-  'more.briefing': ['轨道交通信息简报', '軌道交通資訊簡報', 'Transit Briefing'],
+  'more.briefing': ['信息简报', '資訊簡報', 'Information Briefing'],
   'more.briefing.updated': ['更新于 {d}', '更新於 {d}', 'Updated {d}'],
   'more.briefing.empty': ['暂无该城市简报', '暫無該城市簡報', 'No briefing for this city'],
   'more.nearbySmart': ['智能显示', '智能顯示', 'Smart display'],
@@ -3593,6 +3620,14 @@ function titlePy(py) {
 				mapDb().then(function(db) {
 					if (!db) return;
 					try { db.transaction('maps', 'readwrite').objectStore('maps').put(val, key); } catch (e) {}
+				});
+			}
+			// 26F132: delete a cached line map (Switch City 删除）.
+			// Same never-throws contract as the helpers above.
+			function mapIdbDelete(key) {
+				mapDb().then(function(db) {
+					if (!db) return;
+					try { db.transaction('maps', 'readwrite').objectStore('maps').delete(key); } catch (e) {}
 				});
 			}
 			// Creator redemption tables (26E122, user-supplied verbatim,
@@ -4104,6 +4139,19 @@ function titlePy(py) {
 						ncSplashDark: (window.NC_SPLASH_DARK || ''),
 						tjmIcon: (window.TJM_ICON || ''),
 						msxIcon: (window.MSX_ICON || ''),
+						lyxIcon: (window.LYX_ICON || ''),
+						gzmIcon: (window.GZM_ICON || ''),
+						njmIcon: (window.NJM_ICON || ''),
+						whmIcon: (window.WHM_ICON || ''),
+						hzmIcon: (window.HZM_ICON || ''),
+						zzmIcon: (window.ZZM_ICON || ''),
+						xamIcon: (window.XAM_ICON || ''),
+						sumIcon: (window.SUM_ICON || ''),
+						hfmIcon: (window.HFM_ICON || ''),
+						jnmIcon: (window.JNM_ICON || ''),
+						csmIcon: (window.CSM_ICON || ''),
+						kmmIcon: (window.KMM_ICON || ''),
+						ncmIcon: (window.NCM_ICON || ''),
 					soonLogos: (window.SOON_LOGOS || {}),
 						ttIcon: (window.TT_ICON || ''),
 						// Upcoming openings (build 70): 10 lines, each with its
@@ -4284,6 +4332,20 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26F132)', date: '2026-11-27', lines: [
+								['再次加固设置子页右滑返回：滑动结束后页面自动回到正确位置，不再错位', '再次加固設定子頁右滑返回：滑動結束後頁面自動回到正確位置，不再錯位', 'Hardened swipe-back on Settings sub-pages again: the page now always settles back to its correct position after the gesture'],
+								['车型检索的搜索框改成原生 Apple UI 搜索框，输入即时筛选，进页面不自动弹出键盘', '車型檢索的搜尋框改成原生 Apple UI 搜尋框，輸入即時篩選，進頁面不自動彈出鍵盤', 'The train-model search field is now a native Apple UI search field, filtering as you type, with no keyboard pop-up on entering the page'],
+								['切换城市里已下载的线路图可以删除：点「删除」清掉缓存，之后可重新下载', '切換城市裡已下載的線路圖可以刪除：點「刪除」清掉快取，之後可重新下載', 'Downloaded line maps can now be deleted in Switch City: tap Delete to clear the cache; the map can be downloaded again later'],
+								['切换城市里当前城市改用绿色圆点标记', '切換城市裡當前城市改用綠色圓點標記', 'The current city in Switch City is now marked with a green dot'],
+								['修复从路线详情跳到地图时顶部城市按钮错位的问题', '修復從路線詳情跳到地圖時頂部城市按鈕錯位的問題', 'Fixed the city button at the top of the map being offset after jumping from route details'],
+								['车站结构图加载加了超时和自动重试，不再一直转圈', '車站結構圖載入加了逾時和自動重試，不再一直轉圈', 'Station structure diagrams now time out and retry automatically instead of spinning forever'],
+								['地图点站卡片和右上角按钮组改成液态玻璃', '地圖點站卡片和右上角按鈕組改成液態玻璃', 'The map station card and the top-right button group are now Liquid Glass'],
+								['从路线详情跳到地图时，左上角加了退出按钮，点它回到路线详情', '從路線詳情跳到地圖時，左上角加了退出按鈕，點它回到路線詳情', 'Jumping from route details to the map now shows an exit button at the top-left that returns to the route details'],
+								['换乘页的交通 App 按钮显示 App 图标和名称，不再截断', '換乘頁的交通 App 按鈕顯示 App 圖示和名稱，不再截斷', 'The transit-app button on the Transfer tab now shows the app icon and name without truncation'],
+								['各城市轨道交通 Logo 去掉文字，只保留图形标志', '各城市軌道交通 Logo 去掉文字，只保留圖形標誌', 'City metro logos now show the graphic mark only, without the wordmark text'],
+								['「轨道交通信息简报」改名为「信息简报」', '「軌道交通資訊簡報」改名為「資訊簡報」', '“Transit Briefing” is renamed to “Information Briefing”'],
+								['设置子页顶部带临时诊断信息（DIAG-26F132），截图可帮助定位右滑返回问题，后续版本会去掉', '設定子頁頂部帶臨時診斷資訊（DIAG-26F132），截圖可幫助定位右滑返回問題，後續版本會去掉', 'Settings sub-pages temporarily show a diagnostic readout (DIAG-26F132) at the top — a screenshot of it helps pin down the swipe-back issue; it will be removed in a later build']
+							] },
 							{ v: '1.1.0 (26F131)', date: '2026-11-26', lines: [
 								['换乘页「现在出发」圆形按钮和一卡通/附近车站/Apple Pay 按钮改成液态玻璃系统按钮', '換乘頁「現在出發」圓形按鈕和一卡通/附近車站/Apple Pay 按鈕改成液態玻璃系統按鈕', 'The round “Depart now” button and the transit-card / nearby-stations / Apple Pay buttons on the Transfer tab are now Liquid Glass system buttons'],
 								['修复里程排行榜等设置子页滑动时顶部安全区消失的问题：滑动时安全区保持显示', '修復里程排行榜等設定子頁滑動時頂部安全區消失的問題：滑動時安全區保持顯示', 'Fixed the top safe-area band disappearing while scrolling Settings sub-pages such as the mileage ranking: the band now stays visible while scrolled'],
@@ -4417,7 +4479,7 @@ function titlePy(py) {
 							['路线规划全面优化：按出发线 × 到达线逐组计算最优路线，推荐排序优先换乘次数，少换乘的路线不再被漏掉', '路線規劃全面優化：按出發線 × 到達線逐組計算最優路線，推薦排序優先換乘次數，少換乘的路線不再被漏掉', 'Route planning overhauled: the best path is computed for every origin-line x destination-line pairing, and Recommended ranks fewer transfers first, so low-transfer routes are never missed'],
 							] },
 						{ v: '1.1.0 (26E119)', date: '2026-11-22', lines: [
-							['底部栏按参考图收紧版式：胶囊更宽、位置更贴近屏幕底部；设置各项加上图标（通用、关于、功能介绍、即将开通、运营里程排行榜、轨道交通信息简报、车站结构，以及「通用」中的语言与清除缓存），图标自动适配深浅模式', '底部欄按參考圖收緊版式：膠囊更寬、位置更貼近螢幕底部；設定各項加上圖示（通用、關於、功能介紹、即將開通、營運里程排行榜、軌道交通資訊簡報、車站結構，以及「通用」中的語言與清除快取），圖示自動適配深淺模式', 'The bottom bar is tightened to match the reference: a wider capsule floating closer to the bottom edge. Settings rows gain icons — General, About, What’s New, Opening Soon, Operating Mileage Ranking, Rail Transit Briefing and Station Structure, plus Language and Clear Cache inside General — each adapting automatically to light and dark mode'],
+							['底部栏按参考图收紧版式：胶囊更宽、位置更贴近屏幕底部；设置各项加上图标（通用、关于、功能介绍、即将开通、运营里程排行榜、信息简报、车站结构，以及「通用」中的语言与清除缓存），图标自动适配深浅模式', '底部欄按參考圖收緊版式：膠囊更寬、位置更貼近螢幕底部；設定各項加上圖示（通用、關於、功能介紹、即將開通、營運里程排行榜、資訊簡報、車站結構，以及「通用」中的語言與清除快取），圖示自動適配深淺模式', 'The bottom bar is tightened to match the reference: a wider capsule floating closer to the bottom edge. Settings rows gain icons — General, About, What’s New, Opening Soon, Operating Mileage Ranking, Information Briefing and Station Structure, plus Language and Clear Cache inside General — each adapting automatically to light and dark mode'],
 							['换乘站搜索结果合并为一行：输入换乘站站名时只出现一行，同行并排显示该站的全部线路徽章，点选即选中该站', '換乘站搜尋結果合併為一行：輸入換乘站站名時只出現一行，同行並排顯示該站的全部線路徽章，點選即選中該站', 'Interchange stations merge into one search result: type an interchange station’s name and it appears as a single row with badges for every line serving it side by side — tap the row to select the station'],
 						] },
 						{ v: '1.1.0 (26E118)', date: '2026-11-22', lines: [
@@ -4771,6 +4833,12 @@ function titlePy(py) {
 							this.showTimetable = false;
 						}
 						// Tell the native tab bar which tab is showing.
+						// 26F132: any tab switch leaves the detail→map
+						// jump mode (goSegment re-enters it after its
+						// own setTab call); post the off BEFORE the
+						// tabChanged so the native chrome settles in
+						// one pass.
+						if (this._mapJump) { this._mapJump = false; this.postMapJumpMode(); }
 						if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.tabChanged) {
 							window.webkit.messageHandlers.tabChanged.postMessage(this.tab);
 						}
@@ -4910,6 +4978,26 @@ function titlePy(py) {
 							return true;
 						});
 					},
+					// 26F132: delete a downloaded line map (Switch City
+					// 删除 pill / browser fallback text). Clears the
+					// IndexedDB entry + every in-memory copy, flips the
+					// city back to undownloaded (the row shows 下载
+					// again, the 已下载 count drops, the native city
+					// menu re-marks it). The current city may be
+					// deleted too — its map simply re-downloads on next
+					// use. Beijing's bundled TRACK map is untouched
+					// (only the on-demand line schematic is cached).
+					deleteCityMap(key) {
+						mapIdbDelete('map:' + key);
+						if (this._mapMem) delete this._mapMem[key];
+						if (this._mapInflight) delete this._mapInflight[key];
+						var field = this.mapFieldFor(key);
+						if (field) this[field] = '';
+						this.mapState[key] = '';
+						if (this.city === key && this.curr && (key !== 'bj' || this.bjMapType === 'line')) this.curr.svgDom = '';
+						this.reportMapState();
+						this.reportCityDownloadFrames();
+					},
 					// Download every missing line map, one at a time,
 					// posting progress for the native progress view.
 					downloadAllMaps() {
@@ -5003,7 +5091,7 @@ function titlePy(py) {
 							n = el.parentNode;
 							while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
 							var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
-							var state = (self.mapState[key] === 'loading') ? 'loading' : ((self.mapState[key] === 'error') ? 'error' : 'download');
+							var state = (self.mapState[key] === 'ready') ? 'delete' : ((self.mapState[key] === 'loading') ? 'loading' : ((self.mapState[key] === 'error') ? 'error' : 'download'));
 							// 26F128: a row whose bottom edge has scrolled under the floating tab bar hides its native capsule (bar clearance posted by native) — capsules must never float over the tab bar.
 							if (!w || y + hh < 0 || y + hh > window.innerHeight - (window._metroBarClearance || 110)) { out.push({ key: key, x: 0, y: 0, width: 0, height: 0, state: state }); continue; }
 							out.push({ key: key, x: x, y: y, width: w, height: hh, state: state });
@@ -5104,6 +5192,8 @@ function titlePy(py) {
 						this.routeList = []; this.routeResult = null; this.routeError = '';
 						// 26E127 fix 10: a city switch closes any open route detail — routeResult is cleared above so the page unmounts, but the flag must follow, or transferFrame keeps posting detailOpen:true and the native card stays hidden forever.
 						this.routeDetailOpen = false;
+						// 26F132: the detail is gone — leave jump mode too.
+						if (this._mapJump) { this._mapJump = false; this.postMapJumpMode(); }
 						this.departTime = null; this.routeTab = 'rec';
 						this.nearbyList = []; this.nearbyMsg = ''; this.nearbyLoading = false; this.nearbyNote = '';
 						this.ttLine = null; this.ttStation = null; this.ttQuery = '';
@@ -5435,17 +5525,36 @@ function titlePy(py) {
 							// 26F128: structure images share the cellular gate (same Settings > General switch as line maps). Blocked calls done(null) — error state with the explicit off message, retry available.
 							self.cellularGate().then(function(ok) {
 								if (!ok) { self.cellularBlocked = true; done(null); return; }
-								window.fetch(url).then(function(r) {
-									if (!r.ok) throw new Error('http ' + r.status);
-									return r.text();
-								}).then(function(txt) {
-									var b64 = (txt || '').replace(/\s+/g, '');
-									if (!b64) { done(null); return; }
-									var mime = f.toLowerCase().slice(-4) === '.png' ? 'image/png' : 'image/jpeg';
-									var dataUri = 'data:' + mime + ';base64,' + b64;
-									structIdbPut(f, dataUri);
-									done(dataUri);
-								}).catch(function() { done(null); });
+								// 26F132 (user 2026-11-27: picker stations
+								// showed no diagram): the fetch had NO
+								// timeout — a stalled connection spun
+								// forever. Same 30s abort as line maps,
+								// plus one automatic retry, so a flaky
+								// first attempt lands on the error state
+								// (with its retry button) instead of an
+								// endless spinner.
+								var attempt = function(n) {
+									var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+									var timer = null;
+									if (ctrl) timer = setTimeout(function() { try { ctrl.abort(); } catch (e) {} }, 30000);
+									window.fetch(url, { signal: ctrl ? ctrl.signal : undefined }).then(function(r) {
+										if (timer) clearTimeout(timer);
+										if (!r.ok) throw new Error('http ' + r.status);
+										return r.text();
+									}).then(function(txt) {
+										var b64 = (txt || '').replace(/\s+/g, '');
+										if (!b64) { done(null); return; }
+										var mime = f.toLowerCase().slice(-4) === '.png' ? 'image/png' : 'image/jpeg';
+										var dataUri = 'data:' + mime + ';base64,' + b64;
+										structIdbPut(f, dataUri);
+										done(dataUri);
+									}).catch(function() {
+										if (timer) clearTimeout(timer);
+										if (n < 1 && self.structLoadKey === f) { setTimeout(function() { attempt(n + 1); }, 1000); return; }
+										done(null);
+									});
+								};
+								attempt(0);
 							});
 						});
 					},
@@ -5683,6 +5792,27 @@ function titlePy(py) {
 						} catch (e) {}
 						return false;
 					},
+					// 26F132: route-detail → map jump mode. goSegment
+					// sets _mapJump after switching to the map tab;
+					// the native exit button (top-left) shows only
+					// in this mode and returns here via exitMapJump.
+					// Any manual tab switch / detail close clears it
+					// (setTab + closeRouteDetail), so entering the
+					// map via the tab bar never shows the button.
+					postMapJumpMode() {
+						var on = !!this._mapJump;
+						if (this._mapJumpPosted === on) return;
+						this._mapJumpPosted = on;
+						try {
+							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.mapJumpMode);
+							if (h) h.postMessage({ on: on });
+						} catch (e) {}
+					},
+					exitMapJump() {
+						this._mapJump = false;
+						this.postMapJumpMode();
+						this.setTab('transfer');
+					},
 					notifySubView(open) {
 						try {
 							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.subView);
@@ -5811,7 +5941,14 @@ function titlePy(py) {
 					// overlay frames are then re-reported from the
 					// settled layout.
 					settleSubTransitions() {
+						this._subSettleCount = (this._subSettleCount || 0) + 1;
+						this._subSettleLastAt = Date.now();
 						try {
+							// 26F132: a horizontal scroll residue on the
+							// sheet (from a transitioning sub-page's
+							// overflow) must never survive a settle.
+							var sheet = document.getElementById('moreSheet');
+							if (sheet && sheet.scrollLeft) sheet.scrollLeft = 0;
 							var subs = document.querySelectorAll('#moreSheet .more-sub');
 							for (var i = 0; i < subs.length; i++) {
 								var el = subs[i];
@@ -5822,12 +5959,45 @@ function titlePy(py) {
 								} else if (cl.contains('more-sub-enter-from') || cl.contains('more-sub-enter-active') || cl.contains('more-sub-enter-to')) {
 									cl.remove('more-sub-enter-from', 'more-sub-enter-active', 'more-sub-enter-to');
 								}
+								// 26F132 defensive: no code sets an inline
+								// transform on .more-sub today, but clear
+								// one if it ever appears, so a shown page
+								// can never sit offset with clean classes.
+								if (el.style.transform) el.style.transform = '';
 							}
 						} catch (e) {}
 						try {
 							this.reportProfileFrame(); this.reportThemeFrame();
 							this.reportSwitchFrame(); this.reportCellularFrame();
 							this.reportMapsDownloadFrame(); this.reportCityDownloadFrames();
+							this.reportSearchFieldFrames();
+						} catch (e) {}
+					},
+					// 26F132 DIAG (temporary — remove with the DIAG block
+					// in mounted() once the swipe-back offset is confirmed
+					// fixed on device): live readout of every visible
+					// .more-sub's transition state, so a user screenshot
+					// identifies any residue the settle sweep missed.
+					diagTick(el) {
+						try {
+							if (!this.showMore || !this.anySubViewOpen) { el.style.display = 'none'; return; }
+							var sheet = document.getElementById('moreSheet');
+							var subs = document.querySelectorAll('#moreSheet .more-sub');
+							var lines = [], vis = 0;
+							for (var i = 0; i < subs.length; i++) {
+								var s = subs[i], cs = window.getComputedStyle(s);
+								if (cs.display === 'none') continue;
+								vis++;
+								var tc = [];
+								['more-sub-enter-from', 'more-sub-enter-active', 'more-sub-enter-to', 'more-sub-leave-from', 'more-sub-leave-active', 'more-sub-leave-to'].forEach(function(c) { if (s.classList.contains(c)) tc.push(c.replace('more-sub-', '')); });
+								lines.push('sub' + i + ' cls[' + (tc.join(',') || '-') + '] tf=' + (cs.transform || 'none') + ' pos=' + cs.position + ' ow=' + s.offsetWidth + ' inlTf=' + (s.style.transform || '-'));
+							}
+							var now = Date.now();
+							el.textContent = 'DIAG-26F132 vis=' + vis + ' open=' + this.anySubViewOpen +
+								' sheetW=' + (sheet ? sheet.clientWidth : '?') + ' sl=' + (sheet ? sheet.scrollLeft : '?') + ' sw=' + (sheet ? sheet.scrollWidth : '?') +
+								' sweep=' + (this._subSettleCount || 0) + '@' + (this._subSettleLastAt ? (now - this._subSettleLastAt) : -1) + 'ms' +
+								' tog@' + (this._subToggleAt ? (now - this._subToggleAt) : -1) + 'ms\n' + lines.join('\n');
+							el.style.display = 'block';
 						} catch (e) {}
 					},
 					scheduleSubSettle() {
@@ -8499,6 +8669,11 @@ function titlePy(py) {
 						if (!h) return;
 						this.reportOneSearchField(h, 'stations', document.querySelector('#stationPanel .sp-search'), this.showStations, this.query, this.t('search.ph'));
 						this.reportOneSearchField(h, 'timetable', document.querySelector('#timetablePanel .sp-search'), this.showTimetable, this.ttQuery, this.ttLine ? this.t('tt.phStation') : this.t('tt.phLine'));
+						// 26F132: 车型检索 sub-page gets the same native
+						// field over its .more-search-input pill; visible
+						// only while the sub-page is open (zero frame ->
+						// native hides + resigns, no auto-focus).
+						this.reportOneSearchField(h, 'trains', document.querySelector('#moreSheet .more-search-input'), this.showMore && this.showTrainSub, this.trainQuery, this.t('more.trains.ph'));
 					},
 					reportOneSearchField(h, id, el, visible, text, placeholder) {
 						if (!visible || !el) { h.postMessage({ id: id, x: 0, y: 0, width: 0, height: 0, text: text || '', placeholder: placeholder || '' }); return; }
@@ -8515,6 +8690,7 @@ function titlePy(py) {
 					nativeSearchText(id, text) {
 						if (id === 'stations') { if (this.query !== text) this.query = text; }
 						else if (id === 'timetable') { if (this.ttQuery !== text) this.ttQuery = text; }
+						else if (id === 'trains') { if (this.trainQuery !== text) this.trainQuery = text; }
 					},
 					requestNearbyStations() {
 						this.nearbyMsg = '';
@@ -9307,7 +9483,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26F131') return;
+						if (seen === '26F132') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -9318,6 +9494,9 @@ function titlePy(py) {
 					},
 					closeRouteDetail() {
 						this.routeDetailOpen = false;
+						// 26F132: no detail page to return to — leave
+						// the map jump mode too.
+						if (this._mapJump) { this._mapJump = false; this.postMapJumpMode(); }
 						this.reportTransferFrame(); this.reportTabsFrame();
 						this.pageTrip = null;
 						this.editAltFor = -1;
@@ -9558,6 +9737,11 @@ function titlePy(py) {
 						}
 						if (!st) return;
 						this.setTab('map');
+						// 26F132: enter jump mode AFTER setTab (which
+						// clears it) so the native exit button shows
+						// on the map and returns to this detail page.
+						this._mapJump = true;
+						this.postMapJumpMode();
 						locateStation(st);
 					},
 					findRoute(fromName, toName, mode, banned, fromLine, toLine) {
@@ -10307,7 +10491,7 @@ function titlePy(py) {
 					},
 					cityLogo() { return this.city === 'sy' ? this.syLogo : (this.city === 'sh' ? this.shLogo : (this.city === 'hb' ? this.hbLogo : (this.city === 'dl' ? this.dlLogo : (this.city === 'jh' ? this.jhLogo : (this.city === 'cz' ? this.czLogo : (this.city === 'cq' ? this.cqLogo : (this.city === 'cc' ? this.ccLogo : (this.city === 'sz' ? this.szLogo : (this.city === 'cd' ? this.cdLogo : (this.city === 'qd' ? this.qdLogo : (this.city === 'sjz' ? this.sjzLogo : (this.city === 'tj' ? this.tjLogo : (this.city === 'wx' ? (this.wxMark || this.wxLogo) : (this.city === 'ly' ? this.lyLogo : (this.city === 'gz' ? this.gzLogo : (this.city === 'nj' ? this.njLogo : (this.city === 'wh' ? this.whLogo : (this.city === 'hz' ? this.hzLogo : (this.city === 'zz' ? this.zzLogo : (this.city === 'xa' ? this.xaLogo : (this.city === 'su' ? this.suLogo : (this.city === 'hf' ? this.hfLogo : (this.city === 'jn' ? this.jnLogo : (this.city === 'cs' ? this.csLogo : (this.city === 'fz' ? this.fzLogo : (this.city === 'km' ? this.kmLogo : (this.city === 'nc' ? this.ncLogo : this.bjLogo))))))))))))))))))))))))))); },
 					transitLabel() { return this.t('transit.' + this.city); },
-					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? this.szmIcon : (this.city === 'qd' ? this.qdmIcon : (this.city === 'sjz' ? ((this.sjzmIcon && this.sjzmIcon.indexOf('SJZM_ICON') === -1) ? this.sjzmIcon : '') : (this.city === 'tj' ? ((this.tjmIcon && this.tjmIcon.indexOf('TJM_ICON') === -1) ? this.tjmIcon : '') : (this.city === 'wx' ? ((this.msxIcon && this.msxIcon.indexOf('MSX_ICON') === -1) ? this.msxIcon : '') : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : (this.city === 'ly' ? '' : (this.city === 'gz' ? '' : (this.city === 'nj' ? '' : (this.city === 'wh' ? '' : (this.city === 'hz' ? '' : (this.city === 'zz' ? '' : (this.city === 'xa' ? '' : (this.city === 'su' ? '' : (this.city === 'hf' ? '' : (this.city === 'jn' ? '' : (this.city === 'cs' ? '' : (this.city === 'fz' ? '' : (this.city === 'km' ? '' : (this.city === 'nc' ? '' : this.yktIcon))))))))))))))))))))))))))); },
+					transitIcon() { return this.city === 'sy' ? this.sjtIcon : (this.city === 'sh' ? this.mddhIcon : (this.city === 'hb' ? this.hbctIcon : (this.city === 'dl' ? this.dljtIcon : (this.city === 'jh' ? this.rwxIcon : (this.city === 'cz' ? this.czmIcon : (this.city === 'cq' ? this.ycxIcon : (this.city === 'cc' ? this.cceIcon : (this.city === 'sz' ? this.szmIcon : (this.city === 'qd' ? this.qdmIcon : (this.city === 'sjz' ? ((this.sjzmIcon && this.sjzmIcon.indexOf('SJZM_ICON') === -1) ? this.sjzmIcon : '') : (this.city === 'tj' ? ((this.tjmIcon && this.tjmIcon.indexOf('TJM_ICON') === -1) ? this.tjmIcon : '') : (this.city === 'wx' ? ((this.msxIcon && this.msxIcon.indexOf('MSX_ICON') === -1) ? this.msxIcon : '') : (this.city === 'cd' ? ((this.cdmIcon && this.cdmIcon.indexOf('CDM_ICON') === -1) ? this.cdmIcon : '') : (this.city === 'ly' ? ((this.lyxIcon && this.lyxIcon.indexOf('LYX_ICON') === -1) ? this.lyxIcon : '') : (this.city === 'gz' ? ((this.gzmIcon && this.gzmIcon.indexOf('GZM_ICON') === -1) ? this.gzmIcon : '') : (this.city === 'nj' ? ((this.njmIcon && this.njmIcon.indexOf('NJM_ICON') === -1) ? this.njmIcon : '') : (this.city === 'wh' ? ((this.whmIcon && this.whmIcon.indexOf('WHM_ICON') === -1) ? this.whmIcon : '') : (this.city === 'hz' ? ((this.hzmIcon && this.hzmIcon.indexOf('HZM_ICON') === -1) ? this.hzmIcon : '') : (this.city === 'zz' ? ((this.zzmIcon && this.zzmIcon.indexOf('ZZM_ICON') === -1) ? this.zzmIcon : '') : (this.city === 'xa' ? ((this.xamIcon && this.xamIcon.indexOf('XAM_ICON') === -1) ? this.xamIcon : '') : (this.city === 'su' ? ((this.sumIcon && this.sumIcon.indexOf('SUM_ICON') === -1) ? this.sumIcon : '') : (this.city === 'hf' ? ((this.hfmIcon && this.hfmIcon.indexOf('HFM_ICON') === -1) ? this.hfmIcon : '') : (this.city === 'jn' ? ((this.jnmIcon && this.jnmIcon.indexOf('JNM_ICON') === -1) ? this.jnmIcon : '') : (this.city === 'cs' ? ((this.csmIcon && this.csmIcon.indexOf('CSM_ICON') === -1) ? this.csmIcon : '') : (this.city === 'fz' ? ((this.msxIcon && this.msxIcon.indexOf('MSX_ICON') === -1) ? this.msxIcon : '') : (this.city === 'km' ? ((this.kmmIcon && this.kmmIcon.indexOf('KMM_ICON') === -1) ? this.kmmIcon : '') : (this.city === 'nc' ? ((this.ncmIcon && this.ncmIcon.indexOf('NCM_ICON') === -1) ? this.ncmIcon : '') : this.yktIcon))))))))))))))))))))))))))); },
 					splashImg() {
 						// Universal splash (26D100): ONE pair for the whole
 						// app, picked by dark/light only — the per-city
@@ -10634,7 +10818,7 @@ function titlePy(py) {
 					// opening a station never trips this).
 					ttQuery() { if (this.ttStation) this.ttStation = null; },
 					showProfileSub(open) { if (open) this.resetProfileFit(); },
-					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (!open && !window._metroIsPad) { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); this.scheduleSubSettle(); },
+					anySubViewOpen(open) { this._subToggleAt = Date.now(); this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (!open && !window._metroIsPad) { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); this.scheduleSubSettle(); },
 					mapCard() { this.reportMapCard(); },
 					structStation() { this.ensureStructImg(); },
 					structKind() { this.ensureStructImg(); },
@@ -10707,6 +10891,10 @@ function titlePy(py) {
 							// the capsules drifting up/down against their rows).
 							self.reportMapsDownloadFrame();
 							self.reportCityDownloadFrames();
+							// 26F132: the 车型检索 native search field rides
+							// inside this scroller — report synchronously
+							// like the capsules so it never trails.
+							self.reportSearchFieldFrames();
 							if (_moreTicking) return;
 							_moreTicking = true;
 							window.requestAnimationFrame(function() {
@@ -10724,6 +10912,12 @@ function titlePy(py) {
 						// stranded the Siri page's switch half off-screen.
 						_more.addEventListener('transitionend', function(e) {
 							if (e.propertyName !== 'transform') return;
+							// 26F132: a finished slide also arms the settle
+							// sweep (debounced past the longest .45s leave),
+							// so any class Vue left behind is stripped even
+							// when anySubViewOpen never toggled (sub-page
+							// swaps that keep the computed true).
+							self.scheduleSubSettle();
 							self.reportTabsFrame();
 							self.reportTransferFrame(); self.reportProfileFrame();
 							self.reportThemeFrame();
@@ -10755,6 +10949,20 @@ function titlePy(py) {
 							self.reportCellularFrame();
 							self.scheduleSubSettle();
 						});
+						// 26F132 DIAG (temporary — remove this block +
+						// diagTick() once the swipe-back offset is
+						// confirmed fixed on device): a live readout of
+						// the visible .more-sub's transition state at
+						// the top of Settings sub-pages, so a screenshot
+						// identifies any residue the settle sweep missed.
+						var DIAG_26F132 = true;
+						if (DIAG_26F132) {
+							var _diag = document.createElement('div');
+							_diag.id = 'diag26f132';
+							_diag.style.cssText = 'position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 56px);z-index:99998;background:rgba(0,0,0,0.78);color:#7CFC00;font:10px/1.5 monospace;padding:4px 6px;border-radius:6px;pointer-events:none;white-space:pre-wrap;word-break:break-all;display:none;';
+							document.body.appendChild(_diag);
+							setInterval(function() { self.diagTick(_diag); }, 500);
+						}
 					}
 						var _scrollTicking = false;
 						_panel.addEventListener('scroll', function() {
@@ -10867,6 +11075,12 @@ function titlePy(py) {
 						else { _edgeX = null; _edgeY = null; }
 					}, { passive: true });
 					document.addEventListener('touchend', function(e) {
+						// 26F132: any gesture ending over an open sub-page
+						// arms the settle sweep (debounced 600ms, past the
+						// longest .45s leave) — covers swipe-back paths
+						// that never flip anySubViewOpen (the watcher
+						// alone missed those: jsdom-verified).
+						if (self.anySubViewOpen) self.scheduleSubSettle();
 						if (_edgeX === null) return;
 						var t = e.changedTouches && e.changedTouches[0];
 						var dx = t ? t.clientX - _edgeX : 0;
@@ -10878,7 +11092,7 @@ function titlePy(py) {
 					// recognizer taking over, a system gesture) must
 					// disarm the web edge-swipe too, so a later stray
 					// touchend cannot fire a phantom goBack.
-					document.addEventListener('touchcancel', function() { _edgeX = null; _edgeY = null; }, { passive: true });
+					document.addEventListener('touchcancel', function() { _edgeX = null; _edgeY = null; if (self.anySubViewOpen) self.scheduleSubSettle(); }, { passive: true });
 					// Row press highlight (26D100): JS-managed .pressing
 					// class replacing CSS :active (WKWebView could leave
 					// :active painted after a tap opened a sub-page).
