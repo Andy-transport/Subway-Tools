@@ -266,11 +266,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // 搜索 / 时刻表 web search pills ("searchFieldFrame" reports,
     // same overlay pattern as the switches). Text edits go back to
     // the web through window.__nativeSearchText; the web keeps all
-    // filtering state. pendingSearchFocus holds a focus request
-    // that arrived before the field was placed.
+    // filtering state. 26F131 D (user 2026-11-26 "点进时刻表也不
+    // 需要弹出键盘"): no focus requests anymore — the keyboard
+    // appears only when the user taps the field itself, never on
+    // tab entry.
     var stationsSearchField: UISearchTextField!
     var timetableSearchField: UISearchTextField!
-    var pendingSearchFocus: String?
     var cellularApplying = false
     var nearbySmartApplying = false
     // 26E122: the last Home City picker payload, kept so the
@@ -1579,8 +1580,25 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // showing and asks the web to goBack() (which closes an in-page
     // sub-view). The recognizer is only enabled while a sub-view is
     // open, so .began here always means "go back".
+    // 26F131 C (user 2026-11-26: every Settings sub-page's
+    // swipe-back left it offset): the edge pan used to fire
+    // goBack at .began — ANY edge touch, even a 10pt drag the
+    // user then cancelled, closed the page instantly. The
+    // resulting rapid close→reopen sequences interrupted the
+    // web slide transitions and left stale transform/overlay
+    // state behind (cards overflowing the right edge, the
+    // profile page's layers interleaved). Now the gesture only
+    // completes when it ENDS with a real rightward travel
+    // (>60pt, matching the web fallback's threshold): a
+    // completed swipe returns cleanly, a partial/cancelled one
+    // never leaves the resting layout at all. The recognizer
+    // still cancels the webView's touches when it begins, so
+    // the page doesn't scroll during an edge drag and the web
+    // touchend fallback can't double-fire.
     @objc func subViewEdgePanBegan(_ recognizer: UIScreenEdgePanGestureRecognizer) {
-        guard recognizer.state == .began else { return }
+        guard recognizer.state == .ended else { return }
+        let t = recognizer.translation(in: view)
+        guard t.x > 60 else { return }
         subViewBackTapped()
     }
 
@@ -1689,8 +1707,31 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // top (content runs flush to the top), on once scrolled.
             // The title (inside the strip) and the back button stay
             // visible either way; only the material toggles.
-            glass.effect = subScrolled ? subHeaderEffect : nil
-            subHeaderSep?.isHidden = !subScrolled
+            // 26F131 I (user: "把这个滑动也改成Apple UI"): the band
+            // material crossfades in/out like the system
+            // scroll-edge effect instead of hard-swapping. The
+            // material is the system glass (iOS 26 UIGlassEffect /
+            // systemMaterial below) — the scroll-edge family. The
+            // scroll-edge INTERACTION API itself needs a native
+            // UIScrollView that scrolls; this app's scrollers are
+            // web containers (#moreSheet / #timetablePanel /
+            // #trdScroll) and the WKWebView's own scrollView never
+            // scrolls (document is viewport-sized), so neither
+            // KVO on it nor UIScrollEdgeElementContainerInteraction
+            // can observe the scrolling. The band is therefore
+            // driven by the web containers' synchronous scroll
+            // signal (posted on flip, no rAF lag) into this native
+            // rendering — the documented fallback.
+            let targetEffect: UIVisualEffect? = subScrolled ? subHeaderEffect : nil
+            if animated && glass.effect !== targetEffect {
+                UIView.transition(with: glass, duration: 0.25, options: [.transitionCrossDissolve, .allowUserInteraction], animations: {
+                    glass.effect = targetEffect
+                    self.subHeaderSep?.isHidden = !self.subScrolled
+                }, completion: nil)
+            } else {
+                glass.effect = targetEffect
+                subHeaderSep?.isHidden = !subScrolled
+            }
             self.view.bringSubviewToFront(glass)
             if let button = self.subViewBackButton { self.view.bringSubviewToFront(button) }
             self.dockSubViewBackButton()
@@ -1759,9 +1800,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // cancels it (subChromeClosing flag + removing the animations).
     func setSubChromeVisible(_ visible: Bool) {
         guard let glass = subHeaderGlass, let button = subViewBackButton else { return }
-        // 26E127 fix 12: the ghost "<" — the latch topChromeHidSubChrome is one-way: set when the top chrome hides while a subview is open, never cleared on close. Worse, the close branch below early-returns when the chrome is already hidden (a scroll-down hid it), so the latch survived the close — and the subView handler's setTopChromeHidden(false) right after re-showed the back button with no subview open. Reset the latch here (before the early-return guard) and track the real subview-open state for the re-show branch.
+        // 26E127 fix 12: track the real subview-open state here
+        // (the subView handler's setTopChromeHidden(false) after a
+        // close must not re-show a back button with no subview
+        // open). 26F131 B removed the topChromeHidSubChrome latch
+        // along with the scroll-hide of the strip itself.
         subChromeOpen = visible
-        if !visible { topChromeHidSubChrome = false }
         subViewEdgePan?.isEnabled = visible
         if visible {
             subChromeClosing = false
@@ -1817,18 +1861,22 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
     // 26E126 R + 26E127 fix 5: top chrome hides on scroll-down, returns on
     // scroll-up (user 2026-11-24). The web posts topChrome {hide}
-    // from the #moreSheet scroll listener. 26E127 extends it from iPad
-    // to iPhone: on iPad the pill + strip + back button hide; on iPhone
-    // only the strip + back button hide — the bottom tab bar is not top
-    // chrome. The splash / whatsnew gate owns visibility while either
-    // page is up, so posts are ignored then. The sub-view strip is only
-    // hidden when it was actually up (topChromeHidSubChrome) — on the
-    // Settings root page there is no strip to hide, only the pill (iPad)
-    // or nothing (iPhone). Force-shown again on sub-view open/close and
-    // on every tab switch (setWebTab).
+    // from the #moreSheet scroll listener. 26F131 B (user
+    // 2026-11-26, ranking-page screenshot): the sub-view strip
+    // (safe-area band + title + back button) must NEVER hide on
+    // scroll — the 26E126 R scroll-hide removed the whole strip
+    // while scrolling down, so on long sub-pages (mileage
+    // ranking) the user stopped mid-scroll with no band and rows
+    // running under the status bar, contradicting the 26F128 H
+    // rule (band shows whenever scrolled). Now only the iPad
+    // floating tab pill hides for reading room; the strip stays
+    // up and its glass backdrop keeps following the scroll
+    // state (applySubScrollState). The splash / whatsnew gate
+    // owns visibility while either page is up, so posts are
+    // ignored then. Force-shown again on sub-view open/close
+    // and on every tab switch (setWebTab).
     var topChromeHidden = false
-    var topChromeHidSubChrome = false
-    var subChromeOpen = false // 26E127 fix 12: whether a native subview is actually open (the back-button latch above is one-way, so this is the real source of truth)
+    var subChromeOpen = false // 26E127 fix 12: whether a native subview is actually open
 
     // 26F129 D: bottom edge of the native sub-header strip.
     // The city page's native download buttons must never cover
@@ -1843,44 +1891,29 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard !splashShowing && !whatsNewShowing else { return }
         if hidden == topChromeHidden { return }
         topChromeHidden = hidden
-        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        // 26F131 B: only the iPad floating tab pill hides on
+        // scroll-down. The sub-view strip (band + title + back
+        // button + iPad cover) stays up at all times so the
+        // safe-area band shows whenever the page is scrolled
+        // (26F128 H) and the controls stay usable; its glass
+        // backdrop is driven by applySubScrollState.
+        guard UIDevice.current.userInterfaceIdiom == .pad else {
+            if !hidden && subChromeOpen { applySubScrollState(animated: false) }
+            return
+        }
         if hidden {
-            topChromeHidSubChrome = !(subHeaderGlass?.isHidden ?? true)
             UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut], animations: {
-                if isPad { self.tabBar.alpha = 0 }
-                self.subHeaderGlass?.alpha = 0
-                self.subViewBackButton?.alpha = 0
-                self.subTopCover?.alpha = 0
-                if isPad { self.tabBar.transform = CGAffineTransform(translationX: 0, y: -12) }
-                self.subHeaderGlass?.transform = CGAffineTransform(translationX: 0, y: -12)
-                self.subViewBackButton?.transform = CGAffineTransform(translationX: 0, y: -12)
+                self.tabBar.alpha = 0
+                self.tabBar.transform = CGAffineTransform(translationX: 0, y: -12)
             }, completion: { _ in
-                if isPad { self.tabBar.isHidden = true }
-                if self.topChromeHidSubChrome {
-                    self.subHeaderGlass?.isHidden = true
-                    self.subViewBackButton?.isHidden = true
-                    self.subTopCover?.isHidden = true
-                }
+                self.tabBar.isHidden = true
             })
         } else {
-            if isPad { tabBar.isHidden = false }
-            if topChromeHidSubChrome && subChromeOpen {
-                subHeaderGlass?.isHidden = false
-                subViewBackButton?.isHidden = false
-                subTopCover?.isHidden = false
-                applySubScrollState(animated: false) // 26F128 H: re-assert the scroll-aware backdrop on re-show.
-            } else if topChromeHidSubChrome {
-                // 26E127 fix 12: stale latch (subview closed while the chrome was hidden) — drop it instead of re-showing a back button with no subview open.
-                topChromeHidSubChrome = false
-            }
+            tabBar.isHidden = false
+            if subChromeOpen { applySubScrollState(animated: false) } // 26F128 H: re-assert the scroll-aware backdrop on re-show.
             UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut], animations: {
-                if isPad { self.tabBar.alpha = 1 }
-                self.subHeaderGlass?.alpha = 1
-                self.subViewBackButton?.alpha = 1
-                self.subTopCover?.alpha = 1
-                if isPad { self.tabBar.transform = .identity }
-                self.subHeaderGlass?.transform = .identity
-                self.subViewBackButton?.transform = .identity
+                self.tabBar.alpha = 1
+                self.tabBar.transform = .identity
             })
         }
     }
@@ -2495,15 +2528,29 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // The web reports the .tr-time-slot rect + the current title +
     // the theme-correct walking-person icon (only when it changes).
     // 26F128 (user 2026-11-25 "改成圆形按钮 就保留图标"): the button
-    // is a SOLID CIRCLE carrying only the walking-person glyph — no
+    // is a CIRCLE carrying only the walking-person glyph — no
     // title, no ▾ (the posted title becomes the accessibility
-    // label), no glass. The web slot is square (40x40), so the
-    // circle is the slot frame with cornerRadius = half the side.
-    // Tap opens the same departure-time picker as the web control
-    // (web showTimePicker → native timePicker).
+    // label). The web slot is square (40x40), so the circle is
+    // the slot frame. Tap opens the same departure-time picker
+    // as the web control (web showTimePicker → native timePicker).
+    // 26F131 A1 (user 2026-11-26 "把这个按钮改成液态玻璃"): the
+    // circle is now a Liquid Glass system button (iOS 26+
+    // Configuration.glass, capsule corner = circle on the square
+    // slot); below iOS 26 it keeps the 26F128 solid circle.
     var departButton: UIButton?
     var departButtonIcon: UIImage?
     var departButtonIconURL = ""
+    var departButtonUsesGlass = false
+    func departButtonConfig() -> UIButton.Configuration? {
+        if #available(iOS 26.0, *) {
+            var cfg = UIButton.Configuration.glass()
+            cfg.cornerStyle = .capsule
+            cfg.image = departButtonIcon
+            cfg.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            return cfg
+        }
+        return nil
+    }
     // 26F129 J: route-detail 查看结构图 button (solid, cube
     // template icon tinted per appearance).
     var structRouteButton: UIButton?
@@ -2531,20 +2578,38 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             return
         }
         let btn = departButton ?? makeDepartButton()
-        btn.setImage(departButtonIcon, for: .normal)
         btn.accessibilityLabel = title
-        btn.backgroundColor = solidCardColor()
+        if departButtonUsesGlass {
+            // 26F131 A1: glass path — the glyph rides the
+            // configuration; the material adapts to light/dark by
+            // itself, so no backgroundColor / cornerRadius here.
+            if btn.configuration?.image !== departButtonIcon {
+                btn.configuration?.image = departButtonIcon
+            }
+        } else {
+            btn.setImage(departButtonIcon, for: .normal)
+            btn.backgroundColor = solidCardColor()
+        }
         btn.frame = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
-        btn.layer.cornerRadius = min(btn.frame.width, btn.frame.height) / 2
+        if !departButtonUsesGlass {
+            btn.layer.cornerRadius = min(btn.frame.width, btn.frame.height) / 2
+        }
         btn.isHidden = false
         view.bringSubviewToFront(btn)
     }
     func makeDepartButton() -> UIButton {
-        let btn = UIButton(type: .custom)
+        let btn: UIButton
+        if let cfg = departButtonConfig() {
+            departButtonUsesGlass = true
+            btn = UIButton(configuration: cfg)
+        } else {
+            departButtonUsesGlass = false
+            btn = UIButton(type: .custom)
+            btn.clipsToBounds = true
+            btn.backgroundColor = solidCardColor()
+        }
         btn.translatesAutoresizingMaskIntoConstraints = true
         btn.accessibilityIdentifier = "departButton"
-        btn.clipsToBounds = true
-        btn.backgroundColor = solidCardColor()
         btn.addTarget(self, action: #selector(departButtonTapped), for: .touchUpInside)
         btn.isHidden = true
         view.addSubview(btn)
@@ -2871,6 +2936,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // the search card covered the detail). The web re-posts
         // detailOpen with every frame report, so the state
         // re-asserts itself after tab switches.
+        setRouteDetailOpenNative(dict["detailOpen"] as? Bool == true) // 26F131 E: also drives the tab bar.
         if dict["detailOpen"] as? Bool == true {
             sortTabs.isHidden = true
             return
@@ -3254,16 +3320,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         guard let id = dict["id"] as? String else { return }
         let field = (id == "stations") ? stationsSearchField : timetableSearchField
         guard let f = field else { return }
-        // Focus-only request (tab open): apply now if placed, else
-        // remember it for the next placement report.
-        if (dict["focus"] as? Bool) == true {
-            if !f.isHidden && f.frame.width > 0 {
-                f.becomeFirstResponder()
-            } else {
-                pendingSearchFocus = id
-            }
-            return
-        }
+        // 26F131 D: placement only — never becomeFirstResponder
+        // here (no keyboard pop on tab entry; tapping the field
+        // itself still focuses it natively).
         let x = ((dict["x"] as? Double) ?? 0) + webOffset.x
         let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
         let w = (dict["width"] as? Double) ?? 0
@@ -3276,10 +3335,6 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             if let text = dict["text"] as? String, !f.isFirstResponder, f.text != text { f.text = text }
             f.isHidden = false
             view.bringSubviewToFront(f)
-            if pendingSearchFocus == id {
-                pendingSearchFocus = nil
-                f.becomeFirstResponder()
-            }
         } else {
             if f.isFirstResponder { f.resignFirstResponder() }
             f.isHidden = true
@@ -4163,8 +4218,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // caret never jumps.
     // 26E127 fix 10: last good transfer frame, re-applied when the transfer tab is (re-)entered (setWebTab / tabChanged). The web's post can be lost or delayed when a city switch swaps #svg8 mid-update, leaving the native card hidden on a blank page; the cache is the device-side backstop.
     var lastTransferFrame: [String: Any]?
+    // 26F131 E: native mirror of the web's routeDetailOpen, fed
+    // by the same detailOpen frame reports that hide the
+    // transfer chrome. updateSideBarLayout folds it into the
+    // tab bar's visibility (iPhone bottom bar hides while the
+    // detail page is open on the transfer tab).
+    var routeDetailOpenNative = false
+    func setRouteDetailOpenNative(_ open: Bool) {
+        if open == routeDetailOpenNative { return }
+        routeDetailOpenNative = open
+        updateSideBarLayout()
+    }
     func placeTransfer(frame dict: [String: Any]) {
         lastTransferFrame = dict
+        setRouteDetailOpenNative(dict["detailOpen"] as? Bool == true)
         // 26E126: the route-detail page covers the transfer panel —
         // the native card / search button / action pills must hide
         // while the detail is open (user screenshot, 26E125: the
@@ -4309,10 +4376,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // 6px icon gap; long app names truncate like the web row's
     // ellipsis.
     func actionButtonConfig() -> UIButton.Configuration {
-        // 26F128: solid pills (user "取消玻璃效果") — a filled
-        // capsule in the web cards' colour instead of Liquid Glass.
-        var cfg = UIButton.Configuration.filled()
-        cfg.baseBackgroundColor = solidCardColor()
+        // 26F131 A2 (user 2026-11-26 "样式不像系统按钮" + "一卡通
+        // 那几个要加玻璃"): genuine system buttons WITH the
+        // Liquid Glass material. The 26F128 solid version was
+        // already a UIButton, but a flat filled() capsule in a
+        // custom solid colour (#e9e9ea / #1c1c1e) with no material
+        // or depth cue read as a web pill, not a system button —
+        // worst in dark mode, where #1c1c1e on a dark page is
+        // nearly invisible as a control. iOS 26+ now uses
+        // Configuration.glass() (system material + interactive
+        // press feedback); below iOS 26 the filled solid capsule
+        // stays. Scope: ONLY this row + the depart circle (A1) —
+        // the search card, sort pills and profile page keep
+        // their solid layered colours.
+        var cfg: UIButton.Configuration
+        if #available(iOS 26.0, *) {
+            cfg = UIButton.Configuration.glass()
+        } else {
+            cfg = UIButton.Configuration.filled()
+            cfg.baseBackgroundColor = solidCardColor()
+        }
         cfg.baseForegroundColor = .label
         cfg.cornerStyle = .capsule
         cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
@@ -4864,7 +4947,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F130')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F131')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
@@ -5392,7 +5475,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         profileSaveRow?.backgroundColor = profileCardColor()
         profileRedeemRow?.backgroundColor = profileCardColor()
         profileLogoutRow?.backgroundColor = profileCardColor()
-        departButton?.backgroundColor = solidCardColor()
+        // 26F131 A1/A2: the depart circle + quick-action row are
+        // Liquid Glass on iOS 26+ — the material adapts to the
+        // appearance by itself; only the pre-26 solid fallbacks
+        // need their fill refreshed here.
+        if !departButtonUsesGlass {
+            departButton?.backgroundColor = solidCardColor()
+        }
         mapToolsPill?.backgroundColor = solidCardColor() // 26F130 (fold-in 3)
         mapCardView?.backgroundColor = solidCardColor()
         structRouteButton?.backgroundColor = solidCardColor()
@@ -5401,10 +5490,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             st.backgroundColor = solidTrackColor()
             st.selectedSegmentTintColor = solidPillColor()
         }
-        for b in [transitAppButton, nearbyStationsButton, applePayButton] {
-            guard let b = b, var cfg = b.configuration else { continue }
-            cfg.baseBackgroundColor = solidCardColor()
-            b.configuration = cfg
+        if #available(iOS 26.0, *) {
+            // Glass row: nothing to refresh (material self-adapts).
+        } else {
+            for b in [transitAppButton, nearbyStationsButton, applePayButton] {
+                guard let b = b, var cfg = b.configuration else { continue }
+                cfg.baseBackgroundColor = solidCardColor()
+                b.configuration = cfg
+            }
         }
     }
 
@@ -5446,7 +5539,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // UITabBar is the visible bar (bottom on iPhone, top
         // capsule on iPad); the Duo sidebar replaces it on a wide
         // iPhone, and the splash gate hides both.
-        tabBar.isHidden = show || splashShowing || whatsNewShowing
+        // 26F131 E (user 2026-11-26 "这个界面不显示底栏"): the
+        // route-detail page hides the iPhone bottom tab bar —
+        // the detail content then runs to the real screen bottom
+        // (reportBarFrame posts clearance 0 while hidden, so the
+        // web's --bar-clear follows). Restored on return via the
+        // same detailOpen frame reports that drive the transfer
+        // chrome (placeTransfer / the sort-tabs placer). The
+        // Duo sidebar and the iPad top capsule are untouched.
+        let detailHidesBar = routeDetailOpenNative && currentTab == "transfer" && UIDevice.current.userInterfaceIdiom == .phone
+        tabBar.isHidden = show || splashShowing || whatsNewShowing || detailHidesBar
         sideBar.isHidden = !show || splashShowing || whatsNewShowing
         updateSideBarSelection()
         reportBarFrame()

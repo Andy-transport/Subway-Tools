@@ -1828,11 +1828,19 @@
 		   same 16px edge as its siblings; head + empty rows start at 16. */
 		.tr-smart { margin: 8px 16px 0; padding: 10px 0; background: rgba(0,51,128,0.04); border-radius: 10px; }
 		html.dark .tr-smart { background: rgba(255,255,255,0.05); }
+		/* 26F131 H (user 2026-11-26 "改下排版"): every line inside
+		   the smart card shares the items' 14px content edge —
+		   the head/empty/far/noloc/msg lines used to sit flush
+		   against the card's left edge (the card has no horizontal
+		   padding), and the 2km status line rendered below the
+		   card entirely. */
+		.tr-smart-head, .tr-smart-empty, .tr-smart-far, .tr-smart-noloc, .tr-smart-msg { padding: 0 14px; }
 		.tr-smart-head { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #000; margin-bottom: 6px; }
 		.tr-smart-head img { width: 22px; height: 22px; border-radius: 6px; }
 		html.dark .tr-smart-head { color: #fff; }
-		.tr-smart-empty, .tr-smart-far, .tr-smart-noloc { font-size: 13px; color: #666; line-height: 1.5; }
-		html.dark .tr-smart-empty, html.dark .tr-smart-far, html.dark .tr-smart-noloc { color: #aaa; }
+		.tr-smart-empty, .tr-smart-far, .tr-smart-noloc, .tr-smart-msg { font-size: 13px; color: #666; line-height: 1.5; text-align: left; }
+		.tr-smart-msg { margin-top: 4px; }
+		html.dark .tr-smart-empty, html.dark .tr-smart-far, html.dark .tr-smart-noloc, html.dark .tr-smart-msg { color: #aaa; }
 
 
 
@@ -2430,11 +2438,13 @@
 					<div class="tr-smart-empty" v-else-if="userLat != null">{{ t('tr.smart.none') }}</div>
 					<div class="tr-smart-far" v-if="userLat != null && !smartList.length && nearbyList.length">{{ t('tr.smart.far', {n: stNameStr(nearbyList[0].n), d: nearbyList[0].distText}) }}</div>
 					<div class="tr-smart-noloc" v-if="userLat == null">{{ t('tr.smart.noloc') }}</div>
+					<!-- 26F131 H: the radius/status message (e.g. 2 公里内暂无车站) belongs INSIDE the smart card while smart display is on — it used to render below the card as a sibling. -->
+					<div class="tr-smart-msg" v-if="nearbyMsg">{{ nearbyMsg }}</div>
 				</div>
 				<div class="tr-nearby" v-if="nearbyList.length">
 					<div class="tr-nearby-item" v-for="s in nearbyList" :key="s.n" @click="pickNearby(s)"><span>{{ stNameStr(s.n) }}</span><span class="tr-nearby-dist">{{ s.distText }}</span></div>
 				</div>
-				<div class="tr-nearby-msg" v-if="nearbyMsg">{{ nearbyMsg }}</div>
+				<div class="tr-nearby-msg" v-if="nearbyMsg && !nearbySmart">{{ nearbyMsg }}</div>
 				<div class="tr-nearby-note" v-if="nearbyNote">{{ nearbyNote }}</div>
 				<div class="tr-error" v-if="routeError">{{ routeError }}</div>
 				<!-- 26F129: no route can be ridden at the chosen departure time — one line only, no route cards (user verbatim). -->
@@ -2732,7 +2742,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26F130)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26F131)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -3048,14 +3058,23 @@ var I18N = {
   'tr.fastType.timed': ['分时段抄近道型', '分時段抄近道型', 'Timed shortcut'],
   'tr.fastType.dualNode': ['双向节点', '雙向節點', 'Two-way node'],
   'tr.fastNote.yonganli': ['换乘通道直梯，可以跨过17号线站厅', '換乘通道直梯，可以跨過17號線站廳', 'The transfer passage lift lets you cross over the Line 17 concourse'],
-  'tr.fastNote.beitucheng': ['通过直梯快速到达各自线路站台', '通過直梯快速到達各自線路站台', 'Lifts take you quickly to each line\u2019s own platform'],
+  'tr.fastNote.beitucheng': ['有直梯直达的节点式换乘', '有直梯直達的節點式換乘', 'Node-style transfer with direct lifts'],
   'tr.fastNote.dongdaqiao': ['换乘距离较短', '換乘距離較短', 'A short transfer walk'],
   'tr.fastNote.wangjingxi': ['三条线路集中衔接', '三條線路集中銜接', 'Three lines meet in one hub'],
-  'tr.fastNote.cishousi': ['特定时段开放反向通道', '特定時段開放反向通道', 'A reverse passage opens at set times'],
+  'tr.fastNote.cishousi': ['L型节点换乘', 'L型節點換乘', 'L-shaped node transfer'],
   'tr.fastNote.shoujingmao': ['缩短换乘距离', '縮短換乘距離', 'Shortens the transfer walk'],
   'tr.fastNote.zhushikou': ['减少绕行时间', '減少繞行時間', 'Cuts the detour time'],
-  'tr.fastNote.jimenqiao': ['利用换乘楼梯实现双向通行', '利用換乘樓梯實現雙向通行', 'Transfer stairs carry both directions'],
-  'tr.fastNote.dongsishitiao': ['两个方向采用不同换乘路径', '兩個方向採用不同換乘路徑', 'Each direction uses a different transfer path'],
+  'tr.fastNote.jimenqiao': ['同站厅T型换乘，步行很短', '同站廳T型換乘，步行很短', 'T-shaped transfer in the same concourse, a very short walk'],
+  'tr.fastNote.dongsishitiao': ['十字叠落设计，2号线在上，3号线在下，下楼即达', '十字疊落設計，2號線在上，3號線在下，下樓即達', 'Cross-stacked layout: Line 2 above, Line 3 below — just head downstairs'],
+  'tr.fastNote.fuxingmen': ['通过"丁字口"楼梯直接下楼即可到达1号线站台（但反方向1号线→2号线为通道换乘，不算）', '通過"丁字口"樓梯直接下樓即可到達1號線站台（但反方向1號線→2號線為通道換乘，不算）', 'Take the "T-junction" stairs straight down to the Line 1 platform (the reverse direction, Line 1 → Line 2, is a passage transfer and does not count)'],
+  'tr.fastNote.liuliqiao': ['通过十字节点中庭实现垂直换乘', '通過十字節點中庭實現垂直換乘', 'Vertical transfer via the cross-node atrium'],
+  'tr.fastNote.baishiqiaonan': ['L型节点换乘，站台到站台直达', 'L型節點換乘，站台到站台直達', 'L-shaped node transfer, platform to platform directly'],
+  'tr.fastNote.chongwenmen': ['仅需上下一层楼梯', '僅需上下一層樓梯', 'Just one flight of stairs between levels'],
+  'tr.fastNote.dongdan': ['通过中央扶梯实现上下层站台切换', '通過中央扶梯實現上下層站台切換', 'Central escalators switch between the upper and lower platforms'],
+  'tr.fastNote.huixinxi': ['节点式换乘，步行距离很短', '節點式換乘，步行距離很短', 'Node-style transfer with a very short walk'],
+  'tr.fastNote.qilizhuang': ['节点换乘，换乘便捷', '節點換乘，換乘便捷', 'Node transfer, quick and easy'],
+  'tr.fastNote.xiju': ['节点换乘', '節點換乘', 'Node transfer'],
+  'tr.fastNote.dongbabei': ['理论上具备同台条件', '理論上具備同台條件', 'In theory, cross-platform conditions are met'],
   'trd.toward': ['{st}方向', '{st}方向', 'towards {st}'],
   'trd.ride': ['乘坐{n}站（约{min}分钟）', '乘坐{n}站（約{min}分鐘）', '{n} stops (~{min} min)'],
   'trd.walk': ['步行{dist}', '步行{dist}', 'Walk {dist}'],
@@ -4265,6 +4284,14 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26F131)', date: '2026-11-26', lines: [
+								['换乘页「现在出发」圆形按钮和一卡通/附近车站/Apple Pay 按钮改成液态玻璃系统按钮', '換乘頁「現在出發」圓形按鈕和一卡通/附近車站/Apple Pay 按鈕改成液態玻璃系統按鈕', 'The round “Depart now” button and the transit-card / nearby-stations / Apple Pay buttons on the Transfer tab are now Liquid Glass system buttons'],
+								['修复里程排行榜等设置子页滑动时顶部安全区消失的问题：滑动时安全区保持显示', '修復里程排行榜等設定子頁滑動時頂部安全區消失的問題：滑動時安全區保持顯示', 'Fixed the top safe-area band disappearing while scrolling Settings sub-pages such as the mileage ranking: the band now stays visible while scrolled'],
+								['修复设置子页右滑返回后页面错位、卡片超出右边缘的问题', '修復設定子頁右滑返回後頁面錯位、卡片超出右邊緣的問題', 'Fixed Settings sub-pages settling offset (cards overflowing the right edge) after a swipe-back gesture'],
+								['进入搜索和时刻表页不再自动弹出键盘，点搜索框才弹出', '進入搜尋和時刻表頁不再自動彈出鍵盤，點搜尋框才彈出', 'The keyboard no longer pops up automatically on entering the Search and Timetable tabs; it appears only when you tap the search field'],
+								['路线详情页不再显示底部标签栏，内容用满全屏高度', '路線詳情頁不再顯示底部標籤欄，內容用滿全屏高度', 'The route-detail page no longer shows the bottom tab bar; its content now uses the full screen height'],
+								['快速换乘新增复兴门（2号线→1号线）、六里桥、白石桥南、崇文门、东单、惠新西街南口、七里庄、西局、东坝北，并更新慈寿寺、蓟门桥、东四十条、北土城的说明', '快速換乘新增復興門（2號線→1號線）、六里橋、白石橋南、崇文門、東單、惠新西街南口、七里莊、西局、東壩北，並更新慈壽寺、薊門橋、東四十條、北土城的說明', 'Fast-transfer tags now also cover Fuxingmen (Line 2 → Line 1), Liuliqiao, Baishiqiaonan, Chongwenmen, Dongdan, Huixinxi Jie Nankou, Qilizhuang, Xiju and Dongbabei; the notes for Cishousi, Jimenqiao, Dongsishitiao and Beitucheng are updated']
+							] },
 							{ v: '1.1.0 (26F130)', date: '2026-11-26', lines: [
 								['新增西安、苏州、合肥、济南、长沙、福州、昆明、南昌八城地铁：西安 13 条线 248 站（含西户线，西户线单一票价 6 元）；苏州 9 条线 235 站（花桥与上海 11 号线跨城换乘暂未接入）；合肥 9 条线 204 站（含 S1 线）；济南 6 条线 102 站；长沙 7 条线 151 站（含磁浮快线，磁浮单独计价：高铁站—机场站 20 元、㮾梨站任一方向 10 元）；福州 6 条线 102 站（含滨海快线：帝封江以西按地铁里程分段、帝封江以东按 0.3 元/公里计价；闽都↔水部、三叉街两处为出站换乘）；昆明 6 条线 103 站（1 号线含支线）；南昌 4 条线 113 站。八城票价均按各自官方里程分段计价', '新增西安、蘇州、合肥、濟南、長沙、福州、昆明、南昌八城地鐵：西安 13 條線 248 站（含西戶線，西戶線單一票價 6 元）；蘇州 9 條線 235 站（花橋與上海 11 號線跨城換乘暫未接入）；合肥 9 條線 204 站（含 S1 線）；濟南 6 條線 102 站；長沙 7 條線 151 站（含磁浮快線，磁浮單獨計價：高鐵站—機場站 20 元、㮾梨站任一方向 10 元）；福州 6 條線 102 站（含濱海快線：帝封江以西按地鐵里程分段、帝封江以東按 0.3 元/公里計價；閩都↔水部、三叉街兩處為出站換乘）；昆明 6 條線 103 站（1 號線含支線）；南昌 4 條線 113 站。八城票價均按各自官方里程分段計價', 'Eight new metros join the app: Xi’an (13 lines, 248 stations, including the Xihu line at a flat ¥6), Suzhou (9 lines, 235 stations; the Huaqiao cross-city link to Shanghai Line 11 is not modelled yet), Hefei (9 lines, 204 stations, including Line S1), Jinan (6 lines, 102 stations), Changsha (7 lines, 151 stations, including the Maglev Express, fared separately: ¥20 between the high-speed-rail and airport stations, ¥10 to or from Langli), Fuzhou (6 lines, 102 stations, including the Binhai Express: metro distance bands west of Difengjiang, ¥0.3/km east of it; Mindu↔Shuibu and Sanchajie are out-of-station transfers), Kunming (6 lines, 103 stations, Line 1 with its branch) and Nanchang (4 lines, 113 stations). All eight cities use their official distance-band fares'],
 								['搜索与时刻表页的搜索框改成原生 Apple UI 搜索框，输入即时筛选', '搜尋與時刻表頁的搜尋框改成原生 Apple UI 搜尋框，輸入即時篩選', 'The search fields on the Search and Timetable tabs are now native Apple UI search fields, filtering as you type'],
@@ -4707,11 +4734,10 @@ function titlePy(py) {
 							this.showTransfer = false;
 							this.showMore = false;
 							this.showTimetable = false;
-							var self = this;
-							this.$nextTick(function() {
-								if (self.nativeApp) self.requestNativeSearchFocus('stations');
-								else if (self.$refs.searchInput) self.$refs.searchInput.focus();
-							});
+							// 26F131 D (user 2026-11-26): entering the tab
+							// must NOT pop the keyboard — no auto-focus;
+							// the keyboard appears only when the user
+							// taps the search field itself.
 						} else if (t === 'more') {
 							if (this.tab !== 'more') this.lastTab = this.tab;
 							this.tab = 'more';
@@ -4734,11 +4760,8 @@ function titlePy(py) {
 							this.showStations = false;
 							this.showMore = false;
 							this.showTransfer = false;
-							var self = this;
-							this.$nextTick(function() {
-								if (self.nativeApp) self.requestNativeSearchFocus('timetable');
-								else if (self.$refs.ttInput) self.$refs.ttInput.focus();
-							});
+							// 26F131 D: no auto-focus on tab entry (see
+							// the stations branch above).
 						} else {
 							this.tab = 'map';
 							this.showStations = false;
@@ -5766,6 +5789,51 @@ function titlePy(py) {
 							var h = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.subView);
 							if (h) h.postMessage({ scroll: scrolled });
 						} catch (e) {}
+					},
+					// 26F131 C (user 2026-11-26: every Settings
+					// sub-page's swipe-back left it offset): guarantee
+					// every .more-sub settles to its resting layout
+					// after a push/pop. An interrupted Vue transition
+					// (rapid swipe-back + reopen, or a leave cut short)
+					// could leave stale enter/leave classes behind —
+					// a stuck translateX(48px) (cards overflowing the
+					// right edge, chevrons cut) or a leaving page
+					// frozen as an absolute overlay over the reopened
+					// page (profile-page screenshot: home rows and
+					// profile rows interleaved, native card misaligned
+					// against the web rows). The sweep runs debounced
+					// 600ms after the LAST open/close toggle — longer
+					// than the longest transition (.45s leave) — so
+					// any transition class still present is stale by
+					// definition: leave classes mean a stuck leave
+					// (strip + hide), enter classes on a shown page
+					// mean a stuck enter (strip, keep shown). Native
+					// overlay frames are then re-reported from the
+					// settled layout.
+					settleSubTransitions() {
+						try {
+							var subs = document.querySelectorAll('#moreSheet .more-sub');
+							for (var i = 0; i < subs.length; i++) {
+								var el = subs[i];
+								var cl = el.classList;
+								if (cl.contains('more-sub-leave-from') || cl.contains('more-sub-leave-active') || cl.contains('more-sub-leave-to')) {
+									cl.remove('more-sub-enter-from', 'more-sub-enter-active', 'more-sub-enter-to', 'more-sub-leave-from', 'more-sub-leave-active', 'more-sub-leave-to');
+									el.style.display = 'none';
+								} else if (cl.contains('more-sub-enter-from') || cl.contains('more-sub-enter-active') || cl.contains('more-sub-enter-to')) {
+									cl.remove('more-sub-enter-from', 'more-sub-enter-active', 'more-sub-enter-to');
+								}
+							}
+						} catch (e) {}
+						try {
+							this.reportProfileFrame(); this.reportThemeFrame();
+							this.reportSwitchFrame(); this.reportCellularFrame();
+							this.reportMapsDownloadFrame(); this.reportCityDownloadFrames();
+						} catch (e) {}
+					},
+					scheduleSubSettle() {
+						if (this._subSettleTimer) clearTimeout(this._subSettleTimer);
+						var self = this;
+						this._subSettleTimer = setTimeout(function() { self._subSettleTimer = null; self.settleSubTransitions(); }, 600);
 					},
 					// 26E126 R + 26E127 fix 5: hide the floating top
 					// chrome while the Settings sheet scrolls down, bring
@@ -7751,7 +7819,25 @@ function titlePy(py) {
 							{ city: 'bj', st: '珠市口', lines: ['7', '8'], noteKey: 'tr.fastNote.zhushikou', typeKey: 'tr.fastType.timed' },
 							{ city: 'bj', st: '蓟门桥', lines: ['12', 'CP'], noteKey: 'tr.fastNote.jimenqiao', typeKey: 'tr.fastType.timed' },
 							{ city: 'bj', st: '东四十条', lines: ['2', '3'], noteKey: 'tr.fastNote.dongsishitiao', typeKey: 'tr.fastType.dualNode' },
-							{ city: 'bj', st: '北土城', lines: ['8', '10'], noteKey: 'tr.fastNote.beitucheng' }
+							{ city: 'bj', st: '北土城', lines: ['8', '10'], noteKey: 'tr.fastNote.beitucheng' },
+							// 26F131 J (user 2026-11-26): nine more
+							// user-named entries, desc only (no type).
+							// 复兴门 is DIRECTIONAL (dir: true): the tag
+							// applies only arriving on Line 2 and
+							// departing on Line 1 — the reverse is a
+							// passage transfer and does not count
+							// (user verbatim). This is the in-station
+							// 1↔2 pair, not the Line 19 virtual pair;
+							// the tidal table is separate and untouched.
+							{ city: 'bj', st: '复兴门', lines: ['2', '1'], noteKey: 'tr.fastNote.fuxingmen', dir: true },
+							{ city: 'bj', st: '六里桥', lines: ['9', '10'], noteKey: 'tr.fastNote.liuliqiao' },
+							{ city: 'bj', st: '白石桥南', lines: ['9', '6'], noteKey: 'tr.fastNote.baishiqiaonan' },
+							{ city: 'bj', st: '崇文门', lines: ['2', '5'], noteKey: 'tr.fastNote.chongwenmen' },
+							{ city: 'bj', st: '东单', lines: ['1', '5'], noteKey: 'tr.fastNote.dongdan' },
+							{ city: 'bj', st: '惠新西街南口', lines: ['5', '10'], noteKey: 'tr.fastNote.huixinxi' },
+							{ city: 'bj', st: '七里庄', lines: ['9', '14'], noteKey: 'tr.fastNote.qilizhuang' },
+							{ city: 'bj', st: '西局', lines: ['10', '14'], noteKey: 'tr.fastNote.xiju' },
+							{ city: 'bj', st: '东坝北', lines: ['3', '12'], noteKey: 'tr.fastNote.dongbabei' }
 						];
 					},
 					// 26E122: the popup body for a fast-transfer entry —
@@ -7774,7 +7860,12 @@ function titlePy(py) {
 						for (var k = 0; k < table.length; k++) {
 							var e = table[k];
 							if (e.city !== this.city || e.st !== st) continue;
-							if ((e.lines[0] === a && e.lines[1] === b) || (e.lines[0] === b && e.lines[1] === a)) return e;
+							// 26F131 J: dir entries match ONE direction
+							// only (arriving on lines[0], departing on
+							// lines[1]) — 复兴门 2→1. All other entries
+							// match either direction as before.
+							if (e.dir) { if (e.lines[0] === a && e.lines[1] === b) return e; }
+							else if ((e.lines[0] === a && e.lines[1] === b) || (e.lines[0] === b && e.lines[1] === a)) return e;
 						}
 						return null;
 					},
@@ -8412,10 +8503,6 @@ function titlePy(py) {
 					nativeSearchText(id, text) {
 						if (id === 'stations') { if (this.query !== text) this.query = text; }
 						else if (id === 'timetable') { if (this.ttQuery !== text) this.ttQuery = text; }
-					},
-					requestNativeSearchFocus(id) {
-						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.searchFieldFrame;
-						if (h) h.postMessage({ id: id, focus: true });
 					},
 					requestNearbyStations() {
 						this.nearbyMsg = '';
@@ -9208,7 +9295,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26F130') return;
+						if (seen === '26F131') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -10535,7 +10622,7 @@ function titlePy(py) {
 					// opening a station never trips this).
 					ttQuery() { if (this.ttStation) this.ttStation = null; },
 					showProfileSub(open) { if (open) this.resetProfileFit(); },
-					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (!open && !window._metroIsPad) { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); if (!open) { var _av = this; setTimeout(function() { if (!_av.anySubViewOpen) { var _subs = document.querySelectorAll('#moreSheet .more-sub'); for (var _i = 0; _i < _subs.length; _i++) { _subs[_i].classList.remove('more-sub-leave-active', 'more-sub-leave-to', 'more-sub-leave-from'); _subs[_i].style.display = 'none'; } } }, 700); } },
+					anySubViewOpen(open) { this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (!open && !window._metroIsPad) { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); this.scheduleSubSettle(); },
 					mapCard() { this.reportMapCard(); },
 					structStation() { this.ensureStructImg(); },
 					structKind() { this.ensureStructImg(); },
@@ -10633,6 +10720,28 @@ function titlePy(py) {
 						self.reportCityDownloadFrames();
 							self.reportSwitchFrame();
 							self.reportCellularFrame();
+						});
+						// 26F131 C: an INTERRUPTED slide (rapid
+						// swipe-back + reopen) never fires
+						// transitionend — without this, native
+						// overlays kept their mid-transition frames
+						// (profile card misaligned against the web
+						// rows). Re-report from the current layout
+						// and arm the debounced settle sweep, which
+						// strips any stale transition classes once
+						// the replacement transition has had time
+						// to finish.
+						_more.addEventListener('transitioncancel', function(e) {
+							if (e.propertyName !== 'transform') return;
+							self.reportTabsFrame();
+							self.reportTransferFrame(); self.reportProfileFrame();
+							self.reportThemeFrame();
+							self.reportTimeFrame();
+							self.reportMapsDownloadFrame();
+							self.reportCityDownloadFrames();
+							self.reportSwitchFrame();
+							self.reportCellularFrame();
+							self.scheduleSubSettle();
 						});
 					}
 						var _scrollTicking = false;
@@ -10753,6 +10862,11 @@ function titlePy(py) {
 						_edgeX = null; _edgeY = null;
 						if (dx > 60 && dy <= 40) self.goBack();
 					}, { passive: true });
+					// 26F131 C: a cancelled touch (the native edge-pan
+					// recognizer taking over, a system gesture) must
+					// disarm the web edge-swipe too, so a later stray
+					// touchend cannot fire a phantom goBack.
+					document.addEventListener('touchcancel', function() { _edgeX = null; _edgeY = null; }, { passive: true });
 					// Row press highlight (26D100): JS-managed .pressing
 					// class replacing CSS :active (WKWebView could leave
 					// :active painted after a tap opened a sub-page).
