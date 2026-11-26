@@ -7879,9 +7879,15 @@ function titlePy(py) {
 					// reroute, never change fare or time. 调休/节假日
 					// calendars are not in the app: Mon-Fri counts as
 					// 工作日. 东四十条 keeps its fast-transfer tag too.
+					// 26F131 follow-up (user 2026-11-26 23:10
+					// "复兴门1-2标潮汐"): at 复兴门 the tidal marking is
+					// DIRECTIONAL (dir: true) — 1号线→2号线 only. The
+					// reverse 2→1 carries the fast-transfer tag instead
+					// (26F131 J) and never the tidal warning. 建国门 and
+					// 东四十条 stay pair entries (either direction).
 					tidalTransferTable() {
 						return [
-							{ city: 'bj', st: '复兴门', lines: ['1', '2'] },
+							{ city: 'bj', st: '复兴门', lines: ['1', '2'], dir: true },
 							{ city: 'bj', st: '建国门', lines: ['1', '2'] },
 							{ city: 'bj', st: '东四十条', lines: ['3', '2'] },
 						];
@@ -7895,7 +7901,13 @@ function titlePy(py) {
 						for (var k = 0; k < table.length; k++) {
 							var e = table[k];
 							if (e.city !== this.city || e.st !== st) continue;
-							if ((e.lines[0] === a && e.lines[1] === b) || (e.lines[0] === b && e.lines[1] === a)) return e;
+							// 26F131: dir entries match ONE direction only
+							// (arriving on lines[0], departing on
+							// lines[1]) — 复兴门 1→2, same convention as
+							// fastTransferEntry. Other entries match
+							// either direction as before.
+							if (e.dir) { if (e.lines[0] === a && e.lines[1] === b) return e; }
+							else if ((e.lines[0] === a && e.lines[1] === b) || (e.lines[0] === b && e.lines[1] === a)) return e;
 						}
 						return null;
 					},
