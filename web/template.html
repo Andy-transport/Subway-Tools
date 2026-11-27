@@ -2106,7 +2106,18 @@
 		   with a normal small gap. Scrolling sub-pages (What's New,
 		   Siri, Briefing, Opening Soon, ...) keep the rules above. */
 		html.native-app .more-sub.more-sub-static { padding-top: 18px; margin-top: -32px; }
-		html.is-pad.native-app .more-sub.more-sub-static { padding-top: 18px; margin-top: -40px; }
+		/* 26G135 (iPad report): the -40px margin was designed
+		   against #moreSheet's safe+118px top padding, but
+		   26E126 R zeroed that padding for sub-open on iPad
+		   (scrolling sub-pages start at the top edge) — static
+		   pages (About/Profile, which never scroll) landed
+		   118px too high: the profile avatar head slid under
+		   the floating pill + header strip and the native info
+		   card overlapped the back button (the stray circle
+		   peeking from behind the card). Restore the designed
+		   clearance explicitly: content starts at safe+136,
+		   just below the strip (matching the leave padding). */
+		html.is-pad.native-app .more-sub.more-sub-static { padding-top: 18px; margin-top: calc(env(safe-area-inset-top) + 118px); }
 		/* Siri sub-page (26D105): on open, its first shortcut row sat
 		   under the frosted header with only the subtitle peeking out.
 		   Give this page a larger top inset than the shared 32px so at
@@ -2130,6 +2141,17 @@
 			   width query, and its panels must use the full width. */
 			html.is-pad #transferPanel, html.is-pad #stationPanel, html.is-pad #structurePanel { align-items: center; }
 			html.is-pad #transferPanel > *, html.is-pad #stationPanel > *, html.is-pad #structurePanel > * { width: 100%; max-width: 640px; }
+			/* 26G135 (iPad report): Settings (#moreSheet) had no
+			   centred-column cap — its cards stretched edge to
+			   edge at iPad widths (download pills pinned to the
+			   far right, chevrons clipped at the edge). Cap the
+			   home/sub-page content blocks the same way. The
+			   cap is on the CHILDREN, not .more-sub itself, so
+			   the swipe-back drag/leave geometry (which moves
+			   .more-sub as a whole) is untouched; the native
+			   frame reporters measure offsetLeft chains, so the
+			   native pills/switches follow the centred slots. */
+			html.is-pad #moreSheet .more-main > *, html.is-pad #moreSheet .more-sub > * { width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; }
 			/* iPad top tab bar (build 45): the native tab bar sits at the top on iPad and would cover the panels search field. In the native app, push both panels down below it. */
 		}
 		.tr-fare.warn { color: #b26a00; }
@@ -2553,13 +2575,13 @@
 						<div class="tr-fare" :class="{ warn: fareWarn() }"><img :src="fareIcon" alt=""><span>{{ fareText() }}</span></div>
 					</div>
 					<div class="trd-body">
-						<div class="trd-node trd-origin"><span class="trd-dot dot-origin" :style="routeResult.segments[0].virtual ? null : { borderColor: '#' + routeResult.segments[0].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[0].from) }}</span></div>
+						<div class="trd-node trd-origin" @click="goStationOnMap(routeResult.segments[0].from)"><span class="trd-dot dot-origin" :style="routeResult.segments[0].virtual ? null : { borderColor: '#' + routeResult.segments[0].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[0].from) }}</span></div>
 						<template v-for="(seg, i) in routeResult.segments" :key="seg.line + seg.from">
-							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-split" :style="{ background: 'conic-gradient(from 90deg, #' + seg.color + ' 0deg 180deg, #' + routeResult.segments[i - 1].color + ' 180deg 360deg)' }"><span class="trd-dot-hole"></span></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span><span v-if="tidalBlockedAtRoute(routeResult, i)" class="ropt-tidal">{{ t('tr.tidalBan') }}</span></div><div class="trd-carriage" v-for="(cl, ci) in carriageLines(routeResult, i)" :key="'cg' + ci">{{ cl }}</div><div class="trd-doors" v-for="(dl, di) in doorLines(routeResult, i)" :key="'dr' + di">{{ dl }}</div><div class="trd-tip" v-for="(tp, ti) in tipLines(routeResult, i)" :key="'tp' + ti">{{ tp }}</div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-tidal" v-if="tidalBlockedAtRoute(routeResult, i)"><span class="ropt-tidal">{{ t('tr.tidalBan') }}</span> {{ t('tr.tidalHours') }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
-							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="trd-carriage" v-for="(cl, ci) in carriageLines(routeResult, i)" :key="'cg' + ci">{{ cl }}</div><div class="trd-doors" v-for="(dl, di) in doorLines(routeResult, i)" :key="'dr' + di">{{ dl }}</div><div class="trd-tip" v-for="(tp, ti) in tipLines(routeResult, i)" :key="'tp' + ti">{{ tp }}</div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-tidal" v-if="tidalBlockedAtRoute(routeResult, i)"><span class="ropt-tidal">{{ t('tr.tidalBan') }}</span> {{ t('tr.tidalHours') }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
-							<div class="trd-seg" v-if="!seg.virtual" :class="{ 'trip-now': pageTrip && tripSegIndex() === i, 'trip-done': pageTrip && tripSegIndex() > i }" @click="goSegment(seg)"><span class="trd-rail" :style="{ background: '#' + seg.color }"></span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span class="trd-dir" v-if="segDirection(seg)">{{ t('trd.toward', {st: stNameStr(segDirection(seg))}) }}</span><span class="trd-ride">{{ t('trd.ride', {n: seg.stops, min: seg.stops * 2}) }}</span></div>
+							<div class="trd-node trd-transfer" v-if="i > 0 && !seg.virtual && !routeResult.segments[i - 1].virtual" @click="toggleTd(i)"><span class="trd-dot dot-split" :style="{ background: 'conic-gradient(from 90deg, #' + seg.color + ' 0deg 180deg, #' + routeResult.segments[i - 1].color + ' 180deg 360deg)' }"><span class="trd-dot-hole"></span></span><div class="trd-node-main"><div class="trd-stname" @click.stop="goStationOnMap(seg.from)">{{ stNameStr(seg.from) }}</div><div class="trd-tline"><span v-if="virtualInfo(i)">{{ virtualInfo(i) }}</span><span v-else-if="isVirtualAt(routeResult, i)">{{ t('tr.virtualTag') }}</span><span v-else>{{ transferNodeText(routeResult, i) }}</span><span v-if="fastTransferAt(routeResult, i)" class="ropt-fast" @click.stop="showFastTransfer(routeResult, i)">{{ t('tr.fastTag') }}</span><span v-if="tidalBlockedAtRoute(routeResult, i)" class="ropt-tidal">{{ t('tr.tidalBan') }}</span></div><div class="trd-carriage" v-for="(cl, ci) in carriageLines(routeResult, i)" :key="'cg' + ci">{{ cl }}</div><div class="trd-doors" v-for="(dl, di) in doorLines(routeResult, i)" :key="'dr' + di">{{ dl }}</div><div class="trd-tip" v-for="(tp, ti) in tipLines(routeResult, i)" :key="'tp' + ti">{{ tp }}</div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-tidal" v-if="tidalBlockedAtRoute(routeResult, i)"><span class="ropt-tidal">{{ t('tr.tidalBan') }}</span> {{ t('tr.tidalHours') }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
+							<div class="trd-node trd-walknode" v-if="seg.virtual" @click="toggleTd(i)"><span class="trd-dot dot-walk"></span><div class="trd-node-main"><div class="trd-stname" @click.stop="goStationOnMap(seg.from)">{{ stNameStr(seg.from) }} → {{ stNameStr(seg.to) }}</div><div class="trd-walkline"><img :src="walkIconThemed" alt=""><span>{{ virtualInfoFor(routeResult, i) }}</span><span> · {{ t('trd.walkMin', {n: walkMinutesAt(routeResult, i)}) }}</span></div><div class="trd-carriage" v-for="(cl, ci) in carriageLines(routeResult, i)" :key="'cg' + ci">{{ cl }}</div><div class="trd-doors" v-for="(dl, di) in doorLines(routeResult, i)" :key="'dr' + di">{{ dl }}</div><div class="trd-tip" v-for="(tp, ti) in tipLines(routeResult, i)" :key="'tp' + ti">{{ tp }}</div><div class="tr-transfer-detail" v-if="transferFocus === i"><div class="tr-td-head">{{ t('tr.transferAt', {st: stNameStr(seg.from)}) }}</div><div class="tr-td-lines" v-if="!seg.virtual && !routeResult.segments[i-1].virtual"><span class="tr-chip ln-badge" :class="{ named: badgeParts(routeResult.segments[i-1].line).named }" :style="{ background: '#' + routeResult.segments[i-1].color, color: routeResult.segments[i-1].text }"><span class="ln-num">{{ badgeParts(routeResult.segments[i-1].line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(routeResult.segments[i-1].line).top }}</span><span class="ln-en">{{ badgeParts(routeResult.segments[i-1].line).bottom }}</span></span></span><span class="tr-td-arrow">→</span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span></div><div class="tr-td-walk" v-if="tdWalkDist(routeResult, i)"><img :src="walkIconThemed" alt="">{{ t('tr.transferWalk', {dist: tdWalkDist(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferDistFor(routeResult, i) != null">{{ t('tr.transferDist', {dist: transferDistFor(routeResult, i)}) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i) && transferEstFor(routeResult, i).out"><img :src="walkIconThemed" alt="">{{ t('tr.transferOut', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="transferEstFor(routeResult, i)">{{ t('tr.transferEst', transferEstFor(routeResult, i)) }}</div><div class="tr-td-walk" v-else-if="virtualInfoFor(routeResult, i)">{{ virtualInfoFor(routeResult, i) }}</div><div class="tr-td-walk" v-else>{{ t('tr.inStation') }}</div><div class="tr-td-walk tr-td-fast" v-if="fastTransferAt(routeResult, i)"><span class="ropt-fast ropt-fast-static">{{ t('tr.fastTag') }}</span> {{ t(fastTransferEntry(routeResult, i).noteKey) }}</div><div class="tr-td-walk tr-td-tidal" v-if="tidalBlockedAtRoute(routeResult, i)"><span class="ropt-tidal">{{ t('tr.tidalBan') }}</span> {{ t('tr.tidalHours') }}</div><div class="tr-td-walk tr-td-exits" v-if="vtExitText(routeResult, i)">{{ vtExitText(routeResult, i) }}</div><div class="tr-td-edit" v-if="!seg.virtual"><button class="tr-td-edit-btn" @click.stop="toggleEditTransfer(i)">{{ t('tr.editTransfer') }}</button><div class="tr-td-alts" v-if="editAltFor === i"><div class="tr-td-alt-none" v-if="!transferAlternatives(routeResult, i).length">{{ t('tr.editNone') }}</div><button class="tr-td-alt" v-for="alt in transferAlternatives(routeResult, i)" :key="alt" @click.stop="applyTransferEdit(i, alt)">{{ stNameStr(alt) }}</button><div class="tr-td-alt-msg" v-if="editMsg">{{ editMsg }}</div></div></div></div></div></div>
+							<div class="trd-seg" v-if="!seg.virtual" :class="{ 'trip-now': pageTrip && tripSegIndex() === i, 'trip-done': pageTrip && tripSegIndex() > i }"><span class="trd-rail" :style="{ background: '#' + seg.color }"></span><span class="tr-chip ln-badge" :class="{ named: badgeParts(seg.line).named }" :style="{ background: '#' + seg.color, color: seg.text }"><span class="ln-num">{{ badgeParts(seg.line).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(seg.line).top }}</span><span class="ln-en">{{ badgeParts(seg.line).bottom }}</span></span></span><span class="trd-dir" v-if="segDirection(seg)">{{ t('trd.toward', {st: stNameStr(segDirection(seg))}) }}</span><span class="trd-ride">{{ t('trd.ride', {n: seg.stops, min: seg.stops * 2}) }}</span></div>
 						</template>
-						<div class="trd-node trd-dest"><span class="trd-dot dot-dest" :style="routeResult.segments[routeResult.segments.length - 1].virtual ? null : { borderColor: '#' + routeResult.segments[routeResult.segments.length - 1].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[routeResult.segments.length - 1].to) }}</span></div>
+						<div class="trd-node trd-dest" @click="goStationOnMap(routeResult.segments[routeResult.segments.length - 1].to)"><span class="trd-dot dot-dest" :style="routeResult.segments[routeResult.segments.length - 1].virtual ? null : { borderColor: '#' + routeResult.segments[routeResult.segments.length - 1].color }"></span><span class="trd-stname">{{ stNameStr(routeResult.segments[routeResult.segments.length - 1].to) }}</span></div>
 					</div>
 					<div class="tr-hint">{{ t('tr.hint') }}</div>
 				</div>
@@ -2633,8 +2655,8 @@
 						<div v-for="c in cityList" :key="c.key">
 							<div class="more-city-row" @click="onCityRowTap(c.key)"><span class="more-city-name"><img class="more-city-logo" :src="cityLogoFor(c.key)" alt=""><span>{{ c.name }}</span></span><span class="more-city-dot" v-if="city === c.key"></span><span class="more-city-dl" v-if="!nativeApp && mapState[c.key] === 'ready'" @click.stop="deleteCityMap(c.key)">{{ t('map.delete') }}</span><span class="more-city-dl" v-else-if="!nativeApp && c.key !== 'bj' && mapState[c.key] !== 'ready'">{{ mapState[c.key] === 'loading' ? t('map.downloadingShort') : (mapState[c.key] === 'error' ? t('map.retry') : t('map.download')) }}</span><span class="more-city-dl-slot" v-if="nativeApp && (c.key !== 'bj' || mapState[c.key] === 'ready')" :data-city="c.key"></span><span class="more-chev" v-if="c.key === 'bj'">{{ bjMapExpanded ? '⌄' : '›' }}</span></div>
 							<div v-if="c.key === 'bj' && bjMapExpanded">
-								<div class="more-city-row more-bj-type" @click="pickBjMapType('track')"><span class="more-city-name"><span>{{ t('map.type.track') }}</span></span><span class="more-check" v-if="city === 'bj' && bjMapType === 'track'">✓</span></div>
-								<div class="more-city-row more-bj-type" @click="pickBjMapType('line')"><span class="more-city-name"><span>{{ t('map.type.line') }}</span></span><span class="more-check" v-if="city === 'bj' && bjMapType === 'line'">✓</span></div>
+								<div class="more-city-row more-bj-type" @click="pickBjMapType('track')"><span class="more-city-name"><span>{{ t('map.type.track') }}</span></span><span class="more-city-dot" v-if="city === 'bj' && bjMapType === 'track'"></span></div>
+								<div class="more-city-row more-bj-type" @click="pickBjMapType('line')"><span class="more-city-name"><span>{{ t('map.type.line') }}</span></span><span class="more-city-dot" v-if="city === 'bj' && bjMapType === 'line'"></span></div>
 							</div>
 						</div>
 					</div>
@@ -2790,7 +2812,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G134)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G135)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -3145,7 +3167,7 @@ var I18N = {
   'tr.doorsForm4A': ['4A编组', '4A編組', '4A formation'],
   'tr.doorsForm8A': ['8A编组', '8A編組', '8A formation'],
   'tr.transferOut': ['出站换乘 · 约{dist}米 · 约{min}分钟（预估）', '出站換乘 · 約{dist}米 · 約{min}分鐘（預估）', 'Out-of-station transfer · about {dist} m · about {min} min (estimate)'],
-  'tr.hint': ['点一段可在图上查看', '點一段可在圖上查看', 'Tap a segment to view it on the map'],
+  'tr.hint': ['点车站可在图上定位', '點車站可在圖上定位', 'Tap a station to locate it on the map'],
   'tr.history': ['搜索记录', '搜索記錄', 'Search History'],
   'tr.history.clear': ['清除', '清除', 'Clear'],
   'tr.op.notyet': ['未运营 · 首班车 {t}', '未營運 · 首班車 {t}', 'Not running · First train {t}'],
@@ -4371,6 +4393,14 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26G135)', date: '2026-11-27', lines: [
+								['修复设置子页右滑返回时「下载全部线路图」按钮拖影残留的问题，按钮跟手更干净', '修復設定子頁右滑返回時「下載全部線路圖」按鈕拖影殘留的問題，按鈕跟手更乾淨', 'Fixed the Download All Line Maps button leaving a trailing ghost during swipe-back on Settings sub-pages — it now tracks the drag cleanly'],
+								['切换城市里北京配线图/线路图的选中标记改成绿色圆点，和当前城市的标记一致', '切換城市裡北京配線圖/線路圖的選中標記改成綠色圓點，和當前城市的標記一致', 'The selected Beijing map type in Switch City is now marked with a green dot, matching the current-city mark'],
+								['切换城市里的下载/删除按钮去掉玻璃效果，改成实色按钮', '切換城市裡的下載/刪除按鈕去掉玻璃效果，改成實色按鈕', 'The Download/Delete buttons in Switch City no longer use the glass effect — they are solid buttons now'],
+								['修复从路线详情跳到地图后左上角退出按钮不出现的问题（地图顶部加了临时诊断信息，确认修复后下一版去掉）', '修復從路線詳情跳到地圖後左上角退出按鈕不出現的問題（地圖頂部加了臨時診斷資訊，確認修復後下一版去掉）', 'Fixed the top-left exit button not appearing after jumping from route detail to the map (a temporary diagnostic readout sits at the top of the map; it will be removed once the fix is confirmed)'],
+								['路线详情改成点车站定位：在路线详情里点任意车站，跳到地图并定位到该站', '路線詳情改成點車站定位：在路線詳情裡點任意車站，跳到地圖並定位到該站', 'Route detail now locates by station: tap any station in route detail to jump to the map centred on that station'],
+								['修复 iPad 上的几个问题：设置页面内容居中限宽不再贴边拉伸，通用页不再错位溢出，个人资料页顶部的多余圆圈去掉，换乘卡片布局恢复正常；另外修复选定到达线路时某些路线查不到的问题（如东四十条到苹果园选 S1 线）', '修復 iPad 上的幾個問題：設定頁面內容居中限寬不再貼邊拉伸，通用頁不再錯位溢出，個人資料頁頂部的多餘圓圈去掉，換乘卡片佈局恢復正常；另外修復選定到達線路時某些路線查不到的問題（如東四十條到蘋果園選 S1 線）', 'Fixed several iPad issues: Settings content is now centred at a capped width instead of stretching edge to edge, the General page no longer sits offset and overflowing, the stray circle at the top of the profile page is gone, and the transfer card layout is back to normal; also fixed some routes not being found when an arrival line is pinned (e.g. Dongsishitiao to Pingguoyuan with S1 selected)']
+							] },
 							{ v: '1.1.0 (26G134)', date: '2026-11-27', lines: [
 								['设置子页右滑返回时，页面上的原生按钮、搜索框和开关跟着页面一起滑动，不再留在原地', '設定子頁右滑返回時，頁面上的原生按鈕、搜尋框和開關跟著頁面一起滑動，不再留在原地', 'During swipe-back on Settings sub-pages, the native buttons, search field and switches on the page now slide along with it instead of staying behind'],
 								['修复短页面（如车型检索）右滑时页面下方露出设置首页的问题，滑动时页面完整覆盖', '修復短頁面（如車型檢索）右滑時頁面下方露出設定首頁的問題，滑動時頁面完整覆蓋', 'Fixed short sub-pages (such as Train Models) revealing the Settings home below them while swiping — the page now covers the full height during the drag'],
@@ -4887,7 +4917,7 @@ function titlePy(py) {
 						}
 						// Tell the native tab bar which tab is showing.
 						// 26F132: any tab switch leaves the detail→map
-						// jump mode (goSegment re-enters it after its
+						// jump mode (goStationOnMap re-enters it after its
 						// own setTab call); post the off BEFORE the
 						// tabChanged so the native chrome settles in
 						// one pass.
@@ -5887,7 +5917,7 @@ function titlePy(py) {
 						} catch (e) {}
 						return false;
 					},
-					// 26F132: route-detail → map jump mode. goSegment
+					// 26F132: route-detail → map jump mode. goStationOnMap
 					// sets _mapJump after switching to the map tab;
 					// the native exit button (top-left) shows only
 					// in this mode and returns here via exitMapJump.
@@ -6038,6 +6068,18 @@ function titlePy(py) {
 					settleSubTransitions() {
 						this._subSettleCount = (this._subSettleCount || 0) + 1;
 						this._subSettleLastAt = Date.now();
+						// 26G135: a drag whose finisher never ran
+						// leaves _edgeBusyEl set, and the loop below
+						// skips that page forever (stuck offset
+						// overlay, home page showing at the edge —
+						// iPad report). With no touch down, force-
+						// finish it first; the 600ms debounce puts
+						// this well past the 260ms release
+						// animation, so a healthy drag is never
+						// cut short.
+						if (this._edgeBusyEl && !this._edgeTouchDown && this._edgeForceFinish) {
+							try { this._edgeForceFinish(); } catch (e) {}
+						}
 						try {
 							// 26F132: a horizontal scroll residue on the
 							// sheet (from a transitioning sub-page's
@@ -9613,7 +9655,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26G134') return;
+						if (seen === '26G135') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -9865,10 +9907,20 @@ function titlePy(py) {
 						if (this.arriveTarget && this.applyArriveTarget()) { this.doSearch(); return; }
 						if (this.pendingCond && this.applyFirstLast()) { this.doSearch(); return; }
 					},
-					goSegment(seg) {
+					// 26G135 (user 2026-11-27 "改成点击车站定位具体
+					// 车站"): tapping a STATION node on the route
+					// detail jumps to the map tab and centres on
+					// that station (locateStation works on both the
+					// line map and Beijing's 配线图 loadProd — same
+					// pan/zoom relation). Replaces the old
+					// segment-row tap (goSegment, removed): segment
+					// rows no longer jump. The jump still enters
+					// jump mode so the native exit button returns
+					// to this still-open detail page.
+					goStationOnMap(name) {
 						var st = null;
 						for (var i = 0; i < this.stations.length; i++) {
-							if (this.stations[i].n === seg.from) { st = this.stations[i]; break; }
+							if (this.stations[i].n === name) { st = this.stations[i]; break; }
 						}
 						if (!st) return;
 						this.setTab('map');
@@ -9879,7 +9931,7 @@ function titlePy(py) {
 						this.postMapJumpMode();
 						locateStation(st);
 					},
-					findRoute(fromName, toName, mode, banned, fromLine, toLine) {
+					findRoute(fromName, toName, mode, banned, fromLine, toLine, passThrough) {
 						var R = this.routes;
 						if (!R || !R.edges || !R.lines) return null;
 						var self = this;
@@ -9918,8 +9970,24 @@ function titlePy(py) {
 							var key = st + '|' + ln;
 							if (best[key] !== undefined && best[key] <= cost) continue;
 							best[key] = cost;
-							if (st === toName) {
-								if (toLine && ln !== toLine) continue;
+							// 26G135 (iPad report: 东四十条->苹果园 with
+							// S1 pinned as the arrival line returned
+							// 暂无换乘方案）: the only way to arrive on
+							// the pinned line can be to ride THROUGH
+							// the destination on another line and come
+							// back (苹果园 on L6 -> 金安桥 -> back on
+							// S1), but the old code stopped expanding
+							// at the destination, making such pinned
+							// arrivals unreachable. TWO-PASS fix: the
+							// first pass keeps the old stop-at-
+							// destination behaviour exactly (every
+							// previously found route is unchanged);
+							// only when it finds nothing AND an
+							// arrival line is pinned does the search
+							// retry with passThrough, expanding
+							// through wrong-line destination arrivals
+							// (best-state pruning still bounds it).
+							if (st === toName && (!toLine || ln === toLine)) {
 								var segs = [];
 								for (var i = 1; i < path.length; i++) {
 									var s = path[i][0], l = path[i][1];
@@ -9950,6 +10018,10 @@ function titlePy(py) {
 								if (segs.length === 1 && segs[0].virtual) nTransfers = 1;
 								return { stops: stops, transfers: nTransfers, segments: segs, minutes: stops * 2 + nTransfers * 5 + extra, stations: path.map(function(pp) { return pp[0]; }) };
 							}
+							// 26G135: first pass stops expanding at
+							// the destination (old behaviour); the
+							// passThrough retry expands through it.
+							if (st === toName && !passThrough) continue;
 							(adj[st] || []).forEach(function(nb) {
 								if (isBanned[nb[0]]) return;
 								if (ln === null && fromLine && nb[1] !== fromLine) return;
@@ -9975,6 +10047,10 @@ function titlePy(py) {
 								queue.push([nCost, nStops, nTransfers, nb[0], nb[1], path.concat([[nb[0], nb[1]]]), nExtra]);
 							});
 						}
+						// 26G135: pinned-arrival retry — only when
+						// the first pass found nothing (see the
+						// goal-test comment above).
+						if (!passThrough && toLine) return self.findRoute(fromName, toName, mode, banned, fromLine, toLine, true);
 						return null;
 					},
 					findRoutes(fromName, toName) {
@@ -11247,6 +11323,60 @@ function titlePy(py) {
 							self.reportProfileFrame();
 						} catch (e) {}
 					}
+					// 26G135: during the finger drag, touchmove can
+					// fire faster than the display refresh (120 Hz
+					// on ProMotion) and each event posted all six
+					// bridge messages synchronously; the native
+					// controls then trailed the compositor-driven
+					// page by a frame or two and step-jumped,
+					// reading as a ghost/remnant of the button at
+					// its pre-drag position (user 2026-11-27 "按钮
+					// 为什么还有残留"). Coalesce to one report per
+					// animation frame — the reporters read the
+					// LATEST _edgeDragDx when the frame fires, so
+					// no position is lost, only the redundant
+					// intermediate posts. The settle/finisher
+					// one-shots keep calling edgeReportDragFrames
+					// directly (exact final frames, no coalescing).
+					var _edgeReportQueued = false;
+					function edgeReportDragFramesSoon() {
+						if (_edgeReportQueued) return;
+						_edgeReportQueued = true;
+						window.requestAnimationFrame(function() {
+							_edgeReportQueued = false;
+							edgeReportDragFrames();
+						});
+					}
+					// 26G135 (iPad report: 通用 sub-page stuck
+					// offset right with the Settings home showing
+					// at the left edge and the cellular switch cut
+					// off): if a tracked drag's finisher never
+					// runs, _edgeBusyEl stays set and the settle
+					// sweep skips that page forever — a permanent
+					// offset overlay. Expose the touchstart
+					// force-finish so the sweep can run it when
+					// no touch is down (the sweep is debounced
+					// 600ms past touchend, well beyond the 260ms
+					// release animation, so this only ever fires
+					// on a genuinely stuck drag; the token bump
+					// invalidates any pending finisher exactly
+					// like a new touchstart does).
+					self._edgeTouchDown = false;
+					self._edgeForceFinish = function() {
+						_edgeTok++;
+						if (!self._edgeBusyEl) return;
+						edgeClearInline(self._edgeBusyEl);
+						self._edgeBusyEl = null;
+						if (self._edgeRevealedMain) {
+							var _sh = edgeSheet();
+							var _mm2 = _sh ? _sh.querySelector('.more-main') : null;
+							if (_mm2 && self.anySubViewOpen) _mm2.style.display = 'none';
+							if (_sh) _sh.scrollTop = _edgeSavedScroll;
+							self._edgeRevealedMain = false;
+						}
+						self._edgeDragDx = 0;
+						edgeReportDragFrames();
+					};
 					// 26G134: during the .25s settle/complete slide,
 					// follow the element's computed transform each
 					// frame so the native controls track the
@@ -11361,6 +11491,7 @@ function titlePy(py) {
 						else if (self.anySubViewOpen) { _edgeDone = true; self.goBack(); }
 					};
 					document.addEventListener('touchstart', function(e) {
+						self._edgeTouchDown = true;
 						var t = e.changedTouches && e.changedTouches[0];
 						// 26E112: the structure DETAIL is a sub-view too, but
 						// while its image is zoomed/panned the image's own
@@ -11411,10 +11542,14 @@ function titlePy(py) {
 						_edgeEl.style.transform = 'translateX(' + _tx + 'px)';
 						// 26G134: native controls on the page ride
 						// along (reporters add this offset to x).
+						// 26G135: coalesced through rAF (see
+						// edgeReportDragFramesSoon) so the bridge
+						// is posted at most once per display frame.
 						self._edgeDragDx = _tx;
-						edgeReportDragFrames();
+						edgeReportDragFramesSoon();
 					}, { passive: false });
 					document.addEventListener('touchend', function(e) {
+						self._edgeTouchDown = false;
 						// 26F132: any gesture ending over an open sub-page
 						// arms the settle sweep (debounced 600ms, past the
 						// longest .45s leave) — covers swipe-back paths
@@ -11439,6 +11574,7 @@ function titlePy(py) {
 					// touchend cannot fire a phantom goBack.
 					// 26F133: a cancelled tracked drag settles back.
 					document.addEventListener('touchcancel', function() {
+						self._edgeTouchDown = false;
 						var wasEngaged = _edgeEngaged && _edgeEl && !_edgeDone;
 						_edgeX = null; _edgeY = null;
 						self._nativeEdgePan = false;

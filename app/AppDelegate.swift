@@ -2194,6 +2194,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         mapExitButton.isHidden = true
         mapExitButton.addTarget(self, action: #selector(mapExitTapped), for: .touchUpInside)
         view.addSubview(mapExitButton)
+        // DIAG-26G135 (TEMPORARY): 0.5s tick so the readout
+        // stays current even when no chrome pass runs.
+        if diag26G135Enabled {
+            diag26G135Timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+                self?.updateDiag26G135()
+            }
+        }
         // Pills sit at the top safe area on iPhone. On iPad the tab bar
         // floats at the top (build 74), so the pills sit below it.
         cityPillLeadingConstraint = cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12)
@@ -2544,7 +2551,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let rect = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
         mapsDownloadContainer?.frame = rect
         mapsDownloadContainer?.isHidden = false
-        view.bringSubviewToFront(mapsDownloadContainer!)
+        // 26G135 (item 1): only churn the hierarchy when the
+        // container is not already frontmost (this runs per
+        // frame post during scroll/drag).
+        if view.subviews.last !== mapsDownloadContainer { view.bringSubviewToFront(mapsDownloadContainer!) }
     }
 
     @objc func mapsDownloadTapped() {
@@ -2587,15 +2597,26 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         btn.translatesAutoresizingMaskIntoConstraints = true
         btn.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
         btn.accessibilityIdentifier = key
+        // 26G135 (user 2026-11-27 "去掉按钮的玻璃效果"): solid
+        // capsule — layered colour distinct from the card
+        // (solidCardColor, theme-aware light/dark) — replacing
+        // the 26E127 Liquid Glass. Foregrounds stay systemBlue
+        // (download) / systemRed (delete), set per state in
+        // placeCityDownloadButtons. Scope: these pills only;
+        // the depart button, action row, map card/pill and
+        // struct button keep their glass (separate helpers).
         if #available(iOS 26.0, *) {
-            var cfg = UIButton.Configuration.glass()
+            var cfg = UIButton.Configuration.filled()
             cfg.cornerStyle = .capsule
+            cfg.baseBackgroundColor = solidCardColor()
             cfg.baseForegroundColor = .systemBlue
             cfg.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
             cfg.title = L("map.download")
             btn.configuration = cfg
         } else {
             btn.tintColor = .systemBlue
+            btn.backgroundColor = solidCardColor()
+            btn.layer.masksToBounds = true
         }
         btn.setTitle(L("map.download"), for: .normal)
         btn.addTarget(self, action: #selector(cityDownloadTapped(_:)), for: .touchUpInside)
@@ -2920,36 +2941,67 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             let h = (f["height"] as? Double) ?? 0
             let state = (f["state"] as? String) ?? "download"
             let btn = cityDownloadButtons[key] ?? makeCityDownloadButton(key: key)
-            cityButtonStates[key] = state
-            let title: String
-            switch state {
-            case "loading":
-                title = L("map.downloadingShort")
-                btn.isEnabled = false
-            case "error":
-                title = L("map.retry")
-                btn.isEnabled = true
-            case "delete":
-                // 26F132: downloaded city — the pill deletes the
-                // cached line map (destructive red on the same
-                // glass capsule).
-                title = L("map.delete")
-                btn.isEnabled = true
-            default:
-                title = L("map.download")
-                btn.isEnabled = true
+            // 26G135 (item 1, drag remnant): this runs on EVERY
+            // frame post — during a swipe-back drag that is once
+            // per display frame. Writing configuration.title /
+            // baseForegroundColor forces a button relayout, and
+            // bringSubviewToFront churns the hierarchy; done for
+            // every pill on every post, the native buttons
+            // trailed the compositor-driven page and step-jumped
+            // (the "残留" ghost at the pre-drag position). Now:
+            // title/enabled/foreground are written only when the
+            // pill's state actually changed, the solid background
+            // only when the theme colour differs, and the pill is
+            // brought to front only when it is not already there.
+            // The frame itself (the cheap part) is still applied
+            // on every post, so scroll-sync and drag-follow are
+            // unchanged.
+            if cityButtonStates[key] != state {
+                cityButtonStates[key] = state
+                let title: String
+                switch state {
+                case "loading":
+                    title = L("map.downloadingShort")
+                    btn.isEnabled = false
+                case "error":
+                    title = L("map.retry")
+                    btn.isEnabled = true
+                case "delete":
+                    // 26F132: downloaded city — the pill deletes
+                    // the cached line map (destructive red on
+                    // the same capsule).
+                    title = L("map.delete")
+                    btn.isEnabled = true
+                default:
+                    title = L("map.download")
+                    btn.isEnabled = true
+                }
+                if #available(iOS 26.0, *) {
+                    btn.configuration?.baseForegroundColor = (state == "delete") ? .systemRed : .systemBlue
+                }
+                btn.tintColor = (state == "delete") ? .systemRed : .systemBlue
+                btn.configuration?.title = title
+                btn.setTitle(title, for: .normal)
             }
+            // 26G135 (item 3): the solid background follows the
+            // theme — refresh only on an actual colour change
+            // (solidCardColor is resolved per appearance).
+            let bg = solidCardColor()
             if #available(iOS 26.0, *) {
-                btn.configuration?.baseForegroundColor = (state == "delete") ? .systemRed : .systemBlue
+                if btn.configuration?.baseBackgroundColor != bg {
+                    btn.configuration?.baseBackgroundColor = bg
+                }
+            } else if btn.backgroundColor != bg {
+                btn.backgroundColor = bg
             }
-            btn.tintColor = (state == "delete") ? .systemRed : .systemBlue
-            btn.configuration?.title = title
-            btn.setTitle(title, for: .normal)
             // 26F129 D+: hide below-screen slots too (stale-frame safety).
             if w > 0 && h > 0 && CGFloat(y) >= subHeaderBottomY && CGFloat(y) < view.bounds.height {
                 btn.frame = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
+                if #unavailable(iOS 26.0) {
+                    btn.layer.cornerRadius = CGFloat(h) / 2
+                }
                 btn.isHidden = false
-                view.bringSubviewToFront(btn)
+                if view.subviews.last !== btn { view.bringSubviewToFront(btn) }
             } else {
                 btn.isHidden = true
             }
@@ -3778,6 +3830,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             profileLogoutRow.isHidden = true
         }
+        // 26G135 (iPad report): the placements above bring the
+        // card/rows to front on EVERY profileFrame post, which
+        // buried the sub-view back button when the card's top
+        // edge reached into its box (only the button's top arc
+        // peeked out from behind the card — the "stray circle"
+        // at the 昵称 card's corner). The back button must
+        // stay on top of the profile pieces, like the pickers
+        // already guarantee.
+        if let b = subViewBackButton, !b.isHidden { view.bringSubviewToFront(b) }
     }
 
     // 26E124: rebuild the native info card's rows from the
@@ -4319,6 +4380,20 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         label.setTitleColor(.systemGray, for: .normal)
         label.tag = labelTag
         label.addTarget(self, action: #selector(transferLabelTapped(_:)), for: .touchUpInside)
+        // 26G135 (iPad report): in the .fill stack the LABEL
+        // was the element that stretched (UIButton and
+        // UITextField share the default hugging priority, and
+        // the field's compression resistance was lowered) —
+        // at iPad card widths the 出发/到达 title floated
+        // centred in a wide empty label and the station name
+        // drifted mid-card. Pin the label to its intrinsic
+        // width so the FIELD is the flexible element (its
+        // text stays left-aligned after the label, pills and
+        // clear stay right — the iPhone look at any width).
+        label.setContentHuggingPriority(.required, for: .horizontal)
+        label.setContentCompressionResistancePriority(.required, for: .horizontal)
+        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        field.textAlignment = .left
         let row = UIStackView(arrangedSubviews: [dot, label, field, badgeStack, clear])
         row.axis = .horizontal
         row.spacing = 10
@@ -4417,6 +4492,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         if open == routeDetailOpenNative { return }
         routeDetailOpenNative = open
         updateSideBarLayout()
+        // 26G135 (item 4): the map exit button derives from
+        // this flag — re-evaluate the map chrome the moment
+        // it flips, not only on tab/jump signals.
+        refreshMapTopChrome()
     }
     func placeTransfer(frame dict: [String: Any]) {
         lastTransferFrame = dict
@@ -4985,12 +5064,88 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     }
     func refreshMapTopChrome() {
         let backUp = subViewBackButton != nil && !subViewBackButton.isHidden
-        let show = mapJumpMode && currentTab == "map" && !splashShowing && !whatsNewShowing && !backUp
+        // 26G135 (item 4, SECOND device failure of the exit
+        // button — reworked, not tweaked): visibility now
+        // derives ONLY from native-known state —
+        // routeDetailOpenNative (fed by the web's detailOpen
+        // frame reports; proven correct on device: the tab
+        // bar hides from it via detailHidesBar) && currentTab
+        // == "map". The old condition additionally required
+        // the web's mapJumpMode signal AND !backUp. Why that
+        // failed twice:
+        //  - 26F132: mapJumpMode(true) arrives while the
+        //    detail page's back button is still up (the web's
+        //    subView(false) watcher post lands a tick later),
+        //    so show computed false; the only later refresh on
+        //    that path is the 0.45s fade completion in
+        //    setSubChromeVisible(false), whose completion is
+        //    guarded by subChromeClosing — if the fade is
+        //    superseded, isHidden never flips, backUp stays
+        //    true, and the button never shows.
+        //  - 26G134: the added refresh lived in
+        //    setSubViewBackButtonVisible, which is called ONLY
+        //    by the appearance/language picker present/dismiss
+        //    paths — never in the web subView close flow. Dead
+        //    code for this symptom.
+        // Dropping backUp is safe: on the map tab the sub-view
+        // back button is never up (sub-views belong to the
+        // more/timetable/transfer tabs; the chrome is
+        // force-hidden on tab switch), and during the jump's
+        // 0.45s fade the exit button is simply brought to
+        // front over the fading button. mapJumpMode still
+        // drives the tab bar (detailHidesBar) unchanged.
+        // routeDetailOpenNative && currentTab == "map" can
+        // only arise via the detail→map jump (the tab bar is
+        // hidden while the detail is open, so the map tab
+        // cannot be reached manually in that state).
+        let show = routeDetailOpenNative && currentTab == "map" && !splashShowing && !whatsNewShowing
         if let btn = mapExitButton {
             btn.isHidden = !show
             if show { view.bringSubviewToFront(btn) }
         }
         updateCityPillLeading()
+        updateDiag26G135(backUp: backUp, show: show)
+    }
+
+    // MARK: - DIAG-26G135 (TEMPORARY — remove once the map
+    // exit button is confirmed on device)
+    //
+    // Small fixed readout on the map tab only, so a device
+    // screenshot shows the exact native state behind the
+    // exit button. One-place removal: delete this block, the
+    // updateDiag26G135 call in refreshMapTopChrome, and the
+    // timer start next to the mapExitButton setup.
+    let diag26G135Enabled = true
+    var diag26G135Label: UILabel?
+    var diag26G135Timer: Timer?
+    func updateDiag26G135(backUp: Bool? = nil, show: Bool? = nil) {
+        guard diag26G135Enabled else { diag26G135Label?.isHidden = true; return }
+        let onMap = currentTab == "map" && !splashShowing && !whatsNewShowing
+        if diag26G135Label == nil {
+            let l = UILabel()
+            l.font = .monospacedSystemFont(ofSize: 10, weight: .regular)
+            l.textColor = .systemYellow
+            l.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+            l.numberOfLines = 2
+            l.isUserInteractionEnabled = false
+            l.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(l)
+            NSLayoutConstraint.activate([
+                l.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
+                l.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+                l.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -8),
+            ])
+            diag26G135Label = l
+        }
+        guard let l = diag26G135Label else { return }
+        l.isHidden = !onMap
+        if onMap {
+            let b = backUp ?? (subViewBackButton != nil && !subViewBackButton.isHidden)
+            let s = show ?? !(mapExitButton?.isHidden ?? true)
+            let lead = cityPillLeadingConstraint?.constant ?? -1
+            l.text = "DIAG-26G135 jump=\(mapJumpMode) detail=\(routeDetailOpenNative) tab=\(currentTab) back=\(b) show=\(s) pill=\(lead) btnHid=\(mapExitButton?.isHidden ?? true)"
+            view.bringSubviewToFront(l)
+        }
     }
     @objc func mapExitTapped() {
         webView.evaluateJavaScript("window.metroApp && window.metroApp.exitMapJump()", completionHandler: nil)
@@ -5190,7 +5345,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G134')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G135')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
