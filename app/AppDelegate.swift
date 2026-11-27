@@ -1650,6 +1650,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         subViewEdgePan?.isEnabled = visible
         if visible { view.bringSubviewToFront(button) }
         updateCityPillLeading()
+        // 26G134: the jump-mode exit button's visibility depends
+        // on this button (refreshMapTopChrome's backUp gate), and
+        // the two signals race: mapJumpMode(true) arrives while
+        // the detail page's back button is still up (the web's
+        // subView(false) watcher post lands a tick later), so the
+        // exit button computed "hidden" and nothing ever
+        // re-evaluated it — the user was stuck on the map with no
+        // ✕. Re-run the chrome pass whenever the back button
+        // flips so the exit button settles correctly either way.
+        refreshMapTopChrome()
     }
 
     // 26E124: on the map tab the docked sub-view back button and
@@ -2425,9 +2435,12 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // solid capsule. The three icon buttons inside take the
         // city accent colour either way. Idempotent — this runs on
         // every theme refresh, so the glass view is added once.
+        // 26G134: clear glass, matching the station tap card
+        // (same helper as before, more translucent — user
+        // "通透度太低").
         if #available(iOS 26.0, *) {
             if !mapToolsPill.subviews.contains(where: { $0 is UIVisualEffectView }) {
-                let glass = makeGlassEffectView()
+                let glass = makeClearGlassEffectView()
                 glass.translatesAutoresizingMaskIntoConstraints = false
                 mapToolsPill.insertSubview(glass, at: 0)
                 NSLayoutConstraint.activate([
@@ -2641,9 +2654,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         }
         return nil
     }
-    // 26F129 J: route-detail 查看结构图 button (solid, cube
-    // template icon tinted per appearance).
+    // 26F129 J: route-detail 查看结构图 button (cube template
+    // icon tinted per appearance). 26G134 (user "改成圆形apple
+    // UI SDK27.2"): circular system glass button like the 40pt
+    // sub-view back button — Configuration.glass() capsule on
+    // iOS 26+, glass-effect subview fallback below.
     var structRouteButton: UIButton?
+    var structRouteUsesGlass = false
     var structRouteStations: [String] = []
     var structRouteTitle = ""
     var structRouteCancel = "Cancel"
@@ -2729,22 +2746,57 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         structRouteStations = stations
         if let t = dict["title"] as? String, !t.isEmpty { structRouteTitle = t }
         if let c = dict["cancel"] as? String, !c.isEmpty { structRouteCancel = c }
-        btn.setImage(structRouteIcon, for: .normal)
-        btn.tintColor = structRouteTintColor()
+        if structRouteUsesGlass {
+            // 26G134: glass path — the cube glyph rides the
+            // configuration; the material adapts to light/dark by
+            // itself (same pattern as the depart button).
+            if btn.configuration?.image !== structRouteIcon {
+                btn.configuration?.image = structRouteIcon
+            }
+            btn.configuration?.baseForegroundColor = structRouteTintColor()
+        } else {
+            btn.setImage(structRouteIcon, for: .normal)
+            btn.tintColor = structRouteTintColor()
+        }
         btn.accessibilityLabel = structRouteTitle
-        btn.backgroundColor = solidCardColor()
         btn.frame = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
-        btn.layer.cornerRadius = 10
         btn.isHidden = false
         view.bringSubviewToFront(btn)
     }
     func makeStructRouteButton() -> UIButton {
-        let btn = UIButton(type: .custom)
+        // 26G134: circular Apple UI button mirroring the 40pt
+        // sub-view back button — SDK 27.2 glass capsule on iOS
+        // 26+ (a circle at the 40x40 slot), glass-effect subview
+        // fallback below. The user's cube artwork stays the
+        // glyph (template, tinted per appearance).
+        let btn = UIButton(type: .system)
         btn.translatesAutoresizingMaskIntoConstraints = true
         btn.accessibilityIdentifier = "structRouteButton"
-        btn.clipsToBounds = true
-        btn.backgroundColor = solidCardColor()
         btn.tintColor = structRouteTintColor()
+        if #available(iOS 26.0, *) {
+            structRouteUsesGlass = true
+            var config = UIButton.Configuration.glass()
+            config.cornerStyle = .capsule
+            config.baseForegroundColor = structRouteTintColor()
+            btn.configuration = config
+        } else {
+            structRouteUsesGlass = false
+            btn.backgroundColor = .clear
+            btn.layer.cornerRadius = 20
+            btn.clipsToBounds = true
+            let glass = makeGlassEffectView()
+            glass.translatesAutoresizingMaskIntoConstraints = false
+            glass.layer.cornerRadius = 20
+            glass.clipsToBounds = true
+            glass.isUserInteractionEnabled = false
+            btn.insertSubview(glass, at: 0)
+            NSLayoutConstraint.activate([
+                glass.leadingAnchor.constraint(equalTo: btn.leadingAnchor),
+                glass.trailingAnchor.constraint(equalTo: btn.trailingAnchor),
+                glass.topAnchor.constraint(equalTo: btn.topAnchor),
+                glass.bottomAnchor.constraint(equalTo: btn.bottomAnchor),
+            ])
+        }
         btn.addTarget(self, action: #selector(structRouteTapped), for: .touchUpInside)
         btn.isHidden = true
         view.addSubview(btn)
@@ -3512,8 +3564,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // stale rect still lands here, clamp the frame back
             // inside the view with an 8pt margin instead of letting
             // half the switch sit off-screen.
+            // 26G134: skipped while the web reports a swipe-back
+            // drag in progress (drag flag) — the switch rides with
+            // the page and legitimately travels past the edge.
             let maxX = view.bounds.width - 8
-            if fx + size.width > maxX { fx = max(8, maxX - size.width) }
+            if (dict["drag"] as? Bool) != true && fx + size.width > maxX { fx = max(8, maxX - size.width) }
             sw.frame = CGRect(x: fx,
                               y: CGFloat(y) + (CGFloat(h) - size.height) / 2,
                               width: size.width, height: size.height)
@@ -3679,9 +3734,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // 26F129 F (native backstop, same idea as placeSwitch's
             // 8pt clamp): a stale mid-transition rect must never
             // push the card/rows off the right edge.
+            // 26G134: skipped while the web reports a swipe-back
+            // drag (drag flag) — the card/rows ride with the page.
             var fx = ((r["x"] as? Double) ?? 0) + webOffset.x
             let maxX = view.bounds.width - 8
-            if fx + CGFloat(w) > maxX { fx = max(8, maxX - CGFloat(w)) }
+            if (dict["drag"] as? Bool) != true && fx + CGFloat(w) > maxX { fx = max(8, maxX - CGFloat(w)) }
             return CGRect(x: fx,
                           y: ((r["y"] as? Double) ?? 0) + webOffset.y,
                           width: w, height: h)
@@ -3836,8 +3893,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // solidCardColor(). The glass view is inserted first so
         // the content stack (added below) rides above it; the
         // card's own corner radius + clipsToBounds shape it.
+        // 26G134 (user 2026-11-27 "通透度太低"): .regular glass
+        // read as solid white over the map — switch to the
+        // clear glass (makeClearGlassEffectView, same helper the
+        // transfer card uses) so the map shows through; the
+        // bold station name + filled buttons stay legible over
+        // the blurred map.
         if #available(iOS 26.0, *) {
-            let glass = makeGlassEffectView()
+            let glass = makeClearGlassEffectView()
             glass.translatesAutoresizingMaskIntoConstraints = false
             mapCardView.addSubview(glass)
             NSLayoutConstraint.activate([
@@ -4915,6 +4978,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     func setMapJumpMode(_ on: Bool) {
         mapJumpMode = on
         refreshMapTopChrome()
+        // 26G134: jump mode also owns the tab bar's hidden state
+        // (detailHidesBar below) — settle it at toggle time
+        // instead of leaving it to the next layout/trait pass.
+        updateSideBarLayout()
     }
     func refreshMapTopChrome() {
         let backUp = subViewBackButton != nil && !subViewBackButton.isHidden
@@ -5123,7 +5190,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F133')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G134')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
@@ -5667,8 +5734,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             mapToolsPill?.backgroundColor = solidCardColor()
             mapCardView?.backgroundColor = solidCardColor()
         }
-        structRouteButton?.backgroundColor = solidCardColor()
-        structRouteButton?.tintColor = structRouteTintColor()
+        // 26G134: the 查看结构图 button is a glass circle on iOS
+        // 26+ (material self-adapts — only the glyph tint follows
+        // the appearance); the pre-26 fallback keeps its tint.
+        if structRouteUsesGlass {
+            structRouteButton?.configuration?.baseForegroundColor = structRouteTintColor()
+        } else {
+            structRouteButton?.tintColor = structRouteTintColor()
+        }
         if let st = sortTabs {
             st.backgroundColor = solidTrackColor()
             st.selectedSegmentTintColor = solidPillColor()
@@ -5730,7 +5803,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // same detailOpen frame reports that drive the transfer
         // chrome (placeTransfer / the sort-tabs placer). The
         // Duo sidebar and the iPad top capsule are untouched.
-        let detailHidesBar = routeDetailOpenNative && currentTab == "transfer" && UIDevice.current.userInterfaceIdiom == .phone
+        // 26G134: jump mode (detail → map) keeps the bar hidden
+        // too — the detail is still open underneath, and the user
+        // ruled the missing bar in jump mode is correct. Without
+        // the mapJumpMode term the bar's state was stale-true from
+        // the detail page and flipped visible on the next
+        // layout/trait pass (user: "截图之后出现底栏").
+        let detailHidesBar = routeDetailOpenNative && (currentTab == "transfer" || mapJumpMode) && UIDevice.current.userInterfaceIdiom == .phone
         tabBar.isHidden = show || splashShowing || whatsNewShowing || detailHidesBar
         sideBar.isHidden = !show || splashShowing || whatsNewShowing
         updateSideBarSelection()

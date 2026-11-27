@@ -1677,7 +1677,10 @@
 		   here. It absorbs all vertical shrinkage (flex: 1 +
 		   min-height: 0) and contains its own overscroll, so its
 		   rubber-band can never reach the panel or the page. */
-		.tr-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+		/* 26G134: padding-top so the first result card always sits
+		   clear below the action row with proper spacing (user:
+		   first card's top was sliced at the scroller edge). */
+		.tr-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-top: 8px; }
 		/* Bottom room inside the scroller (was the panel's ::after
 		   spacer in the whole-panel-scroll model): the last row can
 		   always scroll clear of the floating tab bar. */
@@ -1763,7 +1766,10 @@
 		/* 26F129 J: slot for the native 查看结构图 button at the
 		   summary card's top-right (rendered only when a route
 		   station has a structure diagram). */
-		#structBtnSlot { position: absolute; top: 10px; right: 12px; width: 36px; height: 36px; display: block; }
+		/* 26G134: 40x40 — the native button is now a circular
+		   Apple UI glass button matching the 40pt back button
+		   (user: "改成圆形apple UI SDK27.2"). */
+		#structBtnSlot { position: absolute; top: 10px; right: 12px; width: 40px; height: 40px; display: block; }
 		html.dark .trd-summary { background: #1c1c1e; }
 		.trd-summary .ropt-time { font-size: 17px; font-weight: 700; }
 		.trd-summary .ropt-time span { font-size: 13px; font-weight: 500; margin-left: 8px; color: var(--muted, #8e8e93); }
@@ -2410,7 +2416,7 @@
 						<button :class="{ on: structKind==='plan' }" @click="setStructKind('plan')">{{ t('struct.plan') }}</button>
 					</div>
 					<div class="struct-viewer" v-if="structImg">
-						<img :src="structImg" :style="structImgStyle" draggable="false" @pointerdown="structPointerDown" @pointermove="structPointerMove" @pointerup="structPointerUp" @pointercancel="structPointerUp" @wheel.prevent="structWheel">
+						<img :src="structImg" :style="structImgStyle" draggable="false" @error="onStructImgError" @pointerdown="structPointerDown" @pointermove="structPointerMove" @pointerup="structPointerUp" @pointercancel="structPointerUp" @wheel.prevent="structWheel">
 					</div>
 					<div class="struct-loading" v-else-if="structFile && structLoadState !== 'error'"><span class="struct-spin"></span>{{ t('struct.loading') }}</div>
 					<div class="struct-error" v-else-if="structFile"><div>{{ cellularBlocked ? t('map.cellularOff') : t('struct.loadFailed') }}</div><button class="struct-retry" @click="loadStructImg()">{{ t('struct.retry') }}</button></div>
@@ -2784,7 +2790,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26F133)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G134)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -3580,12 +3586,21 @@ function titlePy(py) {
 						req.onupgradeneeded = function() { try { req.result.createObjectStore('imgs'); } catch (e) {} };
 						req.onsuccess = function() { resolve(req.result); };
 						req.onerror = function() { resolve(null); };
+						// 26G134: a blocked open (another connection
+						// holding the DB) must not hang the viewer at
+						// "loading" forever — resolve null and let the
+						// fetch path run.
+						req.onblocked = function() { resolve(null); };
 					} catch (e) { resolve(null); }
 				});
 				return _structDbPromise;
 			}
 			function structIdbGet(key) {
-				return structDb().then(function(db) {
+				// 26G134: race the cache read against a 2.5 s timeout —
+				// a stalled IndexedDB must never leave the viewer
+				// spinning (or blank) forever; on timeout the fetch
+				// path runs instead.
+				var read = structDb().then(function(db) {
 					return new Promise(function(resolve) {
 						if (!db) { resolve(null); return; }
 						try {
@@ -3594,6 +3609,14 @@ function titlePy(py) {
 							rq.onerror = function() { resolve(null); };
 						} catch (e) { resolve(null); }
 					});
+				});
+				var timeout = new Promise(function(resolve) { setTimeout(function() { resolve(null); }, 2500); });
+				return Promise.race([read, timeout]);
+			}
+			function structIdbDelete(key) {
+				structDb().then(function(db) {
+					if (!db) return;
+					try { db.transaction('imgs', 'readwrite').objectStore('imgs').delete(key); } catch (e) {}
 				});
 			}
 			function structIdbPut(key, val) {
@@ -4348,6 +4371,15 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26G134)', date: '2026-11-27', lines: [
+								['设置子页右滑返回时，页面上的原生按钮、搜索框和开关跟着页面一起滑动，不再留在原地', '設定子頁右滑返回時，頁面上的原生按鈕、搜尋框和開關跟著頁面一起滑動，不再留在原地', 'During swipe-back on Settings sub-pages, the native buttons, search field and switches on the page now slide along with it instead of staying behind'],
+								['修复短页面（如车型检索）右滑时页面下方露出设置首页的问题，滑动时页面完整覆盖', '修復短頁面（如車型檢索）右滑時頁面下方露出設定首頁的問題，滑動時頁面完整覆蓋', 'Fixed short sub-pages (such as Train Models) revealing the Settings home below them while swiping — the page now covers the full height during the drag'],
+								['地图点站卡片和右上角按钮组改得更通透，地图能透出来', '地圖點站卡片和右上角按鈕組改得更通透，地圖能透出來', 'The map station card and the top-right button group are more translucent now, so the map shows through'],
+								['修复路线详情里选完车站后结构图打不开的问题：结构图能正常打开，加载失败时会提示重试', '修復路線詳情裏選完車站後結構圖打不開的問題：結構圖能正常打開，載入失敗時會提示重試', 'Fixed station structure diagrams not opening from route detail — they open properly now, and a failed load offers a retry instead of a blank page'],
+								['路线详情右上角的查看结构图按钮改成圆形系统按钮', '路線詳情右上角的查看結構圖按鈕改成圓形系統按鈕', 'The structure-diagram button on route detail is now a round system button'],
+								['修复换乘页第一条路线顶部被切掉的问题', '修復換乘頁第一條路線頂部被切掉的問題', 'Fixed the top of the first route result being clipped on the transfer page'],
+								['修复从路线详情跳到地图后退出按钮不出现、底部栏乱出现的问题', '修復從路線詳情跳到地圖後退出按鈕不出現、底部欄亂出現的問題', 'Fixed the missing exit button (and the tab bar reappearing) after jumping from route detail to the map']
+							] },
 							{ v: '1.1.0 (26F133)', date: '2026-11-27', lines: [
 								['设置子页右滑返回改成跟手滑动：页面跟着手指走，松手后滑出或回弹，不再卡住', '設定子頁右滑返回改成跟手滑動：頁面跟著手指走，鬆手後滑出或回彈，不再卡住', 'Swipe-back on Settings sub-pages now tracks your finger: the page follows the drag and slides out or settles back on release instead of getting stuck'],
 								['修复关闭设置子页时页面跳一下的问题', '修復關閉設定子頁時頁面跳一下的問題', 'Fixed the page jumping when a Settings sub-page closes'],
@@ -5088,6 +5120,12 @@ function titlePy(py) {
 						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
 						// 26F128: hide once the slot's bottom edge slides under the floating tab bar (bar clearance posted by native) — the native button + 已下载 label must scroll away with the card, never float over the bar.
 						if (!w || y + hh < 0 || y + hh > window.innerHeight - (window._metroBarClearance || 110)) { h.postMessage({ x: 0, y: 0, width: 0, height: 0 }); return; }
+						// 26G134: during a swipe-back drag the layout
+						// position above is transform-independent, so
+						// add the drag's current translateX — the
+						// native button rides with the page instead
+						// of staying at its pre-drag spot.
+						x += (this._edgeDragDx || 0);
 						h.postMessage({ x: x, y: y, width: w, height: hh });
 					},
 					// Native per-city download buttons (26E127 fix 4):
@@ -5115,7 +5153,9 @@ function titlePy(py) {
 							var state = (self.mapState[key] === 'ready') ? 'delete' : ((self.mapState[key] === 'loading') ? 'loading' : ((self.mapState[key] === 'error') ? 'error' : 'download'));
 							// 26F128: a row whose bottom edge has scrolled under the floating tab bar hides its native capsule (bar clearance posted by native) — capsules must never float over the tab bar.
 							if (!w || y + hh < 0 || y + hh > window.innerHeight - (window._metroBarClearance || 110)) { out.push({ key: key, x: 0, y: 0, width: 0, height: 0, state: state }); continue; }
-							out.push({ key: key, x: x, y: y, width: w, height: hh, state: state });
+							// 26G134: ride with the swipe-back drag (see
+							// reportMapsDownloadFrame).
+							out.push({ key: key, x: x + (self._edgeDragDx || 0), y: y, width: w, height: hh, state: state });
 						}
 						h.postMessage({ cities: out });
 					},
@@ -5520,6 +5560,22 @@ function titlePy(py) {
 						if (this.structCache[e[this.structKind]]) { this.structLoadState = 'ready'; return; }
 						this.loadStructImg();
 					},
+					// 26G134: a cached/fetched data URI that fails to
+					// decode as an image used to render as a silent
+					// blank viewer (structImg truthy, so no loading /
+					// error / pending branch ever showed — the user's
+					// "选完没图，空白什么都没有"). Evict the bad entry
+					// from memory + IndexedDB and land on the explicit
+					// error state so the retry button re-fetches.
+					onStructImgError() {
+						var f = this.structFile;
+						if (!f || this.structLoadState !== 'ready') return;
+						var c = Object.assign({}, this.structCache);
+						delete c[f];
+						this.structCache = c;
+						structIdbDelete(f);
+						this.structLoadState = 'error';
+					},
 					loadStructImg() {
 						var e = this.structSetEntry;
 						if (!e) return;
@@ -5565,7 +5621,18 @@ function titlePy(py) {
 									}).then(function(txt) {
 										var b64 = (txt || '').replace(/\s+/g, '');
 										if (!b64) { done(null); return; }
-										var mime = f.toLowerCase().slice(-4) === '.png' ? 'image/png' : 'image/jpeg';
+										// 26G134: never cache a body that is not
+										// really an image (a truncated download or
+										// an HTML error page served with 200 would
+										// poison IndexedDB and render as a silent
+										// blank forever). Check the magic bytes:
+										// JPEG starts FF D8, PNG starts 89 50 4E 47.
+										var head = '';
+										try { head = atob(b64.slice(0, 12)); } catch (e) { head = ''; }
+										var isJpeg = head.length >= 2 && head.charCodeAt(0) === 0xFF && head.charCodeAt(1) === 0xD8;
+										var isPng = head.length >= 4 && head.charCodeAt(0) === 0x89 && head.charCodeAt(1) === 0x50 && head.charCodeAt(2) === 0x4E && head.charCodeAt(3) === 0x47;
+										if (!isJpeg && !isPng) throw new Error('not an image');
+										var mime = isPng ? 'image/png' : 'image/jpeg';
 										var dataUri = 'data:' + mime + ';base64,' + b64;
 										structIdbPut(f, dataUri);
 										done(dataUri);
@@ -5622,7 +5689,14 @@ function titlePy(py) {
 						// hidden in the native app, pure placeholder.
 						var back = document.querySelector('#structurePanel .tt-back');
 						var r3 = back ? back.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
+						// 26G134: the real frame post MUST carry panel:true —
+						// it was missing, so the native gate (active =
+						// dict["panel"]) read false and hid ALL structure
+						// chrome (seg / exit / search) in the detail view:
+						// the user picked a station and landed on a panel
+						// with no buttons at all ("按钮都消失了").
 						h.postMessage({
+							panel: true,
 							seg: { x: r1.left, y: r1.top, width: r1.width, height: r1.height },
 							actions: { x: r2.left, y: r2.top, width: r2.width, height: r2.height },
 							exit: { x: r3.left, y: r3.top, width: r3.width, height: r3.height },
@@ -5999,6 +6073,8 @@ function titlePy(py) {
 								if (el.style.top) el.style.top = '';
 								if (el.style.left) el.style.left = '';
 								if (el.style.width) el.style.width = '';
+								if (el.style.height) el.style.height = '';
+								if (el.style.overflow) el.style.overflow = '';
 								if (el.style.background) el.style.background = '';
 								if (el.style.boxShadow) el.style.boxShadow = '';
 							}
@@ -6012,6 +6088,10 @@ function titlePy(py) {
 								this._edgeRevealedMain = false;
 							}
 						} catch (e) {}
+						// 26G134: no drag in flight -> the drag offset
+						// must be 0, or the re-reports below would
+						// strand native controls offset.
+						if (!this._edgeBusyEl) this._edgeDragDx = 0;
 						try {
 							this.reportProfileFrame(); this.reportThemeFrame();
 							this.reportSwitchFrame(); this.reportCellularFrame();
@@ -8669,7 +8749,13 @@ function titlePy(py) {
 						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
 						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
 						if (!w || y + hh < 0 || y > window.innerHeight) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
-						h.postMessage({ id: 'nearbySmart', x: x, y: y, width: w, height: hh, on: this.nearbySmart });
+						// 26G134: ride with the swipe-back drag; the
+						// drag flag tells native to skip its
+						// right-edge clamp while the page is being
+						// dragged (the switch legitimately travels
+						// toward/past the edge with the page).
+						var _dx = this._edgeDragDx || 0;
+						h.postMessage({ id: 'nearbySmart', x: x + _dx, y: y, width: w, height: hh, on: this.nearbySmart, drag: _dx > 0 });
 					},
 					// 26F129 C: the 通用 sub-page's cellular switch gets
 					// the same native-UISwitch overlay treatment as
@@ -8685,7 +8771,10 @@ function titlePy(py) {
 						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
 						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
 						if (!w || y + hh < 0 || y > window.innerHeight) { h.postMessage({ id: 'cellular', x: 0, y: 0, width: 0, height: 0, on: this.allowCellular }); return; }
-						h.postMessage({ id: 'cellular', x: x, y: y, width: w, height: hh, on: this.allowCellular });
+						// 26G134: ride with the swipe-back drag (see
+						// reportSwitchFrame).
+						var _dx = this._edgeDragDx || 0;
+						h.postMessage({ id: 'cellular', x: x + _dx, y: y, width: w, height: hh, on: this.allowCellular, drag: _dx > 0 });
 					},
 					// 26F130 (fold-in 8): native search fields for the
 					// 搜索 / 时刻表 tabs. Same layout-position bridge as
@@ -8712,6 +8801,11 @@ function titlePy(py) {
 						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
 						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
 						if (!w || !hh || y + hh < 0 || y > window.innerHeight) { h.postMessage({ id: id, x: 0, y: 0, width: 0, height: 0, text: text || '', placeholder: placeholder || '' }); return; }
+						// 26G134: the 车型检索 field sits on a Settings
+						// sub-page — ride with the swipe-back drag
+						// (the other two fields are on tabs that
+						// never drag).
+						if (id === 'trains') x += (this._edgeDragDx || 0);
 						h.postMessage({ id: id, x: x, y: y, width: w, height: hh, text: text || '', placeholder: placeholder || '' });
 					},
 					// Called by the native search field on every edit;
@@ -9429,6 +9523,11 @@ function titlePy(py) {
 					reportProfileFrame() {
 						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.profileFrame;
 						if (!h) return;
+						// 26G134: ride with the swipe-back drag (see
+						// reportMapsDownloadFrame); the drag flag
+						// tells native to skip its right-edge clamp
+						// while dragging.
+						var _dx = this._edgeDragDx || 0;
 						function rect(sel) {
 							var el = document.querySelector(sel);
 							if (!el) return { x: 0, y: 0, width: 0, height: 0 };
@@ -9445,9 +9544,11 @@ function titlePy(py) {
 							while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
 							n = el.parentNode;
 							while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
-							return { x: x, y: y, width: el.offsetWidth || 0, height: el.offsetHeight || 0 };
+							var w = el.offsetWidth || 0;
+							return { x: w ? x + _dx : x, y: y, width: w, height: el.offsetHeight || 0 };
 						}
 						var msg = {
+							drag: _dx > 0,
 							card: rect('.pf-card-info'),
 							save: rect('.pf-card-save'),
 							redeem: rect('.pf-card-redeem'),
@@ -9512,7 +9613,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26F133') return;
+						if (seen === '26G134') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -9756,6 +9857,11 @@ function titlePy(py) {
 						}
 						this.routeList = list;
 						this.routeResult = list[0];
+						// 26G134: a fresh search starts the results at
+						// the top — a stale scroll offset (keyboard-era
+						// scrolling / content swap) left the first card
+						// sliced at the scroller's top edge on device.
+						this.$nextTick(function() { var sc = document.querySelector('.tr-scroll'); if (sc) sc.scrollTop = 0; });
 						if (this.arriveTarget && this.applyArriveTarget()) { this.doSearch(); return; }
 						if (this.pendingCond && this.applyFirstLast()) { this.doSearch(); return; }
 					},
@@ -11105,6 +11211,10 @@ function titlePy(py) {
 					var _edgeX = null, _edgeY = null;
 					var _edgeEl = null, _edgeEngaged = false, _edgeDone = false;
 					var _edgeDx = 0, _edgeDy = 0, _edgeTok = 0, _edgeSavedScroll = 0;
+					// 26G134: current drag translateX, read by the
+					// frame reporters so native controls on the
+					// dragged page move with it. 0 at rest.
+					self._edgeDragDx = 0;
 					function edgeSheet() { return document.getElementById('moreSheet'); }
 					function edgeVisibleSub() {
 						var subs = document.querySelectorAll('#moreSheet .more-sub');
@@ -11116,14 +11226,54 @@ function titlePy(py) {
 					function edgeClearInline(el) {
 						el.style.transform = ''; el.style.transition = '';
 						el.style.position = ''; el.style.top = ''; el.style.left = ''; el.style.width = '';
+						el.style.height = ''; el.style.overflow = '';
 						el.style.background = ''; el.style.boxShadow = '';
+					}
+					// 26G134: re-report every native control that sits
+					// on a Settings sub-page, so the frame reporters
+					// (which add self._edgeDragDx to x) move the
+					// native pieces with the dragged page. Called on
+					// every tracked touchmove, on each rAF tick of
+					// the release animation, and once with dx = 0
+					// when the page settles (restoring the exact
+					// pre-drag frames) or closes (zero frames hide).
+					function edgeReportDragFrames() {
+						try {
+							self.reportMapsDownloadFrame();
+							self.reportCityDownloadFrames();
+							self.reportSearchFieldFrames();
+							self.reportSwitchFrame();
+							self.reportCellularFrame();
+							self.reportProfileFrame();
+						} catch (e) {}
+					}
+					// 26G134: during the .25s settle/complete slide,
+					// follow the element's computed transform each
+					// frame so the native controls track the
+					// animation exactly (same source of truth).
+					// Stops when the finisher clears _edgeBusyEl or
+					// a newer gesture bumps the token.
+					function edgeFollowAnim(el, tok) {
+						function step() {
+							if (_edgeTok !== tok || self._edgeBusyEl !== el) return;
+							var m = window.getComputedStyle(el).transform;
+							var tx = 0;
+							if (m && m !== 'none') {
+								var mm = m.match(/matrix\(([^)]+)\)/);
+								if (mm) tx = parseFloat(mm[1].split(',')[4]) || 0;
+							}
+							self._edgeDragDx = Math.max(0, tx);
+							edgeReportDragFrames();
+							window.requestAnimationFrame(step);
+						}
+						window.requestAnimationFrame(step);
 					}
 					function edgeEngage() {
 						var el = _edgeEl, sheet = edgeSheet();
 						if (!el || !sheet) return;
 						_edgeEngaged = true;
 						if (!self._edgeRevealedMain) _edgeSavedScroll = sheet.scrollTop;
-						var top = el.offsetTop, left = el.offsetLeft, w = el.offsetWidth;
+						var top = el.offsetTop, left = el.offsetLeft, w = el.offsetWidth, h0 = el.offsetHeight;
 						// .more-sub-static (About/Profile) carries a
 						// negative margin-top; absolute `top` anchors
 						// the margin edge, so compensate to land the
@@ -11132,6 +11282,19 @@ function titlePy(py) {
 						var _mt = parseFloat(_cs.marginTop) || 0, _ml = parseFloat(_cs.marginLeft) || 0;
 						el.style.position = 'absolute';
 						el.style.top = (top - _mt) + 'px'; el.style.left = (left - _ml) + 'px'; el.style.width = w + 'px';
+						// 26G134: the frozen overlay must cover the
+						// whole visible page — content height alone
+						// left the Settings home showing below short
+						// sub-pages （车型检索 ended at ~40% height).
+						// Stretch from the element's top to at least
+						// the sheet's visible bottom edge (never
+						// shrink below the in-flow height), and pin
+						// overflow hidden so the opaque background
+						// paints the full box even on the internally
+						// scrolling profile page.
+						var _coverH = sheet.scrollTop + sheet.clientHeight - top;
+						el.style.height = Math.max(h0, _coverH) + 'px';
+						el.style.overflow = 'hidden';
 						el.style.background = document.documentElement.classList.contains('dark') ? '#000000' : '#f2f2f7';
 						el.style.boxShadow = '-12px 0 24px rgba(0,0,0,0.18)';
 						el.style.transition = 'none';
@@ -11144,6 +11307,7 @@ function titlePy(py) {
 						if (!el) return;
 						el.style.transition = 'transform .25s ease-out';
 						el.style.transform = 'translateX(0px)';
+						edgeFollowAnim(el, tok);
 						setTimeout(function() {
 							if (_edgeTok !== tok) return;
 							var sheet = edgeSheet();
@@ -11153,6 +11317,10 @@ function titlePy(py) {
 							edgeClearInline(el);
 							if (sheet) sheet.scrollTop = _edgeSavedScroll;
 							self._edgeBusyEl = null;
+							// 26G134: settled — native controls back
+							// to their exact pre-drag frames.
+							self._edgeDragDx = 0;
+							edgeReportDragFrames();
 							self.scheduleSubSettle();
 						}, 260);
 					}
@@ -11162,6 +11330,7 @@ function titlePy(py) {
 						if (!el || !sheet) { self.goBack(); return; }
 						el.style.transition = 'transform .25s ease-out';
 						el.style.transform = 'translateX(' + sheet.clientWidth + 'px)';
+						edgeFollowAnim(el, tok);
 						setTimeout(function() {
 							if (_edgeTok !== tok) return;
 							el.style.display = 'none';
@@ -11169,6 +11338,10 @@ function titlePy(py) {
 							self._edgeRevealedMain = false;
 							self._edgeBusyEl = null;
 							self.goBack();
+							// 26G134: page closed — zero-frame reports
+							// hide the native controls.
+							self._edgeDragDx = 0;
+							edgeReportDragFrames();
 							self.scheduleSubSettle();
 						}, 260);
 					}
@@ -11212,6 +11385,10 @@ function titlePy(py) {
 								if (_sh) _sh.scrollTop = _edgeSavedScroll;
 								self._edgeRevealedMain = false;
 							}
+							// 26G134: force-finished drag — native
+							// controls back to their resting frames.
+							self._edgeDragDx = 0;
+							edgeReportDragFrames();
 						}
 						_edgeDone = false; _edgeEngaged = false; _edgeDx = 0; _edgeDy = 0;
 						if (t && t.clientX <= 24 && self.anySubViewOpen && !structZoomed) {
@@ -11230,7 +11407,12 @@ function titlePy(py) {
 							if (dx > 8 && dx > Math.abs(dy)) edgeEngage(); else return;
 						}
 						if (e.cancelable) e.preventDefault();
-						_edgeEl.style.transform = 'translateX(' + Math.max(0, dx) + 'px)';
+						var _tx = Math.max(0, dx);
+						_edgeEl.style.transform = 'translateX(' + _tx + 'px)';
+						// 26G134: native controls on the page ride
+						// along (reporters add this offset to x).
+						self._edgeDragDx = _tx;
+						edgeReportDragFrames();
 					}, { passive: false });
 					document.addEventListener('touchend', function(e) {
 						// 26F132: any gesture ending over an open sub-page
