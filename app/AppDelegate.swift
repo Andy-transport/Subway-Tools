@@ -2239,6 +2239,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         ])
         updateCityPill()
         updateSearchPill()
+        // 26G136: style the exit button too — this call was
+        // missing since 26F132, so the button stayed a bare
+        // content-less system button and rendered invisibly
+        // even when unhidden (the device readout of
+        // 2026-11-28 showed show=true / btnHid=false with
+        // nothing on screen).
+        updateMapExitButton()
         updatePillVisibility()
     }
 
@@ -3051,6 +3058,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         backButton.setTitleColor(accentDark(), for: .normal)
         updateCityPill()
         updateSearchPill()
+        updateMapExitButton() // 26G136: keep the exit button's tint on the city accent
         updateSideBarSelection()
         clearTransferFields()
         updateTransferTint()
@@ -5101,7 +5109,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let show = routeDetailOpenNative && currentTab == "map" && !splashShowing && !whatsNewShowing
         if let btn = mapExitButton {
             btn.isHidden = !show
-            if show { view.bringSubviewToFront(btn) }
+            if show {
+                // 26G136: re-apply the button's content at show
+                // time. The 26F132–26G135 button never rendered
+                // because updateMapExitButton() had no call
+                // sites at all — a bare UIButton(type:.system)
+                // with no image/configuration draws nothing.
+                // Styling here makes the show path self-healing
+                // even if some other path ever clears it.
+                updateMapExitButton()
+                view.bringSubviewToFront(btn)
+            }
         }
         updateCityPillLeading()
         updateDiag26G135(backUp: backUp, show: show)
@@ -5112,7 +5130,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     //
     // Small fixed readout on the map tab only, so a device
     // screenshot shows the exact native state behind the
-    // exit button. One-place removal: delete this block, the
+    // exit button. Extended in 26G136 with the button's
+    // frame/alpha/z-order/image state after the 26G135
+    // screenshot showed correct logic but no rendering.
+    // One-place removal: delete this block, the
     // updateDiag26G135 call in refreshMapTopChrome, and the
     // timer start next to the mapExitButton setup.
     let diag26G135Enabled = true
@@ -5126,7 +5147,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             l.font = .monospacedSystemFont(ofSize: 10, weight: .regular)
             l.textColor = .systemYellow
             l.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-            l.numberOfLines = 2
+            l.numberOfLines = 3 // 26G136: readout extended with button frame/alpha/z/img
             l.isUserInteractionEnabled = false
             l.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(l)
@@ -5143,7 +5164,23 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             let b = backUp ?? (subViewBackButton != nil && !subViewBackButton.isHidden)
             let s = show ?? !(mapExitButton?.isHidden ?? true)
             let lead = cityPillLeadingConstraint?.constant ?? -1
-            l.text = "DIAG-26G135 jump=\(mapJumpMode) detail=\(routeDetailOpenNative) tab=\(currentTab) back=\(b) show=\(s) pill=\(lead) btnHid=\(mapExitButton?.isHidden ?? true)"
+            // 26G136 extension: the 26G135 screenshot proved the
+            // logic was right (show=true, pill shifted) yet no
+            // ✕ rendered — the button had never been styled
+            // (updateMapExitButton had no call sites). These
+            // fields pin the rendering side: frame, alpha,
+            // z-order in the superview, superview identity,
+            // and whether any image content is set at all.
+            var btnInfo = "btn=nil"
+            if let btn = mapExitButton {
+                let f = btn.frame
+                let sup = btn.superview
+                let zIdx = sup?.subviews.firstIndex(of: btn) ?? -1
+                let zTot = sup?.subviews.count ?? -1
+                let hasImg = btn.configuration?.image != nil || btn.image(for: .normal) != nil
+                btnInfo = "f=\(Int(f.origin.x)),\(Int(f.origin.y)),\(Int(f.size.width)),\(Int(f.size.height)) a=\(btn.alpha) z=\(zIdx)/\(zTot) sup=\(sup === view ? "view" : (sup == nil ? "nil" : "other")) img=\(hasImg ? 1 : 0)"
+            }
+            l.text = "DIAG-26G135 jump=\(mapJumpMode) detail=\(routeDetailOpenNative) tab=\(currentTab) back=\(b) show=\(s) pill=\(lead) btnHid=\(mapExitButton?.isHidden ?? true) \(btnInfo)"
             view.bringSubviewToFront(l)
         }
     }
@@ -5345,7 +5382,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G135')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G136')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()

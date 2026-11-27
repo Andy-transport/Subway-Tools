@@ -2812,7 +2812,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G135)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G136)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -4393,6 +4393,11 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26G136)', date: '2026-11-28', lines: [
+								['修复从路线详情跳到地图后左上角退出按钮还是不出现的问题：按钮现在能正常显示出来（地图顶部临时诊断信息再留一版，确认修复后去掉）', '修復從路線詳情跳到地圖後左上角退出按鈕還是不出現的問題：按鈕現在能正常顯示出來（地圖頂部臨時診斷資訊再留一版，確認修復後去掉）', 'Fixed the top-left exit button still not appearing after jumping from route detail to the map — the button now renders properly (the temporary diagnostic readout at the top of the map stays one more build and will be removed once the fix is confirmed)'],
+								['再次修复设置子页右滑返回时按钮拖影残留的问题：页面和按钮现在同一帧同步移动，不再错位拖影', '再次修復設定子頁右滑返回時按鈕拖影殘留的問題：頁面和按鈕現在同一幀同步移動，不再錯位拖影', 'Fixed the button trailing ghost during swipe-back on Settings sub-pages again — the page and its buttons now move in the same frame, with no offset trailing'],
+								['修复在切换城市点下载后页面错位、下载按钮消失的问题', '修復在切換城市點下載後頁面錯位、下載按鈕消失的問題', 'Fixed the Switch City page sitting offset with its download buttons gone after tapping Download']
+							] },
 							{ v: '1.1.0 (26G135)', date: '2026-11-27', lines: [
 								['修复设置子页右滑返回时「下载全部线路图」按钮拖影残留的问题，按钮跟手更干净', '修復設定子頁右滑返回時「下載全部線路圖」按鈕拖影殘留的問題，按鈕跟手更乾淨', 'Fixed the Download All Line Maps button leaving a trailing ghost during swipe-back on Settings sub-pages — it now tracks the drag cleanly'],
 								['切换城市里北京配线图/线路图的选中标记改成绿色圆点，和当前城市的标记一致', '切換城市裡北京配線圖/線路圖的選中標記改成綠色圓點，和當前城市的標記一致', 'The selected Beijing map type in Switch City is now marked with a green dot, matching the current-city mark'],
@@ -4825,11 +4830,17 @@ function titlePy(py) {
 						// arrives (or the row retries on failure).
 						if (this.mapState[key] !== 'ready') {
 							this.bjMapExpanded = false;
+							// 26G136: close on a clean element (see
+							// goBack) — a drag still engaged when
+							// the pill tap lands must not leave its
+							// inline transform under the Vue leave.
+							if (this._edgeForceFinish) { try { this._edgeForceFinish(); } catch (e) {} }
 							this.showCitySub = false;
 							this.downloadCityMap(key);
 							return;
 						}
 						this.bjMapExpanded = false;
+						if (this._edgeForceFinish) { try { this._edgeForceFinish(); } catch (e) {} }
 						// 26E126: hide the sub-page BEFORE switching
 						// city — the old order switched first, so the
 						// close watcher saw tab !== 'more' and skipped
@@ -5899,6 +5910,15 @@ function titlePy(py) {
 						// (subViewBackButton) calls goBack(), so close
 						// the detail first.
 						if (this.routeDetailOpen) { this.closeRouteDetail(); return true; }
+						// 26G136: never start a sub-page close on an
+						// element still carrying drag inline styles
+						// (frozen overlay transform/transition) —
+						// force-finish any in-flight drag first so
+						// the Vue leave runs on a clean element.
+						// No-op when no drag is engaged (incl. the
+						// edgeComplete finisher, which clears the
+						// busy flag before calling goBack).
+						if (this._edgeForceFinish) { try { this._edgeForceFinish(); } catch (e) {} }
 						try {
 							if (this.showCitySub) { this.bjMapExpanded = false; this.showCitySub = false; return true; }
 							if (this.showLangSub) { this.showLangSub = false; return true; }
@@ -6077,8 +6097,21 @@ function titlePy(py) {
 						// this well past the 260ms release
 						// animation, so a healthy drag is never
 						// cut short.
-						if (this._edgeBusyEl && !this._edgeTouchDown && this._edgeForceFinish) {
+						// 26G136 (user 2026-11-28: tapping a city's
+						// 下载 pill left the Switch City page stuck
+						// offset right with every native control
+						// gone — the close flipped showCitySub
+						// while drag state was still live, and the
+						// busy-element skip + a stuck _edgeTouchDown
+						// could keep the sweep from ever recovering
+						// it): when NO sub-page is open there is no
+						// legitimate drag to protect, so force-
+						// finish regardless of _edgeTouchDown and
+						// reset the flag — a missed touchend can
+						// then never strand the page.
+						if (this._edgeBusyEl && this._edgeForceFinish && (!this._edgeTouchDown || !this.anySubViewOpen)) {
 							try { this._edgeForceFinish(); } catch (e) {}
+							if (!this.anySubViewOpen) this._edgeTouchDown = false;
 						}
 						try {
 							// 26F132: a horizontal scroll residue on the
@@ -9655,7 +9688,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26G135') return;
+						if (seen === '26G136') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -11029,7 +11062,12 @@ function titlePy(py) {
 					// opening a station never trips this).
 					ttQuery() { if (this.ttStation) this.ttStation = null; },
 					showProfileSub(open) { if (open) this.resetProfileFit(); },
-					anySubViewOpen(open) { this._subToggleAt = Date.now(); this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (!open && !window._metroIsPad) { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); this.scheduleSubSettle(); },
+					// 26G136: closing the last sub-page also clears
+					// _edgeTouchDown — with nothing open there is no
+					// drag to protect, and a stuck-true flag (missed
+					// touchend) must never block the settle sweep's
+					// force-finish (Switch City download-tap offset).
+					anySubViewOpen(open) { this._subToggleAt = Date.now(); this.notifySubView(open); this.clearPressing(); this.fixPadSheetScroll(open); if (!open) this._edgeTouchDown = false; if (!open && !window._metroIsPad) { var _ms = document.getElementById('moreSheet'); if (_ms) _ms.scrollTop = 0; } if (!open) this.resetHomeFit(); this.scheduleSubSettle(); },
 					mapCard() { this.reportMapCard(); },
 					structStation() { this.ensureStructImg(); },
 					structKind() { this.ensureStructImg(); },
@@ -11338,12 +11376,27 @@ function titlePy(py) {
 					// intermediate posts. The settle/finisher
 					// one-shots keep calling edgeReportDragFrames
 					// directly (exact final frames, no coalescing).
+					// 26G136 (user 2026-11-28 "按钮还有残影" on
+					// 26G135): coalescing alone still left the
+					// page transform applied synchronously in
+					// touchmove while the button frames posted a
+					// rAF + bridge hop later — a persistent
+					// one-frame skew, the button swimming against
+					// its card. Now the SAME rAF applies the page
+					// transform AND posts the frames, so page and
+					// native controls update in one task per
+					// display frame (touchmove only records the
+					// latest dx). The release slide below is
+					// driven the same way (edgeAnimateTo).
 					var _edgeReportQueued = false;
 					function edgeReportDragFramesSoon() {
 						if (_edgeReportQueued) return;
 						_edgeReportQueued = true;
 						window.requestAnimationFrame(function() {
 							_edgeReportQueued = false;
+							if (_edgeEngaged && _edgeEl && !_edgeDone && self._edgeBusyEl === _edgeEl) {
+								_edgeEl.style.transform = 'translateX(' + (self._edgeDragDx || 0) + 'px)';
+							}
 							edgeReportDragFrames();
 						});
 					}
@@ -11377,26 +11430,38 @@ function titlePy(py) {
 						self._edgeDragDx = 0;
 						edgeReportDragFrames();
 					};
-					// 26G134: during the .25s settle/complete slide,
-					// follow the element's computed transform each
-					// frame so the native controls track the
-					// animation exactly (same source of truth).
-					// Stops when the finisher clears _edgeBusyEl or
-					// a newer gesture bumps the token.
-					function edgeFollowAnim(el, tok) {
-						function step() {
-							if (_edgeTok !== tok || self._edgeBusyEl !== el) return;
-							var m = window.getComputedStyle(el).transform;
-							var tx = 0;
-							if (m && m !== 'none') {
-								var mm = m.match(/matrix\(([^)]+)\)/);
-								if (mm) tx = parseFloat(mm[1].split(',')[4]) || 0;
-							}
-							self._edgeDragDx = Math.max(0, tx);
+					// 26G136: the release slide is JS-driven (was:
+					// CSS transition + edgeFollowAnim reading the
+					// computed transform back). Each rAF frame
+					// interpolates _edgeDragDx, applies the page
+					// transform and posts the native frames in
+					// the same task — page and controls in
+					// lockstep through the settle/complete slide
+					// too, not just the finger drag. A setTimeout
+					// fallback runs the finisher if rAF stalls
+					// (backgrounded app); the token + run-once
+					// guard keep exactly one finisher execution.
+					function edgeAnimateTo(el, targetDx, tok, finisher) {
+						var fromDx = self._edgeDragDx || 0;
+						var startAt = null, finished = false;
+						function finish() {
+							if (finished || _edgeTok !== tok) return;
+							finished = true;
+							finisher();
+						}
+						function step(ts) {
+							if (finished || _edgeTok !== tok || self._edgeBusyEl !== el) return;
+							if (startAt === null) startAt = ts;
+							var p = Math.min(1, (ts - startAt) / 250);
+							var eased = 1 - Math.pow(1 - p, 3);
+							self._edgeDragDx = Math.max(0, fromDx + (targetDx - fromDx) * eased);
+							el.style.transform = 'translateX(' + self._edgeDragDx + 'px)';
 							edgeReportDragFrames();
-							window.requestAnimationFrame(step);
+							if (p < 1) window.requestAnimationFrame(step);
+							else finish();
 						}
 						window.requestAnimationFrame(step);
+						setTimeout(finish, 320);
 					}
 					function edgeEngage() {
 						var el = _edgeEl, sheet = edgeSheet();
@@ -11435,11 +11500,11 @@ function titlePy(py) {
 					function edgeSettleBack() {
 						var el = _edgeEl, tok = ++_edgeTok;
 						if (!el) return;
-						el.style.transition = 'transform .25s ease-out';
-						el.style.transform = 'translateX(0px)';
-						edgeFollowAnim(el, tok);
-						setTimeout(function() {
-							if (_edgeTok !== tok) return;
+						// 26G136: JS-driven slide (edgeAnimateTo)
+						// instead of a CSS transition, so the page
+						// transform and the native frame posts
+						// land in the same rAF task.
+						edgeAnimateTo(el, 0, tok, function() {
 							var sheet = edgeSheet();
 							var mm = sheet ? sheet.querySelector('.more-main') : null;
 							if (mm && self.anySubViewOpen) mm.style.display = 'none';
@@ -11452,17 +11517,13 @@ function titlePy(py) {
 							self._edgeDragDx = 0;
 							edgeReportDragFrames();
 							self.scheduleSubSettle();
-						}, 260);
+						});
 					}
 					function edgeComplete() {
 						var el = _edgeEl, tok = ++_edgeTok;
 						var sheet = edgeSheet();
 						if (!el || !sheet) { self.goBack(); return; }
-						el.style.transition = 'transform .25s ease-out';
-						el.style.transform = 'translateX(' + sheet.clientWidth + 'px)';
-						edgeFollowAnim(el, tok);
-						setTimeout(function() {
-							if (_edgeTok !== tok) return;
+						edgeAnimateTo(el, sheet.clientWidth, tok, function() {
 							el.style.display = 'none';
 							edgeClearInline(el);
 							self._edgeRevealedMain = false;
@@ -11473,7 +11534,7 @@ function titlePy(py) {
 							self._edgeDragDx = 0;
 							edgeReportDragFrames();
 							self.scheduleSubSettle();
-						}, 260);
+						});
 					}
 					function edgeDecide(dx, dy) {
 						if (_edgeDone) return;
@@ -11539,12 +11600,16 @@ function titlePy(py) {
 						}
 						if (e.cancelable) e.preventDefault();
 						var _tx = Math.max(0, dx);
-						_edgeEl.style.transform = 'translateX(' + _tx + 'px)';
 						// 26G134: native controls on the page ride
 						// along (reporters add this offset to x).
 						// 26G135: coalesced through rAF (see
 						// edgeReportDragFramesSoon) so the bridge
 						// is posted at most once per display frame.
+						// 26G136: touchmove only RECORDS the dx —
+						// the rAF applies the page transform and
+						// posts the frames together (lockstep),
+						// so the native buttons no longer trail
+						// the page by a frame.
 						self._edgeDragDx = _tx;
 						edgeReportDragFramesSoon();
 					}, { passive: false });
