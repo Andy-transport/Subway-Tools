@@ -396,7 +396,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // promoted to release 1.0.0 as build A26107, so on this branch
         // the A261 train passes the gate too — the structure panel
         // keeps its native chrome in the promoted release build.
-        return v.hasPrefix("26E") || v.hasPrefix("A261")
+        // 26G137: the test train letter moved E->F (26F128) and
+        // F->G (26G134) without this gate following — placeStructChrome
+        // computed active=false on every 26F/26G build, so the
+        // structure viewer's native chrome (seg / search / exit)
+        // never showed (the 26G134 panel:true fix could not cure it
+        // while this gate stayed shut). Every 26<letter> train on
+        // this branch is a test build; match the whole family.
+        return v.hasPrefix("26") || v.hasPrefix("A261")
     }
     var tabKeys: [String] {
         ["transfer", "map", "stations", "timetable", "more"]
@@ -2028,6 +2035,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                     picker.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
                 ])
                 self.appearanceView = picker
+                // 26G137: same stray-switch guard as the language
+                // picker — hide both Settings switches while up.
+                self.hideNearbySmartSwitch()
+                self.hideCellularSwitch()
                 // The native back button must stay on top of the picker
                 // (the picker covers the web view, tab bar and pills).
                 // Reset its position first: a frame-synced position left
@@ -2102,6 +2113,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                     picker.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
                 ])
                 self.languageView = picker
+                // 26G137: never leave a Settings switch floating
+                // over the picker (placeOneSwitch also refuses to
+                // re-show while a picker is up).
+                self.hideNearbySmartSwitch()
+                self.hideCellularSwitch()
                 self.resetSubViewBackButtonPosition()
                 self.setSubViewBackButtonVisible(true)
                 UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut]) {
@@ -2194,13 +2210,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         mapExitButton.isHidden = true
         mapExitButton.addTarget(self, action: #selector(mapExitTapped), for: .touchUpInside)
         view.addSubview(mapExitButton)
-        // DIAG-26G135 (TEMPORARY): 0.5s tick so the readout
-        // stays current even when no chrome pass runs.
-        if diag26G135Enabled {
-            diag26G135Timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-                self?.updateDiag26G135()
-            }
-        }
+        // (The temporary map-tab diagnostic readout that lived
+        // here was removed in 26G137 once the user confirmed
+        // the exit button renders on device.)
         // Pills sit at the top safe area on iPhone. On iPad the tab bar
         // floats at the top (build 74), so the pills sit below it.
         cityPillLeadingConstraint = cityPill.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12)
@@ -3613,7 +3625,14 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let y = ((dict["y"] as? Double) ?? 0) + webOffset.y
         let w = (dict["width"] as? Double) ?? 0
         let h = (dict["height"] as? Double) ?? 0
-        if w > 0 && h > 0 && currentTab == "more" && !splashShowing && !whatsNewShowing {
+        // 26G137 (user 2026-11-28: a stray green switch floated
+        // over the Language page): the native language/appearance
+        // pickers are full-screen views above the web view; a
+        // switchFrame post landing while one is up must never
+        // re-show (and re-front) a switch over it — the web
+        // sub-page that owns the switch is covered, so its slot
+        // frame is meaningless until the picker dismisses.
+        if w > 0 && h > 0 && currentTab == "more" && !splashShowing && !whatsNewShowing && languageView == nil && appearanceView == nil {
             let size = sw.intrinsicContentSize
             var fx = CGFloat(x) + CGFloat(w) - size.width
             // 26E121 C (native backstop): a switch must never render
@@ -5122,68 +5141,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             }
         }
         updateCityPillLeading()
-        updateDiag26G135(backUp: backUp, show: show)
     }
 
-    // MARK: - DIAG-26G135 (TEMPORARY — remove once the map
-    // exit button is confirmed on device)
-    //
-    // Small fixed readout on the map tab only, so a device
-    // screenshot shows the exact native state behind the
-    // exit button. Extended in 26G136 with the button's
-    // frame/alpha/z-order/image state after the 26G135
-    // screenshot showed correct logic but no rendering.
-    // One-place removal: delete this block, the
-    // updateDiag26G135 call in refreshMapTopChrome, and the
-    // timer start next to the mapExitButton setup.
-    let diag26G135Enabled = true
-    var diag26G135Label: UILabel?
-    var diag26G135Timer: Timer?
-    func updateDiag26G135(backUp: Bool? = nil, show: Bool? = nil) {
-        guard diag26G135Enabled else { diag26G135Label?.isHidden = true; return }
-        let onMap = currentTab == "map" && !splashShowing && !whatsNewShowing
-        if diag26G135Label == nil {
-            let l = UILabel()
-            l.font = .monospacedSystemFont(ofSize: 10, weight: .regular)
-            l.textColor = .systemYellow
-            l.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-            l.numberOfLines = 3 // 26G136: readout extended with button frame/alpha/z/img
-            l.isUserInteractionEnabled = false
-            l.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(l)
-            NSLayoutConstraint.activate([
-                l.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
-                l.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
-                l.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -8),
-            ])
-            diag26G135Label = l
-        }
-        guard let l = diag26G135Label else { return }
-        l.isHidden = !onMap
-        if onMap {
-            let b = backUp ?? (subViewBackButton != nil && !subViewBackButton.isHidden)
-            let s = show ?? !(mapExitButton?.isHidden ?? true)
-            let lead = cityPillLeadingConstraint?.constant ?? -1
-            // 26G136 extension: the 26G135 screenshot proved the
-            // logic was right (show=true, pill shifted) yet no
-            // ✕ rendered — the button had never been styled
-            // (updateMapExitButton had no call sites). These
-            // fields pin the rendering side: frame, alpha,
-            // z-order in the superview, superview identity,
-            // and whether any image content is set at all.
-            var btnInfo = "btn=nil"
-            if let btn = mapExitButton {
-                let f = btn.frame
-                let sup = btn.superview
-                let zIdx = sup?.subviews.firstIndex(of: btn) ?? -1
-                let zTot = sup?.subviews.count ?? -1
-                let hasImg = btn.configuration?.image != nil || btn.image(for: .normal) != nil
-                btnInfo = "f=\(Int(f.origin.x)),\(Int(f.origin.y)),\(Int(f.size.width)),\(Int(f.size.height)) a=\(btn.alpha) z=\(zIdx)/\(zTot) sup=\(sup === view ? "view" : (sup == nil ? "nil" : "other")) img=\(hasImg ? 1 : 0)"
-            }
-            l.text = "DIAG-26G135 jump=\(mapJumpMode) detail=\(routeDetailOpenNative) tab=\(currentTab) back=\(b) show=\(s) pill=\(lead) btnHid=\(mapExitButton?.isHidden ?? true) \(btnInfo)"
-            view.bringSubviewToFront(l)
-        }
-    }
     @objc func mapExitTapped() {
         webView.evaluateJavaScript("window.metroApp && window.metroApp.exitMapJump()", completionHandler: nil)
     }
@@ -5382,7 +5341,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G136')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G137')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
@@ -6281,7 +6240,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 if let city = dict["city"] as? String,
                    ["bj", "sy", "sh", "hb", "dl", "jh", "cz", "cq", "cc", "sz", "cd", "qd", "sjz", "tj", "wx", "ly", "gz", "nj", "wh", "hz", "zz", "xa", "su", "hf", "jn", "cs", "fz", "km", "nc"].contains(city) {
                     UserDefaults.standard.set(city, forKey: "metro-city")
-                    currentCity = city
+                    // 26G137 (user 2026-11-28: map tools-pill icons
+                    // beige on the Beijing map): this post resolves
+                    // the web's Home City first, so it can differ
+                    // from the natively saved city the pills were
+                    // tinted with at setup. Assigning currentCity
+                    // without refreshing left the accent chrome on
+                    // the old city's colour — and the later
+                    // cityChanged post for the same city then hit
+                    // its != guard and skipped the refresh too, so
+                    // the Shenyang-gold tint survived onto Beijing.
+                    // Mirror cityChanged: refresh on a real change.
+                    if city != currentCity {
+                        currentCity = city
+                        refreshCityUI()
+                    }
                 }
                 if let dark = dict["dark"] as? Bool {
                     UserDefaults.standard.set(dark, forKey: "metro-dark")
