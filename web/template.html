@@ -1457,6 +1457,22 @@
 		   Settings home during the .45s leave. #moreSheet is
 		   position:fixed, so absolute inset-0 anchors to it. */
 		.more-sub-leave-active { position: absolute; top: 0; left: 0; right: 0; background: #f2f2f7; }
+		/* 26F133: the absolute leave anchors to the sheet's
+		   padding box, so without compensation the content
+		   jumped up by the sheet's top padding and left by
+		   20px the moment a close started (part of the
+		   「动画错误」 report). Mirror the in-flow geometry:
+		   horizontal = the sheet's side padding, top = the
+		   sheet's top padding plus .more-sub's own. */
+		.more-sub.more-sub-leave-active { padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); padding-top: calc(env(safe-area-inset-top) + 20px); }
+		html.is-pad .more-sub.more-sub-leave-active { padding-top: calc(env(safe-area-inset-top) + 118px); }
+		html.native-app .more-sub.more-sub-leave-active { padding-top: calc(env(safe-area-inset-top) + 52px); }
+		html.is-pad.native-app .more-sub.more-sub-leave-active { padding-top: calc(env(safe-area-inset-top) + 158px); }
+		/* Static sub-pages (About/Profile) cancel part of the
+		   top padding with a negative margin — their leave
+		   compensation is correspondingly smaller. */
+		html.native-app .more-sub.more-sub-static.more-sub-leave-active { padding-top: calc(env(safe-area-inset-top) + 38px); }
+		html.is-pad.native-app .more-sub.more-sub-static.more-sub-leave-active { padding-top: calc(env(safe-area-inset-top) + 136px); }
 		html.dark .more-sub-leave-active { background: #000000; }
 		.more-sub-enter-from, .more-sub-leave-to { transform: translateX(48px); }
 		.more-main { animation: moreMainIn .35s cubic-bezier(.32,.72,0,1); }
@@ -2768,7 +2784,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26F132)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26F133)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -4332,6 +4348,11 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26F133)', date: '2026-11-27', lines: [
+								['设置子页右滑返回改成跟手滑动：页面跟着手指走，松手后滑出或回弹，不再卡住', '設定子頁右滑返回改成跟手滑動：頁面跟著手指走，鬆手後滑出或回彈，不再卡住', 'Swipe-back on Settings sub-pages now tracks your finger: the page follows the drag and slides out or settles back on release instead of getting stuck'],
+								['修复关闭设置子页时页面跳一下的问题', '修復關閉設定子頁時頁面跳一下的問題', 'Fixed the page jumping when a Settings sub-page closes'],
+								['去掉设置子页顶部的临时诊断信息', '去掉設定子頁頂部的臨時診斷資訊', 'Removed the temporary diagnostic readout at the top of Settings sub-pages']
+							] },
 							{ v: '1.1.0 (26F132)', date: '2026-11-27', lines: [
 								['再次加固设置子页右滑返回：滑动结束后页面自动回到正确位置，不再错位', '再次加固設定子頁右滑返回：滑動結束後頁面自動回到正確位置，不再錯位', 'Hardened swipe-back on Settings sub-pages again: the page now always settles back to its correct position after the gesture'],
 								['车型检索的搜索框改成原生 Apple UI 搜索框，输入即时筛选，进页面不自动弹出键盘', '車型檢索的搜尋框改成原生 Apple UI 搜尋框，輸入即時篩選，進頁面不自動彈出鍵盤', 'The train-model search field is now a native Apple UI search field, filtering as you type, with no keyboard pop-up on entering the page'],
@@ -5952,6 +5973,11 @@ function titlePy(py) {
 							var subs = document.querySelectorAll('#moreSheet .more-sub');
 							for (var i = 0; i < subs.length; i++) {
 								var el = subs[i];
+								// 26F133: never strip the page a finger is
+								// currently dragging (or whose release
+								// animation is still running) — the sweep
+								// would freeze it mid-gesture.
+								if (el === this._edgeBusyEl) continue;
 								var cl = el.classList;
 								if (cl.contains('more-sub-leave-from') || cl.contains('more-sub-leave-active') || cl.contains('more-sub-leave-to')) {
 									cl.remove('more-sub-enter-from', 'more-sub-enter-active', 'more-sub-enter-to', 'more-sub-leave-from', 'more-sub-leave-active', 'more-sub-leave-to');
@@ -5963,7 +5989,27 @@ function titlePy(py) {
 								// transform on .more-sub today, but clear
 								// one if it ever appears, so a shown page
 								// can never sit offset with clean classes.
+								// 26F133: the edge-drag tracking sets inline
+								// transform/transition/position/background
+								// — clear the whole set on any page that
+								// is not mid-gesture.
 								if (el.style.transform) el.style.transform = '';
+								if (el.style.transition) el.style.transition = '';
+								if (el.style.position) el.style.position = '';
+								if (el.style.top) el.style.top = '';
+								if (el.style.left) el.style.left = '';
+								if (el.style.width) el.style.width = '';
+								if (el.style.background) el.style.background = '';
+								if (el.style.boxShadow) el.style.boxShadow = '';
+							}
+							// 26F133: if a tracked drag revealed the
+							// Settings home beneath the sub-page and
+							// the gesture ended without the finisher
+							// running (interrupted), put it back.
+							if (this._edgeRevealedMain && !this._edgeBusyEl && this.anySubViewOpen && sheet) {
+								var _mm = sheet.querySelector('.more-main');
+								if (_mm) _mm.style.display = 'none';
+								this._edgeRevealedMain = false;
 							}
 						} catch (e) {}
 						try {
@@ -5973,33 +6019,16 @@ function titlePy(py) {
 							this.reportSearchFieldFrames();
 						} catch (e) {}
 					},
-					// 26F132 DIAG (temporary — remove with the DIAG block
-					// in mounted() once the swipe-back offset is confirmed
-					// fixed on device): live readout of every visible
-					// .more-sub's transition state, so a user screenshot
-					// identifies any residue the settle sweep missed.
-					diagTick(el) {
-						try {
-							if (!this.showMore || !this.anySubViewOpen) { el.style.display = 'none'; return; }
-							var sheet = document.getElementById('moreSheet');
-							var subs = document.querySelectorAll('#moreSheet .more-sub');
-							var lines = [], vis = 0;
-							for (var i = 0; i < subs.length; i++) {
-								var s = subs[i], cs = window.getComputedStyle(s);
-								if (cs.display === 'none') continue;
-								vis++;
-								var tc = [];
-								['more-sub-enter-from', 'more-sub-enter-active', 'more-sub-enter-to', 'more-sub-leave-from', 'more-sub-leave-active', 'more-sub-leave-to'].forEach(function(c) { if (s.classList.contains(c)) tc.push(c.replace('more-sub-', '')); });
-								lines.push('sub' + i + ' cls[' + (tc.join(',') || '-') + '] tf=' + (cs.transform || 'none') + ' pos=' + cs.position + ' ow=' + s.offsetWidth + ' inlTf=' + (s.style.transform || '-'));
-							}
-							var now = Date.now();
-							el.textContent = 'DIAG-26F132 vis=' + vis + ' open=' + this.anySubViewOpen +
-								' sheetW=' + (sheet ? sheet.clientWidth : '?') + ' sl=' + (sheet ? sheet.scrollLeft : '?') + ' sw=' + (sheet ? sheet.scrollWidth : '?') +
-								' sweep=' + (this._subSettleCount || 0) + '@' + (this._subSettleLastAt ? (now - this._subSettleLastAt) : -1) + 'ms' +
-								' tog@' + (this._subToggleAt ? (now - this._subToggleAt) : -1) + 'ms\n' + lines.join('\n');
-							el.style.display = 'block';
-						} catch (e) {}
-					},
+					// 26F133: native edge-pan signals (AppDelegate's
+					// UIScreenEdgePanGestureRecognizer). nativeEdgePan
+					// marks that the native recognizer owns the current
+					// gesture (so the web touchend must not double-fire
+					// goBack); nativeEdgePanComplete reports a native
+					// release past the 60pt threshold. The handlers
+					// themselves live in mounted() next to the touch
+					// listeners and are wired up there.
+					nativeEdgePan(active) { if (this._edgeNative) this._edgeNative(active); },
+					nativeEdgePanComplete() { if (this._edgeNativeComplete) this._edgeNativeComplete(); },
 					scheduleSubSettle() {
 						if (this._subSettleTimer) clearTimeout(this._subSettleTimer);
 						var self = this;
@@ -9483,7 +9512,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26F132') return;
+						if (seen === '26F133') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -10949,20 +10978,6 @@ function titlePy(py) {
 							self.reportCellularFrame();
 							self.scheduleSubSettle();
 						});
-						// 26F132 DIAG (temporary — remove this block +
-						// diagTick() once the swipe-back offset is
-						// confirmed fixed on device): a live readout of
-						// the visible .more-sub's transition state at
-						// the top of Settings sub-pages, so a screenshot
-						// identifies any residue the settle sweep missed.
-						var DIAG_26F132 = true;
-						if (DIAG_26F132) {
-							var _diag = document.createElement('div');
-							_diag.id = 'diag26f132';
-							_diag.style.cssText = 'position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 56px);z-index:99998;background:rgba(0,0,0,0.78);color:#7CFC00;font:10px/1.5 monospace;padding:4px 6px;border-radius:6px;pointer-events:none;white-space:pre-wrap;word-break:break-all;display:none;';
-							document.body.appendChild(_diag);
-							setInterval(function() { self.diagTick(_diag); }, 500);
-						}
 					}
 						var _scrollTicking = false;
 						_panel.addEventListener('scroll', function() {
@@ -11062,7 +11077,116 @@ function titlePy(py) {
 					// of in-page horizontal scrolling, and it is never
 					// armed on the main pages, so map dragging is
 					// unaffected.
+					// 26F133: finger-tracking. Until now nothing moved
+					// the page during the drag — it sat frozen, then
+					// the 48px leave slide played on release and
+					// stopped (user: 「滑动页面不应该卡住」). Now a
+					// Settings sub-page follows the finger for the
+					// whole gesture: on horizontal lock the visible
+					// .more-sub is frozen at its exact in-flow
+					// geometry as an overlay (the same overlay the
+					// leave transition uses), the Settings home is
+					// revealed beneath it, and the page translates
+					// with the finger. On release past 60pt it
+					// slides fully off and goBack() flips the flag
+					// (the Vue leave then runs invisibly on the
+					// hidden element); below 60pt it settles back
+					// and the home is re-hidden. Non-Settings
+					// sub-views (timetable detail, route detail)
+					// keep the release-only behaviour. The native
+					// edge-pan recognizer no longer cancels web
+					// touches (26F133), so the web sees the whole
+					// gesture; the recognizer instead signals
+					// nativeEdgePan(true) on begin (the web touchend
+					// then defers the non-tracked goBack to it) and
+					// nativeEdgePanComplete() on a >60pt release —
+					// _edgeDone makes the two paths fire goBack
+					// exactly once between them.
 					var _edgeX = null, _edgeY = null;
+					var _edgeEl = null, _edgeEngaged = false, _edgeDone = false;
+					var _edgeDx = 0, _edgeDy = 0, _edgeTok = 0, _edgeSavedScroll = 0;
+					function edgeSheet() { return document.getElementById('moreSheet'); }
+					function edgeVisibleSub() {
+						var subs = document.querySelectorAll('#moreSheet .more-sub');
+						for (var i = 0; i < subs.length; i++) {
+							if (window.getComputedStyle(subs[i]).display !== 'none') return subs[i];
+						}
+						return null;
+					}
+					function edgeClearInline(el) {
+						el.style.transform = ''; el.style.transition = '';
+						el.style.position = ''; el.style.top = ''; el.style.left = ''; el.style.width = '';
+						el.style.background = ''; el.style.boxShadow = '';
+					}
+					function edgeEngage() {
+						var el = _edgeEl, sheet = edgeSheet();
+						if (!el || !sheet) return;
+						_edgeEngaged = true;
+						if (!self._edgeRevealedMain) _edgeSavedScroll = sheet.scrollTop;
+						var top = el.offsetTop, left = el.offsetLeft, w = el.offsetWidth;
+						// .more-sub-static (About/Profile) carries a
+						// negative margin-top; absolute `top` anchors
+						// the margin edge, so compensate to land the
+						// border box exactly where it was in flow.
+						var _cs = window.getComputedStyle(el);
+						var _mt = parseFloat(_cs.marginTop) || 0, _ml = parseFloat(_cs.marginLeft) || 0;
+						el.style.position = 'absolute';
+						el.style.top = (top - _mt) + 'px'; el.style.left = (left - _ml) + 'px'; el.style.width = w + 'px';
+						el.style.background = document.documentElement.classList.contains('dark') ? '#000000' : '#f2f2f7';
+						el.style.boxShadow = '-12px 0 24px rgba(0,0,0,0.18)';
+						el.style.transition = 'none';
+						var mm = sheet.querySelector('.more-main');
+						if (mm) { mm.style.display = ''; self._edgeRevealedMain = true; }
+						self._edgeBusyEl = el;
+					}
+					function edgeSettleBack() {
+						var el = _edgeEl, tok = ++_edgeTok;
+						if (!el) return;
+						el.style.transition = 'transform .25s ease-out';
+						el.style.transform = 'translateX(0px)';
+						setTimeout(function() {
+							if (_edgeTok !== tok) return;
+							var sheet = edgeSheet();
+							var mm = sheet ? sheet.querySelector('.more-main') : null;
+							if (mm && self.anySubViewOpen) mm.style.display = 'none';
+							self._edgeRevealedMain = false;
+							edgeClearInline(el);
+							if (sheet) sheet.scrollTop = _edgeSavedScroll;
+							self._edgeBusyEl = null;
+							self.scheduleSubSettle();
+						}, 260);
+					}
+					function edgeComplete() {
+						var el = _edgeEl, tok = ++_edgeTok;
+						var sheet = edgeSheet();
+						if (!el || !sheet) { self.goBack(); return; }
+						el.style.transition = 'transform .25s ease-out';
+						el.style.transform = 'translateX(' + sheet.clientWidth + 'px)';
+						setTimeout(function() {
+							if (_edgeTok !== tok) return;
+							el.style.display = 'none';
+							edgeClearInline(el);
+							self._edgeRevealedMain = false;
+							self._edgeBusyEl = null;
+							self.goBack();
+							self.scheduleSubSettle();
+						}, 260);
+					}
+					function edgeDecide(dx, dy) {
+						if (_edgeDone) return;
+						_edgeDone = true;
+						if (_edgeEngaged && _edgeEl) {
+							if (dx > 60 && dy <= 40) edgeComplete(); else edgeSettleBack();
+						} else if (dx > 60 && dy <= 40) {
+							self.goBack();
+						}
+					}
+					self._edgeNative = function(active) { self._nativeEdgePan = !!active; };
+					self._edgeNativeComplete = function() {
+						if (_edgeDone) return;
+						if (_edgeEngaged && _edgeEl) { _edgeDone = true; edgeComplete(); }
+						else if (self.anySubViewOpen) { _edgeDone = true; self.goBack(); }
+					};
 					document.addEventListener('touchstart', function(e) {
 						var t = e.changedTouches && e.changedTouches[0];
 						// 26E112: the structure DETAIL is a sub-view too, but
@@ -11071,9 +11195,43 @@ function titlePy(py) {
 						// the image is at rest (structAtRest). Every other
 						// sub-view keeps the exact 26D106 behaviour.
 						var structZoomed = self.showStructure && self.structStation && !self.structAtRest();
-						if (t && t.clientX <= 24 && self.anySubViewOpen && !structZoomed) { _edgeX = t.clientX; _edgeY = t.clientY; }
-						else { _edgeX = null; _edgeY = null; }
+						_edgeTok++;
+						// 26F133: a new touch while a previous drag (or
+						// its release animation) is still in flight
+						// force-finishes it synchronously — the token
+						// bump above already invalidated its finisher,
+						// so without this the page could be stranded
+						// as an offset overlay the sweep must skip.
+						if (self._edgeBusyEl) {
+							edgeClearInline(self._edgeBusyEl);
+							self._edgeBusyEl = null;
+							if (self._edgeRevealedMain) {
+								var _sh = edgeSheet();
+								var _mm2 = _sh ? _sh.querySelector('.more-main') : null;
+								if (_mm2 && self.anySubViewOpen) _mm2.style.display = 'none';
+								if (_sh) _sh.scrollTop = _edgeSavedScroll;
+								self._edgeRevealedMain = false;
+							}
+						}
+						_edgeDone = false; _edgeEngaged = false; _edgeDx = 0; _edgeDy = 0;
+						if (t && t.clientX <= 24 && self.anySubViewOpen && !structZoomed) {
+							_edgeX = t.clientX; _edgeY = t.clientY;
+							_edgeEl = (self.tab === 'more') ? edgeVisibleSub() : null;
+						} else { _edgeX = null; _edgeY = null; _edgeEl = null; }
 					}, { passive: true });
+					document.addEventListener('touchmove', function(e) {
+						if (_edgeX === null || !_edgeEl || _edgeDone) return;
+						var t = e.changedTouches && e.changedTouches[0];
+						if (!t) return;
+						var dx = t.clientX - _edgeX, dy = t.clientY - _edgeY;
+						_edgeDx = dx; _edgeDy = dy;
+						if (!_edgeEngaged) {
+							if (Math.abs(dy) > 12 && Math.abs(dy) >= dx) { _edgeX = null; _edgeY = null; _edgeEl = null; return; }
+							if (dx > 8 && dx > Math.abs(dy)) edgeEngage(); else return;
+						}
+						if (e.cancelable) e.preventDefault();
+						_edgeEl.style.transform = 'translateX(' + Math.max(0, dx) + 'px)';
+					}, { passive: false });
 					document.addEventListener('touchend', function(e) {
 						// 26F132: any gesture ending over an open sub-page
 						// arms the settle sweep (debounced 600ms, past the
@@ -11081,18 +11239,31 @@ function titlePy(py) {
 						// that never flip anySubViewOpen (the watcher
 						// alone missed those: jsdom-verified).
 						if (self.anySubViewOpen) self.scheduleSubSettle();
-						if (_edgeX === null) return;
+						if (_edgeX === null) { self._nativeEdgePan = false; return; }
 						var t = e.changedTouches && e.changedTouches[0];
-						var dx = t ? t.clientX - _edgeX : 0;
-						var dy = t ? Math.abs(t.clientY - _edgeY) : 999;
+						var dx = t ? t.clientX - _edgeX : _edgeDx;
+						var dy = t ? Math.abs(t.clientY - _edgeY) : Math.abs(_edgeDy);
+						var nativeOwns = self._nativeEdgePan;
 						_edgeX = null; _edgeY = null;
-						if (dx > 60 && dy <= 40) self.goBack();
+						self._nativeEdgePan = false;
+						if (_edgeDone) return;
+						if (_edgeEngaged && _edgeEl) { edgeDecide(dx, dy); return; }
+						_edgeEl = null;
+						if (dx > 60 && dy <= 40 && !nativeOwns) { _edgeDone = true; self.goBack(); }
 					}, { passive: true });
 					// 26F131 C: a cancelled touch (the native edge-pan
 					// recognizer taking over, a system gesture) must
 					// disarm the web edge-swipe too, so a later stray
 					// touchend cannot fire a phantom goBack.
-					document.addEventListener('touchcancel', function() { _edgeX = null; _edgeY = null; if (self.anySubViewOpen) self.scheduleSubSettle(); }, { passive: true });
+					// 26F133: a cancelled tracked drag settles back.
+					document.addEventListener('touchcancel', function() {
+						var wasEngaged = _edgeEngaged && _edgeEl && !_edgeDone;
+						_edgeX = null; _edgeY = null;
+						self._nativeEdgePan = false;
+						if (wasEngaged) { _edgeDone = true; edgeSettleBack(); }
+						_edgeEngaged = false;
+						if (self.anySubViewOpen) self.scheduleSubSettle();
+					}, { passive: true });
 					// Row press highlight (26D100): JS-managed .pressing
 					// class replacing CSS :active (WKWebView could leave
 					// :active painted after a tap opened a sub-page).
@@ -11128,7 +11299,18 @@ function titlePy(py) {
 						self._pressTimer = setTimeout(function() { self.clearPressing(); }, 80);
 					}, { passive: true });
 					document.addEventListener('touchcancel', function() { self.clearPressing(); }, { passive: true });
-					document.addEventListener('visibilitychange', function() { if (document.hidden) self.clearPressing(); });
+					document.addEventListener('visibilitychange', function() {
+						if (document.hidden) { self.clearPressing(); return; }
+						// 26F133: returning to the foreground after a
+						// background interruption — clear any stale
+						// native edge-pan flag and settle any
+						// transition residue the interruption left.
+						self._nativeEdgePan = false;
+						if (self.anySubViewOpen) self.scheduleSubSettle();
+					});
+					// 26F133: a resize/rotation mid-transition can
+					// strand a slide the same way — settle after it.
+					window.addEventListener('resize', function() { if (self.anySubViewOpen) self.scheduleSubSettle(); });
 					// Location permission row (Settings): ask native for the
 					// current state on launch so the row shows the right
 					// state. Query only — never prompts here.

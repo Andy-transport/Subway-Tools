@@ -1097,7 +1097,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         webView = WKWebView(frame: view.bounds, configuration: config)
         webView.navigationDelegate = self
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        webView.allowsBackForwardNavigationGestures = true
+        // 26F133: WebKit's own back/forward edge-swipe is off —
+        // the app implements swipe-back itself (native edge pan
+        // + web finger-tracking), and WebKit's snapshot swipe
+        // would compete for the same touches and can translate
+        // the page outside JS's control. The web-history back
+        // button (canGoBack) is unaffected.
+        webView.allowsBackForwardNavigationGestures = false
         view.addSubview(webView)
 
         // 26E127 fix 7: start the cellular path monitor before the page loads, so window._metroIsCellular is set before any download can ask the gate.
@@ -1322,6 +1328,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(subViewEdgePanBegan(_:)))
         edgePan.edges = .left
         edgePan.isEnabled = false
+        // 26F133: the web tracks the finger during the drag, so
+        // the recognizer must not cancel the webView's touches;
+        // it only observes and signals (see subViewEdgePanBegan).
+        edgePan.cancelsTouchesInView = false
         view.addGestureRecognizer(edgePan)
         subViewEdgePan = edgePan
 
@@ -1601,15 +1611,34 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // completes when it ENDS with a real rightward travel
     // (>60pt, matching the web fallback's threshold): a
     // completed swipe returns cleanly, a partial/cancelled one
-    // never leaves the resting layout at all. The recognizer
-    // still cancels the webView's touches when it begins, so
-    // the page doesn't scroll during an edge drag and the web
-    // touchend fallback can't double-fire.
+    // never leaves the resting layout at all.
+    // 26F133 (user 2026-11-27: 「滑动页面不应该卡住」): the web
+    // now tracks the finger during the drag, so the recognizer
+    // no longer cancels the webView's touches (see
+    // cancelsTouchesInView = false at creation). Instead it
+    // signals the web: nativeEdgePan(true) on .began (the web
+    // touchend then defers its non-tracked goBack to this
+    // recognizer) and nativeEdgePanComplete() on a >60pt
+    // .ended (the web finishes the tracked slide-off, or goes
+    // back immediately for non-tracked sub-views). A
+    // cancelled/failed recognizer clears the flag so the web
+    // fallback owns the gesture again. The web's _edgeDone
+    // guard makes the two paths fire goBack exactly once.
     @objc func subViewEdgePanBegan(_ recognizer: UIScreenEdgePanGestureRecognizer) {
-        guard recognizer.state == .ended else { return }
-        let t = recognizer.translation(in: view)
-        guard t.x > 60 else { return }
-        subViewBackTapped()
+        switch recognizer.state {
+        case .began:
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.nativeEdgePan(true)", completionHandler: nil)
+        case .ended:
+            let t = recognizer.translation(in: view)
+            guard t.x > 60 else { return }
+            if appearanceView != nil { dismissAppearance() }
+            if languageView != nil { dismissLanguage() }
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.nativeEdgePanComplete()", completionHandler: nil)
+        case .cancelled, .failed:
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.nativeEdgePan(false)", completionHandler: nil)
+        default:
+            break
+        }
     }
 
     // Show/hide the native sub-view back button. Called from the "subView"
@@ -5094,7 +5123,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F132')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26F133')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
