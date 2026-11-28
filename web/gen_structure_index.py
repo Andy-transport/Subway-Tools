@@ -33,7 +33,7 @@ SDIR = BASE / "structure"
 
 # Commit on test/structure whose tree holds the current .b64 image
 # files (the 26E112 head: 26E111 images + Pingguoyuan removal).
-CDN_SHA = "538954cbd82732426b06e0921d64cb265b570f0a"
+CDN_SHA = "b8b7df0cf662bd107aab7f832453a78607838167"
 CDN_BASE = "https://cdn.jsdelivr.net/gh/Andy-transport/Subway-Tools@" + CDN_SHA + "/web/structure/"
 
 index = {}

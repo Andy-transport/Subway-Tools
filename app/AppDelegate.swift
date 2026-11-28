@@ -4422,16 +4422,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
 
         let content = transferEffectView.contentView
 
-        // Two rows: dot + label + text field + line badges + clear.
-        // The badge slot is a stack (26E110 P): an interchange
-        // station shows one pill per line it serves.
+        // Two rows, each two lines since 26H02: line 1 = dot +
+        // label + text field + clear; line 2 = the line badges
+        // under the station name (26E110 P badge stack: an
+        // interchange station shows one pill per line it serves).
         fromField = makeTransferField(tag: 0, placeholder: L("tr.phFrom"))
         toField = makeTransferField(tag: 1, placeholder: L("tr.phTo"))
         fromBadgeStack = makeBadgeStack()
         toBadgeStack = makeBadgeStack()
-        // With several line pills in a row the station-name field is
-        // the flexible element (26E110 P): it gives up width first
-        // (text clips, never overflows) while the pills keep theirs.
+        // The station-name field stays the flexible element of
+        // line 1 (26E110 P): it gives up width first (text clips,
+        // never overflows) while dot/label/clear keep theirs.
         fromField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         toField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         fromClear = makeTransferClear(tag: 0)
@@ -4442,8 +4443,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let toRow = makeTransferRow(dotColor: UIColor(red: 229.0 / 255.0, green: 72.0 / 255.0, blue: 77.0 / 255.0, alpha: 1),
                                     labelTitle: L("tr.arrive"), labelTag: 1,
                                     field: toField, badgeStack: toBadgeStack, clear: toClear)
-        fromLabelBtn = fromRow.arrangedSubviews[1] as? UIButton
-        toLabelBtn = toRow.arrangedSubviews[1] as? UIButton
+        // 26H02: the row is a vertical stack now — line 1 (its first
+        // arranged subview) holds [dot, label, field, clear].
+        fromLabelBtn = (fromRow.arrangedSubviews[0] as? UIStackView)?.arrangedSubviews[1] as? UIButton
+        toLabelBtn = (toRow.arrangedSubviews[0] as? UIStackView)?.arrangedSubviews[1] as? UIButton
         for row in [fromRow, toRow] {
             row.translatesAutoresizingMaskIntoConstraints = false
             content.addSubview(row)
@@ -4452,6 +4455,15 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         divider.backgroundColor = UIColor(white: 0, alpha: 0.06)
         divider.translatesAutoresizingMaskIntoConstraints = false
         content.addSubview(divider)
+        // 26H02: the rows no longer share one height — each row is
+        // one or two lines depending on whether its station has
+        // badges, exactly like the web .tr-field rows whose rect
+        // sizes this card. Rows hug their intrinsic height; the
+        // bottom anchor is 999 so the few points of web/native
+        // metric slack collect at the card bottom instead of
+        // stretching a row (or breaking a required constraint).
+        let toRowBottom = toRow.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -6)
+        toRowBottom.priority = UILayoutPriority(rawValue: 999)
         NSLayoutConstraint.activate([
             fromRow.topAnchor.constraint(equalTo: content.topAnchor, constant: 6),
             fromRow.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
@@ -4463,8 +4475,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             divider.bottomAnchor.constraint(equalTo: toRow.topAnchor),
             toRow.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
             toRow.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -56),
-            toRow.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -6),
-            fromRow.heightAnchor.constraint(equalTo: toRow.heightAnchor),
+            toRowBottom,
         ])
 
         // 26E123 ⑥: full-row tap layers. Each spans the FULL card
@@ -4570,11 +4581,46 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         label.setContentCompressionResistancePriority(.required, for: .horizontal)
         field.setContentHuggingPriority(.defaultLow, for: .horizontal)
         field.textAlignment = .left
-        let row = UIStackView(arrangedSubviews: [dot, label, field, badgeStack, clear])
-        row.axis = .horizontal
-        row.spacing = 10
-        row.alignment = .center
+        // 26H02: the line badges move to a SECOND line under the
+        // station name (user device report 2026-11-28: with several
+        // line pills in the row the name field was squeezed to
+        // ".."). Line 1 keeps dot + label + field + clear (the name
+        // now always gets the full line width); line 2 holds the
+        // badge stack, indented to the field's leading edge (dot +
+        // label widths + spacings). The web .tr-field mirrors this
+        // layout (line 2 = .tr-field-lines), and the card frame
+        // still comes from the web rect, so the heights track:
+        // web row padding 13/13 = the layout margins below, web
+        // badge line ≈31px vs native pills 26pt (slack collects
+        // at the card bottom via the 999-priority bottom anchor).
+        let line1 = UIStackView(arrangedSubviews: [dot, label, field, clear])
+        line1.axis = .horizontal
+        line1.spacing = 10
+        line1.alignment = .center
+        line1.distribution = .fill
+        let dotSpacer = UIView()
+        dotSpacer.translatesAutoresizingMaskIntoConstraints = false
+        dotSpacer.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        let labelSpacer = UIView()
+        labelSpacer.translatesAutoresizingMaskIntoConstraints = false
+        labelSpacer.widthAnchor.constraint(equalTo: label.widthAnchor).isActive = true
+        let tailSpacer = UIView()
+        tailSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        let line2 = UIStackView(arrangedSubviews: [dotSpacer, labelSpacer, badgeStack, tailSpacer])
+        line2.axis = .horizontal
+        line2.spacing = 10
+        line2.alignment = .center
+        line2.distribution = .fill
+        // No station picked yet -> no badge line (applyBadges
+        // unhides it when lines arrive).
+        line2.isHidden = true
+        let row = UIStackView(arrangedSubviews: [line1, line2])
+        row.axis = .vertical
+        row.spacing = 6
+        row.alignment = .fill
         row.distribution = .fill
+        row.isLayoutMarginsRelativeArrangement = true
+        row.layoutMargins = UIEdgeInsets(top: 13, left: 0, bottom: 13, right: 0)
         return row
     }
 
@@ -5036,6 +5082,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let pinnedLine = pinnedKey.flatMap { k in lines.first { ($0["key"] as? String) == k } }
         if which == "from" { fromLineInfo = pinnedLine ?? lines.first } else { toLineInfo = pinnedLine ?? lines.first }
         guard let stack = which == "from" ? fromBadgeStack : toBadgeStack else { return }
+        // 26H02: the badge line (the stack's line-2 container in
+        // makeTransferRow) collapses entirely when there are no
+        // lines — no station picked, the row is single-line again,
+        // mirroring the web .tr-field-lines v-if.
+        stack.superview?.isHidden = lines.isEmpty
         var pool = which == "from" ? fromBadges : toBadges
         while pool.count < lines.count {
             let b = makeTransferBadge(tag: which == "from" ? 0 : 1)
@@ -5497,7 +5548,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26H01')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26H02')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()

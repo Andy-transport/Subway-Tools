@@ -1728,12 +1728,32 @@
 		   is the circle's bounding box. */
 		.tr-time-slot { display: inline-block; width: 40px; height: 40px; flex: none; }
 		.tr-fields { position: relative; margin: 10px 16px 0; border-radius: 20px; padding: 6px 56px 6px 6px; }
-		.tr-field { display: flex; align-items: center; gap: 10px; padding: 13px 10px; }
+		/* 26H02: the line badges move to a SECOND line under the
+		   station name (user device report 2026-11-28: with several
+		   line pills in the row the name was squeezed to "..").
+		   The field is now dot + label + a column (line 1: input +
+		   clear, line 2: badges). Dot/label align to line 1 via
+		   flex-start + top margins. The native card mirrors this
+		   layout (AppDelegate makeTransferRow) and its frame comes
+		   from this element's rect, so heights stay in sync: the
+		   badge line renders only while a station is picked (in
+		   native mode as all-line spacers, in browser mode as the
+		   single pinned badge). */
+		.tr-field { display: flex; align-items: flex-start; gap: 10px; padding: 13px 10px; }
 		.tr-field + .tr-field { border-top: 1px solid rgba(0, 0, 0, 0.06); }
-		.tr-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+		.tr-field-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+		.tr-field-line1 { display: flex; align-items: center; gap: 10px; }
+		.tr-field-lines { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+		.tr-field-lines .ln-badge { padding: 5px 10px 5px 9px; gap: 6px; border-radius: 8px; height: auto; }
+		.tr-field-lines .ln-num { font-size: 16px; }
+		.tr-field-lines .ln-zh { font-size: 10.5px; }
+		.tr-field-lines .ln-en { font-size: 7.5px; }
+		.tr-field-lines .ln-badge.named { padding: 6px 10px; }
+		.tr-field-lines .ln-badge.named .ln-zh { font-size: 16px; }
+		.tr-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; margin-top: 6px; }
 		.tr-dot.from { background: #22a06b; }
 		.tr-dot.to { background: #e5484d; }
-		.tr-label { font-size: 15px; color: #888; flex: none; }
+		.tr-label { font-size: 15px; color: #888; flex: none; margin-top: 2px; }
 		.tr-value { font-size: 17px; font-weight: 600; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 		.tr-value.empty { color: #aaa; font-weight: 400; }
 		.tr-input { flex: 1; min-width: 0; border: none; background: transparent; outline: none; font-size: 17px; font-weight: 600; color: #111; -webkit-text-fill-color: #111; caret-color: #111; padding: 0; -webkit-appearance: none; }
@@ -2493,16 +2513,30 @@
 					<div class="tr-field">
 						<span class="tr-dot from"></span>
 						<span class="tr-label" @click="openPick('from')">{{ t('tr.depart') }}</span>
-						<input class="tr-input" type="text" v-model="fromQuery" @focus="suggestFor = 'from'" @input="onQueryInput('from', $event)" @blur="hideSuggest" :placeholder="t('tr.phFrom')" autocomplete="off" autocapitalize="off" spellcheck="false">
-						<span class="tr-line-pick ln-badge" :class="{ named: badgeParts(fromLine).named, locked: true }" :style="{ background: '#' + fromLine.color, color: fromLine.text }" v-if="fromLine" @click="clearLine('from')"><span class="ln-num">{{ badgeParts(fromLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(fromLine).top }}</span><span class="ln-en">{{ badgeParts(fromLine).bottom }}</span></span></span>
-						<button class="tr-clear" v-if="fromQuery" @click="clearStation('from')">✕</button>
+						<span class="tr-field-col">
+							<span class="tr-field-line1">
+								<input class="tr-input" type="text" v-model="fromQuery" @focus="suggestFor = 'from'" @input="onQueryInput('from', $event)" @blur="hideSuggest" :placeholder="t('tr.phFrom')" autocomplete="off" autocapitalize="off" spellcheck="false">
+								<button class="tr-clear" v-if="fromQuery" @click="clearStation('from')">✕</button>
+							</span>
+							<span class="tr-field-lines" v-if="fromStation && (nativeApp || fromLine)">
+								<template v-if="nativeApp"><span class="tr-line-pick ln-badge" v-for="ln in stationLines(fromStation.n)" :key="ln.key" :class="{ named: badgeParts(ln).named, locked: fromLine && fromLine.key === ln.key }" :style="{ background: '#' + ln.color, color: ln.text }"><span class="ln-num">{{ badgeParts(ln).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ln).top }}</span><span class="ln-en">{{ badgeParts(ln).bottom }}</span></span></span></template>
+								<span class="tr-line-pick ln-badge" v-else :class="{ named: badgeParts(fromLine).named, locked: true }" :style="{ background: '#' + fromLine.color, color: fromLine.text }" @click="clearLine('from')"><span class="ln-num">{{ badgeParts(fromLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(fromLine).top }}</span><span class="ln-en">{{ badgeParts(fromLine).bottom }}</span></span></span>
+							</span>
+						</span>
 					</div>
 					<div class="tr-field">
 						<span class="tr-dot to"></span>
 						<span class="tr-label" @click="openPick('to')">{{ t('tr.arrive') }}</span>
-						<input class="tr-input" type="text" v-model="toQuery" @focus="suggestFor = 'to'" @input="onQueryInput('to', $event)" @blur="hideSuggest" :placeholder="t('tr.phTo')" autocomplete="off" autocapitalize="off" spellcheck="false">
-						<span class="tr-line-pick ln-badge" :class="{ named: badgeParts(toLine).named, locked: true }" :style="{ background: '#' + toLine.color, color: toLine.text }" v-if="toLine" @click="clearLine('to')"><span class="ln-num">{{ badgeParts(toLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(toLine).top }}</span><span class="ln-en">{{ badgeParts(toLine).bottom }}</span></span></span>
-						<button class="tr-clear" v-if="toQuery" @click="clearStation('to')">✕</button>
+						<span class="tr-field-col">
+							<span class="tr-field-line1">
+								<input class="tr-input" type="text" v-model="toQuery" @focus="suggestFor = 'to'" @input="onQueryInput('to', $event)" @blur="hideSuggest" :placeholder="t('tr.phTo')" autocomplete="off" autocapitalize="off" spellcheck="false">
+								<button class="tr-clear" v-if="toQuery" @click="clearStation('to')">✕</button>
+							</span>
+							<span class="tr-field-lines" v-if="toStation && (nativeApp || toLine)">
+								<template v-if="nativeApp"><span class="tr-line-pick ln-badge" v-for="ln in stationLines(toStation.n)" :key="ln.key" :class="{ named: badgeParts(ln).named, locked: toLine && toLine.key === ln.key }" :style="{ background: '#' + ln.color, color: ln.text }"><span class="ln-num">{{ badgeParts(ln).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(ln).top }}</span><span class="ln-en">{{ badgeParts(ln).bottom }}</span></span></span></template>
+								<span class="tr-line-pick ln-badge" v-else :class="{ named: badgeParts(toLine).named, locked: true }" :style="{ background: '#' + toLine.color, color: toLine.text }" @click="clearLine('to')"><span class="ln-num">{{ badgeParts(toLine).left }}</span><span class="ln-txt"><span class="ln-zh">{{ badgeParts(toLine).top }}</span><span class="ln-en">{{ badgeParts(toLine).bottom }}</span></span></span>
+							</span>
+						</span>
 					</div>
 					<button class="tr-swap" @click="swapStations" :aria-label="t('tr.swap')">
 						<svg viewBox="0 0 24 24"><path d="M7 20V6M7 6L3.8 9.2M7 6l3.2 3.2M17 4v14m0 0l3.2-3.2M17 18l-3.2-3.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2662,7 +2696,7 @@
 					<div class="more-row" @click="relSel = -1; openSubPage('showWhatsNewSub')"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.whatsnew.title') }}</span><span class="more-row-value">1.1.0</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="openSubPage('showUpcomingSub')"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.upcoming') }}</span><span class="more-row-value">{{ t('more.upcoming.count', {n: currentCityUpcoming().length}) }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="openSubPage('showRankingSub')"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.ranking') }}</span><span class="more-chev">›</span></div>
-					<div class="more-row" @click="openSubPage('showFlowSub'); flowSel = city"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAFuElEQVR42u2cS4gcRRiAv3ls1NVNXCNGzSqaIBEFHyhrcgiioqCiqAcvYgRBxaM3Dx5E8CZ4FREVfBwEEcQIXgziCxXfFzUSJbq7IiYaoyZm+uFh/mKLSndPV3dX9+76f1BMMtszXf+z/nr0gKIoiqIoiqIoiqIoiqIoiqIoa53eKu1zD+g776dAIq9KIAYlr+lpBDRLX7zbcAlwKXCe/O0n4GvgC2CU8xmlptf3gHuBzyXNZLVvgIeAkzwiRimh/K3AO46yI/F20xLrb18CV6oR6qcdgIuARVHsCIgLIiCWa1LgL+Bq57v+N4obOs1XAabKORXYJwo9VqB4txkj/CHjRK9CH5qQo3XFDyb8ve+Zep6uoHzXCG95RkGTcrRWBQ0k/AHOBeaBbfL+98AnwN6Ma4sqngulsjHeW6WvsdzvWmBPiXs3KUcnA+XLwOEMbzwKvAFcXmJgHMrr444npxWjIAFeKnHfpuVoVfk3AAdyKpTIEWDXhM6b8H7P+q6qBjAD9j5gqiDqQ8jRWpUyLx0yuTrJUETilIq35nTeKOdEYMFZXqjSEkth5+SMBSHkaG09Zhr4ziNVxNL5g8CZGdWJMcBGqWCaMkAq5SwZ9wshh7cXV0k9KXAncIGE57Dk/WJgFnhQviOrD0ekNcUI+KcDOYLn/jfFEyLPvJwAX1ke2MuIgo8aGANMBOwHTsgYA0LKESwCenLzdcDFFW5srt8q4ZvmGPcDea2zvGwG4U+Bfy2Pb0OOoCkIYAbYUGM+MS0h7H7eCPKi/LvOXMUo6fkO5Ag6ANepVOzKZC7HEUwUvFpjLmDSycc5g2QbcgQvQd+ukTu/dZaas6b7c1ZdPvJUfizl5GUFpWJoOYKlIPO51+SmPvkvkc/sFiGGGZ83Gyk/A7dLBTO0jJCHUf5A+ng3402avGWD0HIEnwfMAkse3hPLdUeALSWcwHjWdsabLXl7Ae5MdRG4pcQkqS05gpaiNzqzxKK0YIS7z2MGaa5ZDzxq5eus9hvwJHBWhe8PLUdQI9xjdSrJ8E57E+XhCp22vWuDKOsR4BngOeAxSVWbMvq2kuQIaoQdHL9taLfPgJtqdLpnLagVMVUxHbQlR/D9gHlgp7OO/j7wrgjgs45u7wXEnoOcOZ6SUP50RCg5ghvApIl0gpLKdtpWus1pUpqeLnl+yprxLknJugD8muPdcctytGoA1/Pc8rDMqbWe5bVITt8JXAdcIRXHxgnfcQj4gfHxlT2STvY7Y0kSWI5OMOliwPGb2QMmbyva+XQ78KxUNUWnH/IGSLsdBl4Bri85QNeVo3WlDytUHMOcVck5aw3IrfmjkksFiWUgt6bfzfK+wCCAHK2loJ50IHKqj7MZb2ZvAk6R948CvzA+Prgg/3fDPGK8HfgCcIbl5U2c80ytWWsf+Bt4gPE+sVn7b0KO1lKTXeLNAneJMHtZ3tLLaseAH2WB7X5rsgRws5VC6mzClz2qkkofmpYj+JzAnZUuFkzT7SWCrPx8EHgCuAr4nfqbLz6LaKaP18iEaqmGHAcqzL5rKT9rXSayVgcn5eYox8uTFpRfdK+6cpRdf6qVdnZIDi06OeCjhKgD5btGiBqQwzbEHU0bwdTmMyyf0xwF9sYuI6FqM4Y8BGym5EmJfsnUk0p4nU/5kwNdTga7uLepCtfLol7alAEM29Dnr8oYNBVdeZeUk4hZnQ/1dWGEOIQBVPkBdNVXXXWLGkANoAZQ1ABqAEUNoAZQ1ABqAEUNoAZQ1ABqAEUNoAZQ1ABrH5/NdXOMJOqwDyHwfe6giMjSVePCn8zyKeG1xCCAM800aQBjzQ8ZP3GeNJC6zOmBdcBt8toVrwN/4v+Yap6u+ox/68grErocg4p+BbGNtnm1jAGN/lidMA08Ja9dYZ4NaCIC7EjQX+1dDayEsz5rqQpSFEVRFEVRFEVRFEVRFEVRFEVRVhr/AXM6M23GaVCKAAAAAElFTkSuQmCC')"></span><span>{{ t('more.flow') }}</span><span class="more-chev">›</span></div>
+					<div class="more-row" @click="openSubPage('showFlowSub'); flowSel = city"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.flow') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="openSubPage('showBriefingSub')"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,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')"></span><span>{{ t('more.briefing') }}</span><span class="more-row-value">{{ briefingUpdated }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="openSubPage('showTrainSub'); loadTrains()"><span class="more-train-icon"></span><span>{{ t('more.trains') }}</span><span class="more-chev">›</span></div>
 					<div class="more-row" @click="openSubPage('showAboutSub')"><span class="more-glyph-icon" style="--gi:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAFKklEQVR42u2dy28cRRDGf7NrwDjabLzOg8iJTXJAAokTCHFAXIED/DVI3DjAARDHSHBAAoWHkCIQIYmToCjmEdtgwltcOUYCKSgIFJAd7yyH6WaK8Wx2vN7umZ6pT2rt2j7M7lfVVV9XdbdBoVAoFAqFQqFQKBQKRfXREu8fBN4ErgGDXYzYvP4GnAYeAqZynqfkAxEwA7ywS9JHjRPAAfPctlKfeuJe4H1D0qbw3kmNGNgy7y8D8+a5U2oC2AecM+RsOPT+GLhl3n8BHG+yESLz2gWuCM8feBjWCF8BR5sYjiz508CKZ/LtTLDP+xK4p0mJuSU8brkE8uWwOWEdONiEmWC/3B5gKRMOyhp98/pD3Y3QFgn344qQnx3fA0fqmJhlwj1bctgZtWi7ChyrmxEio/MvepCak1gnrNdFolrPv9vo7iqGnSISNUh11Mohf7Pi5GcXa5+JskWw5C8HRH7eTHgtNFXUFrWdTwIJO6Mk6qOhkT8HnPfo+X0HxTupjE6FFHb2CbWziftywoZY1W44MsTNUGZAB7jkiXz58/Xb/G1SY8fSz6fUHJiYvwQ8ZrzRtX6+AbwM/Aj8bsobDwCvGEcYTJCLQVWlqP1QdwKfe/T8X0nalnm4D/izzBlQRmHtU08J16qpp8TsmzKO0BYe/3TdDSCl5kVPUtNKwl9I2onRkLAQmT7DH2UZoOUh7PSBHkkP9wlDvuuYb0n4CfjrNsTY3/2c+dkbXBIRmTjcBd4DnjTk3+Hhe1kipws8r2VCYy0xW1J5wVYrrwMLhuTWEPI7ImTVIgdEQuevllhesOXiV0d83jfqlITlvp3VChTW+sb4Lw75vC/VaSHWNl+4Q7Jv53FPi6yiuGa8/YbR/8+YGv6AyS9IfS9w/5Oas6KqGVpJOdgQZMnveSqs7TY5xw5rQN4NEHmuauoMyCF/1lNtRw2QQ/5eYE3J92sAKzW7FZGajTKA7GSFsnXEd5L/xzX5HdIerpK/XWG949IAUyRN56ruWCtz2DD8sMvK6XPq+bnDOuMJ0/FzgvuBv3FzJivkIXfGOS1rv53pNulIyV8m3ZborA4Uq+fnkr8C7PfRYVTStyfcK2Yx6qO9q8RnPP9rEfO9lJ+V/JT870gPb3ur/WvYSV7XgMUyGi9b6vmsmCa/7IN4w7u43dBadfJXRdgp5RDGolgDxA0jf430XHCpPe5nSc9FxQ2K+V1fUnNUE+Yu4HXcXRNTlWHz3Tc+Vrg7qYa2jDecElM0rmnYuVqG1CyyA6JlvOI8bs9clX3ud6Fq5Ge3oRwi3fcZUy+1s1im2tmJEXrAmZqpnfmqk59tUU6TXicTYqnaqp114HAo5GeNsAe4EGBiljF/f2jk5zXrzwRkBFnVnKtqwh1HHZ0LwAi3RNiZD5182bSPjBEuVFiiygv4gr5iZpgRMHWTSxWUqDLmHws15heVqF2SO5irRr70/Npewiol6tkKhCNJfiOunJRGmOH/Nx/GlJdwe3WL+UWMYC/h+6gEI9iq5remdFILtTOuRJ3zvE6Qnn+0qeRnJepB0qNMfU/k39u0sDNKHR0QRnBN/vGmJNxxyhZLjslfqLvUHBdRjkTdmkBOkIusQ+r5xauopydghDypGSnNxSRqB/iA8Rv9m0JqHlbyx5OoPeDDMYywIcLOESV/fCNEJA2Rk2y/dmzUnc1LIuHq//vapUSdIdn8dZNi94A+T3JkVsmfYGLGhJO3GF7Ovgw8kmNAhUKhUCgUCoVCoVAoFArFcPwLA5AhHICqHTsAAAAASUVORK5CYII=')"></span><span>{{ t('more.about') }}</span><span class="more-chev">›</span></div>
@@ -2781,6 +2815,7 @@
 							<div class="rank-row flow-row" :class="{ top: f.r <= 3, cur: f.key === city }" @click="flowSel = (flowSel === f.key ? '' : f.key)"><span class="rank-no">{{ f.r }}</span><img class="rank-logo" :src="cityLogoFor(f.key)" alt=""><span class="rank-main"><span class="rank-city">{{ t('city.' + f.key) }}</span><span class="flow-cur-tag" v-if="f.key === city">{{ t('flow.current') }}</span></span><span class="flow-daily"><span class="flow-daily-num">{{ t('flow.wanDay', {n: f.dailyAvgWan}) }}</span><span class="flow-derived" v-if="f.dailyAvgDerived">{{ t('flow.derived') }}</span><div class="flow-daily-per">{{ f.dailyAvgPeriod }}</div></span></div>
 							<div class="flow-detail" v-if="flowSel === f.key">
 								<div class="flow-kv"><span class="flow-k">{{ t('flow.daily') }}</span><span class="flow-v">{{ t('flow.wanDay', {n: f.dailyAvgWan}) }}</span><span class="flow-derived" v-if="f.dailyAvgDerived">{{ t('flow.derived') }}</span><span class="flow-sub">{{ f.dailyAvgPeriod }}</span></div>
+								<div class="flow-kv" v-if="flowDailyFor(f.key)"><span class="flow-k">{{ t('flow.yesterday') }}</span><span class="flow-v">{{ t('flow.wanDay', {n: flowDailyFor(f.key).dailyWan}) }}</span><span class="flow-sub">{{ flowDailyDateText(flowDailyFor(f.key)) }}</span></div>
 								<div class="flow-kv" v-if="f.annualYi != null"><span class="flow-k">{{ t('flow.annual') }}</span><span class="flow-v">{{ t('flow.yi', {n: f.annualYi}) }}</span><span class="flow-sub">{{ f.annualYear }}</span></div>
 								<div class="flow-kv" v-if="f.peakDayWan != null"><span class="flow-k">{{ t('flow.peak') }}</span><span class="flow-v">{{ t('flow.wan', {n: f.peakDayWan}) }}</span><span class="flow-sub">{{ f.peakDayDate }}</span></div>
 								<template v-if="f.lines && f.lines.length">
@@ -2872,7 +2907,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26H01)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26H02)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -2916,7 +2951,7 @@
 						<img class="more-about-icon" :src="appIconNow" alt="">
 						<div class="more-about-name">{{ t('app.name') }}</div>
 						<div class="more-about-tag">{{ t('more.about.desc') }}</div>
-						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26E127)' : '1.1.0'}) }}</div>
+						<div class="more-about-ver" @click="verFull = !verFull">{{ t('more.version', {v: verFull ? 'v1.1.0 (26H02)' : '1.1.0'}) }}</div>
 					</div>
 					<div class="more-disclaimer">{{ t('more.about.disclaimer') }}</div>
 					<div class="more-card">
@@ -3444,6 +3479,7 @@ var I18N = {
   'more.ranking': ['运营里程排行榜', '營運里程排行榜', 'Operating Mileage Ranking'],
   'more.flow': ['客流数据', '客流數據', 'Passenger Flow'],
   'flow.daily': ['日均客流', '日均客流', 'Daily average'],
+  'flow.yesterday': ['昨日客流', '昨日客流', 'Yesterday'],
   'flow.annual': ['年客流', '年客流', 'Annual ridership'],
   'flow.peak': ['单日最高', '單日最高', 'Single-day record'],
   'flow.wanDay': ['{n} 万人次/日', '{n} 萬人次/日', '{n}×10k rides/day'],
@@ -4398,6 +4434,11 @@ function titlePy(py) {
 					// refreshServiceAlerts. Empty until the feed
 					// carries a verified notice.
 					serviceAlerts: [],
+					// Yesterday's ridership (26H02): per-city daily
+					// figures pulled from the remote feed at launch —
+					// see refreshFlowDaily. {} until the feed carries
+					// a city's official daily figure.
+					flowDaily: {},
 						showSplash: true,
 						mapLoading: false,
 						showTransfer: false,
@@ -4471,6 +4512,12 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26H02)', date: '2026-11-28', lines: [
+								['车站结构图又扩充了：北京再新增 3 座车站的结构图（上地、宋家庄、三元桥），来源标为「网络平台」', '車站結構圖又擴充了：北京再新增 3 座車站的結構圖（上地、宋家庄、三元桥），來源標為「網絡平台」', 'Station structure diagrams expanded again — 3 more Beijing stations added (Shangdi, Songjiazhuang, Sanyuanqiao), sourced from online platforms'],
+								['设置里的客流数据图标换新了', '設定裏的客流數據圖標換新了', 'The Passenger Flow icon in Settings has a new look'],
+								['换乘页站名不再被线路徽章挤掉，徽章移到站名下方', '換乘頁站名不再被線路徽章擠掉，徽章移到站名下方', 'On the transfer page the station name is no longer squeezed by line badges — the badges now sit on a second line below the name'],
+								['客流数据新增昨日客流（有官方日更的城市）', '客流數據新增昨日客流（有官方日更的城市）', 'Passenger Flow now shows yesterday’s ridership for cities with official daily figures']
+							] },
 							{ v: '1.1.0 (26H01)', date: '2026-11-28', lines: [
 								['车站结构图扩充了：北京新增 26 座车站的结构图（苹果园、东坝北、双井、国贸等），来源标为「网络平台」', '車站結構圖擴充了：北京新增 26 座車站的結構圖（蘋果園、東壩北、雙井、國貿等），來源標為「網絡平台」', 'Station structure diagrams expanded — 26 more Beijing stations added (Pingguoyuan, Dongbabei, Shuangjing, Guomao and more), sourced from online platforms']
 							] },
@@ -6037,6 +6084,64 @@ function titlePy(py) {
 							.then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
 							.then(function (data) { if (timer) clearTimeout(timer); self.applyServiceAlerts(data); })
 							.catch(function () { if (timer) clearTimeout(timer); /* offline: keep the cached copy */ });
+					},
+					// Yesterday's ridership (26H02): the feed file
+					// web/flow-daily.json is served by jsDelivr from
+					// the test/structure branch, same mutable-ref
+					// pattern as service-alerts. A daily job fills it
+					// from the operators' official daily figures (12
+					// cities publish them, all on official Weibo —
+					// none on a public web page; cities without an
+					// official daily figure simply have no entry and
+					// the flow page shows nothing extra for them).
+					// Best-effort only: short timeout, silent
+					// failure, last good cache wins. Schema per city:
+					// {date: 'YYYY-MM-DD', dailyWan: <万人次>, source}.
+					applyFlowDaily(data) {
+						if (!data || typeof data !== 'object' || !data.cities || typeof data.cities !== 'object') return;
+						var clean = {};
+						for (var k in data.cities) {
+							var c = data.cities[k] || {};
+							if (typeof c.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(c.date)) continue;
+							if (typeof c.dailyWan !== 'number' || !(c.dailyWan > 0)) continue;
+							clean[k] = { date: c.date, dailyWan: c.dailyWan, source: typeof c.source === 'string' ? c.source : '' };
+						}
+						this.flowDaily = clean;
+						try { window.localStorage.setItem('metro-flow-daily', JSON.stringify(clean)); } catch (e) {}
+					},
+					refreshFlowDaily() {
+						var self = this;
+						try {
+							var cached = JSON.parse(window.localStorage.getItem('metro-flow-daily') || 'null');
+							if (cached && typeof cached === 'object' && Object.keys(cached).length) self.flowDaily = cached;
+						} catch (e) {}
+						if (!window.fetch) return;
+						var ctrl = null, timer = null;
+						try {
+							if (typeof AbortController !== 'undefined') {
+								ctrl = new AbortController();
+								timer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 5000);
+							}
+						} catch (e) { ctrl = null; }
+						fetch('https://cdn.jsdelivr.net/gh/Andy-transport/Subway-Tools@test/structure/web/flow-daily.json', { cache: 'no-cache', signal: ctrl ? ctrl.signal : undefined })
+							.then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+							.then(function (data) { if (timer) clearTimeout(timer); self.applyFlowDaily(data); })
+							.catch(function () { if (timer) clearTimeout(timer); /* offline: keep the cached copy */ });
+					},
+					flowDailyFor(key) {
+						var e = (this.flowDaily || {})[key];
+						return (e && typeof e.dailyWan === 'number' && typeof e.date === 'string') ? e : null;
+					},
+					flowDailyDateText(e) {
+						if (!e || typeof e.date !== 'string') return '';
+						var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.date);
+						if (!m) return e.date;
+						var mo = parseInt(m[2], 10), d = parseInt(m[3], 10);
+						if (this.lang === 'en') {
+							var names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+							return names[mo - 1] + ' ' + d;
+						}
+						return mo + '月' + d + '日';
 					},
 					visibleServiceAlerts() {
 						var now = new Date();
@@ -9917,7 +10022,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26H01') return;
+						if (seen === '26H02') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -12379,6 +12484,7 @@ function titlePy(py) {
 					this.flashSplash(2000);
 					this.refreshBriefing();
 					this.refreshServiceAlerts();
+					this.refreshFlowDaily();
 					if (window.matchMedia) {
 						window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() { self.applyTheme(); });
 					}
