@@ -1005,7 +1005,16 @@
 		#structurePanel {
 			position: fixed;
 			inset: 0;
-			z-index: 99925;
+			/* 26G138: ABOVE the 99925 tab panels. This panel is a
+			   modal opened from the route detail, which lives
+			   inside #transferPanel — at the old equal 99925 the
+			   later-in-DOM #transferPanel painted over it, so the
+			   viewer opened invisibly UNDER the route detail
+			   while its native chrome (placed from real rects)
+			   floated over the summary card (user screenshot
+			   2026-11-28). 99926 keeps it below #tabBar (99930,
+			   display:none) and #splashOverlay (99999). */
+			z-index: 99926;
 			background: #ffffff;
 			display: flex;
 			flex-direction: column;
@@ -2812,7 +2821,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G137)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G138)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -4393,6 +4402,9 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26G138)', date: '2026-11-28', lines: [
+								['修复路线详情里查看结构图的问题：选完车站后结构图能正常打开了，顶部按钮也回到正确位置；退出或右滑返回会回到路线详情', '修復路線詳情裏查看結構圖的問題：選完車站後結構圖能正常打開了，頂部按鈕也回到正確位置；退出或右滑返回會回到路線詳情', 'Fixed viewing station structure diagrams from route detail — after picking a station the diagram now opens properly with its top controls in place, and exiting or swiping back returns to the route detail']
+							] },
 							{ v: '1.1.0 (26G137)', date: '2026-11-28', lines: [
 								['修复设置子页右滑返回后页面卡在半路、按钮错位的问题：滑动结束后页面一定会回到原位或正常返回，不再卡住', '修復設定子頁右滑返回後頁面卡在半路、按鈕錯位的問題：滑動結束後頁面一定會回到原位或正常返回，不再卡住', 'Fixed Settings sub-pages getting stuck mid-slide after a swipe-back, with their buttons left offset — the page now always settles back or returns properly when the swipe ends'],
 								['修复路线详情里查看结构图的问题：选完车站后结构图和顶部按钮能正常显示了', '修復路線詳情裏查看結構圖的問題：選完車站後結構圖和頂部按鈕能正常顯示了', 'Fixed viewing station structure diagrams from route detail — after picking a station the diagram and its top controls show properly again'],
@@ -5534,6 +5546,11 @@ function titlePy(py) {
 						this.structQuery = '';
 						this.structStation = null;
 						this.showStructure = false;
+						// 26G138: refresh the native strip on the way
+						// out (the route-detail title comes back);
+						// notifySubView's deferred scrape no-ops
+						// when no sub-view is open any more.
+						this.notifySubView(true);
 					},
 					structEntryFor(name) {
 						var idx = window.STRUCTURE_INDEX || {};
@@ -5563,6 +5580,13 @@ function titlePy(py) {
 						if (!st) st = { n: name };
 						this.showStructure = true;
 						this.openStructStation(st);
+						// 26G138: anySubViewOpen does not change when
+						// the panel opens over the route detail (it
+						// is already true), so the watcher never
+						// re-posts — refresh the native strip here
+						// so it drops the route-detail title while
+						// the viewer covers the detail.
+						this.notifySubView(true);
 					},
 					// 26E124: switch the per-line diagram set; if the
 					// current kind is not in the new set, fall to the
@@ -5697,7 +5721,15 @@ function titlePy(py) {
 					// Native chrome entry points (26E107): the native
 					// 搜索 / 退出 buttons in the detail header call these.
 					structExit() {
-						this.structStation = null;
+						// 26G138: exit returns to the route detail.
+						// The panel's only entry is the route-detail
+						// 查看结构图 button (the Settings entry was
+						// removed in 26F129), so the exit chevron
+						// closes the viewer outright; browsing other
+						// stations stays on the 搜索 button
+						// (structSearch -> list). The web fallback
+						// .tt-back keeps its viewer->list click.
+						this.closeStructure();
 					},
 					structSearch() {
 						this.structStation = null;
@@ -5912,6 +5944,13 @@ function titlePy(py) {
 						this.setTab(this.lastTab && this.lastTab !== 'more' ? this.lastTab : 'transfer');
 					},
 					goBack() {
+						// 26G138: the structure viewer is the topmost
+						// layer when open (it covers the route detail
+						// since the z-index fix) — the native back
+						// button / edge swipe must close IT first and
+						// land back on the route detail, not close
+						// the detail underneath and strand the panel.
+						if (this.showStructure) { this.closeStructure(); return true; }
 						// 26E127 fix 3: the route detail is the topmost
 						// layer when open — the native back button
 						// (subViewBackButton) calls goBack(), so close
@@ -5989,6 +6028,13 @@ function titlePy(py) {
 								else if (this.showRankingSub) expT = this.t('more.ranking');
 								else if (this.showAppearanceSub) expT = this.t('more.appearance');
 								else if (this.showLangSub) expT = this.t('more.lang');
+								// 26G138: the structure viewer carries its
+								// own title row (station name) — the strip
+								// shows no centred title for it
+								// (timetable-style) and must not keep the
+								// route-detail title while the panel
+								// covers the detail.
+								else if (this.showStructure) { /* no strip title */ }
 								// 26E127 fix 3: route detail page (transfer tab) —
 								// its title rides in the same native strip.
 								else if (this.routeDetailOpen) expT = this.t('trd.title');
@@ -9701,7 +9747,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26G137') return;
+						if (seen === '26G138') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({

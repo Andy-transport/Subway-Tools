@@ -3356,9 +3356,17 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // centres on the .struct-actions slot, a 40x40 square in
         // the title row since 26E109, and must sit above the seg
         // row. Same centre-on-slot placement as the exit chevron.
+        // 26G138: both circles clamp fully on-screen — the exit
+        // placeholder sits flush at the title row's right edge
+        // (.tt-back right: 0, 34pt wide), so a centred 40pt
+        // circle spilled 3pt past the screen edge (user
+        // screenshot 2026-11-28: chevron cut at the right edge).
+        func clampedCircleX(_ midX: CGFloat) -> CGFloat {
+            return min(max(midX - 20, 2), bounds.width - 42)
+        }
         let actOK = active && plausible(actR, 24, 72, 24, 72) && (!segOK || actR.maxY <= segR.minY + 6)
         if actOK {
-            structSearchButton.frame = CGRect(x: actR.midX - 20, y: actR.midY - 20, width: 40, height: 40)
+            structSearchButton.frame = CGRect(x: clampedCircleX(actR.midX), y: actR.midY - 20, width: 40, height: 40)
             structSearchButton.isHidden = false
         } else {
             structSearchButton.isHidden = true
@@ -3368,7 +3376,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         let extOK = active && extR.width >= 24 && extR.width <= 72 && extR.height >= 24 && extR.height <= 72
             && extR.minX >= -2 && extR.minY >= -2 && extR.maxX <= bounds.width + 2 && extR.maxY <= headerLimit
         if extOK {
-            structExitButton.frame = CGRect(x: extR.midX - 20, y: extR.midY - 20, width: 40, height: 40)
+            structExitButton.frame = CGRect(x: clampedCircleX(extR.midX), y: extR.midY - 20, width: 40, height: 40)
             structExitButton.isHidden = false
         } else {
             structExitButton.isHidden = true
@@ -5341,7 +5349,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G137')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G138')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
