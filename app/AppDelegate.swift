@@ -1640,9 +1640,30 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         switch recognizer.state {
         case .began:
             webView.evaluateJavaScript("window.metroApp && window.metroApp.nativeEdgePan(true)", completionHandler: nil)
+        case .changed:
+            // 26G141 (user 2026-11-28: 「左上角的退出按钮」上
+            // 起手的滑动不跟手): a swipe that starts ON the
+            // back button never reaches the webView — the
+            // UIButton consumes the whole touch sequence, so
+            // the web edge-drag never arms and the page only
+            // returns on release. Stream the translation so
+            // the web can drive the same drag machinery from
+            // these posts when it has no touch sequence of
+            // its own (nativeEdgePanMove); a webView-started
+            // swipe ignores them (its touchstart arms first).
+            let t = recognizer.translation(in: view)
+            webView.evaluateJavaScript("window.metroApp && window.metroApp.nativeEdgePanMove(\(String(format: "%.1f", t.x)))", completionHandler: nil)
         case .ended:
             let t = recognizer.translation(in: view)
-            guard t.x > 60 else { return }
+            guard t.x > 60 else {
+                // 26G141: a short release must still clear the
+                // web's native-owns flag (and settle a
+                // native-driven drag back) — when the gesture
+                // started on the back button the web never saw
+                // a touchend to clear it itself.
+                webView.evaluateJavaScript("window.metroApp && window.metroApp.nativeEdgePan(false)", completionHandler: nil)
+                return
+            }
             if appearanceView != nil { dismissAppearance() }
             if languageView != nil { dismissLanguage() }
             webView.evaluateJavaScript("window.metroApp && window.metroApp.nativeEdgePanComplete()", completionHandler: nil)
@@ -5429,7 +5450,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G140')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G141')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()

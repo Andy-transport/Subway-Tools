@@ -265,7 +265,8 @@ cs_transfers = (BASE / "changsha" / "transfers.json").read_text(encoding="utf-8"
 fz_transfers = (BASE / "fuzhou" / "transfers.json").read_text(encoding="utf-8")
 km_transfers = (BASE / "kunming" / "transfers.json").read_text(encoding="utf-8")
 nc_transfers = (BASE / "nanchang" / "transfers.json").read_text(encoding="utf-8")
-for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers, cq_transfers, sz_transfers, gz_transfers, nj_transfers, wh_transfers, hz_transfers, zz_transfers, xa_transfers, su_transfers, hf_transfers, jn_transfers, cs_transfers, fz_transfers, km_transfers, nc_transfers):
+tj_transfers = (BASE / "tianjin" / "transfers.json").read_text(encoding="utf-8")
+for _t in (sy_transfers, sh_transfers, hb_transfers, dl_transfers, jh_transfers, cz_transfers, cq_transfers, sz_transfers, gz_transfers, nj_transfers, wh_transfers, hz_transfers, zz_transfers, xa_transfers, su_transfers, hf_transfers, jn_transfers, cs_transfers, fz_transfers, km_transfers, nc_transfers, tj_transfers):
     assert "</script" not in _t, "per-city transfers json must not contain </script"
 html = sub_once(r'/\*__SY_TRANSFERS__\*/\{\}', lambda _: sy_transfers, html, "sy transfers json")
 html = sub_once(r'/\*__SH_TRANSFERS__\*/\{\}', lambda _: sh_transfers, html, "sh transfers json")
@@ -317,6 +318,14 @@ html = sub_once(r'/\*__CS_TRANSFERS__\*/\{\}', lambda _: cs_transfers, html, "cs
 html = sub_once(r'/\*__FZ_TRANSFERS__\*/\{\}', lambda _: fz_transfers, html, "fz transfers json")
 html = sub_once(r'/\*__KM_TRANSFERS__\*/\{\}', lambda _: km_transfers, html, "km transfers json")
 html = sub_once(r'/\*__NC_TRANSFERS__\*/\{\}', lambda _: nc_transfers, html, "nc transfers json")
+# Tianjin virtual transfer (26G141): 天津大学六里台 7<->8 is an out-of-gate
+# transfer (the connecting walkway is due 2027; card/app fares bill
+# CONTINUOUSLY within 30 min — the interval-count fare already sums
+# both legs, see the tj branch of routeFare in template.html) —
+# modelled in tianjin/transfers.json with NO dist and NO walkMin
+# (no published measured value; the engine's standard transfer
+# penalty applies to the time only).
+html = sub_once(r'/\*__TJ_TRANSFERS__\*/\{\}', lambda _: tj_transfers, html, "tj transfers json")
 
 # M. inline the per-city splash (launch) images.
 # BJ splash = the native LaunchScreen image (app/splash.b64, Beijing 北京/配线查询);
@@ -1507,6 +1516,14 @@ html = sub_once(r'/\*__BRIEFING_SEED__\*/\{\}', lambda _: briefing, html, "brief
 trains = (BASE / "trains.json").read_text(encoding="utf-8")
 assert "</script" not in trains, "trains json must not contain </script"
 html = sub_once(r'/\*__TRAINS_SEED__\*/\{\}', lambda _: trains, html, "trains seed json")
+
+# T3. inline the passenger-flow seed (web/flow.json): the 29-city daily /
+# annual / peak-day figures for the Settings 客流数据 page (26G141).
+# Display fields only — sources/conflicts stay in the research package
+# (~/workspace/passenger-flow/). Same offline pattern as the seeds above.
+flow = (BASE / "flow.json").read_text(encoding="utf-8")
+assert "</script" not in flow, "flow json must not contain </script"
+html = sub_once(r'/\*__FLOW_SEED__\*/\{\}', lambda _: flow, html, "flow seed json")
 
 out = OUT / "index.html"
 out.write_text(html, encoding="utf-8")
