@@ -191,6 +191,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     // True while the sub-view chrome (glass strip + back button) is
     // fading out after a close; a re-open during the fade cancels it.
     var subChromeClosing = false
+    // 26G140: generation counter for the chrome fade-out watchdog
+    // (see setSubChromeVisible) — bumped on every show/hide call so
+    // a stale watchdog can never cut a newer fade short.
+    var subChromeHideGen = 0
     var subDockTitle: String?
     // True while a structurally static sub-view is open (About, 通用
     // and the web fallbacks for 外观/语言 — pages whose content fits
@@ -1884,6 +1888,8 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // along with the scroll-hide of the strip itself.
         subChromeOpen = visible
         subViewEdgePan?.isEnabled = visible
+        // 26G140: every show/hide supersedes earlier fade work.
+        subChromeHideGen += 1
         if visible {
             subChromeClosing = false
             glass.layer.removeAllAnimations()
@@ -1925,15 +1931,35 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         } else {
             // 26F132: both already hidden — still re-assert the
             // map top chrome (cheap, and closes the stuck-
-            // offset path below for good).
-            guard !glass.isHidden || !button.isHidden else { refreshMapTopChrome(); return }
+            // offset path below for good). 26G140: also reset
+            // alpha + drag offset here, so a state left mid-fade
+            // by an interrupted animation can never resurrect at
+            // partial alpha on the next show.
+            guard !glass.isHidden || !button.isHidden else {
+                glass.alpha = 1
+                button.alpha = 1
+                subTopCover?.alpha = 1
+                setSubDragOffset(0)
+                refreshMapTopChrome()
+                return
+            }
             subChromeClosing = true
             UIView.animate(withDuration: 0.45, delay: 0, options: [.curveEaseOut], animations: {
                 glass.alpha = 0
                 button.alpha = 0
                 self.subTopCover?.alpha = 0
             }) { [weak self] _ in
-                guard let self = self, self.subChromeClosing else { return }
+                // 26G140: hide iff the chrome should be CLOSED at
+                // completion time (subChromeOpen is the desired
+                // state, set at entry) — not merely iff this fade
+                // was never superseded. The old subChromeClosing
+                // guard could skip the hide entirely when a show
+                // intervened and a later hide's completion was the
+                // one that got dropped, leaving the back chevron
+                // stuck at partial alpha over the transfer page
+                // (user 2026-11-28 「退出残影」: faint chevron at
+                // top-left after map jump exit + detail close).
+                guard let self = self, !self.subChromeOpen else { return }
                 self.subChromeClosing = false
                 glass.isHidden = true
                 button.isHidden = true
@@ -1954,6 +1980,31 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 // and nothing recomputed it once the button
                 // actually hid. Do it here, at the moment the
                 // visibility flips.
+                self.refreshMapTopChrome()
+            }
+            // 26G140 watchdog: if the fade-out's completion is
+            // ever lost (animation interrupted without a
+            // completion, the stuck-at-~50%-alpha state behind
+            // the 「退出残影」 report), force the closed state
+            // deterministically just after the fade should have
+            // ended. Generation-checked so a newer show/hide
+            // always wins; mirrors the 26G137 web-side watchdog.
+            let gen = subChromeHideGen
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self = self, self.subChromeHideGen == gen, !self.subChromeOpen else { return }
+                self.subChromeClosing = false
+                glass.layer.removeAllAnimations()
+                button.layer.removeAllAnimations()
+                self.subTopCover?.layer.removeAllAnimations()
+                glass.isHidden = true
+                button.isHidden = true
+                glass.alpha = 1
+                button.alpha = 1
+                self.setSubDragOffset(0)
+                if let cover = self.subTopCover {
+                    cover.isHidden = true
+                    cover.alpha = 1
+                }
                 self.refreshMapTopChrome()
             }
         }
@@ -5168,6 +5219,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 // even if some other path ever clears it.
                 updateMapExitButton()
                 view.bringSubviewToFront(btn)
+            } else {
+                // 26G140: deterministic hide — alpha and transform
+                // reset alongside isHidden, so the button can
+                // never linger as a faint glyph once jump mode
+                // ends, on any tab (user 2026-11-28 「退出残影」).
+                btn.alpha = 1
+                btn.transform = .identity
             }
         }
         updateCityPillLeading()
@@ -5371,7 +5429,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G139')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G140')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()

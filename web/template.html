@@ -2821,7 +2821,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G139)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G140)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -4402,6 +4402,10 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26G140)', date: '2026-11-28', lines: [
+								['修复从地图退出、关闭路线详情后，换乘页左上角留下一个淡淡的返回箭头残影的问题：顶部按钮现在一定会完全消失', '修復從地圖退出、關閉路線詳情後，換乘頁左上角留下一個淡淡的返回箭頭殘影的問題：頂部按鈕現在一定會完全消失', 'Fixed a faint back-arrow ghost left at the top-left of the transfer page after exiting the map and closing route detail — the top button now always disappears completely'],
+								['修复回到路线列表时第一张路线卡顶部被切掉一截的问题：列表回到顶部显示，第一张卡完整可见', '修復回到路線列表時第一張路線卡頂部被切掉一截的問題：列表回到頂部顯示，第一張卡完整可見', 'Fixed the first route card coming back with its top sliced off when returning to the results list — the list now returns to the top with the first card fully visible']
+							] },
 							{ v: '1.1.0 (26G139)', date: '2026-11-28', lines: [
 								['设置子页右滑返回时，顶部返回按钮和标题跟着页面一起滑动，整个屏幕一起动；滑动也更跟手了，不再有重影', '設定子頁右滑返回時，頂部返回按鈕和標題跟著頁面一起滑動，整個螢幕一起動；滑動也更跟手了，不再有重影', 'During swipe-back on Settings sub-pages, the top back button and title now slide along with the page — the whole screen moves as one, tracks your finger more closely, and no longer leaves a ghost copy']
 							] },
@@ -9773,7 +9777,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26G139') return;
+						if (seen === '26G140') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -9787,6 +9791,19 @@ function titlePy(py) {
 						// 26F132: no detail page to return to — leave
 						// the map jump mode too.
 						if (this._mapJump) { this._mapJump = false; this.postMapJumpMode(); }
+						// 26G140: the results list returns to the top
+						// when the detail closes. The scroll offset
+						// used to survive the detail round-trip
+						// (26E124 "scroll position preserved"), so a
+						// list scrolled before tapping a card came
+						// back with the first card clipped at the
+						// scroller's top edge — sliced right under
+						// the native action row (user 2026-11-28,
+						// open since 26G134; the 26G134 doSearch
+						// reset only covered fresh searches).
+						// Returning to the top matches the
+						// fresh-search state.
+						this.$nextTick(function() { var sc = document.querySelector('.tr-scroll'); if (sc) sc.scrollTop = 0; });
 						this.reportTransferFrame(); this.reportTabsFrame();
 						this.pageTrip = null;
 						this.editAltFor = -1;
