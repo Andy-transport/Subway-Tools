@@ -1073,6 +1073,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         config.userContentController.add(self, name: "liveActivity")
         config.userContentController.add(self, name: "clearCache")
         config.userContentController.add(self, name: "subView")
+        config.userContentController.add(self, name: "subDrag") // 26G139: header strip rides the swipe-back drag
         config.userContentController.add(self, name: "topChrome")
         config.userContentController.add(self, name: "mapState")
         config.userContentController.add(self, name: "mapsDownloadFrame")
@@ -1833,6 +1834,21 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         applySubScrollState(animated: true)
     }
 
+    // 26G139: the header strip rides the swipe-back drag (user
+    // 2026-11-28: 「不应该是整个屏幕加上顶部一起滑动吗」 — the page
+    // slid under a fixed strip). The web posts the drag offset on
+    // every drag frame report (and 0 from every finisher); the
+    // strip views translate by it as one piece with the page.
+    // A transform, not a constraint change: layout, the docked
+    // position and the city-pill leading math are untouched, and
+    // dx == 0 restores the exact resting layout.
+    func setSubDragOffset(_ dx: CGFloat) {
+        let t = CGAffineTransform(translationX: dx, y: 0)
+        subHeaderGlass?.transform = t
+        subViewBackButton?.transform = t
+        subTopCover?.transform = t
+    }
+
     // Leave sub-view mode entirely (sub-view closed): forget the
     // scroll state, dock title and frame centre. Visibility of the
     // strip and button is owned by setSubChromeVisible (the fade).
@@ -1885,6 +1901,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             view.bringSubviewToFront(glass)
             view.bringSubviewToFront(button)
             if wasHidden {
+                // 26G139: a fresh show always starts at the
+                // resting offset (no drag can be in flight).
+                setSubDragOffset(0)
                 glass.alpha = 0
                 button.alpha = 0
                 subTopCover?.alpha = 0
@@ -1920,6 +1939,9 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 button.isHidden = true
                 glass.alpha = 1
                 button.alpha = 1
+                // 26G139: hidden chrome carries no drag offset
+                // into its next show.
+                self.setSubDragOffset(0)
                 if let cover = self.subTopCover {
                     cover.isHidden = true
                     cover.alpha = 1
@@ -5349,7 +5371,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G138')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G139')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()
@@ -6530,6 +6552,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                         hideCellularSwitch()
                     }
                 }
+            }
+        } else if message.name == "subDrag" {
+            // 26G139: swipe-back drag offset for the header strip
+            // (see setSubDragOffset). Posted on every drag frame
+            // report; the finishers post 0.
+            if let dict = message.body as? [String: Any], let dx = dict["dx"] as? Double {
+                setSubDragOffset(CGFloat(dx))
             }
         } else if message.name == "topChrome" {
             // 26E126 R: iPad scroll-hide for the top chrome.

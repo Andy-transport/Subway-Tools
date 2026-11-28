@@ -2821,7 +2821,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G138)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G139)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -4402,6 +4402,9 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26G139)', date: '2026-11-28', lines: [
+								['设置子页右滑返回时，顶部返回按钮和标题跟着页面一起滑动，整个屏幕一起动；滑动也更跟手了，不再有重影', '設定子頁右滑返回時，頂部返回按鈕和標題跟著頁面一起滑動，整個螢幕一起動；滑動也更跟手了，不再有重影', 'During swipe-back on Settings sub-pages, the top back button and title now slide along with the page — the whole screen moves as one, tracks your finger more closely, and no longer leaves a ghost copy']
+							] },
 							{ v: '1.1.0 (26G138)', date: '2026-11-28', lines: [
 								['修复路线详情里查看结构图的问题：选完车站后结构图能正常打开了，顶部按钮也回到正确位置；退出或右滑返回会回到路线详情', '修復路線詳情裏查看結構圖的問題：選完車站後結構圖能正常打開了，頂部按鈕也回到正確位置；退出或右滑返回會回到路線詳情', 'Fixed viewing station structure diagrams from route detail — after picking a station the diagram now opens properly with its top controls in place, and exiting or swiping back returns to the route detail']
 							] },
@@ -6211,6 +6214,11 @@ function titlePy(py) {
 								if (el.style.overflow) el.style.overflow = '';
 								if (el.style.background) el.style.background = '';
 								if (el.style.boxShadow) el.style.boxShadow = '';
+								// 26G139: the drag overlay's padding
+								// compensation + compositor hint are
+								// inline too — clear them with the rest.
+								if (el.style.paddingTop) el.style.paddingTop = '';
+								if (el.style.willChange) el.style.willChange = '';
 							}
 							// 26F133: if a tracked drag revealed the
 							// Settings home beneath the sub-page and
@@ -6231,6 +6239,10 @@ function titlePy(py) {
 							this.reportSwitchFrame(); this.reportCellularFrame();
 							this.reportMapsDownloadFrame(); this.reportCityDownloadFrames();
 							this.reportSearchFieldFrames();
+							// 26G139: no drag in flight -> the native
+							// header strip must sit at its resting
+							// offset too.
+							this.reportSubDragFrame();
 						} catch (e) {}
 					},
 					// 26F133: native edge-pan signals (AppDelegate's
@@ -8910,6 +8922,20 @@ function titlePy(py) {
 						var _dx = this._edgeDragDx || 0;
 						h.postMessage({ id: 'cellular', x: x + _dx, y: y, width: w, height: hh, on: this.allowCellular, drag: _dx > 0 });
 					},
+					// 26G139: the native sub-view header strip (glass
+					// band + centred title + round back button) rides
+					// the swipe-back drag with the page (user
+					// 2026-11-28: 「不应该是整个屏幕加上顶部一起滑动
+					// 吗」 — the strip stayed fixed while the page
+					// slid under it). The drag offset is posted on
+					// every drag frame report (edgeReportDragFrames,
+					// which the finishers also call with dx = 0), and
+					// the shell translates the strip views by it.
+					reportSubDragFrame() {
+						var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.subDrag;
+						if (!h) return;
+						h.postMessage({ dx: this._edgeDragDx || 0 });
+					},
 					// 26F130 (fold-in 8): native search fields for the
 					// 搜索 / 时刻表 tabs. Same layout-position bridge as
 					// the switches (offsetParent chain, never
@@ -9747,7 +9773,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26G138') return;
+						if (seen === '26G139') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -11428,6 +11454,10 @@ function titlePy(py) {
 						el.style.position = ''; el.style.top = ''; el.style.left = ''; el.style.width = '';
 						el.style.height = ''; el.style.overflow = '';
 						el.style.background = ''; el.style.boxShadow = '';
+						// 26G139: the full-height cover's padding
+						// compensation + the compositor hint go
+						// back to the stylesheet values too.
+						el.style.paddingTop = ''; el.style.willChange = '';
 					}
 					// 26G134: re-report every native control that sits
 					// on a Settings sub-page, so the frame reporters
@@ -11445,6 +11475,10 @@ function titlePy(py) {
 							self.reportSwitchFrame();
 							self.reportCellularFrame();
 							self.reportProfileFrame();
+							// 26G139: the native header strip rides
+							// the drag too (same dx the reporters
+							// above bake into their frames).
+							self.reportSubDragFrame();
 						} catch (e) {}
 					}
 					// 26G135: during the finger drag, touchmove can
@@ -11474,15 +11508,39 @@ function titlePy(py) {
 					// display frame (touchmove only records the
 					// latest dx). The release slide below is
 					// driven the same way (edgeAnimateTo).
+					// 26G139 (user 2026-11-28 "还是不跟手" + a
+					// ghost double-image of the cards mid-drag):
+					// the rAF lockstep made the PAGE trail the
+					// finger by up to a frame, and the huge
+					// transformed layer re-rasterized in tiles as
+					// it moved (a faded second copy of the cards
+					// at a stale offset). The page transform is
+					// synchronous in touchmove again (1:1
+					// tracking) and the overlay is promoted to
+					// its own compositor layer in edgeEngage
+					// (will-change + translate3d), so the drag is
+					// a pure layer move with a single raster —
+					// no tile churn, no ghost copy. The native
+					// posts stay rAF-coalesced (below).
 					var _edgeReportQueued = false;
 					function edgeReportDragFramesSoon() {
 						if (_edgeReportQueued) return;
 						_edgeReportQueued = true;
 						window.requestAnimationFrame(function() {
 							_edgeReportQueued = false;
-							if (_edgeEngaged && _edgeEl && !_edgeDone && self._edgeBusyEl === _edgeEl) {
-								_edgeEl.style.transform = 'translateX(' + (self._edgeDragDx || 0) + 'px)';
-							}
+							// 26G139: posts ONLY — the page
+							// transform is applied synchronously
+							// in touchmove (see there), so the
+							// page tracks the finger 1:1 instead
+							// of trailing it by up to a frame.
+							// The native controls still update at
+							// most once per display frame from
+							// the latest dx; the bridge hop can
+							// leave them a frame behind the page
+							// mid-drag (the 26G136 lockstep traded
+							// that for whole-page lag — the user
+							// reported the page 不跟手， so page
+							// tracking wins).
 							edgeReportDragFrames();
 						});
 					}
@@ -11559,7 +11617,10 @@ function titlePy(py) {
 							var p = Math.min(1, (ts - startAt) / 250);
 							var eased = 1 - Math.pow(1 - p, 3);
 							self._edgeDragDx = Math.max(0, fromDx + (targetDx - fromDx) * eased);
-							el.style.transform = 'translateX(' + self._edgeDragDx + 'px)';
+							// 26G139: translate3d keeps the slide on
+							// the compositor layer edgeEngage
+							// promoted (no re-raster per frame).
+							el.style.transform = 'translate3d(' + self._edgeDragDx + 'px, 0, 0)';
 							edgeReportDragFrames();
 							if (p < 1) window.requestAnimationFrame(step);
 							else finish();
@@ -11579,8 +11640,28 @@ function titlePy(py) {
 						// border box exactly where it was in flow.
 						var _cs = window.getComputedStyle(el);
 						var _mt = parseFloat(_cs.marginTop) || 0, _ml = parseFloat(_cs.marginLeft) || 0;
+						// 26G139: cover from the sheet's VISIBLE top,
+						// not the element's in-flow top. In flow the
+						// sub-page starts below the sheet's top
+						// padding (safe-area + 20) plus its own
+						// 32px top padding — the frozen overlay
+						// anchored there left the whole strip zone
+						// above it uncovered: the overlay's top
+						// edge showed as a horizontal seam mid-drag
+						// and the revealed home showed across the
+						// top while the native strip stayed fixed
+						// (user 2026-11-28: 「整个屏幕加上顶部一起
+						// 滑动」). Extend the box up to the visible
+						// top and push the content back down by the
+						// same amount via padding-top, so the
+						// content does not move a pixel.
+						var _visTop = sheet.scrollTop;
+						var _newTop = Math.min(top, _visTop);
+						var _extend = top - _newTop;
+						var _pt = parseFloat(_cs.paddingTop) || 0;
 						el.style.position = 'absolute';
-						el.style.top = (top - _mt) + 'px'; el.style.left = (left - _ml) + 'px'; el.style.width = w + 'px';
+						el.style.top = (_newTop - _mt) + 'px'; el.style.left = (left - _ml) + 'px'; el.style.width = w + 'px';
+						el.style.paddingTop = (_pt + _extend) + 'px';
 						// 26G134: the frozen overlay must cover the
 						// whole visible page — content height alone
 						// left the Settings home showing below short
@@ -11591,9 +11672,17 @@ function titlePy(py) {
 						// overflow hidden so the opaque background
 						// paints the full box even on the internally
 						// scrolling profile page.
-						var _coverH = sheet.scrollTop + sheet.clientHeight - top;
-						el.style.height = Math.max(h0, _coverH) + 'px';
+						// 26G139: measured from the extended top.
+						var _coverH = sheet.scrollTop + sheet.clientHeight - _newTop;
+						el.style.height = Math.max(h0 + _extend, _coverH) + 'px';
 						el.style.overflow = 'hidden';
+						// 26G139: promote the overlay to its own
+						// compositor layer for the whole drag —
+						// the transform then moves one raster
+						// instead of re-rasterizing tiles at every
+						// offset (the faded ghost copy of the
+						// cards). Cleared by edgeClearInline.
+						el.style.willChange = 'transform';
 						el.style.background = document.documentElement.classList.contains('dark') ? '#000000' : '#f2f2f7';
 						el.style.boxShadow = '-12px 0 24px rgba(0,0,0,0.18)';
 						el.style.transition = 'none';
@@ -11736,7 +11825,17 @@ function titlePy(py) {
 						// posts the frames together (lockstep),
 						// so the native buttons no longer trail
 						// the page by a frame.
+						// 26G139: the lockstep cost the page a
+						// frame of finger lag (user: 「还是不跟
+						// 手」) — the transform is applied HERE,
+						// synchronously, so the page tracks the
+						// finger 1:1; only the bridge posts stay
+						// rAF-coalesced. translate3d rides the
+						// compositor layer from edgeEngage.
 						self._edgeDragDx = _tx;
+						if (_edgeEl && self._edgeBusyEl === _edgeEl) {
+							_edgeEl.style.transform = 'translate3d(' + _tx + 'px, 0, 0)';
+						}
 						edgeReportDragFramesSoon();
 					}, { passive: false });
 					document.addEventListener('touchend', function(e) {
