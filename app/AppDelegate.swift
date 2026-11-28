@@ -4603,7 +4603,11 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         dotSpacer.widthAnchor.constraint(equalToConstant: 10).isActive = true
         let labelSpacer = UIView()
         labelSpacer.translatesAutoresizingMaskIntoConstraints = false
-        labelSpacer.widthAnchor.constraint(equalTo: label.widthAnchor).isActive = true
+        // NOTE: the labelSpacer==label width constraint is activated
+        // AFTER the row stack below is assembled — activating it here
+        // throws NSException ("no common ancestor") because label is
+        // inside line1 while labelSpacer is still standalone. This
+        // was the 26H02 launch crash (fixed in the 26H02 reissue).
         let tailSpacer = UIView()
         tailSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         let line2 = UIStackView(arrangedSubviews: [dotSpacer, labelSpacer, badgeStack, tailSpacer])
@@ -4621,6 +4625,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         row.distribution = .fill
         row.isLayoutMarginsRelativeArrangement = true
         row.layoutMargins = UIEdgeInsets(top: 13, left: 0, bottom: 13, right: 0)
+        // Now that row contains both line1 (label) and line2
+        // (labelSpacer), row is their common ancestor and the
+        // width constraint can be activated safely.
+        labelSpacer.widthAnchor.constraint(equalTo: label.widthAnchor).isActive = true
         return row
     }
 
