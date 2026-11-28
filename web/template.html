@@ -2872,7 +2872,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G142)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26H01)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -4471,6 +4471,9 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26H01)', date: '2026-11-28', lines: [
+								['车站结构图扩充了：北京新增 26 座车站的结构图（苹果园、东坝北、双井、国贸等），来源标为「网络平台」', '車站結構圖擴充了：北京新增 26 座車站的結構圖（蘋果園、東壩北、雙井、國貿等），來源標為「網絡平台」', 'Station structure diagrams expanded — 26 more Beijing stations added (Pingguoyuan, Dongbabei, Shuangjing, Guomao and more), sourced from online platforms']
+							] },
 							{ v: '1.1.0 (26G142)', date: '2026-11-28', lines: [
 								['右滑返回滑动更顺了：修复滑到一半会卡一下的问题，设置、路线详情和时刻表页面都适用，顶部按钮也一起顺了', '右滑返回滑動更順了：修復滑到一半會卡一下的問題，設定、路線詳情和時刻表頁面都適用，頂部按鈕也一起順了', 'Swipe-back is smoother — fixed the brief hitch midway through the slide on Settings, route detail and timetable pages, top button included'],
 								['滑动结束后左下角会短暂显示一行滑动诊断数字（临时，确认顺滑后去掉）', '滑動結束後左下角會短暫顯示一行滑動診斷數字（臨時，確認順滑後去掉）', 'A one-line slide diagnostic readout shows briefly at the bottom-left after each swipe-back (temporary — removed once smoothness is confirmed)']
@@ -9914,7 +9917,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26G142') return;
+						if (seen === '26H01') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
