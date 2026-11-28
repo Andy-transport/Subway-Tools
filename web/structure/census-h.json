@@ -1,0 +1,42 @@
+{
+ "cities": [
+  {
+   "city": "北京",
+   "key": "bj",
+   "spatial": [
+    {
+     "station": "上地",
+     "file": "bj-上地-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/63e311cc0000000008006f35"
+    },
+    {
+     "station": "宋家庄",
+     "file": "bj-宋家庄-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6ae47d850000000025013e26"
+    },
+    {
+     "station": "三元桥",
+     "file": "bj-三元桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/675e6a19000000000603e4ab"
+    }
+   ],
+   "plan": [
+    {
+     "station": "宋家庄",
+     "file": "bj-宋家庄-plan.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6ae47d850000000025013e26"
+    },
+    {
+     "station": "三元桥",
+     "file": "bj-三元桥-plan.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/675e6a19000000000603e4ab"
+    }
+   ]
+  }
+ ]
+}
