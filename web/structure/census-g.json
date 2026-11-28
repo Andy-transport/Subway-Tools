@@ -1,0 +1,174 @@
+{
+ "cities": [
+  {
+   "city": "北京",
+   "key": "bj",
+   "spatial": [
+    {
+     "station": "苹果园",
+     "file": "bj-苹果园-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6a2531ee000000002202fee5"
+    },
+    {
+     "station": "军事博物馆",
+     "file": "bj-军事博物馆-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6a2531ee000000002202fee5"
+    },
+    {
+     "station": "北京西站",
+     "file": "bj-北京西站-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6a2531ee000000002202fee5"
+    },
+    {
+     "station": "天通苑",
+     "file": "bj-天通苑-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/694fa313000000001d03ae2e"
+    },
+    {
+     "station": "回龙观东大街",
+     "file": "bj-回龙观东大街-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/694fa313000000001d03ae2e"
+    },
+    {
+     "station": "光熙门",
+     "file": "bj-光熙门-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "马甸桥",
+     "file": "bj-马甸桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "王府井",
+     "file": "bj-王府井-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6adb044b0000000031036347"
+    },
+    {
+     "station": "东四十条",
+     "file": "bj-东四十条-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/675e7e800000000006038d8e"
+    },
+    {
+     "station": "东坝北",
+     "file": "bj-东坝北-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "和平西桥",
+     "file": "bj-和平西桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "安贞桥",
+     "file": "bj-安贞桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "安华桥",
+     "file": "bj-安华桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "北太平庄",
+     "file": "bj-北太平庄-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "蓟门桥",
+     "file": "bj-蓟门桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "大钟寺",
+     "file": "bj-大钟寺-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "长春桥",
+     "file": "bj-长春桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "四季青桥",
+     "file": "bj-四季青桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/6832f4e900000000230134dd"
+    },
+    {
+     "station": "新发地",
+     "file": "bj-新发地-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/683684520000000022029bdc"
+    },
+    {
+     "station": "草桥",
+     "file": "bj-草桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/683684520000000022029bdc"
+    },
+    {
+     "station": "牛街",
+     "file": "bj-牛街-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/683684520000000022029bdc"
+    },
+    {
+     "station": "太平桥",
+     "file": "bj-太平桥-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/683684520000000022029bdc"
+    },
+    {
+     "station": "积水潭",
+     "file": "bj-积水潭-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/683684520000000022029bdc"
+    },
+    {
+     "station": "牡丹园",
+     "file": "bj-牡丹园-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/683684520000000022029bdc"
+    },
+    {
+     "station": "双井",
+     "file": "bj-双井-spatial.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/68dfb53f000000000302f565"
+    }
+   ],
+   "plan": [
+    {
+     "station": "国贸",
+     "file": "bj-国贸-plan.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/69d06e89000000002102d751"
+    },
+    {
+     "station": "双井",
+     "file": "bj-双井-plan.jpg",
+     "source_url": "网络平台",
+     "source_page": "https://www.xiaohongshu.com/explore/68dfb53f000000000302f565"
+    }
+   ]
+  }
+ ]
+}
