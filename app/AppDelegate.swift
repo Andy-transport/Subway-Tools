@@ -160,6 +160,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     var cityPillLeadingConstraint: NSLayoutConstraint?
     var subBackTopConstraint: NSLayoutConstraint?
     var subHeaderGlass: UIVisualEffectView!
+    var subDragSolid = false // 26G142: strip glass swapped to solid while a swipe-back drag translates it (see setSubDragOffset).
     var subHeaderSep: UIView!
     var subHeaderEffect: UIVisualEffect?
     var subHeaderTitle: UILabel!
@@ -1872,6 +1873,30 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         subHeaderGlass?.transform = t
         subViewBackButton?.transform = t
         subTopCover?.transform = t
+        // 26G142 (drag hitch): while the strip translates with
+        // the drag, its glass backdrop re-blurs the moving page
+        // every frame. Page and strip move by the same dx, so
+        // swap the material for a solid fill for the duration
+        // of the drag (visually steady while sliding) and
+        // restore the scroll-state material at dx == 0 —
+        // mirrors applySubScrollState's targetEffect without
+        // its layout/front side effects. No-op when the strip
+        // has no effect (page at scroll top) or is hidden.
+        if dx != 0 {
+            if !subDragSolid {
+                subDragSolid = true
+                if let glass = subHeaderGlass, glass.effect != nil {
+                    glass.effect = nil
+                    glass.backgroundColor = rootBackgroundColor()
+                }
+            }
+        } else if subDragSolid {
+            subDragSolid = false
+            if let glass = subHeaderGlass {
+                glass.backgroundColor = nil
+                glass.effect = subScrolled ? subHeaderEffect : nil
+            }
+        }
     }
 
     // Leave sub-view mode entirely (sub-view closed): forget the
@@ -2880,6 +2905,13 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         structRouteStations = stations
         if let t = dict["title"] as? String, !t.isEmpty { structRouteTitle = t }
         if let c = dict["cancel"] as? String, !c.isEmpty { structRouteCancel = c }
+        // 26G142 (drag hitch): this runs per drag frame on the
+        // route detail — writing configuration colours/images
+        // every post forces a button relayout, and
+        // bringSubviewToFront churns the hierarchy. Write only
+        // on actual change; front only on the hidden->shown
+        // transition (same cheap path as placeProfile).
+        let tint = structRouteTintColor()
         if structRouteUsesGlass {
             // 26G134: glass path — the cube glyph rides the
             // configuration; the material adapts to light/dark by
@@ -2887,15 +2919,16 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             if btn.configuration?.image !== structRouteIcon {
                 btn.configuration?.image = structRouteIcon
             }
-            btn.configuration?.baseForegroundColor = structRouteTintColor()
+            if btn.configuration?.baseForegroundColor != tint {
+                btn.configuration?.baseForegroundColor = tint
+            }
         } else {
-            btn.setImage(structRouteIcon, for: .normal)
-            btn.tintColor = structRouteTintColor()
+            if btn.image(for: .normal) !== structRouteIcon { btn.setImage(structRouteIcon, for: .normal) }
+            if btn.tintColor != tint { btn.tintColor = tint }
         }
-        btn.accessibilityLabel = structRouteTitle
+        if btn.accessibilityLabel != structRouteTitle { btn.accessibilityLabel = structRouteTitle }
         btn.frame = CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
-        btn.isHidden = false
-        view.bringSubviewToFront(btn)
+        if btn.isHidden { btn.isHidden = false; view.bringSubviewToFront(btn) }
     }
     func makeStructRouteButton() -> UIButton {
         // 26G134: circular Apple UI button mirroring the 40pt
@@ -3668,8 +3701,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
             // Sync web-driven text changes (clear button, history
             // pick, city switch) without clobbering live typing.
             if let text = dict["text"] as? String, !f.isFirstResponder, f.text != text { f.text = text }
-            f.isHidden = false
-            view.bringSubviewToFront(f)
+            // 26G142: front only on the hidden->shown transition
+            // (per-frame hierarchy churn during drags — see
+            // placeProfile).
+            if f.isHidden { f.isHidden = false; view.bringSubviewToFront(f) }
         } else {
             if f.isFirstResponder { f.resignFirstResponder() }
             f.isHidden = true
@@ -3758,8 +3793,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                 sw.setOn(on, animated: false)
                 applying = false
             }
-            sw.isHidden = false
-            view.bringSubviewToFront(sw)
+            // 26G142: front only on the hidden->shown transition
+            // (per-frame hierarchy churn during drags — see
+            // placeProfile).
+            if sw.isHidden { sw.isHidden = false; view.bringSubviewToFront(sw) }
         } else {
             sw.isHidden = true
             webView?.scrollView.isScrollEnabled = true // 26F128 B: same unfreeze as hideNearbySmartSwitch.
@@ -3925,37 +3962,45 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
                           width: w, height: h)
         }
         let show = currentTab == "more" && !splashShowing && !whatsNewShowing
+        // 26G142 (drag hitch): this runs on EVERY profileFrame
+        // post — during a swipe-back drag, once per display
+        // frame. bringSubviewToFront churns the hierarchy
+        // (remove + reinsert + layer-tree commit) and was done
+        // 5x per post; the z-order only needs establishing
+        // when a piece (re)appears — nothing else inserts above
+        // the profile pieces while the page is up (the other
+        // per-frame handlers only hide their own pieces or set
+        // transforms). Front each piece only on its
+        // hidden->shown transition, same cheap-path idea as
+        // placeCityDownloadButtons (26G135).
+        var fronted = false
         if show, let f = rectOf("card") {
             profileInfoCard.frame = f
-            profileInfoCard.isHidden = false
+            if profileInfoCard.isHidden { profileInfoCard.isHidden = false; view.bringSubviewToFront(profileInfoCard); fronted = true }
             if let rows = dict["rows"] as? [[String: Any]] {
                 rebuildProfileInfoRows(rows)
             }
-            view.bringSubviewToFront(profileInfoCard)
         } else {
             profileInfoCard.isHidden = true
         }
         if show, let f = rectOf("save") {
             profileSaveRow.frame = f
-            profileSaveRow.isHidden = false
+            if profileSaveRow.isHidden { profileSaveRow.isHidden = false; view.bringSubviewToFront(profileSaveRow); fronted = true }
             if let t = dict["saveLabel"] as? String, t != profileSaveLabel.text { profileSaveLabel.text = t }
-            view.bringSubviewToFront(profileSaveRow)
         } else {
             profileSaveRow.isHidden = true
         }
         if show, let f = rectOf("redeem") {
             profileRedeemRow.frame = f
-            profileRedeemRow.isHidden = false
+            if profileRedeemRow.isHidden { profileRedeemRow.isHidden = false; view.bringSubviewToFront(profileRedeemRow); fronted = true }
             if let t = dict["redeemLabel"] as? String, t != profileRedeemLabel.text { profileRedeemLabel.text = t }
-            view.bringSubviewToFront(profileRedeemRow)
         } else {
             profileRedeemRow.isHidden = true
         }
         if show, let f = rectOf("logout") {
             profileLogoutRow.frame = f
-            profileLogoutRow.isHidden = false
+            if profileLogoutRow.isHidden { profileLogoutRow.isHidden = false; view.bringSubviewToFront(profileLogoutRow); fronted = true }
             if let t = dict["logoutLabel"] as? String, t != profileLogoutLabel.text { profileLogoutLabel.text = t }
-            view.bringSubviewToFront(profileLogoutRow)
         } else {
             profileLogoutRow.isHidden = true
         }
@@ -3966,8 +4011,10 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
         // peeked out from behind the card — the "stray circle"
         // at the 昵称 card's corner). The back button must
         // stay on top of the profile pieces, like the pickers
-        // already guarantee.
-        if let b = subViewBackButton, !b.isHidden { view.bringSubviewToFront(b) }
+        // already guarantee. 26G142: re-front it only when a
+        // piece was actually fronted above (the only way it
+        // could have been buried).
+        if fronted, let b = subViewBackButton, !b.isHidden { view.bringSubviewToFront(b) }
     }
 
     // 26E124: rebuild the native info card's rows from the
@@ -5450,7 +5497,7 @@ class MapViewController: UIViewController, WKNavigationDelegate, UITabBarDelegat
     @objc func dismissWhatsNewPage() {
         guard whatsNewShowing else { return }
         whatsNewShowing = false
-        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G141')}catch(e){}", completionHandler: nil)
+        webView.evaluateJavaScript("try{localStorage.setItem('metro-lastSeenVersion','26G142')}catch(e){}", completionHandler: nil)
         whatsNewView?.removeFromSuperview()
         whatsNewView = nil
         updateSideBarLayout()

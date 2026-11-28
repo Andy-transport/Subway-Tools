@@ -2872,7 +2872,7 @@
 						 tap-to-reveal-build behaviour. -->
 					<div class="more-card">
 						<div class="more-row"><span>{{ t('app.name') }}</span></div>
-						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G141)' : '1.1.0'}) }}</span></div>
+						<div class="more-row" @click="verFull = !verFull"><span>{{ t('more.version', {v: verFull ? 'v1.1.0 (26G142)' : '1.1.0'}) }}</span></div>
 					</div>
 					<div class="more-card">
 						<div class="more-row" @click="openAppearance"><span class="more-glyph-icon" :style="{ '--gi': 'url(' + appearanceIcon + ')' }"></span><span>{{ t('more.appearance') }}</span><span class="more-chev">›</span></div>
@@ -4471,6 +4471,10 @@ function titlePy(py) {
 						relSel: -1,
 						verFull: false,
 						releaseNotes: [
+							{ v: '1.1.0 (26G142)', date: '2026-11-28', lines: [
+								['右滑返回滑动更顺了：修复滑到一半会卡一下的问题，设置、路线详情和时刻表页面都适用，顶部按钮也一起顺了', '右滑返回滑動更順了：修復滑到一半會卡一下的問題，設定、路線詳情和時刻表頁面都適用，頂部按鈕也一起順了', 'Swipe-back is smoother — fixed the brief hitch midway through the slide on Settings, route detail and timetable pages, top button included'],
+								['滑动结束后左下角会短暂显示一行滑动诊断数字（临时，确认顺滑后去掉）', '滑動結束後左下角會短暫顯示一行滑動診斷數字（臨時，確認順滑後去掉）', 'A one-line slide diagnostic readout shows briefly at the bottom-left after each swipe-back (temporary — removed once smoothness is confirmed)']
+							] },
 							{ v: '1.1.0 (26G141)', date: '2026-11-28', lines: [
 								['天津 8 号线全线开通已加入：中北至咸水沽西 30 座车站可查可换乘，时刻表同步更新；新段车站暂未画入线路图，待线路图更新后补上', '天津 8 號線全線開通已加入：中北至咸水沽西 30 座車站可查可換乘，時刻表同步更新；新段車站暫未畫入線路圖，待線路圖更新後補上', 'Tianjin Line 8 is now open end to end and added: all 30 stations from Zhongbei to Xianshuiguxi are searchable and routable with updated timetables; the new section is not drawn on the line map yet and will follow when the map updates'],
 								['设置里新增「客流数据」：29 座城市的日均客流、年客流与单日最高纪录，按日均排名，点开城市可看各线与大客流车站数据', '設定裏新增「客流數據」：29 座城市的日均客流、年客流與單日最高紀錄，按日均排名，點開城市可看各線與大客流車站數據', 'New Passenger Flow page in Settings: daily average, annual ridership and single-day records for 29 cities, ranked by daily average — tap a city for its per-line and busiest-station figures'],
@@ -5246,6 +5250,36 @@ function titlePy(py) {
 							if (h) h.postMessage({ done: done, total: total, city: city || '' });
 						} catch (e) {}
 					},
+					// 26G142: layout-position rect with a drag-scoped
+					// cache. During an engaged swipe-back drag the
+					// dragged page is frozen absolute and nothing
+					// scrolls, so every slot's layout position is
+					// constant for the whole gesture — yet the
+					// reporters below recomputed the offsetParent
+					// walk + offset sizes on EVERY drag frame, and
+					// the first pass after engage forced a
+					// synchronous layout of the sheet (engage's
+					// style writes dirty layout), stalling the web
+					// main thread mid-gesture while touchmoves
+					// queued (user 2026-11-28 「滑到一半卡」: the
+					// page froze briefly, then jumped). While
+					// _dragRectCache is live (set at engage,
+					// cleared by every finisher) the first call per
+					// key computes and caches; later calls in the
+					// same drag reuse it and the caller adds the
+					// drag dx. Outside a drag the cache is null
+					// and every call computes fresh, as before.
+					dragBaseRect(el, key) {
+						var cache = this._dragRectCache;
+						if (cache && cache[key]) return cache[key];
+						var x = 0, y = 0, n = el;
+						while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
+						n = el.parentNode;
+						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
+						var r = { x: x, y: y, width: el.offsetWidth || 0, height: el.offsetHeight || 0 };
+						if (cache) cache[key] = r;
+						return r;
+					},
 					// Native "download all" button slot (city sub-page):
 					// same layout-position reporting as reportSwitchFrame
 					// (26E124: offset chain, transform-independent).
@@ -5254,11 +5288,9 @@ function titlePy(py) {
 						if (!h) return;
 						var el = document.getElementById('mapsDownloadSlot');
 						if (!this.showCitySub || !el) { h.postMessage({ x: 0, y: 0, width: 0, height: 0 }); return; }
-						var x = 0, y = 0, n = el;
-						while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
-						n = el.parentNode;
-						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
-						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+						// 26G142: cached during drags (see dragBaseRect).
+						var _r = this.dragBaseRect(el, 'mapsDl');
+						var x = _r.x, y = _r.y, w = _r.width, hh = _r.height;
 						// 26F128: hide once the slot's bottom edge slides under the floating tab bar (bar clearance posted by native) — the native button + 已下载 label must scroll away with the card, never float over the bar.
 						if (!w || y + hh < 0 || y + hh > window.innerHeight - (window._metroBarClearance || 110)) { h.postMessage({ x: 0, y: 0, width: 0, height: 0 }); return; }
 						// 26G134: during a swipe-back drag the layout
@@ -5286,11 +5318,9 @@ function titlePy(py) {
 						for (var i = 0; i < slots.length; i++) {
 							var el = slots[i], key = el.getAttribute('data-city');
 							if (!key) continue;
-							var x = 0, y = 0, n = el;
-							while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
-							n = el.parentNode;
-							while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
-							var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+							// 26G142: cached during drags (see dragBaseRect).
+							var _r = self.dragBaseRect(el, 'cityDl:' + key);
+							var x = _r.x, y = _r.y, w = _r.width, hh = _r.height;
 							var state = (self.mapState[key] === 'ready') ? 'delete' : ((self.mapState[key] === 'loading') ? 'loading' : ((self.mapState[key] === 'error') ? 'error' : 'download'));
 							// 26F128: a row whose bottom edge has scrolled under the floating tab bar hides its native capsule (bar clearance posted by native) — capsules must never float over the tab bar.
 							if (!w || y + hh < 0 || y + hh > window.innerHeight - (window._metroBarClearance || 110)) { out.push({ key: key, x: 0, y: 0, width: 0, height: 0, state: state }); continue; }
@@ -5333,11 +5363,9 @@ function titlePy(py) {
 						var el = document.getElementById('structBtnSlot');
 						var stations = this.routeStructStations;
 						if (!this.routeDetailOpen || !this.routeResult || this.showStructure || !el || !stations.length) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, stations: [], title: '', icon: '' }); return; }
-						var x = 0, y = 0, n = el;
-						while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
-						n = el.parentNode;
-						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
-						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+						// 26G142: cached during drags (see dragBaseRect).
+						var _r = this.dragBaseRect(el, 'structBtn');
+						var x = _r.x, y = _r.y, w = _r.width, hh = _r.height;
 						if (!w || y + hh < 0 || y > window.innerHeight) { h.postMessage({ x: 0, y: 0, width: 0, height: 0, stations: [], title: '', icon: '' }); return; }
 						// 26G141: ride the route-detail swipe-back drag
 						// (layout position + drag dx, like the Settings
@@ -6310,7 +6338,9 @@ function titlePy(py) {
 							// running (interrupted), put it back.
 							if (this._edgeRevealedMain && !this._edgeBusyEl && this.anySubViewOpen && sheet) {
 								var _mm = sheet.querySelector('.more-main');
-								if (_mm) _mm.style.display = 'none';
+								// 26G142: also drop the drag-reveal
+								// animation suppression (see edgeEngage).
+								if (_mm) { _mm.style.display = 'none'; _mm.style.animation = ''; }
 								this._edgeRevealedMain = false;
 							}
 							// 26G141: the panel-family drag elements
@@ -9006,11 +9036,10 @@ function titlePy(py) {
 						// already final; scrolled ancestors are backed
 						// out via the parent chain so the result stays a
 						// viewport position. The follow-up timer is gone.
-						var x = 0, y = 0, n = el;
-						while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
-						n = el.parentNode;
-						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
-						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+						// 26G142: the walk lives in dragBaseRect now
+						// (cached during drags; fresh otherwise).
+						var _r = this.dragBaseRect(el, 'switch:nearbySmart');
+						var x = _r.x, y = _r.y, w = _r.width, hh = _r.height;
 						if (!w || y + hh < 0 || y > window.innerHeight) { h.postMessage({ id: 'nearbySmart', x: 0, y: 0, width: 0, height: 0, on: this.nearbySmart }); return; }
 						// 26G134: ride with the swipe-back drag; the
 						// drag flag tells native to skip its
@@ -9028,11 +9057,9 @@ function titlePy(py) {
 						if (!h) return;
 						var el = document.getElementById('cellularSlot');
 						if (!this.showMore || !this.soleSubOpen('showGeneralSub') || !el) { h.postMessage({ id: 'cellular', x: 0, y: 0, width: 0, height: 0, on: this.allowCellular }); return; }
-						var x = 0, y = 0, n = el;
-						while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
-						n = el.parentNode;
-						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
-						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+						// 26G142: cached during drags (see dragBaseRect).
+						var _r = this.dragBaseRect(el, 'switch:cellular');
+						var x = _r.x, y = _r.y, w = _r.width, hh = _r.height;
 						if (!w || y + hh < 0 || y > window.innerHeight) { h.postMessage({ id: 'cellular', x: 0, y: 0, width: 0, height: 0, on: this.allowCellular }); return; }
 						// 26G134: ride with the swipe-back drag (see
 						// reportSwitchFrame).
@@ -9072,11 +9099,9 @@ function titlePy(py) {
 					},
 					reportOneSearchField(h, id, el, visible, text, placeholder) {
 						if (!visible || !el) { h.postMessage({ id: id, x: 0, y: 0, width: 0, height: 0, text: text || '', placeholder: placeholder || '' }); return; }
-						var x = 0, y = 0, n = el;
-						while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
-						n = el.parentNode;
-						while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
-						var w = el.offsetWidth || 0, hh = el.offsetHeight || 0;
+						// 26G142: cached during drags (see dragBaseRect).
+						var _r = this.dragBaseRect(el, 'search:' + id);
+						var x = _r.x, y = _r.y, w = _r.width, hh = _r.height;
 						if (!w || !hh || y + hh < 0 || y > window.innerHeight) { h.postMessage({ id: id, x: 0, y: 0, width: 0, height: 0, text: text || '', placeholder: placeholder || '' }); return; }
 						// 26G134: the 车型检索 field sits on a Settings
 						// sub-page — ride with the swipe-back drag
@@ -9805,6 +9830,7 @@ function titlePy(py) {
 						// tells native to skip its right-edge clamp
 						// while dragging.
 						var _dx = this._edgeDragDx || 0;
+						var _self = this;
 						function rect(sel) {
 							var el = document.querySelector(sel);
 							if (!el) return { x: 0, y: 0, width: 0, height: 0 };
@@ -9817,12 +9843,10 @@ function titlePy(py) {
 							// screenshot: values truncated). offsetLeft/
 							// offsetTop are transform-independent; scrolled
 							// ancestors are backed out via the parent chain.
-							var x = 0, y = 0, n = el;
-							while (n) { x += n.offsetLeft || 0; y += n.offsetTop || 0; n = n.offsetParent; }
-							n = el.parentNode;
-							while (n && n !== document.documentElement) { x -= n.scrollLeft || 0; y -= n.scrollTop || 0; n = n.parentNode; }
-							var w = el.offsetWidth || 0;
-							return { x: w ? x + _dx : x, y: y, width: w, height: el.offsetHeight || 0 };
+							// 26G142: the walk lives in dragBaseRect now
+							// (cached during drags; fresh otherwise).
+							var _r = _self.dragBaseRect(el, 'profile:' + sel);
+							return { x: _r.width ? _r.x + _dx : _r.x, y: _r.y, width: _r.width, height: _r.height };
 						}
 						var msg = {
 							drag: _dx > 0,
@@ -9890,7 +9914,7 @@ function titlePy(py) {
 						if (!h || !this.releaseNotes.length) return;
 						var seen = null;
 						try { seen = window.localStorage.getItem('metro-lastSeenVersion'); } catch (e) {}
-						if (seen === '26G141') return;
+						if (seen === '26G142') return;
 						var self = this;
 						var entry = this.releaseNotes[0];
 						h.postMessage({
@@ -11573,6 +11597,45 @@ function titlePy(py) {
 					// nativeEdgePanComplete() on a >60pt release —
 					// _edgeDone makes the two paths fire goBack
 					// exactly once between them.
+					// 26G142 drag-perf readout (TEMPORARY, removable in
+					// one place: delete this block + the dragPerfStart/
+					// dragPerfStop calls + the _dp increments). The
+					// swipe-back drag hitches once mid-slide on device
+					// (user 2026-11-28 「滑到一半卡」, strip too) and
+					// the exact cost cannot be pinned statically, so
+					// during an engaged drag a rAF loop records the
+					// worst frame gap, the drag dx + elapsed time when
+					// it hit, and move/post/frame counts; on release a
+					// small fixed readout shows them for ~6s. gapDx/
+					// gapT discriminate the candidates: engage-time
+					// layout/paint (small dx, small t) vs mid-drag
+					// rasterization (large dx) vs steady per-frame
+					// cost (frames << dur/16 with a modest maxGap).
+					var DRAGPERF_26G142 = true;
+					var _dp = null;
+					function dragPerfStart() {
+						if (!DRAGPERF_26G142) return;
+						if (_dp && _dp.raf) cancelAnimationFrame(_dp.raf);
+						_dp = { t0: performance.now(), last: performance.now(), maxGap: 0, gapDx: 0, gapT: 0, moves: 0, posts: 0, frames: 0, raf: 0 };
+						var tick = function(ts) {
+							if (!_dp) return;
+							var gap = ts - _dp.last; _dp.last = ts; _dp.frames++;
+							if (gap > _dp.maxGap) { _dp.maxGap = gap; _dp.gapDx = Math.round(self._edgeDragDx || 0); _dp.gapT = Math.round(ts - _dp.t0); }
+							_dp.raf = window.requestAnimationFrame(tick);
+						};
+						_dp.raf = window.requestAnimationFrame(tick);
+					}
+					function dragPerfStop() {
+						if (!_dp) return;
+						var d = _dp; _dp = null;
+						if (d.raf) cancelAnimationFrame(d.raf);
+						var dur = Math.round(performance.now() - d.t0);
+						var el = document.createElement('div');
+						el.textContent = 'drag maxGap=' + Math.round(d.maxGap) + 'ms @dx=' + d.gapDx + ' t=' + d.gapT + 'ms moves=' + d.moves + ' posts=' + d.posts + ' frames=' + d.frames + ' dur=' + dur + 'ms';
+						el.style.cssText = 'position:fixed;left:8px;bottom:100px;z-index:99999;background:rgba(0,0,0,0.78);color:#fff;font:11px monospace;padding:4px 6px;border-radius:4px;pointer-events:none;';
+						document.body.appendChild(el);
+						setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 6000);
+					}
 					var _edgeX = null, _edgeY = null;
 					var _edgeEl = null, _edgeEngaged = false, _edgeDone = false;
 					var _edgeDx = 0, _edgeDy = 0, _edgeTok = 0, _edgeSavedScroll = 0;
@@ -11652,6 +11715,36 @@ function titlePy(py) {
 							self.reportStructBtnFrame();
 						} catch (e) {}
 					}
+					// 26G142: drag-frame fast path. The full set above
+					// posts all eight reporters on every drag frame;
+					// during an engaged drag only the controls ON the
+					// dragged page can move — the rest post zero-frame
+					// hides that change nothing (their native pieces
+					// are already hidden), yet each post still costs
+					// a bridge hop + a native handler run on the main
+					// thread. The fast path posts the strip offset
+					// plus only the dragged page's reporters. The
+					// finishers still call the FULL set once at
+					// dx = 0, so every control gets its exact
+					// resting/hidden frame when the drag ends.
+					function edgeReportDragFramesFast() {
+						try {
+							self.reportSubDragFrame();
+							if (_dp) _dp.posts++;
+							if (_edgeKind === 'panel') {
+								if (self.routeDetailOpen) { self.reportStructBtnFrame(); if (_dp) _dp.posts++; }
+								return;
+							}
+							if (self.showCitySub) { self.reportMapsDownloadFrame(); self.reportCityDownloadFrames(); if (_dp) _dp.posts += 2; }
+							if (self.showProfileSub) { self.reportProfileFrame(); if (_dp) _dp.posts++; }
+							if (self.showLocSub) { self.reportSwitchFrame(); if (_dp) _dp.posts++; }
+							if (self.showGeneralSub) { self.reportCellularFrame(); if (_dp) _dp.posts++; }
+							if (self.showTrainSub) {
+								var _h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.searchFieldFrame;
+								if (_h) { self.reportOneSearchField(_h, 'trains', document.querySelector('#moreSheet .more-search-input'), true, self.trainQuery, self.t('more.trains.ph')); if (_dp) _dp.posts++; }
+							}
+						} catch (e) {}
+					}
 					// 26G135: during the finger drag, touchmove can
 					// fire faster than the display refresh (120 Hz
 					// on ProMotion) and each event posted all six
@@ -11712,7 +11805,9 @@ function titlePy(py) {
 							// that for whole-page lag — the user
 							// reported the page 不跟手， so page
 							// tracking wins).
-							edgeReportDragFrames();
+							// 26G142: fast path — only the dragged
+							// page's reporters post per frame.
+							edgeReportDragFramesFast();
 						});
 					}
 					// 26G135 (iPad report: 通用 sub-page stuck
@@ -11750,13 +11845,17 @@ function titlePy(py) {
 						// touchmove/touchend from the dead sequence
 						// must not re-transform the restored page.
 						_edgeX = null; _edgeY = null; _edgeEngaged = false;
+						// 26G142: drag over — drop the rect cache and
+						// stop the perf recorder (shows its readout).
+						self._dragRectCache = null;
+						dragPerfStop();
 						if (!self._edgeBusyEl) return;
 						edgeClearInline(self._edgeBusyEl);
 						self._edgeBusyEl = null;
 						if (self._edgeRevealedMain) {
 							var _sh = edgeSheet();
 							var _mm2 = _sh ? _sh.querySelector('.more-main') : null;
-							if (_mm2 && self.anySubViewOpen) _mm2.style.display = 'none';
+							if (_mm2 && self.anySubViewOpen) { _mm2.style.display = 'none'; _mm2.style.animation = ''; }
 							if (_sh) _sh.scrollTop = _edgeSavedScroll;
 							self._edgeRevealedMain = false;
 						}
@@ -11792,7 +11891,9 @@ function titlePy(py) {
 							// the compositor layer edgeEngage
 							// promoted (no re-raster per frame).
 							el.style.transform = 'translate3d(' + self._edgeDragDx + 'px, 0, 0)';
-							edgeReportDragFrames();
+							// 26G142: fast path during the slide too
+							// (the finisher posts the full set).
+							edgeReportDragFramesFast();
 							if (p < 1) window.requestAnimationFrame(step);
 							else finish();
 						}
@@ -11845,6 +11946,11 @@ function titlePy(py) {
 						el.style.boxShadow = '-12px 0 24px rgba(0,0,0,0.18)';
 						el.style.transition = 'none';
 						self._edgeBusyEl = el;
+						// 26G142: slot geometry is frozen for the
+						// whole drag — cache reporter rects, and
+						// start the perf recorder.
+						self._dragRectCache = {};
+						dragPerfStart();
 						edgeArmWatchdog();
 					}
 					function edgeEngage() {
@@ -11907,8 +12013,22 @@ function titlePy(py) {
 						el.style.boxShadow = '-12px 0 24px rgba(0,0,0,0.18)';
 						el.style.transition = 'none';
 						var mm = sheet.querySelector('.more-main');
-						if (mm) { mm.style.display = ''; self._edgeRevealedMain = true; }
+						// 26G142: revealing the home flips it from
+						// display:none — which also RESTARTS its
+						// .moreMainIn entrance animation (translateX
+						// -24px + fade, 0.35s), so the under-page
+						// animated for the first third of every drag
+						// on top of its layout/paint. Suppress the
+						// animation for the drag reveal (the overlay
+						// uncovering it is the motion); every restore
+						// site clears the inline value so normal
+						// closes animate as before.
+						if (mm) { mm.style.display = ''; mm.style.animation = 'none'; self._edgeRevealedMain = true; }
 						self._edgeBusyEl = el;
+						// 26G142: rect cache + perf recorder (see
+						// edgeEngagePanel).
+						self._dragRectCache = {};
+						dragPerfStart();
 						// 26G137: watchdog — if the gesture's
 						// touchend/touchcancel never arrives, nothing
 						// else ever finishes this drag (the sweep is
@@ -11919,6 +12039,9 @@ function titlePy(py) {
 					}
 					function edgeSettleBack() {
 						var el = _edgeEl, tok = ++_edgeTok;
+						// 26G142: finger released — stop the perf
+						// recorder (readout shows over the slide).
+						dragPerfStop();
 						if (!el) return;
 						// 26G136: JS-driven slide (edgeAnimateTo)
 						// instead of a CSS transition, so the page
@@ -11932,7 +12055,7 @@ function titlePy(py) {
 							if (!panel) {
 								var sheet = edgeSheet();
 								var mm = sheet ? sheet.querySelector('.more-main') : null;
-								if (mm && self.anySubViewOpen) mm.style.display = 'none';
+								if (mm && self.anySubViewOpen) { mm.style.display = 'none'; mm.style.animation = ''; }
 								self._edgeRevealedMain = false;
 								edgeClearInline(el);
 								if (sheet) sheet.scrollTop = _edgeSavedScroll;
@@ -11940,6 +12063,9 @@ function titlePy(py) {
 								edgeClearInline(el);
 							}
 							self._edgeBusyEl = null;
+							// 26G142: drag over — reporters compute
+							// fresh geometry again from here.
+							self._dragRectCache = null;
 							// 26G134: settled — native controls back
 							// to their exact pre-drag frames.
 							self._edgeDragDx = 0;
@@ -11949,6 +12075,9 @@ function titlePy(py) {
 					}
 					function edgeComplete() {
 						var el = _edgeEl, tok = ++_edgeTok;
+						// 26G142: finger released — stop the perf
+						// recorder (readout shows over the slide).
+						dragPerfStop();
 						// 26G141: panel family — slide the pushed view
 						// fully off-screen, clear the freeze, then let
 						// goBack flip the flag (Vue unmounts the view;
@@ -11959,6 +12088,8 @@ function titlePy(py) {
 							edgeAnimateTo(el, window.innerWidth, tok, function() {
 								edgeClearInline(el);
 								self._edgeBusyEl = null;
+								// 26G142: drag over (see settle finisher).
+								self._dragRectCache = null;
 								self.goBack();
 								self._edgeDragDx = 0;
 								edgeReportDragFrames();
@@ -11973,6 +12104,12 @@ function titlePy(py) {
 							edgeClearInline(el);
 							self._edgeRevealedMain = false;
 							self._edgeBusyEl = null;
+							// 26G142: drag over (see settle finisher);
+							// restore the home entrance animation
+							// before goBack reveals it for real.
+							self._dragRectCache = null;
+							var _mm3 = sheet.querySelector('.more-main');
+							if (_mm3) _mm3.style.animation = '';
 							self.goBack();
 							// 26G134: page closed — zero-frame reports
 							// hide the native controls.
@@ -12047,6 +12184,7 @@ function titlePy(py) {
 						}
 						var _tx = Math.max(0, dx);
 						self._edgeDragDx = _tx;
+						if (_dp) _dp.moves++;
 						if (_edgeEl && self._edgeBusyEl === _edgeEl) {
 							_edgeEl.style.transform = 'translate3d(' + _tx + 'px, 0, 0)';
 						}
@@ -12083,10 +12221,13 @@ function titlePy(py) {
 						if (self._edgeBusyEl) {
 							edgeClearInline(self._edgeBusyEl);
 							self._edgeBusyEl = null;
+							// 26G142: force-finished — drop the rect
+							// cache before the fresh reports below.
+							self._dragRectCache = null;
 							if (self._edgeRevealedMain) {
 								var _sh = edgeSheet();
 								var _mm2 = _sh ? _sh.querySelector('.more-main') : null;
-								if (_mm2 && self.anySubViewOpen) _mm2.style.display = 'none';
+								if (_mm2 && self.anySubViewOpen) { _mm2.style.display = 'none'; _mm2.style.animation = ''; }
 								if (_sh) _sh.scrollTop = _edgeSavedScroll;
 								self._edgeRevealedMain = false;
 							}
@@ -12135,6 +12276,7 @@ function titlePy(py) {
 						// rAF-coalesced. translate3d rides the
 						// compositor layer from edgeEngage.
 						self._edgeDragDx = _tx;
+						if (_dp) _dp.moves++;
 						if (_edgeEl && self._edgeBusyEl === _edgeEl) {
 							_edgeEl.style.transform = 'translate3d(' + _tx + 'px, 0, 0)';
 						}
